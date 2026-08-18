@@ -1,0 +1,1142 @@
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIME Investment Group Plc — Operations Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @media print {
+    body * { visibility: hidden; }
+    .printable-doc, .printable-doc * { visibility: visible; }
+    .printable-doc { position: absolute; top: 0; left: 0; width: 100%; }
+    .no-print { display: none !important; }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .tab-btn.active { background: #0f2f4f; color: #fff; }
+  .locked-badge { font-size: 10px; }
+  .kpi-card { border-left: 4px solid #0f2f4f; }
+  .section-card h3 { letter-spacing: .02em; text-transform: uppercase; font-size: 12px; color: #64748b; }
+  .bar-track { background: #e2e8f0; border-radius: 4px; overflow: hidden; height: 10px; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+</style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mt-4{margin-top:1rem}.mb-1{margin-bottom:0.25rem}.mb-10{margin-bottom:2.5rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-8{margin-bottom:2rem}.mt-6{margin-top:1.5rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.max-h-72{max-height:18rem}.min-h-screen{min-height:100vh}.w-full{width:100%}.w-20{width:5rem}.w-56{width:14rem}.w-64{width:16rem}.max-w-6xl{max-width:72rem}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.border-collapse{border-collapse:collapse}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.whitespace-pre-line{white-space:pre-line}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-t{border-top-width:1px}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-\[\#0f2f4f\]{--tw-bg-opacity:1;background-color:rgb(15 47 79 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.p-10{padding:2.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-2{padding-bottom:0.5rem}.pb-4{padding-bottom:1rem}.pr-3{padding-right:0.75rem}.pt-8{padding-top:2rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-2xl{font-size:1.5rem;line-height:2rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-\[\#0f2f4f\]{--tw-text-opacity:1;color:rgb(15 47 79 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.hover\:bg-\[\#123a63\]:hover{--tw-bg-opacity:1;background-color:rgb(18 58 99 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}@media (min-width: 768px){.md\:col-span-2{grid-column:span 2 / span 2}.md\:col-span-3{grid-column:span 3 / span 3}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}</style></head>
+<body class="bg-slate-100 min-h-screen">
+
+<!-- ============================= LOGIN ============================= -->
+<div id="login-view" class="min-h-screen flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-md w-full max-w-sm p-8">
+    <div class="text-center mb-6">
+      <h1 class="text-xl font-bold text-slate-800">PRIME Investment Group Plc</h1>
+      <p class="text-sm text-slate-500">Operations Portal</p>
+    </div>
+    <form id="login-form" class="space-y-3">
+      <input id="login-email" type="email" required="" placeholder="Email" class="w-full border p-2 rounded">
+      <input id="login-password" type="password" required="" placeholder="Password" class="w-full border p-2 rounded">
+      <button class="w-full bg-[#0f2f4f] hover:bg-[#123a63] text-white font-semibold py-2 rounded">Sign In</button>
+      <p id="login-error" class="text-red-600 text-sm hidden"></p>
+    </form>
+    <p class="text-xs text-slate-400 mt-4 text-center">Accounts are created by an administrator. Contact your admin if you don't have a login.</p>
+  </div>
+</div>
+
+<!-- ============================= APP ============================= -->
+<div id="app-view" class="hidden">
+
+  <!-- Header / Nav -->
+  <div class="bg-[#0f2f4f] text-white no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div>
+        <div class="font-bold">PRIME Investment Group Plc</div>
+        <div class="text-xs text-slate-300" id="user-badge"></div>
+      </div>
+      <button onclick="signOut()" class="text-sm bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded">Sign Out</button>
+    </div>
+    <div class="max-w-6xl mx-auto px-4 flex gap-1 pb-2 flex-wrap" id="tab-bar"></div>
+  </div>
+
+  <div class="max-w-6xl mx-auto p-4">
+
+    <!-- ---------- STOCK / PURCHASE / SALE ENTRY ---------- -->
+    <section id="tab-stock" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print">
+        <h2 class="font-bold text-lg mb-4" id="stock-form-title">Log Stock Purchase / Sale</h2>
+        <form id="stock-form" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select id="stock-type" class="border p-2 rounded" required="">
+            <option value="purchase">Purchase</option>
+            <option value="sale">Sale</option>
+          </select>
+          <input id="stock-item" placeholder="Item (e.g. Plywood 18mm)" class="border p-2 rounded md:col-span-2" required="">
+          <input id="stock-qty" type="number" step="0.01" placeholder="Quantity" class="border p-2 rounded" required="">
+          <input id="stock-price" type="number" step="0.01" placeholder="Unit Price (ETB)" class="border p-2 rounded" required="">
+          <select id="stock-location" class="border p-2 rounded">
+            <optgroup label="Warehouse">
+              <option>Lebu</option>
+              <option>Kolfe</option>
+            </optgroup>
+            <optgroup label="Shop">
+              <option>Mesalemya</option>
+              <option>Jemo</option>
+              <option>CMC</option>
+            </optgroup>
+            <optgroup label="Head Office">
+              <option>Head Office / Merkato Africa Building</option>
+            </optgroup>
+          </select>
+          <textarea id="stock-notes" placeholder="Notes" class="border p-2 rounded md:col-span-3"></textarea>
+          <div class="md:col-span-3 flex gap-2">
+            <button class="flex-1 bg-[#0f2f4f] text-white rounded py-2 font-semibold" id="stock-submit-btn">Save Entry</button>
+            <button type="button" onclick="cancelStockEdit()" id="stock-cancel-btn" class="hidden px-4 rounded border font-semibold text-slate-600">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-3 no-print">
+          <h3 class="font-semibold">Recent Entries</h3>
+          <div class="flex items-center gap-3 text-sm">
+            <label class="flex items-center gap-1"><input type="checkbox" id="stock-group-toggle" onchange="loadStock()"> Group by warehouse</label>
+            <button onclick="downloadStockCSV()" class="text-[#0f2f4f] font-semibold underline">Download CSV</button>
+          </div>
+        </div>
+        <div id="stock-list" class="space-y-2 text-sm"></div>
+      </div>
+    </section>
+
+    <!-- ---------- EXPENSES ---------- -->
+    <section id="tab-expenses" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print">
+        <h2 class="font-bold text-lg mb-4" id="expense-form-title">Log Expense</h2>
+        <form id="expense-form" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select id="exp-category" class="border p-2 rounded md:col-span-3" required=""></select>
+          <input id="exp-amount" type="number" step="0.01" placeholder="Amount (ETB)" class="border p-2 rounded" required="">
+          <select id="exp-location" class="border p-2 rounded">
+            <optgroup label="Warehouse">
+              <option>Lebu</option>
+              <option>Kolfe</option>
+            </optgroup>
+            <optgroup label="Shop">
+              <option>Mesalemya</option>
+              <option>Jemo</option>
+              <option>CMC</option>
+            </optgroup>
+            <optgroup label="Head Office">
+              <option>Head Office / Merkato Africa Building</option>
+            </optgroup>
+          </select>
+          <div></div>
+          <textarea id="exp-desc" placeholder="Description (add detail here, especially for 'Other')" class="border p-2 rounded md:col-span-3"></textarea>
+          <div class="md:col-span-3 flex gap-2">
+            <button class="flex-1 bg-[#0f2f4f] text-white rounded py-2 font-semibold" id="expense-submit-btn">Save Expense</button>
+            <button type="button" onclick="cancelExpenseEdit()" id="expense-cancel-btn" class="hidden px-4 rounded border font-semibold text-slate-600">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="font-semibold mb-3">Recent Expenses</h3>
+        <div id="expense-list" class="space-y-2 text-sm"></div>
+      </div>
+    </section>
+
+    <!-- ---------- SALES CRM ---------- -->
+    <section id="tab-sales" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print">
+        <h2 class="font-bold text-lg mb-4">Log Interaction / New Customer</h2>
+        <form id="sales-form" class="space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input id="cust-name" list="customer-list" placeholder="Customer / Company Name" class="border p-2 rounded" required="" onchange="loadCustomerHistory(this.value)">
+            <datalist id="customer-list"></datalist>
+            <select id="cust-source" class="border p-2 rounded">
+              <option>Cold Call</option><option>Social Media</option><option>Direct Visit</option>
+              <option>Referral</option><option>Previous Contact</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input id="cust-phone" placeholder="Phone (+251...)" class="border p-2 rounded">
+            <input id="cust-email" type="email" placeholder="Email" class="border p-2 rounded">
+          </div>
+          <select id="cust-status" class="w-full border p-2 rounded" required="">
+            <option>New Lead</option><option>Proforma Sent</option><option>Meeting Scheduled</option>
+            <option>Account Info Sent</option><option>Payment Pending</option>
+            <option>Closed / Won</option><option>Closed / Lost</option>
+          </select>
+          <textarea id="cust-notes" rows="3" placeholder="Notes" class="w-full border p-2 rounded" required=""></textarea>
+          <button class="w-full bg-[#0f2f4f] text-white rounded py-2 font-semibold">Save Interaction</button>
+        </form>
+      </div>
+      <div id="timeline-container" class="bg-white rounded-lg shadow-sm p-6 hidden">
+        <h3 class="font-semibold mb-3" id="timeline-title">History</h3>
+        <div id="timeline-logs" class="space-y-2 text-sm"></div>
+      </div>
+    </section>
+
+    <!-- ---------- SALES REPORT ---------- -->
+    <section id="tab-report" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+          <h2 class="font-bold text-lg">Sales Ledger — All Reps</h2>
+          <select id="report-status-filter" onchange="loadReport()" class="border p-2 rounded text-sm no-print">
+            <option value="">All statuses</option>
+            <option>New Lead</option><option>Proforma Sent</option><option>Meeting Scheduled</option>
+            <option>Account Info Sent</option><option>Payment Pending</option>
+            <option>Closed / Won</option><option>Closed / Lost</option>
+          </select>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="text-left border-b-2 border-slate-700 text-slate-600">
+                <th class="py-2 pr-3">Date</th>
+                <th class="py-2 pr-3">Customer</th>
+                <th class="py-2 pr-3">Status</th>
+                <th class="py-2">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="report-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- MANAGEMENT / BOARD VIEW-ONLY ---------- -->
+    <section id="tab-overview" class="tab-panel hidden">
+      <div class="flex justify-between items-center mb-4 no-print">
+        <h2 class="font-bold text-xl text-[#0f2f4f]">Executive Dashboard</h2>
+        <span class="text-xs text-slate-400">Period: last 30 days</span>
+      </div>
+
+      <!-- Executive summary -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-4 kpi-card"><div class="text-xs text-slate-500">Revenue (Sales)</div><div class="text-2xl font-bold text-[#0f2f4f]" id="kpi-revenue">—</div></div>
+        <div class="bg-white rounded-lg shadow-sm p-4 kpi-card" style="border-color:#b45309"><div class="text-xs text-slate-500">Direct / COGS</div><div class="text-2xl font-bold" style="color:#b45309" id="kpi-direct">—</div></div>
+        <div class="bg-white rounded-lg shadow-sm p-4 kpi-card" style="border-color:#be123c"><div class="text-xs text-slate-500">Operating Expenses</div><div class="text-2xl font-bold" style="color:#be123c" id="kpi-opex">—</div></div>
+        <div class="bg-white rounded-lg shadow-sm p-4 kpi-card" style="border-color:#15803d"><div class="text-xs text-slate-500">Net Margin (est.)</div><div class="text-2xl font-bold" style="color:#15803d" id="kpi-net">—</div></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <!-- Inventory section -->
+        <div class="bg-white rounded-lg shadow-sm p-6 section-card">
+          <h3 class="mb-3">Inventory &amp; Stock</h3>
+          <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+            <div><div class="text-slate-400 text-xs">Stock entries (30d)</div><div class="text-xl font-bold" id="kpi-stock">—</div></div>
+            <div><div class="text-slate-400 text-xs">Purchases vs Sales</div><div class="text-xl font-bold" id="kpi-stock-ratio">—</div></div>
+          </div>
+          <div class="text-xs font-semibold text-slate-500 mb-2">By warehouse</div>
+          <div id="overview-warehouse" class="space-y-2 text-sm"></div>
+        </div>
+
+        <!-- Financial section -->
+        <div class="bg-white rounded-lg shadow-sm p-6 section-card">
+          <h3 class="mb-3">Financial — Expense Breakdown</h3>
+          <div id="overview-expense-groups" class="space-y-3 text-sm"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <!-- Sales pipeline -->
+        <div class="bg-white rounded-lg shadow-sm p-6 section-card">
+          <h3 class="mb-3">Sales Pipeline</h3>
+          <div class="text-sm mb-2">Open leads: <span class="font-bold" id="kpi-leads">—</span></div>
+          <div id="overview-pipeline" class="space-y-2 text-sm"></div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="bg-white rounded-lg shadow-sm p-6 section-card">
+          <h3 class="mb-3">Recent Stock Activity (view only)</h3>
+          <div id="overview-list" class="space-y-2 text-sm max-h-72 overflow-y-auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- INCOME TAX ---------- -->
+    <section id="tab-incometax" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-1">
+          <h2 class="font-bold text-lg">Income Tax Working Sheet</h2>
+          <div class="flex items-center gap-2 text-sm no-print">
+            <label>Period:</label>
+            <input type="month" id="tax-month" class="border p-2 rounded" onchange="loadIncomeTax()">
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">Computed from logged Stock (Purchases/Sales) and Expense entries. This is an internal working sheet, not a filed statutory return — verify against source documents before submission to the Ministry of Revenue.</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <tbody id="tax-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- PROFORMA ---------- -->
+    <section id="tab-proforma" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print">
+        <h2 class="font-bold text-lg mb-4">Create Proforma Invoice</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <input id="pf-customer" placeholder="Customer / Company Name" class="border p-2 rounded" required="">
+          <input id="pf-address" placeholder="Customer Address / Phone" class="border p-2 rounded">
+        </div>
+        <div id="pf-items" class="space-y-2 mb-2"></div>
+        <button type="button" onclick="addProformaItem()" class="text-sm text-[#0f2f4f] font-semibold mb-3">+ Add Line Item</button>
+        <div class="flex items-center gap-2 mb-3">
+          <label class="text-sm">VAT %</label>
+          <input id="pf-vat" type="number" value="15" class="border p-2 rounded w-20">
+        </div>
+        <textarea id="pf-notes" placeholder="Terms / notes (validity, payment terms...)" class="w-full border p-2 rounded mb-3"></textarea>
+        <button onclick="generateProforma()" class="bg-[#0f2f4f] text-white rounded py-2 px-6 font-semibold">Generate &amp; Preview</button>
+      </div>
+
+      <div id="proforma-print" class="printable-doc bg-white rounded-lg shadow-sm p-10 hidden">
+        <div class="flex justify-between items-start border-b pb-4 mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-[#0f2f4f]">PRIME Investment Group Plc</h1>
+            <p class="text-sm text-slate-500">Addis Ababa, Ethiopia</p>
+            <p class="text-sm text-slate-500">TIN: ______________ | Tel: 0911 220597</p>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-lg">PROFORMA INVOICE</div>
+            <div class="text-sm">No: <span id="pf-no"></span></div>
+            <div class="text-sm">Date: <span id="pf-date"></span></div>
+          </div>
+        </div>
+        <div class="mb-4 text-sm">
+          <div><strong>Bill To:</strong> <span id="pf-out-customer"></span></div>
+          <div id="pf-out-address" class="text-slate-500"></div>
+        </div>
+        <table class="w-full text-sm border-collapse mb-4">
+          <thead><tr class="border-b-2 border-slate-800 text-left">
+            <th class="py-2">#</th><th>Description</th><th class="text-right">Qty</th>
+            <th class="text-right">Unit Price</th><th class="text-right">Total</th>
+          </tr></thead>
+          <tbody id="pf-out-items"></tbody>
+        </table>
+        <div class="flex justify-end mb-6">
+          <div class="w-56 text-sm">
+            <div class="flex justify-between py-1"><span>Subtotal</span><span id="pf-out-subtotal"></span></div>
+            <div class="flex justify-between py-1"><span>VAT (<span id="pf-out-vatpct"></span>%)</span><span id="pf-out-vat"></span></div>
+            <div class="flex justify-between py-2 border-t font-bold"><span>Total</span><span id="pf-out-total"></span></div>
+          </div>
+        </div>
+        <div class="text-sm text-slate-600 mb-8" id="pf-out-notes"></div>
+        <div class="flex justify-between text-sm pt-8">
+          <div>Prepared by: __________________</div>
+          <div>Authorized signature: __________________</div>
+        </div>
+        <button onclick="window.print()" class="no-print mt-6 bg-[#0f2f4f] text-white rounded py-2 px-6 font-semibold">Print / Save as PDF</button>
+      </div>
+    </section>
+
+    <!-- ---------- LETTERS / FORMS ---------- -->
+    <section id="tab-letters" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print">
+        <h2 class="font-bold text-lg mb-1">Letters &amp; Forms</h2>
+        <p class="text-sm text-slate-500 mb-4">Choose a template to fill and print.</p>
+        <div class="flex gap-2">
+          <button onclick="showLetterTemplate('wht')" id="letter-tab-wht" class="letter-tab-btn text-sm px-3 py-1.5 rounded font-semibold border">Withholding Tax Refund Request</button>
+          <button onclick="showLetterTemplate('generic')" id="letter-tab-generic" class="letter-tab-btn text-sm px-3 py-1.5 rounded font-semibold border">General Letterhead Letter</button>
+        </div>
+      </div>
+
+      <!-- Withholding Tax Refund Request form -->
+      <div id="wht-form-wrap" class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print hidden">
+        <h3 class="font-semibold mb-3">Withholding Tax Refund Request — Line Items</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <input id="wht-vendor" placeholder="Vendor / Factory Name" class="border p-2 rounded" required="">
+          <input id="wht-vendor-address" placeholder="Vendor Address" class="border p-2 rounded">
+          <input id="wht-vendor-tin" placeholder="Vendor TIN (optional)" class="border p-2 rounded">
+          <input id="wht-ref" placeholder="Our Reference No. (optional)" class="border p-2 rounded">
+        </div>
+        <div id="wht-items" class="space-y-2 mb-2"></div>
+        <button type="button" onclick="addWhtItem()" class="text-sm text-[#0f2f4f] font-semibold mb-3">+ Add Line Item</button>
+        <textarea id="wht-notes" placeholder="Additional notes (optional)" class="w-full border p-2 rounded mb-3"></textarea>
+        <button onclick="generateWhtLetter()" class="bg-[#0f2f4f] text-white rounded py-2 px-6 font-semibold">Generate &amp; Preview</button>
+      </div>
+
+      <div id="wht-print" class="printable-doc bg-white rounded-lg shadow-sm p-10 hidden">
+        <div class="mb-8">
+          <h1 class="text-xl font-bold text-[#0f2f4f]">PRIME Investment Group Plc</h1>
+          <p class="text-sm text-slate-500">Addis Ababa, Ethiopia</p>
+          <p class="text-sm text-slate-500">TIN: ______________ | Tel: 0911 220597</p>
+        </div>
+        <div class="text-sm mb-6">Date: <span id="wht-out-date"></span></div>
+        <div class="text-sm mb-6">
+          <div><strong>To:</strong> <span id="wht-out-vendor"></span></div>
+          <div id="wht-out-address" class="text-slate-500"></div>
+        </div>
+        <div class="text-sm mb-4">
+          <strong>Subject: Request for Refund of Withholding Tax Amount Deducted and Remitted to the Ministry of Revenue</strong>
+        </div>
+        <p class="text-sm mb-3">Dear Sir/Madam,</p>
+        <p class="text-sm mb-3">
+          This letter is to formally request a refund from your organization in respect of the amounts detailed below. In accordance with the Ethiopian Income Tax Proclamation No. 979/2016 and its withholding tax regulations, PRIME Investment Group Plc, as a withholding agent, is required to withhold the applicable percentage from payments made to suppliers of goods and remit the withheld amount directly to the Ministry of Revenue.
+        </p>
+        <p class="text-sm mb-3">
+          For the transactions listed below, your organization required full payment of the gross invoice amount without allowing the applicable withholding deduction at source. To remain compliant, PRIME Investment Group Plc has separately remitted the withholding tax due on these transactions to the Ministry of Revenue and holds the corresponding withholding tax certificate(s) as evidence. As a result, your organization has received an amount in excess of what was contractually due, and we kindly request a refund of the amounts shown below.
+        </p>
+        <table class="w-full text-sm border-collapse mb-4">
+          <thead><tr class="border-b-2 border-slate-800 text-left">
+            <th class="py-2">#</th><th>Date</th><th>Invoice / PO No.</th><th>Description</th>
+            <th class="text-right">Gross Amount (ETB)</th><th class="text-right">WHT %</th>
+            <th class="text-right">WHT Amount (ETB)</th><th>Certificate No.</th>
+          </tr></thead>
+          <tbody id="wht-out-items"></tbody>
+        </table>
+        <div class="flex justify-end mb-6">
+          <div class="w-64 text-sm">
+            <div class="flex justify-between py-2 border-t font-bold"><span>Total Refund Requested</span><span id="wht-out-total"></span></div>
+          </div>
+        </div>
+        <p class="text-sm mb-3" id="wht-out-notes"></p>
+        <p class="text-sm mb-3">
+          We would appreciate your prompt attention to this matter and request that the refund be processed via bank transfer to our account on file, or offset against our next purchase, whichever is more convenient for your organization. Please do not hesitate to contact us should you require the supporting withholding tax certificates or further documentation.
+        </p>
+        <p class="text-sm mb-10">Thank you for your continued partnership.</p>
+        <div class="flex justify-between text-sm pt-8">
+          <div>Prepared by: __________________</div>
+          <div>Authorized signature &amp; stamp: __________________</div>
+        </div>
+        <button onclick="window.print()" class="no-print mt-6 bg-[#0f2f4f] text-white rounded py-2 px-6 font-semibold">Print / Save as PDF</button>
+      </div>
+
+      <!-- Generic letter form -->
+      <div id="generic-form-wrap" class="bg-white rounded-lg shadow-sm p-6 mb-4 no-print hidden">
+        <h3 class="font-semibold mb-3">General Letterhead Letter</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <input id="gen-to" placeholder="To (Name / Organization)" class="border p-2 rounded" required="">
+          <input id="gen-address" placeholder="Address (optional)" class="border p-2 rounded">
+        </div>
+        <input id="gen-subject" placeholder="Subject" class="border p-2 rounded w-full mb-3" required="">
+        <textarea id="gen-body" rows="8" placeholder="Letter body..." class="border p-2 rounded w-full mb-3" required=""></textarea>
+        <button onclick="generateGenericLetter()" class="bg-[#0f2f4f] text-white rounded py-2 px-6 font-semibold">Generate &amp; Preview</button>
+      </div>
+
+      <div id="generic-print" class="printable-doc bg-white rounded-lg shadow-sm p-10 hidden">
+        <div class="mb-8">
+          <h1 class="text-xl font-bold text-[#0f2f4f]">PRIME Investment Group Plc</h1>
+          <p class="text-sm text-slate-500">Addis Ababa, Ethiopia</p>
+          <p class="text-sm text-slate-500">TIN: ______________ | Tel: 0911 220597</p>
+        </div>
+        <div class="text-sm mb-6">Date: <span id="gen-out-date"></span></div>
+        <div class="text-sm mb-6">
+          <div><strong>To:</strong> <span id="gen-out-to"></span></div>
+          <div id="gen-out-address" class="text-slate-500"></div>
+        </div>
+        <div class="text-sm mb-4"><strong>Subject: </strong><span id="gen-out-subject"></span></div>
+        <div class="text-sm mb-10 whitespace-pre-line" id="gen-out-body"></div>
+        <div class="flex justify-between text-sm pt-8">
+          <div>Prepared by: __________________</div>
+          <div>Authorized signature &amp; stamp: __________________</div>
+        </div>
+        <button onclick="window.print()" class="no-print mt-6 bg-[#0f2f4f] text-white rounded py-2 px-6 font-semibold">Print / Save as PDF</button>
+      </div>
+    </section>
+
+    <!-- ---------- USERS (admin only) ---------- -->
+    <section id="tab-users" class="tab-panel hidden">
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="font-bold text-lg mb-4">Users &amp; Roles</h2>
+        <p class="text-sm text-slate-500 mb-4">Create new logins in Supabase Dashboard → Authentication → Users. New accounts default to "data_entry" — change their role below.</p>
+        <div id="user-list" class="space-y-2 text-sm"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+// ---- Supabase project connection ----
+// Fill these in with YOUR OWN project's values (Supabase Dashboard -> Project Settings -> API).
+// The "anon / publishable" key is safe to leave in client-side code (it is designed to be
+// public); your data stays protected by the Row Level Security (RLS) policies on your tables.
+const SUPABASE_URL = 'https://xyauecfuqropmqpchcny.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_jtovxa6yaAKDAte62b6E7A_fWY-Qtxh';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let currentRole = null;
+
+const ROLE_TABS = {
+  admin:         [['stock','Stock/Purchases'],['expenses','Expenses'],['sales','Sales CRM'],['report','Sales Report'],['overview','Overview'],['incometax','Income Tax'],['proforma','Proforma'],['letters','Letters'],['users','Users']],
+  data_entry:    [['stock','Stock/Purchases'],['expenses','Expenses']],
+  accounting:    [['stock','Stock/Purchases'],['expenses','Expenses'],['overview','Overview'],['incometax','Income Tax'],['letters','Letters']],
+  sales:         [['sales','Sales CRM'],['proforma','Proforma']],
+  sales_manager: [['report','Sales Report']],
+  management:    [['overview','Overview'],['incometax','Income Tax']]
+};
+
+// ---- Chart of Accounts (GAAP-style groupings for expense categorization) ----
+const CHART_OF_ACCOUNTS = {
+  'Direct Cost / COGS': [
+    'Raw Material Purchases','Direct Labor / Production Wages','Freight-In / Inbound Transport',
+    'Import Duty & Customs Clearance','Packaging Materials','Production Supplies & Consumables',
+    'Machinery & Equipment Rental (Production)','Subcontractor / Outsourced Production Costs',
+    'Warehouse Handling & Loading','Cost of Goods Sold – Adjustment'
+  ],
+  'Selling & Distribution': [
+    'Sales Commission','Advertising & Marketing','Delivery & Freight-Out','Travel – Sales Staff',
+    'Customer Entertainment','Samples & Promotional Materials','Trade Show / Exhibition Costs'
+  ],
+  'Administrative / G&A': [
+    'Office Rent','Utilities – Electricity','Utilities – Water','Utilities – Internet & Telephone',
+    'Office Supplies & Stationery','Salaries – Administrative Staff','Salaries – Management',
+    'Employee Benefits & Allowances','Pension / Provident Fund Contribution',
+    'Repairs & Maintenance – Office','Repairs & Maintenance – Vehicles','Insurance – General',
+    'Legal & Professional Fees','Audit & Accounting Fees','Business License & Registration Fees',
+    'Bank Service Charges','Depreciation – Office Equipment','Depreciation – Vehicles',
+    'Depreciation – Buildings','Cleaning & Sanitation Services','Security Services',
+    'Printing & Publications','Software Subscriptions & IT Services','Fuel – Administrative Vehicles',
+    'Staff Training & Development','Recruitment & HR Costs','Donations & CSR','Miscellaneous / Sundry Expense'
+  ],
+  'Financial Costs': [
+    'Interest Expense – Bank Loan','Loan Processing Fees','Foreign Exchange Loss',
+    'Letter of Credit (L/C) Charges','Bank Overdraft Interest'
+  ],
+  'Tax & Statutory Payments': [
+    'Withholding Tax Paid','VAT Expense (Non-Recoverable)','Corporate Income Tax Provision',
+    'Stamp Duty','Municipality / Kebele Tax','Employer Pension Contribution (Statutory)'
+  ],
+  'Other': ['Other (specify in description)']
+};
+const GROUP_COLORS = {
+  'Direct Cost / COGS': '#b45309',
+  'Selling & Distribution': '#7c3aed',
+  'Administrative / G&A': '#0f2f4f',
+  'Financial Costs': '#be123c',
+  'Tax & Statutory Payments': '#0e7490',
+  'Other': '#64748b'
+};
+function buildExpenseCategorySelect() {
+  const sel = document.getElementById('exp-category');
+  if (!sel) return;
+  sel.innerHTML = Object.entries(CHART_OF_ACCOUNTS).map(([group, items]) =>
+    `<optgroup label="${group}">${items.map(i => `<option value="${group} — ${i}">${i}</option>`).join('')}</optgroup>`
+  ).join('');
+}
+function splitCategory(catStr) {
+  const idx = (catStr || '').indexOf(' — ');
+  if (idx === -1) return { group: 'Uncategorized (legacy entry)', label: catStr || 'Unspecified' };
+  return { group: catStr.slice(0, idx), label: catStr.slice(idx + 3) };
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const errEl = document.getElementById('login-error');
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.classList.remove('hidden');
+  } else {
+    await boot();
+  }
+});
+
+async function signOut() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function boot() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return;
+  currentUser = user;
+
+  const { data: profile, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  if (error || !profile) {
+    alert('No profile found for this account. Ask an admin to check your setup.');
+    return;
+  }
+  currentRole = profile.role;
+
+  document.getElementById('login-view').classList.add('hidden');
+  document.getElementById('app-view').classList.remove('hidden');
+  document.getElementById('user-badge').textContent = `${profile.full_name} — ${currentRole.replace('_',' ')}`;
+
+  buildTabs();
+  loadAllForRole();
+}
+
+function buildTabs() {
+  const bar = document.getElementById('tab-bar');
+  bar.innerHTML = '';
+  const tabs = ROLE_TABS[currentRole] || [];
+  tabs.forEach(([id, label], i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn text-sm px-3 py-1.5 rounded-t font-semibold text-slate-200 hover:bg-white/10' + (i === 0 ? ' active' : '');
+    btn.textContent = label;
+    btn.onclick = () => showTab(id, btn);
+    bar.appendChild(btn);
+  });
+  if (tabs.length) showTab(tabs[0][0]);
+}
+
+function showTab(id, btnEl) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById('tab-' + id).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+}
+
+function loadAllForRole() {
+  buildExpenseCategorySelect();
+  if (document.getElementById('tab-stock')) loadStock();
+  if (document.getElementById('tab-expenses')) loadExpenses();
+  if (currentRole === 'admin') { loadUsers(); initSalesPortal(); }
+  if (currentRole === 'sales') initSalesPortal();
+  if (currentRole === 'sales_manager' || currentRole === 'admin') loadReport();
+  if (currentRole === 'management' || currentRole === 'accounting' || currentRole === 'admin') loadOverview();
+  if (document.getElementById('tab-incometax')) {
+    const monthInput = document.getElementById('tax-month');
+    if (monthInput && !monthInput.value) monthInput.value = new Date().toISOString().slice(0,7);
+    loadIncomeTax();
+  }
+  if (document.getElementById('tab-letters')) showLetterTemplate('wht');
+}
+
+// STOCK
+let stockData = [];
+let editingStockId = null;
+
+document.getElementById('stock-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    entry_type: document.getElementById('stock-type').value,
+    item_name: document.getElementById('stock-item').value,
+    quantity: parseFloat(document.getElementById('stock-qty').value),
+    unit_price: parseFloat(document.getElementById('stock-price').value),
+    location: document.getElementById('stock-location').value,
+    notes: document.getElementById('stock-notes').value
+  };
+  let error;
+  if (editingStockId) {
+    ({ error } = await sb.from('stock_entries').update(payload).eq('id', editingStockId));
+  } else {
+    payload.created_by = currentUser.id;
+    ({ error } = await sb.from('stock_entries').insert([payload]));
+  }
+  if (error) { alert('Error: ' + error.message); return; }
+  e.target.reset();
+  cancelStockEdit();
+  loadStock();
+});
+
+function editStock(id) {
+  const row = stockData.find(r => r.id === id);
+  if (!row) return;
+  editingStockId = id;
+  document.getElementById('stock-type').value = row.entry_type;
+  document.getElementById('stock-item').value = row.item_name;
+  document.getElementById('stock-qty').value = row.quantity;
+  document.getElementById('stock-price').value = row.unit_price;
+  document.getElementById('stock-location').value = row.location || '';
+  document.getElementById('stock-notes').value = row.notes || '';
+  document.getElementById('stock-form-title').textContent = 'Edit Stock Entry (Admin Correction)';
+  document.getElementById('stock-submit-btn').textContent = 'Update Entry';
+  document.getElementById('stock-cancel-btn').classList.remove('hidden');
+  document.getElementById('stock-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelStockEdit() {
+  editingStockId = null;
+  document.getElementById('stock-form-title').textContent = 'Log Stock Purchase / Sale';
+  document.getElementById('stock-submit-btn').textContent = 'Save Entry';
+  document.getElementById('stock-cancel-btn').classList.add('hidden');
+}
+
+async function loadStock() {
+  const { data, error } = await sb.from('stock_entries').select('*').order('created_at', { ascending: false }).limit(200);
+  const el = document.getElementById('stock-list');
+  if (error || !data) { el.innerHTML = '<p class="text-slate-400">No entries yet.</p>'; return; }
+  stockData = data;
+
+  const renderRow = (row) => {
+    const editable = currentRole !== 'data_entry' || (Date.now() - new Date(row.created_at)) < 15 * 60 * 1000;
+    const canFullyEdit = currentRole === 'admin' || editable;
+    return `<div class="flex justify-between items-center border-b py-2">
+      <div>
+        <span class="font-semibold">${row.entry_type === 'purchase' ? 'Purchase' : 'Sale'}</span>
+        — ${row.item_name} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
+        <span class="text-slate-400">(${row.location || ''})</span>
+        <div class="text-xs text-slate-400">${new Date(row.created_at).toLocaleString()}</div>
+      </div>
+      <div class="flex gap-3 no-print">
+        ${canFullyEdit ? `<button onclick="editStock('${row.id}')" class="text-[#0f2f4f] text-xs font-semibold">Edit</button>` : ''}
+        ${canFullyEdit ? `<button onclick="deleteStock('${row.id}')" class="text-red-600 text-xs">Delete</button>`
+                   : `<span class="locked-badge text-slate-400">locked</span>`}
+      </div>
+    </div>`;
+  };
+
+  const grouped = document.getElementById('stock-group-toggle')?.checked;
+  if (!grouped) {
+    el.innerHTML = data.slice(0, 50).map(renderRow).join('');
+  } else {
+    const byLoc = {};
+    data.forEach(r => { const k = r.location || 'Unspecified'; (byLoc[k] = byLoc[k] || []).push(r); });
+    el.innerHTML = Object.entries(byLoc).map(([loc, rows]) => {
+      const subtotal = rows.reduce((s, r) => s + Number(r.total || 0), 0);
+      return `<div class="mb-4">
+        <div class="flex justify-between items-baseline bg-slate-50 px-2 py-1 rounded font-semibold text-[#0f2f4f]">
+          <span>${loc}</span><span class="text-xs text-slate-500">${rows.length} entries · ETB ${subtotal.toLocaleString()}</span>
+        </div>
+        ${rows.slice(0, 20).map(renderRow).join('')}
+      </div>`;
+    }).join('');
+  }
+}
+
+async function deleteStock(id) {
+  if (!confirm('Delete this entry?')) return;
+  const { error } = await sb.from('stock_entries').delete().eq('id', id);
+  if (error) alert('Error: ' + error.message);
+  loadStock();
+}
+
+function downloadStockCSV() {
+  const rows = [['Date','Type','Item','Quantity','Unit Price','Total','Warehouse/Location','Notes']];
+  stockData.forEach(r => rows.push([
+    new Date(r.created_at).toLocaleString(), r.entry_type, r.item_name, r.quantity, r.unit_price, r.total, r.location || '', (r.notes || '').replace(/[\r\n,]+/g,' ')
+  ]));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `stock_report_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// EXPENSES
+let expenseData = [];
+let editingExpenseId = null;
+
+document.getElementById('expense-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    category: document.getElementById('exp-category').value,
+    amount: parseFloat(document.getElementById('exp-amount').value),
+    description: document.getElementById('exp-desc').value,
+    location: document.getElementById('exp-location').value
+  };
+  let error;
+  if (editingExpenseId) {
+    ({ error } = await sb.from('expenses').update(payload).eq('id', editingExpenseId));
+  } else {
+    payload.created_by = currentUser.id;
+    ({ error } = await sb.from('expenses').insert([payload]));
+  }
+  if (error) { alert('Error: ' + error.message); return; }
+  e.target.reset();
+  buildExpenseCategorySelect();
+  cancelExpenseEdit();
+  loadExpenses();
+});
+
+function editExpense(id) {
+  const row = expenseData.find(r => r.id === id);
+  if (!row) return;
+  editingExpenseId = id;
+  document.getElementById('exp-category').value = row.category;
+  document.getElementById('exp-amount').value = row.amount;
+  document.getElementById('exp-location').value = row.location || '';
+  document.getElementById('exp-desc').value = row.description || '';
+  document.getElementById('expense-form-title').textContent = 'Edit Expense (Admin Correction)';
+  document.getElementById('expense-submit-btn').textContent = 'Update Expense';
+  document.getElementById('expense-cancel-btn').classList.remove('hidden');
+  document.getElementById('expense-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelExpenseEdit() {
+  editingExpenseId = null;
+  document.getElementById('expense-form-title').textContent = 'Log Expense';
+  document.getElementById('expense-submit-btn').textContent = 'Save Expense';
+  document.getElementById('expense-cancel-btn').classList.add('hidden');
+}
+
+async function loadExpenses() {
+  const { data, error } = await sb.from('expenses').select('*').order('created_at', { ascending: false }).limit(100);
+  const el = document.getElementById('expense-list');
+  if (error || !data) { el.innerHTML = '<p class="text-slate-400">No entries yet.</p>'; return; }
+  expenseData = data;
+  el.innerHTML = data.slice(0, 50).map(row => {
+    const editable = currentRole !== 'data_entry' || (Date.now() - new Date(row.created_at)) < 15 * 60 * 1000;
+    const canFullyEdit = currentRole === 'admin' || editable;
+    const { group, label } = splitCategory(row.category);
+    return `<div class="flex justify-between items-center border-b py-2">
+      <div>
+        <span class="font-semibold">${label}</span>
+        <span class="text-xs text-slate-400">(${group})</span> — ETB ${Number(row.amount).toLocaleString()}
+        <span class="text-slate-400">(${row.location || ''})</span>
+        <div class="text-xs text-slate-400">${row.description || ''} · ${new Date(row.created_at).toLocaleString()}</div>
+      </div>
+      <div class="flex gap-3 no-print">
+        ${canFullyEdit ? `<button onclick="editExpense('${row.id}')" class="text-[#0f2f4f] text-xs font-semibold">Edit</button>` : ''}
+        ${canFullyEdit ? `<button onclick="deleteExpense('${row.id}')" class="text-red-600 text-xs">Delete</button>`
+                   : `<span class="locked-badge text-slate-400">locked</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteExpense(id) {
+  if (!confirm('Delete this entry?')) return;
+  const { error } = await sb.from('expenses').delete().eq('id', id);
+  if (error) alert('Error: ' + error.message);
+  loadExpenses();
+}
+
+// SALES CRM
+async function initSalesPortal() {
+  const { data } = await sb.from('customers').select('customer_name');
+  if (data) document.getElementById('customer-list').innerHTML = data.map(c => `<option value="${c.customer_name}">`).join('');
+}
+
+document.getElementById('sales-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const customerName = document.getElementById('cust-name').value.trim();
+  const phone = document.getElementById('cust-phone').value;
+  const email = document.getElementById('cust-email').value;
+  const leadSource = document.getElementById('cust-source').value;
+  const status = document.getElementById('cust-status').value;
+  const notes = document.getElementById('cust-notes').value;
+
+  try {
+    let { data: existing } = await sb.from('customers').select('id').eq('customer_name', customerName).single();
+    let customerId = existing?.id;
+
+    if (!customerId) {
+      const { data: newCust, error } = await sb.from('customers')
+        .insert([{ customer_name: customerName, phone, email, lead_source: leadSource, current_status: status }])
+        .select();
+      if (error) throw error;
+      customerId = newCust[0].id;
+    } else {
+      await sb.from('customers').update({ current_status: status, phone, email }).eq('id', customerId);
+    }
+
+    const { error: logErr } = await sb.from('customer_logs')
+      .insert([{ customer_id: customerId, sales_rep: currentUser.id, status, notes }]);
+    if (logErr) throw logErr;
+
+    alert('Interaction logged.');
+    document.getElementById('cust-notes').value = '';
+    loadCustomerHistory(customerName);
+    initSalesPortal();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+});
+
+async function loadCustomerHistory(customerName) {
+  if (!customerName) return;
+  const { data: cust } = await sb.from('customers').select('id').eq('customer_name', customerName).single();
+  if (!cust) { document.getElementById('timeline-container').classList.add('hidden'); return; }
+
+  const { data: logs } = await sb.from('customer_logs').select('*').eq('customer_id', cust.id).order('created_at', { ascending: false });
+  const container = document.getElementById('timeline-container');
+  document.getElementById('timeline-title').innerText = `History: ${customerName}`;
+  if (logs && logs.length) {
+    document.getElementById('timeline-logs').innerHTML = logs.map(log => `
+      <div class="bg-slate-50 p-3 border-l-4 border-[#0f2f4f] rounded">
+        <div class="flex justify-between text-xs text-slate-500 mb-1">
+          <span>${new Date(log.created_at).toLocaleString()}</span>
+        </div>
+        <div class="font-semibold text-sm text-[#0f2f4f]">${log.status}</div>
+        <p class="text-sm text-slate-700">${log.notes}</p>
+      </div>`).join('');
+    container.classList.remove('hidden');
+  }
+}
+
+// SALES REPORT
+async function loadReport() {
+  const filter = document.getElementById('report-status-filter')?.value;
+  let q = sb.from('customer_logs').select('*, customers(customer_name)').order('created_at', { ascending: false }).limit(150);
+  if (filter) q = q.eq('status', filter);
+  const { data, error } = await q;
+  const el = document.getElementById('report-list');
+  if (error || !data) { el.innerHTML = '<tr><td class="text-slate-400 py-2">No activity yet.</td></tr>'; return; }
+  el.innerHTML = data.map(row => `
+    <tr class="border-b align-top">
+      <td class="py-2 pr-3 text-xs text-slate-500 whitespace-nowrap">${new Date(row.created_at).toLocaleDateString()}</td>
+      <td class="py-2 pr-3 font-semibold">${row.customers?.customer_name || ''}</td>
+      <td class="py-2 pr-3"><span class="text-xs bg-slate-100 rounded px-2 py-0.5">${row.status}</span></td>
+      <td class="py-2 text-slate-600">${row.notes || ''}</td>
+    </tr>`).join('');
+}
+
+// OVERVIEW (Executive Dashboard)
+async function loadOverview() {
+  const since = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+  const { data: stock } = await sb.from('stock_entries').select('*').gte('created_at', since).order('created_at', { ascending: false });
+  const { data: exp } = await sb.from('expenses').select('*').gte('created_at', since);
+  const { data: leads } = await sb.from('customers').select('id, current_status').not('current_status', 'in', '("Closed / Won","Closed / Lost")');
+
+  const stockRows = stock || [];
+  const expRows = exp || [];
+  const purchases = stockRows.filter(r => r.entry_type === 'purchase');
+  const sales = stockRows.filter(r => r.entry_type === 'sale');
+  const revenue = sales.reduce((s,r) => s + Number(r.total || 0), 0);
+  const directCostFromStock = purchases.reduce((s,r) => s + Number(r.total || 0), 0);
+
+  // group expenses by chart-of-accounts group
+  const byGroup = {};
+  expRows.forEach(r => {
+    const { group } = splitCategory(r.category);
+    byGroup[group] = (byGroup[group] || 0) + Number(r.amount || 0);
+  });
+  const directCostFromExp = byGroup['Direct Cost / COGS'] || 0;
+  const opexTotal = Object.entries(byGroup).reduce((s,[g,v]) => g === 'Direct Cost / COGS' ? s : s + v, 0);
+  const directTotal = directCostFromStock + directCostFromExp;
+  const netMargin = revenue - directTotal - opexTotal;
+
+  document.getElementById('kpi-revenue').textContent = 'ETB ' + revenue.toLocaleString();
+  document.getElementById('kpi-direct').textContent = 'ETB ' + directTotal.toLocaleString();
+  document.getElementById('kpi-opex').textContent = 'ETB ' + opexTotal.toLocaleString();
+  document.getElementById('kpi-net').textContent = 'ETB ' + netMargin.toLocaleString();
+  document.getElementById('kpi-stock').textContent = stockRows.length;
+  document.getElementById('kpi-stock-ratio').textContent = `${purchases.length} / ${sales.length}`;
+  document.getElementById('kpi-leads').textContent = leads ? leads.length : '—';
+
+  // by warehouse
+  const byLoc = {};
+  stockRows.forEach(r => { const k = r.location || 'Unspecified'; (byLoc[k] = byLoc[k] || {count:0,total:0}); byLoc[k].count++; byLoc[k].total += Number(r.total||0); });
+  document.getElementById('overview-warehouse').innerHTML = Object.entries(byLoc).length
+    ? Object.entries(byLoc).map(([loc,v]) => `<div class="flex justify-between border-b py-1"><span>${loc}</span><span class="text-slate-500">${v.count} entries · ETB ${v.total.toLocaleString()}</span></div>`).join('')
+    : '<p class="text-slate-400">No stock activity in period.</p>';
+
+  // expense breakdown by group (bar visualization)
+  const maxVal = Math.max(1, ...Object.values(byGroup));
+  document.getElementById('overview-expense-groups').innerHTML = Object.keys(CHART_OF_ACCOUNTS).map(g => {
+    const v = byGroup[g] || 0;
+    const pct = Math.round((v / maxVal) * 100);
+    return `<div>
+      <div class="flex justify-between text-xs mb-1"><span class="font-semibold" style="color:${GROUP_COLORS[g]}">${g}</span><span>ETB ${v.toLocaleString()}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${GROUP_COLORS[g]}"></div></div>
+    </div>`;
+  }).join('');
+
+  // sales pipeline funnel
+  const pipelineCounts = {};
+  (leads || []).forEach(l => { pipelineCounts[l.current_status] = (pipelineCounts[l.current_status]||0)+1; });
+  document.getElementById('overview-pipeline').innerHTML = Object.keys(pipelineCounts).length
+    ? Object.entries(pipelineCounts).map(([s,c]) => `<div class="flex justify-between border-b py-1"><span>${s}</span><span class="font-semibold">${c}</span></div>`).join('')
+    : '<p class="text-slate-400">No open leads.</p>';
+
+  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `
+    <div class="border-b py-2 text-sm">
+      ${row.entry_type} — ${row.item_name} × ${row.quantity} = ETB ${row.total}
+      <span class="text-xs text-slate-400">(${new Date(row.created_at).toLocaleString()})</span>
+    </div>`).join('');
+}
+
+// INCOME TAX WORKING SHEET
+async function loadIncomeTax() {
+  const monthInput = document.getElementById('tax-month');
+  const monthVal = monthInput ? monthInput.value : new Date().toISOString().slice(0,7);
+  const [y, m] = monthVal.split('-').map(Number);
+  const start = new Date(Date.UTC(y, m-1, 1)).toISOString();
+  const end = new Date(Date.UTC(y, m, 1)).toISOString();
+
+  const { data: stock } = await sb.from('stock_entries').select('*').gte('created_at', start).lt('created_at', end);
+  const { data: exp } = await sb.from('expenses').select('*').gte('created_at', start).lt('created_at', end);
+
+  const stockRows = stock || []; const expRows = exp || [];
+  const sales = stockRows.filter(r => r.entry_type === 'sale').reduce((s,r)=>s+Number(r.total||0),0);
+  const purchases = stockRows.filter(r => r.entry_type === 'purchase').reduce((s,r)=>s+Number(r.total||0),0);
+
+  const byGroup = {};
+  expRows.forEach(r => { const { group } = splitCategory(r.category); byGroup[group] = (byGroup[group]||0) + Number(r.amount||0); });
+  const directExp = byGroup['Direct Cost / COGS'] || 0;
+  const opex = Object.entries(byGroup).reduce((s,[g,v]) => g === 'Direct Cost / COGS' ? s : s+v, 0);
+
+  const totalCOGS = purchases + directExp;
+  const taxableIncome = sales - totalCOGS - opex;
+  const VAT_RATE = 0.15;
+  const outputVat = sales * VAT_RATE;
+  const inputVat = purchases * VAT_RATE;
+  const netVat = outputVat - inputVat;
+  const CIT_RATE = 0.30; // Ethiopian standard corporate income tax rate (reference only)
+  const citEstimate = Math.max(0, taxableIncome) * CIT_RATE;
+
+  const rows = [
+    ['Total Sales (Revenue)', sales, false],
+    ['Total Purchases (Stock)', purchases, false],
+    ['Other Direct Costs (from Expenses)', directExp, false],
+    ['Total Cost of Goods Sold', totalCOGS, true],
+    ['Operating Expenses (Admin/Selling/Financial/Tax)', opex, false],
+    ['Taxable Income (Sales − COGS − OpEx)', taxableIncome, true],
+    ['— VAT & Withholding —', null, 'header'],
+    ['Output VAT on Sales (15%, if VAT-registered)', outputVat, false],
+    ['Input VAT on Purchases (15%, if recoverable)', inputVat, false],
+    ['Net VAT Payable / (Refundable)', netVat, true],
+    ['— Reference Estimate —', null, 'header'],
+    [`Corporate Income Tax @ ${(CIT_RATE*100).toFixed(0)}% of Taxable Income`, citEstimate, true]
+  ];
+  document.getElementById('tax-table').innerHTML = rows.map(([label, val, style]) => {
+    if (style === 'header') return `<tr><td colspan="2" class="pt-4 pb-1 text-xs font-bold uppercase text-slate-500">${label}</td></tr>`;
+    return `<tr class="border-b ${style ? 'font-bold bg-slate-50' : ''}">
+      <td class="py-2 pr-3">${label}</td>
+      <td class="py-2 text-right">ETB ${val.toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+    </tr>`;
+  }).join('') + `<tr><td colspan="2" class="pt-4 text-xs text-slate-400">Figures pull from Stock and Expense entries logged for ${monthVal}. VAT and income tax figures are computed estimates for internal review — confirm final rates and filings with your accountant / the Ministry of Revenue.</td></tr>`;
+}
+
+// USERS
+async function loadUsers() {
+  const { data, error } = await sb.from('profiles').select('*').order('full_name');
+  const el = document.getElementById('user-list');
+  if (error || !data) { el.innerHTML = '<p class="text-slate-400">No users found.</p>'; return; }
+  el.innerHTML = data.map(u => `
+    <div class="flex justify-between items-center border-b py-2">
+      <div>${u.full_name} <span class="text-slate-400">(${u.role})</span></div>
+      <select onchange="updateRole('${u.id}', this.value)" class="border rounded p-1 text-xs">
+        ${['admin','data_entry','accounting','sales','sales_manager','management'].map(r =>
+          `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+
+async function updateRole(id, role) {
+  const { error } = await sb.from('profiles').update({ role }).eq('id', id);
+  if (error) alert('Error: ' + error.message);
+}
+
+// PROFORMA
+let pfItemCount = 0;
+function addProformaItem() {
+  pfItemCount++;
+  const id = 'pf-item-' + pfItemCount;
+  const row = document.createElement('div');
+  row.className = 'grid grid-cols-12 gap-2';
+  row.id = id;
+  row.innerHTML = `
+    <input placeholder="Description" class="pf-desc border p-2 rounded col-span-6">
+    <input type="number" placeholder="Qty" class="pf-qty border p-2 rounded col-span-2">
+    <input type="number" placeholder="Unit Price" class="pf-price border p-2 rounded col-span-3">
+    <button type="button" onclick="document.getElementById('${id}').remove()" class="col-span-1 text-red-600">✕</button>`;
+  document.getElementById('pf-items').appendChild(row);
+}
+addProformaItem();
+
+async function generateProforma() {
+  const customer = document.getElementById('pf-customer').value.trim();
+  const address = document.getElementById('pf-address').value.trim();
+  const vatPct = parseFloat(document.getElementById('pf-vat').value) || 0;
+  const notes = document.getElementById('pf-notes').value.trim();
+
+  const items = [...document.querySelectorAll('#pf-items > div')].map(row => ({
+    description: row.querySelector('.pf-desc').value,
+    qty: parseFloat(row.querySelector('.pf-qty').value) || 0,
+    unit_price: parseFloat(row.querySelector('.pf-price').value) || 0
+  })).filter(i => i.description);
+
+  if (!customer || !items.length) { alert('Add a customer name and at least one line item.'); return; }
+
+  const { data: noData } = await sb.rpc('next_proforma_no');
+  const proformaNo = noData || ('PRO-' + Date.now());
+
+  const subtotal = items.reduce((s,i) => s + i.qty * i.unit_price, 0);
+  const vat = subtotal * vatPct / 100;
+  const total = subtotal + vat;
+
+  await sb.from('proformas').insert([{
+    proforma_no: proformaNo, customer_name: customer, customer_address: address,
+    items, vat_percent: vatPct, notes, created_by: currentUser.id
+  }]);
+
+  document.getElementById('pf-no').textContent = proformaNo;
+  document.getElementById('pf-date').textContent = new Date().toLocaleDateString();
+  document.getElementById('pf-out-customer').textContent = customer;
+  document.getElementById('pf-out-address').textContent = address;
+  document.getElementById('pf-out-items').innerHTML = items.map((i,idx) => `
+    <tr class="border-b"><td class="py-1">${idx+1}</td><td>${i.description}</td>
+    <td class="text-right">${i.qty}</td><td class="text-right">${i.unit_price.toLocaleString()}</td>
+    <td class="text-right">${(i.qty*i.unit_price).toLocaleString()}</td></tr>`).join('');
+  document.getElementById('pf-out-subtotal').textContent = 'ETB ' + subtotal.toLocaleString();
+  document.getElementById('pf-out-vatpct').textContent = vatPct;
+  document.getElementById('pf-out-vat').textContent = 'ETB ' + vat.toLocaleString();
+  document.getElementById('pf-out-total').textContent = 'ETB ' + total.toLocaleString();
+  document.getElementById('pf-out-notes').textContent = notes;
+  document.getElementById('proforma-print').classList.remove('hidden');
+}
+
+// LETTERS / FORMS
+function showLetterTemplate(which) {
+  document.querySelectorAll('.letter-tab-btn').forEach(b => { b.classList.remove('bg-[#0f2f4f]','text-white'); b.classList.add('text-slate-600'); });
+  document.getElementById('wht-form-wrap').classList.add('hidden');
+  document.getElementById('generic-form-wrap').classList.add('hidden');
+  document.getElementById('wht-print').classList.add('hidden');
+  document.getElementById('generic-print').classList.add('hidden');
+  if (which === 'wht') {
+    document.getElementById('wht-form-wrap').classList.remove('hidden');
+    document.getElementById('letter-tab-wht').classList.add('bg-[#0f2f4f]','text-white');
+    if (!document.getElementById('wht-items').children.length) addWhtItem();
+  } else {
+    document.getElementById('generic-form-wrap').classList.remove('hidden');
+    document.getElementById('letter-tab-generic').classList.add('bg-[#0f2f4f]','text-white');
+  }
+}
+
+let whtItemCount = 0;
+function addWhtItem() {
+  whtItemCount++;
+  const id = 'wht-item-' + whtItemCount;
+  const row = document.createElement('div');
+  row.className = 'grid grid-cols-12 gap-2';
+  row.id = id;
+  row.innerHTML = `
+    <input type="date" class="wht-date border p-2 rounded col-span-2 text-xs">
+    <input placeholder="Invoice/PO No." class="wht-inv border p-2 rounded col-span-2 text-xs">
+    <input placeholder="Description" class="wht-desc border p-2 rounded col-span-3 text-xs">
+    <input type="number" placeholder="Gross Amt" class="wht-gross border p-2 rounded col-span-2 text-xs">
+    <input type="number" placeholder="WHT %" value="2" class="wht-rate border p-2 rounded col-span-1 text-xs">
+    <input placeholder="Cert. No." class="wht-cert border p-2 rounded col-span-1 text-xs">
+    <button type="button" onclick="document.getElementById('${id}').remove()" class="col-span-1 text-red-600">✕</button>`;
+  document.getElementById('wht-items').appendChild(row);
+}
+
+function generateWhtLetter() {
+  const vendor = document.getElementById('wht-vendor').value.trim();
+  const address = document.getElementById('wht-vendor-address').value.trim();
+  const notes = document.getElementById('wht-notes').value.trim();
+  const items = [...document.querySelectorAll('#wht-items > div')].map(row => ({
+    date: row.querySelector('.wht-date').value,
+    inv: row.querySelector('.wht-inv').value,
+    desc: row.querySelector('.wht-desc').value,
+    gross: parseFloat(row.querySelector('.wht-gross').value) || 0,
+    rate: parseFloat(row.querySelector('.wht-rate').value) || 0,
+    cert: row.querySelector('.wht-cert').value
+  })).filter(i => i.desc || i.gross);
+
+  if (!vendor || !items.length) { alert('Add the vendor name and at least one line item.'); return; }
+
+  const total = items.reduce((s,i) => s + (i.gross * i.rate / 100), 0);
+  document.getElementById('wht-out-date').textContent = new Date().toLocaleDateString();
+  document.getElementById('wht-out-vendor').textContent = vendor;
+  document.getElementById('wht-out-address').textContent = address;
+  document.getElementById('wht-out-items').innerHTML = items.map((i,idx) => `
+    <tr class="border-b">
+      <td class="py-1">${idx+1}</td><td>${i.date || ''}</td><td>${i.inv || ''}</td><td>${i.desc || ''}</td>
+      <td class="text-right">${i.gross.toLocaleString()}</td><td class="text-right">${i.rate}%</td>
+      <td class="text-right">${(i.gross*i.rate/100).toLocaleString()}</td><td>${i.cert || ''}</td>
+    </tr>`).join('');
+  document.getElementById('wht-out-total').textContent = 'ETB ' + total.toLocaleString();
+  document.getElementById('wht-out-notes').textContent = notes;
+  document.getElementById('wht-print').classList.remove('hidden');
+}
+
+function generateGenericLetter() {
+  const to = document.getElementById('gen-to').value.trim();
+  const address = document.getElementById('gen-address').value.trim();
+  const subject = document.getElementById('gen-subject').value.trim();
+  const body = document.getElementById('gen-body').value.trim();
+  if (!to || !subject || !body) { alert('Fill in recipient, subject and body.'); return; }
+  document.getElementById('gen-out-date').textContent = new Date().toLocaleDateString();
+  document.getElementById('gen-out-to').textContent = to;
+  document.getElementById('gen-out-address').textContent = address;
+  document.getElementById('gen-out-subject').textContent = subject;
+  document.getElementById('gen-out-body').textContent = body;
+  document.getElementById('generic-print').classList.remove('hidden');
+}
+
+sb.auth.getSession().then(({ data }) => { if (data.session) boot(); });
+</script>
+
+</body></html>
