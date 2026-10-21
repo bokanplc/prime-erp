@@ -6967,6 +6967,12 @@ async function loadRepoProformas() {
 }
 async function deleteProforma(id) { if (!confirm('Delete this proforma record?')) return; await sb.from('proformas').delete().eq('id', id); loadRepoProformas(); }
 async function uploadRepoFile(category, titleInputId, fileInputId, extraCols) {
+  // Fail closed in production until private Storage policies and signed-download
+  // handling replace the public URL flow below. Local preview remains available.
+  if (_bokanProdConfigured) {
+    alert('Document uploads are temporarily disabled until private document storage and authorized downloads are configured.');
+    return false;
+  }
   const title = document.getElementById(titleInputId).value.trim();
   const fileInput = document.getElementById(fileInputId);
   const file = fileInput.files[0];
@@ -6992,7 +6998,7 @@ async function loadRepoFiles(category, targetElId) {
       <div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(d.created_at).toLocaleDateString()}</span><button onclick="deleteRepoFile('${d.id}','${d.file_path}','${category}','${targetElId}')" class="text-red-600 text-xs no-print">Delete</button></div>
     </div>`).join('');
 }
-async function deleteRepoFile(id, filePath, category, targetElId) { if (!confirm('Delete this file? This cannot be undone.')) return; await sb.storage.from('documents').remove([filePath]); await sb.from('documents').delete().eq('id', id); loadRepoFiles(category, targetElId); }
+async function deleteRepoFile(id, filePath, category, targetElId) { if (_bokanProdConfigured) { alert('Document deletion is temporarily disabled until private document storage policies are configured.'); return; } if (!confirm('Delete this file? This cannot be undone.')) return; await sb.storage.from('documents').remove([filePath]); await sb.from('documents').delete().eq('id', id); loadRepoFiles(category, targetElId); }
 
 // ==================== HR: EMPLOYEE DIRECTORY ====================
 let employeeData = [];
