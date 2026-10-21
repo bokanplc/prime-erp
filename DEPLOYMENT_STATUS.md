@@ -40,3 +40,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Cloudflare Pages should use the `deploy/secure-staging` branch and `staging` as the output/root directory only after the database/authentication review; do not deploy the repository's `main` branch.
 - Supabase was rechecked: no public application tables and no migrations exist. Security advisor still reports leaked-password protection disabled; performance advisor has no findings.
 - No production database schema was created and no live deployment was performed.
+
+
+## Database and security design work (2026-10-21)
+- Added `docs/PRODUCTION_SECURITY_GATE_REVIEW.md`: documents the review-build login bypass, mock backend, role/UI limitations, tenant separation requirements, and safe rollout sequence.
+- Added `docs/DATABASE_CONTRACT_INVENTORY_DRAFT.md`: maps all 41 directly referenced table names, known write/read fields, proforma data rules, duplicate legacy/new models, RPCs, and browser-storage keys.
+- These documents are design artifacts only. No SQL schema, RLS policy, or migration was applied to Supabase.
+- Next work: finish tracing every insert/update/delete payload and relationship, resolve canonical table models, then draft an RLS policy matrix and test plan before preparing SQL.
