@@ -55,3 +55,7 @@ The repository upload and delete handlers used public Storage URL flow. Producti
 ## Follow-up fix: role administration and bank-account writes (2026-10-21)
 - Role change UI now validates the requested role against the supported list, permits production requests only for the authenticated admin role, and handles database errors instead of silently ignoring them. This is a UI guard only; database RLS/grants must enforce administrator-only updates to protected profile columns.
 - Production bank-account replacement is temporarily blocked because the current implementation deletes all company bank-account rows before inserting replacements, which can leave a company with no bank accounts if the insert fails. Re-enable only after an atomic, audited server/database workflow is implemented and tested.
+
+
+## Follow-up fix: issuer identity settings (2026-10-21)
+Production issuer TIN and address/phone save handlers now reject requests from roles other than admin/accounting. This is a user-interface safeguard only; RLS/grants must enforce company scope and role authorization. Changes still need audit logging and database policy validation before production enablement.
