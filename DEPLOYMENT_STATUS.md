@@ -139,3 +139,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Production TIN and issuer address/phone save handlers now reject roles other than admin/accounting.
 - Added regression/static-audit assertions for both guards and synchronized the staging entry point.
 - Database company scope, least-privilege grants/RLS, and audit logging remain mandatory; browser role checks are not the security boundary.
+
+
+## Critical legacy API fail-open fix (2026-10-21)
+- Found a second adapter `prime-production-adapter` with `DEV_BYPASS=true`, `API='/api'`, a CSS rule that force-hid its sign-in gate, and a catch path that exposed the app when API bootstrap failed.
+- Fixed bypass to be local-preview-only, removed force-hide CSS, and kept the hosted gate visible when the API is unavailable.
+- Synced staging entry point and added source regression/audit checks.
+- **Important deployment blocker discovered:** static Cloudflare Pages does not supply the required `/api/bootstrap`, `/api/auth/login`, and `/api/store/*` server endpoints by itself. The legacy localStorage-backed modules need a real authenticated API or a deliberate migration to secured Supabase tables/RPCs before a hosted release can function safely.
