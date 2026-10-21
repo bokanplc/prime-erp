@@ -94,5 +94,5 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Source review found production finance/HR bridge modules depend on `window.sb`, but the main configured Supabase client was only held in a lexical `const sb`.
 - Added a guarded assignment: `if (_bokanProdConfigured) window.sb = sb;`. This exposes the real configured client only and does not publish the mock client as a global.
 - Synced the staging entry point after the change and extended both source-audit and regression-test scripts.
-- Latest static checks: `{"entryParity":true,"inlineScripts":39,"inlineSyntaxErrors":[],"testScriptSyntax":"ok","auditScriptSyntax":"ok","productionConfigStillDisabled":true,"hostedBootGuard":true,"errorFailsClosed":true,"realClientOnlyExposed":true,"noMockGlobalAssignment":true,"testCoversClientWiring":true,"auditCoversClientWiring":false}`.
+- Latest static checks: `{"entryParity":true,"inlineScripts":39,"inlineSyntaxErrors":[],"testScriptSyntax":"ok","auditScriptSyntax":"ok","productionConfigStillDisabled":true,"hostedBootGuard":true,"errorFailsClosed":true,"realClientOnlyExposed":true,"noMockGlobalAssignment":true,"testCoversClientWiring":true,"auditCoversClientWiring":true}`.
 - Still not production-approved: schema/RLS, private Storage, legacy CRUD paths, and browser testing remain outstanding.
