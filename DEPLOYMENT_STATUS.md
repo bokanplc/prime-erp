@@ -32,3 +32,11 @@ This branch is a staging workspace. It is not a production deployment.
 
 ## Free-plan operating approach
 Use the existing Supabase Free project, keep the schema lean, retain migration files in version control, and make periodic manual exports before risky changes. No paid feature is required for staging work, but free-tier availability and recovery limitations must be accepted.
+
+
+## Staging package preparation (2026-10-21)
+- Added `staging/index.html` as a deployment entry point copied from the reviewed V6.7 source.
+- Added `staging/config/config.js` with production mode disabled and blank credentials. This intentionally prevents accidental live-mode activation.
+- Cloudflare Pages should use the `deploy/secure-staging` branch and `staging` as the output/root directory only after the database/authentication review; do not deploy the repository's `main` branch.
+- Supabase was rechecked: no public application tables and no migrations exist. Security advisor still reports leaked-password protection disabled; performance advisor has no findings.
+- No production database schema was created and no live deployment was performed.
