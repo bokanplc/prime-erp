@@ -46,3 +46,7 @@ Profile data includes role, department, company code, active state, and terminat
 
 ## Follow-up fix: hosted startup gate (2026-10-21)
 The main `boot()` path previously assigned a preview administrator unconditionally, and its error handler could unhide the app. Commit `63ad0c2e321f5544d7d84475b1b0dc75be5b4126` changes this so preview identity is assigned only on local file/localhost review, hosted startup keeps the app hidden pending the production auth bridge, and startup errors hide the app rather than reveal it. Static pattern checks passed after the change. This still requires browser testing on both local preview and hosted configuration; it does not clear the other blockers in this report.
+
+
+## Follow-up fix: document storage safety guard (2026-10-21)
+The repository upload and delete handlers used public Storage URL flow. Production uploads and deletions are now temporarily blocked until a private bucket, aligned Storage policies, and authorized download flow are implemented. Local preview remains available. This reduces the risk of accidentally exposing confidential documents but intentionally leaves the production document repository unavailable until the secure replacement is completed.
