@@ -68,3 +68,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Rechecked committed staging config: production mode remains false; Supabase URL and browser key placeholders remain blank.
 - Rechecked Supabase project `kafiwnuynjemufnankvi` read-only: public schema has no tables and migration list is empty.
 - Confirmed source still contains the mock backend, public Storage URL helper, and legacy `next_proforma_no` RPC reference. These remain blockers; no schema or deployment changes were made.
+
+
+## Hosted startup fail-closed fix (2026-10-21)
+- Updated the ERP boot path in commit `63ad0c2e321f5544d7d84475b1b0dc75be5b4126`: the preview administrator is now local-preview-only; hosted startup leaves the app hidden for the production auth bridge; boot errors no longer unhide the app.
+- Verified source patterns after the edit: hosted boot guard present, preview identity assignment occurs after the local-origin guard, boot error handler does not unhide the app, production auth bridge and final hosted guard remain present.
+- Added checks for these invariants to `scripts/audit-erp-source.mjs`.
+- This is a source-level check only. Browser testing is still required, and the remaining mock backend, legacy CRUD paths, public document URL usage, schema/RLS, and duplicate numbering path remain unresolved.
