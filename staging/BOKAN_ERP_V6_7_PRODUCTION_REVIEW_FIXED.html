@@ -840,7 +840,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 #prime-prod-gate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#F5F7FA;color:#10284A;font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif}
 #prime-prod-gate .pg-card{width:min(430px,calc(100% - 32px));background:#fff;border:1px solid #C8D3E0;border-radius:14px;box-shadow:0 20px 60px rgba(31,43,64,.16);padding:28px}
 #prime-prod-gate h1{margin:0;font-size:22px;font-weight:800;color:#1F2B40}.pg-sub{margin:6px 0 22px;color:#607086;font-size:12px}.pg-label{display:block;font-size:11px;font-weight:700;margin:12px 0 5px}.pg-input{width:100%;box-sizing:border-box;border:1px solid #C8D3E0;border-radius:8px;padding:11px 12px;font-size:13px;background:#fff}.pg-input:focus{outline:none;border-color:#2867E8;box-shadow:0 0 0 3px rgba(40,103,232,.12)}.pg-btn{width:100%;margin-top:18px;border:0;border-radius:8px;padding:11px 14px;background:#2867E8;color:#fff;font-weight:800;cursor:pointer}.pg-btn:disabled{opacity:.6;cursor:not-allowed}.pg-msg{min-height:18px;margin-top:12px;font-size:11px;color:#B42318}.pg-brand{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#0B8BC8;font-weight:800;margin-bottom:8px}
-#prime-prod-gate{display:none!important}#prime-prod-gate .pg-change{display:none}.pg-topbar{position:fixed;right:14px;top:10px;z-index:9999;display:none;gap:8px;align-items:center}.pg-topbar button{border:1px solid #C8D3E0;background:#fff;border-radius:7px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer}.pg-user{font-size:11px;color:#607086;background:#fff;border:1px solid #C8D3E0;padding:6px 9px;border-radius:7px}
+/* Do not force-hide the production gate: hosted access must fail closed if the server API is unavailable. */#prime-prod-gate .pg-change{display:none}.pg-topbar{position:fixed;right:14px;top:10px;z-index:9999;display:none;gap:8px;align-items:center}.pg-topbar button{border:1px solid #C8D3E0;background:#fff;border-radius:7px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer}.pg-user{font-size:11px;color:#607086;background:#fff;border:1px solid #C8D3E0;padding:6px 9px;border-radius:7px}
 </style>
 <style id="bokan-company-context">
   /* BOKAN master palette: a restrained bridge between enterprise blue and QuickBooks-inspired green. */
@@ -8213,7 +8213,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   const msg=document.getElementById('pg-msg');
   const nativeGet=Storage.prototype.getItem, nativeSet=Storage.prototype.setItem, nativeRemove=Storage.prototype.removeItem;
   let token=sessionStorage.getItem('prime_prod_token')||'';
-  const DEV_BYPASS=true;
+  const localPreview=location.protocol==='file:'||['localhost','127.0.0.1','::1'].includes(location.hostname); const DEV_BYPASS=localPreview;
   let booted=false, syncing=false;
   function setMsg(t){msg.textContent=t||'';}
   function authHeaders(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'};}
@@ -8251,9 +8251,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   async function logout(){try{await api('/auth/logout',{method:'POST'})}catch(e){}sessionStorage.removeItem('prime_prod_token');location.reload();}
   document.getElementById('pg-login-btn').addEventListener('click',login);document.getElementById('pg-pass').addEventListener('keydown',e=>{if(e.key==='Enter')login()});document.getElementById('pg-change-btn').addEventListener('click',changePassword);document.getElementById('pg-logout').addEventListener('click',logout);document.getElementById('pg-change-top').addEventListener('click',()=>showChange(false));
   (async function(){
-    if(DEV_BYPASS){
-      try{await loadServerState(); return;}catch(e){console.warn('PRIME dev bypass boot:',e.message); gate.style.display='none'; top.style.display='flex'; return;}
-    }
+    if(DEV_BYPASS){ try{await loadServerState(); return;}catch(e){console.warn('PRIME local preview API unavailable:',e.message); if(localPreview){gate.style.display='none';top.style.display='none';return;} gate.style.display='flex';top.style.display='none';setMsg('Server-backed modules are unavailable. Sign-in requires the configured application API.');return;} }
     if(token){try{if(await loadServerState())return}catch(e){sessionStorage.removeItem('prime_prod_token');token='';}}
     gate.style.display='flex';
   })();
