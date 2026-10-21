@@ -6337,7 +6337,18 @@ async function loadUsers() {
       </select>
     </div>`).join('');
 }
-async function updateRole(id, role) { await sb.from('profiles').update({ role }).eq('id', id); }
+async function updateRole(id, role) {
+  const allowedRoles = ['admin','data_entry','accounting','sales','sales_manager','management','hr'];
+  if (!allowedRoles.includes(role)) { alert('That role is not allowed.'); return; }
+  if (_bokanProdConfigured && currentRole !== 'admin') { alert('Only an authenticated administrator can request role changes. Database policies must also authorize this action.'); return; }
+  try {
+    const { error } = await sb.from('profiles').update({ role }).eq('id', id);
+    if (error) throw error;
+  } catch (err) {
+    console.error('Role update denied:', err);
+    alert('Role change was not saved. Check administrator access and database permissions.');
+  }
+}
 
 
 // ==================== COMPANY / PROFORMA REQUESTS ====================
@@ -6647,7 +6658,7 @@ async function bokanProdLoadIssuer(key){
 async function bokanProdRefreshIssuer(key){ try{ const c=await bokanProdLoadIssuer(key); const all=getProformaCompanySettings(); all[key]={...(all[key]||{}),tin:c.tin,banks:c.banks}; saveProformaCompanySettings(all); return c; }catch(e){ console.warn('Issuer master load failed:',e); return getCompanyProductionAware(key); } }
 function getCompanyProductionAware(key){ return BOKAN_PROD_ISSUER_CACHE[key] || (_legacyGetCompany ? _legacyGetCompany(key) : (COMPANY_OPTIONS[key]||COMPANY_OPTIONS.PRIME)); }
 async function bokanProdSaveCompanyTIN(key,tin){ const db=bokanProdClient(); if(!db)return false; const {error}=await db.from('companies').update({tin:tin||null}).eq('code',key); if(error)throw error; await bokanProdRefreshIssuer(key); return true; }
-async function bokanProdSaveBanks(key,banks){ const db=bokanProdClient(); if(!db)return false; const {error:delErr}=await db.from('company_bank_accounts').delete().eq('company_code',key); if(delErr)throw delErr; const rows=banks.filter(b=>b.bank_name||b.account_number||b.purpose).map((b,i)=>({company_code:key,bank_name:b.bank_name||'Unspecified',account_number:b.account_number||'Unspecified',account_purpose:b.purpose||null,display_order:i,active:true})); if(rows.length){const {error}=await db.from('company_bank_accounts').insert(rows);if(error)throw error;} await bokanProdRefreshIssuer(key); return true; }
+async function bokanProdSaveBanks(key,banks){ if(_bokanProdConfigured) throw new Error('Bank account changes are temporarily disabled until an atomic, audited database workflow is configured.'); const db=bokanProdClient(); if(!db)return false; const {error:delErr}=await db.from('company_bank_accounts').delete().eq('company_code',key); if(delErr)throw delErr; const rows=banks.filter(b=>b.bank_name||b.account_number||b.purpose).map((b,i)=>({company_code:key,bank_name:b.bank_name||'Unspecified',account_number:b.account_number||'Unspecified',account_purpose:b.purpose||null,display_order:i,active:true})); if(rows.length){const {error}=await db.from('company_bank_accounts').insert(rows);if(error)throw error;} await bokanProdRefreshIssuer(key); return true; }
 function renderProductionIssuer(key){ const c=getCompanyProductionAware(key); const banks=c.banks||[]; const wrap=document.getElementById('pf-bank-accounts'); if(wrap){wrap.innerHTML='';(banks.length?banks:[{}]).forEach(b=>addProformaBankAccount(b));} const tin=document.getElementById('pf-company-tin'); if(tin)tin.value=c.tin||''; const addr=document.getElementById('pf-company-address'); if(addr)addr.value=c.address||''; const phone=document.getElementById('pf-company-phone'); if(phone)phone.value=c.phone||''; }
 
 // Production-aware issuer controls. Review mode keeps the existing local behavior.
