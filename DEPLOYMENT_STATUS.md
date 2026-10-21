@@ -60,3 +60,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Static source review found unresolved legacy/mock data paths, company-unscoped CRUD paths, inconsistent mutation error handling, public document URL use, and duplicate proforma numbering/save paths.
 - These are production blockers, not cosmetic issues. Keep production mode disabled and do not deploy the app as a working ERP until the paths are consolidated and access controls tested.
 - No SQL, RLS/Storage policy, migration, or deployment was applied.
+
+
+## Repeatable source checks and access coverage (2026-10-21)
+- Added `scripts/audit-erp-source.mjs`, a static stop-ship audit script. It is a guardrail only; it cannot prove security and is expected to report warnings while known legacy/mock paths remain.
+- Added `docs/SOURCE_DATA_ACCESS_COVERAGE.md`, a lexical inventory of 41 direct Supabase table references plus RPC and Storage surfaces.
+- Rechecked committed staging config: production mode remains false; Supabase URL and browser key placeholders remain blank.
+- Rechecked Supabase project `kafiwnuynjemufnankvi` read-only: public schema has no tables and migration list is empty.
+- Confirmed source still contains the mock backend, public Storage URL helper, and legacy `next_proforma_no` RPC reference. These remain blockers; no schema or deployment changes were made.
