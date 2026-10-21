@@ -5,7 +5,7 @@ Source inspected: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`
 This report describes static review and targeted fixes only; it is not a production certification.
 
 ## Checks completed
-- Extracted 35 non-empty inline JavaScript blocks and ran Node.js syntax validation: **0 syntax failures** after the targeted patch.
+- Extracted 36 non-empty inline JavaScript blocks and ran Node.js syntax validation: **0 syntax failures** after the targeted patches.
 - Identified 41 distinct table names referenced by `.from(...)` calls (full list in `DATABASE_OPERATION_INVENTORY.md`).
 - Found 96 `localStorage` references in the HTML source.
 - Found mock-backend fallback logic (`makeMockSupabase()`).
@@ -14,6 +14,7 @@ This report describes static review and targeted fixes only; it is not a product
 - Confirmed the Supabase project has zero public application tables and no recorded migrations.
 - Fixed a confirmed production Proforma issuer runtime defect: an undefined `se` variable was referenced after the `companies` and `company_bank_accounts` queries. That reference is now removed; the actual query errors `ce` and `be` are still checked.
 - Removed the legacy complementary-services mapping from the Proforma row adapter, consistent with the requested removal of that section.
+- Added a hosted fail-closed guard: when served from a non-local host without explicit valid production Supabase configuration, the page blocks the mock/demo ERP interface and displays a setup warning.
 
 ## Local-storage keys requiring review
 
