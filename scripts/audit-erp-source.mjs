@@ -11,6 +11,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 
 const sourcePath = 'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html';
+const entryPath = 'staging/index.html';
 const configPath = 'staging/config/config.js';
 const failures = [];
 const warnings = [];
@@ -20,6 +21,9 @@ if (!existsSync(sourcePath)) {
   process.exit(2);
 }
 const source = readFileSync(sourcePath, 'utf8');
+if (!existsSync(entryPath)) failures.push(`Deployment entry point is missing: ${entryPath}.`);
+const entry = existsSync(entryPath) ? readFileSync(entryPath, 'utf8') : '';
+if (entry && entry !== source) failures.push('staging/index.html differs from the reviewed source; synchronize before deployment.');
 const config = existsSync(configPath) ? readFileSync(configPath, 'utf8') : '';
 
 function requirePattern(pattern, message) {
