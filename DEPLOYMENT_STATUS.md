@@ -16,15 +16,17 @@ This branch is a staging workspace. It is not a production deployment.
 - `public` application tables: none detected.
 - Recorded migrations: none detected.
 - Automated backups/PITR: not assumed available on this plan; preserve migration SQL and export data regularly where feasible.
-- The current ERP review HTML is not yet installed in this repository branch, and the app is not live.
+- The full reviewed V6.7 HTML source is now committed at `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`.
+- The source and audit documents are on `deploy/secure-staging`; the root `index.html` and `main` remain unchanged.
+- The app is not live yet; source upload is not a deployment.
 
 ## Next steps
-1. Add the reviewed full ERP source to this branch without replacing `main`.
-2. Extract and validate the application's actual database contract.
-3. Prepare least-privilege SQL migrations with RLS and company isolation.
-4. Review migrations and application configuration before applying any schema changes.
-5. Run syntax checks and browser smoke tests; verify production mode cannot silently use mock data.
-6. Deploy only after the above checks pass.
+1. Map the source's database operations to an exact field-level schema.
+2. Prepare and review least-privilege SQL migrations with RLS and company isolation.
+3. Configure production startup so it cannot silently use mock data or present unsaved records as persisted.
+4. Run browser smoke tests for login, roles, company switching, proforma calculations, history, and key workflows.
+5. Select a free hosting target that supports a private source repository and configure its deployment secrets safely.
+6. Test access controls and document a manual export/recovery procedure before live business use.
 
 ## Free-plan operating approach
 Use the existing Supabase Free project, keep the schema lean, retain migration files in version control, and make periodic manual exports before risky changes. No paid feature is required for staging work, but free-tier availability and recovery limitations must be accepted.
