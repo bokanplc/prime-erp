@@ -19,6 +19,8 @@ This branch is a staging workspace. It is not a production deployment.
 - The full reviewed V6.7 HTML source is now committed at `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`.
 - The source and audit documents are on `deploy/secure-staging`; the root `index.html` and `main` remain unchanged.
 - The app is not live yet; source upload is not a deployment.
+- Vercel account inspection currently returns no accessible teams or projects, so no Vercel project is available to deploy to from the connected account. Vercel Hobby is also not an appropriate default for a commercial business ERP.
+- The hosted HTML now fails closed to a setup message when production configuration is missing; this does not replace authentication, database RLS, or runtime testing.
 
 ## Next steps
 1. Map the source's database operations to an exact field-level schema.
