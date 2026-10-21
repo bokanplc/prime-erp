@@ -96,3 +96,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Synced the staging entry point after the change and extended both source-audit and regression-test scripts.
 - Latest static checks: `{"entryParity":true,"inlineScripts":39,"inlineSyntaxErrors":[],"testScriptSyntax":"ok","auditScriptSyntax":"ok","productionConfigStillDisabled":true,"hostedBootGuard":true,"errorFailsClosed":true,"realClientOnlyExposed":true,"noMockGlobalAssignment":true,"testCoversClientWiring":true,"auditCoversClientWiring":true}`.
 - Still not production-approved: schema/RLS, private Storage, legacy CRUD paths, and browser testing remain outstanding.
+
+
+## Document repository safety guard (2026-10-21)
+- Production document uploads and deletes are now blocked at the UI handler until private Storage policies and authorized download links are implemented.
+- Local preview still exercises the demo flow. The public URL helper remains in the legacy handler but is unreachable for configured production writes due to the new guard; replace it with a private signed-download flow before enabling the repository in production.
+- Synced `staging/index.html` and added a regression assertion for the production upload guard.
