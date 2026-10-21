@@ -1,0 +1,35 @@
+name: ERP source safety checks
+
+on:
+  push:
+    branches:
+      - deploy/secure-staging
+    paths:
+      - 'staging/**'
+      - 'scripts/**'
+      - '.github/workflows/erp-source-guards.yml'
+  pull_request:
+    paths:
+      - 'staging/**'
+      - 'scripts/**'
+      - '.github/workflows/erp-source-guards.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test startup and staging guards
+        run: node scripts/test-erp-source-guards.mjs
+      - name: Parse inline JavaScript
+        run: node scripts/check-inline-js.mjs
