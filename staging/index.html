@@ -4846,9 +4846,19 @@ function visitReportDeadline(visitDateStr) {
 
 // ==================== BOOT / NAVIGATION ====================
 async function boot() {
-  // DEVELOPMENT PREVIEW MODE:
-  // Authentication is bypassed until the production login/authentication
-  // layer is intentionally restored.
+  // Preview identity is allowed only for local review. Never let the main UI
+  // bypass authentication on a hosted origin; the production auth bridge
+  // owns hosted session validation and will reveal the app after profile checks.
+  const localPreview = location.protocol === 'file:' ||
+    ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+  const config = window.BOKAN_CONFIG || {};
+  if (!localPreview || config.PRODUCTION_MODE === true) {
+    document.getElementById('app-view')?.classList.add('hidden');
+    document.getElementById('landing-view')?.classList.add('hidden');
+    document.getElementById('login-view')?.classList.remove('hidden');
+    return;
+  }
+
   currentUser = { id: 'preview-admin', email: 'admin@preview.local' };
   currentRole = 'admin';
   currentDeptTabs = null;
@@ -7208,19 +7218,24 @@ async function loadHrReports() {
   document.getElementById('hr-perf-count').textContent = (perfRows || []).length;
 }
 
-// Auto-boot straight into the preview (skips login entirely).
-// Keep the shell visible even if a non-critical async loader fails.
+// Start local preview only on file/localhost. On hosted origins the
+// production authentication bridge is responsible for showing the application.
+// Fail closed on startup errors; never reveal the app as an error fallback.
 try {
   var bootResult = boot();
   if (bootResult && typeof bootResult.catch === 'function') {
     bootResult.catch(function(err){
       console.error('ERP boot error:', err);
-      document.getElementById('app-view')?.classList.remove('hidden');
+      document.getElementById('app-view')?.classList.add('hidden');
+      document.getElementById('landing-view')?.classList.add('hidden');
+      document.getElementById('login-view')?.classList.remove('hidden');
     });
   }
 } catch (err) {
   console.error('ERP boot error:', err);
-  document.getElementById('app-view')?.classList.remove('hidden');
+  document.getElementById('app-view')?.classList.add('hidden');
+  document.getElementById('landing-view')?.classList.add('hidden');
+  document.getElementById('login-view')?.classList.remove('hidden');
 }
 </script>
 
