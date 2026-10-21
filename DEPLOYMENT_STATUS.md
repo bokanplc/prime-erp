@@ -82,3 +82,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Static verification compiled all 39 inline JavaScript script blocks without syntax errors.
 - The audit script's syntax was checked after accounting for its Node shebang and import declaration.
 - The checks are static only; no real browser/session test has been run and the app is still not cleared for production.
+
+
+## Startup regression test added (2026-10-21)
+- Added `scripts/test-erp-source-guards.mjs`, a dependency-free Node regression test for staging entry-point parity, blank production config, local-only preview identity, fail-closed boot errors, and presence of the production auth/hosted guards.
+- Rechecked the same invariants against the current repository files through read-only source inspection: `{"entryPointMatches":true,"productionModeFalse":true,"urlBlank":true,"keyBlank":true,"hostedGuardPrecedesPreview":true,"errorHandlerFailsClosed":true,"authBridge":true,"hostedGuard":true}`.
+- The test file's JavaScript syntax was checked. The equivalent assertions passed in this review, but the Node test has not been executed in a real repository checkout or browser.
