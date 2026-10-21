@@ -59,3 +59,9 @@ The repository upload and delete handlers used public Storage URL flow. Producti
 
 ## Follow-up fix: issuer identity settings (2026-10-21)
 Production issuer TIN and address/phone save handlers now reject requests from roles other than admin/accounting. This is a user-interface safeguard only; RLS/grants must enforce company scope and role authorization. Changes still need audit logging and database policy validation before production enablement.
+
+
+## Critical follow-up: legacy server API gate was force-hidden (2026-10-21)
+Source review found a second legacy production adapter using `API='/api'`, with `DEV_BYPASS=true` and CSS that force-hid its sign-in gate. If the API bootstrap failed, the catch handler hid the gate and exposed the app. The adapter now enables bypass only on local file/localhost review, removes the force-hide CSS, and fails closed on hosted origins. The hosted message makes clear that server-backed modules require a configured application API.
+
+**Architecture blocker:** the current Cloudflare static hosting path does not itself provide this `/api` backend. This change intentionally blocks the hosted legacy adapter until the API is implemented or those modules are migrated to a secure Supabase-backed path. Do not merge/deploy as a functioning production app yet.
