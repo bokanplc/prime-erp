@@ -53,3 +53,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `docs/ACCESS_CONTROL_MATRIX_DRAFT.md` with proposed least-privilege access by role/domain and required negative security tests.
 - This matrix is a review draft, not an applied RLS policy. No table, grant, or policy has been created.
 - Before SQL is prepared, continue tracing actual form payloads and choose canonical models where the source contains legacy and newer tables for the same domain.
+
+
+## Source blocker review (2026-10-21)
+- Added `docs/PRODUCTION_BLOCKERS_SOURCE_REVIEW.md`.
+- Static source review found unresolved legacy/mock data paths, company-unscoped CRUD paths, inconsistent mutation error handling, public document URL use, and duplicate proforma numbering/save paths.
+- These are production blockers, not cosmetic issues. Keep production mode disabled and do not deploy the app as a working ERP until the paths are consolidated and access controls tested.
+- No SQL, RLS/Storage policy, migration, or deployment was applied.
