@@ -31,6 +31,7 @@ const autoBoot = source.slice(autoStart, autoEnd);
 assert.match(autoBoot, /app-view['"]\)\?\.classList\.add\(['"]hidden['"]\)/, 'Startup failure must hide the app.');
 assert.doesNotMatch(autoBoot, /app-view['"]\)\?\.classList\.remove\(['"]hidden['"]\)/, 'Startup failure must never reveal the app.');
 
+assert.match(source, /if \(_bokanProdConfigured\) window\.sb = sb;/, 'Configured real Supabase client must be exposed to production bridge modules.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
 
