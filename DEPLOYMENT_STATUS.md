@@ -133,3 +133,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `docs/AUTHORIZATION_RLS_MATRIX_DRAFT.md`, `docs/SECURITY_PERSISTENCE_TEST_PLAN.md`, `docs/SCHEMA_DESIGN_DECISION_REGISTER.md`, and `docs/TRUSTED_WRITE_BOUNDARY_DESIGN.md`.
 - The schema/security docs deliberately remain design-only. They document tenant/role permissions, tests, duplicate legacy/new model decisions, and operations that need a trusted transaction boundary.
 - No production SQL, migration, Auth configuration, Storage policy, or deployment was applied. Keep PR #1 in draft until the schema and access model are reconciled and reviewed.
+
+
+## Issuer identity settings guard (2026-10-21)
+- Production TIN and issuer address/phone save handlers now reject roles other than admin/accounting.
+- Added regression/static-audit assertions for both guards and synchronized the staging entry point.
+- Database company scope, least-privilege grants/RLS, and audit logging remain mandatory; browser role checks are not the security boundary.
