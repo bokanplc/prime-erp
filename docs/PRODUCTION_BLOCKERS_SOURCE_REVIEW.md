@@ -1,0 +1,44 @@
+# BOKAN ERP V6.7 — Production Blockers Found in Source Review
+
+Review date: 2026-10-21
+Scope: static review of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`. This is not a penetration test. No database or deployment changes were made.
+
+## Stop-ship findings
+
+### 1. Legacy mock backend still exists in the HTML
+The file includes a mock client that returns a fixed demo user, accepts sign-in without validating credentials, and reports successful mock writes. The configuration guard is helpful, but the hosted application must be proven to fail closed across every entry point and script before production. A browser-side flag is not a substitute for database security.
+
+### 2. Multiple data paths use company-unscoped legacy tables
+Examples include `customers`, `customer_logs`, `employees`, `leave_requests`, `performance_reviews`, `expenses`, `sales_targets`, `stock_entries`, `stock_ledger`, `trip_plans`, `visit_reports`, `documents`, and `proformas`. Some newer BOKAN production bridges use company-aware concepts, but the main UI also accesses legacy models. A schema that only secures the newer tables would leave the legacy paths unresolved.
+
+### 3. Authorization checks are inconsistent
+Some production bridges call a session check, while several legacy form handlers directly query `sb` and rely on UI role visibility. UI visibility is not authorization. Every query and mutation must be restricted by RLS and database-side ownership/company rules.
+
+### 4. Sensitive writes need consistent error handling and database-side constraints
+Several handlers call update/delete or secondary writes without consistently checking returned errors. The UI may continue as if a change worked, and related writes may partially succeed. Production work should use checked responses and database transactions/RPCs where multiple changes must succeed together.
+
+### 5. Document storage currently requests public URLs
+The document repository calls `getPublicUrl(path)`. HR, finance, and corporate documents may be sensitive. Production must use a private bucket with narrowly scoped Storage policies and authenticated downloads (e.g. signed URLs) unless every stored file is explicitly approved for public access. Do not assume a database row policy protects the underlying object.
+
+### 6. Proforma numbering and legacy fallback require consolidation
+The source references both `bokan_next_proforma_number` and `next_proforma_no`, plus a legacy save path. Production must use one concurrency-safe, company-specific numbering function and one canonical save path, with authorization and uniqueness enforced in PostgreSQL.
+
+### 7. Company and user identity must be database-enforced
+Profile data includes role, department, company code, active state, and termination state. These fields cannot be user-editable authorization sources. Company-specific settings and bank-account changes need company-scoped policies, restricted admin rights, and auditability.
+
+## Work required before creating production tables/policies
+
+1. Inventory every active query, mutation payload, join, RPC and Storage path; identify which modules are still legacy.
+2. Decide the canonical model for each overlapping domain, including customers/CRM, employees, leave, performance reviews and proformas.
+3. Add explicit company ownership and foreign keys where the business model requires them; define legitimate cross-company group reporting separately from transactional access.
+4. Define protected membership/profile data and a server-side role/permission model. Never authorize from localStorage or editable user metadata.
+5. Design RLS and SQL grants for each canonical table, including SELECT policies needed for UPDATE and both USING/WITH CHECK on updates.
+6. Design private Storage policies for documents and replace public URL use for confidential files.
+7. Make critical multi-step workflows transactional and make all failures visible.
+8. Write negative tests for anonymous access, cross-company reads/writes, role escalation, inactive users, document access, approval separation and duplicate numbering.
+9. Only then prepare a migration and test it in a non-production environment before enabling production mode.
+
+## Current state
+- No SQL schema, RLS policy, Storage policy, or migration has been applied.
+- No production deployment has been made.
+- Keep production mode disabled and Supabase configuration placeholders blank until the blockers above are resolved.
