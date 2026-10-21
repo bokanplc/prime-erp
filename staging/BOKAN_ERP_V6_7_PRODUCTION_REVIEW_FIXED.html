@@ -9016,5 +9016,22 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   window.BOKAN_HR_PRODUCTION={enabled:()=>prod,refresh,createEmployee,recordAttendance,submitLeave,createPayroll,addPayrollLine,requestPayrollApproval,performance};
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,300));
 })();</script>
+<script id="bokan-v67-hosted-fail-closed">
+(function(){
+  // Local file/localhost remains available for review. Any hosted copy must
+  // have explicit production Supabase configuration or it must not display
+  // the mock/demo ERP interface. This is a safety guard, not a substitute
+  // for database RLS or the authenticated profile gate.
+  const localPreview = location.protocol === 'file:' || ['localhost','127.0.0.1','::1'].includes(location.hostname);
+  const cfg = window.BOKAN_CONFIG || {};
+  const configured = !!(cfg.PRODUCTION_MODE === true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
+  if (localPreview || configured) return;
+  document.documentElement.style.visibility = 'hidden';
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.innerHTML = '<main style="font-family:Arial,sans-serif;max-width:680px;margin:12vh auto;padding:28px;color:#1f2937;border:1px solid #d1d5db;border-radius:12px"><h1 style="font-size:22px">BOKAN ERP is not configured for hosted use</h1><p>This review build is blocked because secure production configuration is missing. No demo data should be used for business transactions.</p><p>Configure Supabase Authentication, the reviewed database schema, row-level security, and the approved public client key before enabling hosted access.</p></main>';
+    document.documentElement.style.visibility = 'visible';
+  }, {once:true});
+})();
+</script>
 </body>
 </html>
