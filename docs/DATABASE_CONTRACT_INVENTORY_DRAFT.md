@@ -96,3 +96,18 @@ The source directly references these 41 tables. This is a verified name inventor
 - The hosted auth gate is corrected and the mock backend cannot be reached in any hosted configuration.
 
 This file is a design artifact only. It does not create tables, change Auth settings, apply policies, or enable production mode.
+
+
+## E. Browser storage audit — data that may not be shared or durable
+
+Static scan found these literal localStorage keys:
+- `bokan_active_company_context` — active company UI context; can remain a preference, but must never authorize access.
+- `bokan_sales_lifecycle_v1` — sales workflow state; determine whether it contains business records or just UI preferences.
+- `customer_logs`, `customers`, `prime_customer_logs`, `prime_customers` — possible legacy/customer datasets; must not remain authoritative local-only records.
+- `prime_proforma_requests` — proforma request records; decide migration to shared database.
+- `prime_release_environment`, `prime_release_last`, `prime_release_role` — release/role flags. Browser-editable values must not determine authorization or production access.
+- `prime_v22_corporate`, `prime_v27_ops`, `prime_v28_control`, `prime_v40_transactions`, `prime_v53_lastscan` — versioned feature/control state; inspect contents and decide whether preferences or authoritative audit/transaction data.
+- `bokan_proforma_company_settings_v2` — local issuer settings in review mode; production path reads companies and bank accounts from Supabase.
+- `BOKAN_PROFORMA_LOCAL_KEY`, `ATT_KEY`, and dynamic `K` / `KEY` expressions also occur; resolve each constant definition and inspect stored content before deciding migration.
+
+**Rule:** Local storage is user-controlled and browser-specific. It is suitable for non-sensitive preferences, never for authorization, shared company master data, audit history, or the only copy of a business transaction. Do not blindly migrate local values without reviewing their shape and whether they are stale demo data.
