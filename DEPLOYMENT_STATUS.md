@@ -75,3 +75,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Verified source patterns after the edit: hosted boot guard present, preview identity assignment occurs after the local-origin guard, boot error handler does not unhide the app, production auth bridge and final hosted guard remain present.
 - Added checks for these invariants to `scripts/audit-erp-source.mjs`.
 - This is a source-level check only. Browser testing is still required, and the remaining mock backend, legacy CRUD paths, public document URL usage, schema/RLS, and duplicate numbering path remain unresolved.
+
+
+## Entry-point synchronization and syntax verification (2026-10-21)
+- Synced `staging/index.html` to the reviewed source after the hosted startup fix; both files are byte-for-byte identical (792,867 characters).
+- Static verification compiled all 39 inline JavaScript script blocks without syntax errors.
+- The audit script's syntax was checked after accounting for its Node shebang and import declaration.
+- The checks are static only; no real browser/session test has been run and the app is still not cleared for production.
