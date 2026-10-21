@@ -47,3 +47,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `docs/DATABASE_CONTRACT_INVENTORY_DRAFT.md`: maps all 41 directly referenced table names, known write/read fields, proforma data rules, duplicate legacy/new models, RPCs, and browser-storage keys.
 - These documents are design artifacts only. No SQL schema, RLS policy, or migration was applied to Supabase.
 - Next work: finish tracing every insert/update/delete payload and relationship, resolve canonical table models, then draft an RLS policy matrix and test plan before preparing SQL.
+
+
+## Access-control planning (2026-10-21)
+- Added `docs/ACCESS_CONTROL_MATRIX_DRAFT.md` with proposed least-privilege access by role/domain and required negative security tests.
+- This matrix is a review draft, not an applied RLS policy. No table, grant, or policy has been created.
+- Before SQL is prepared, continue tracing actual form payloads and choose canonical models where the source contains legacy and newer tables for the same domain.
