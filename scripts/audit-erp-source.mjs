@@ -45,6 +45,9 @@ if (/service_role|sb_secret_/i.test(config)) failures.push('Possible service-rol
 requirePattern(/function\s+makeMockSupabase\s*\(/, 'Mock Supabase client was not found; review whether the intended local-preview fallback still works.');
 warnPattern(/function\s+makeMockSupabase\s*\(/, 'Mock backend exists in the source. Prove it cannot run on any hosted production path.');
 requirePattern(/if\s*\(!localPreview\s*\|\|\s*config\.PRODUCTION_MODE\s*===\s*true\)/, 'Hosted boot must not use the preview identity.');
+requirePattern(/const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
+requirePattern(/Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
+if (/\#prime-prod-gate\{display:none!important\}/.test(source)) failures.push('Production API gate is force-hidden by CSS.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configured Supabase client must be available to production bridge modules.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*\{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must be blocked until private Storage is implemented.');
 requirePattern(/Only an authenticated administrator can request role changes/, 'Role-change UI must reject non-admin production requests.');
