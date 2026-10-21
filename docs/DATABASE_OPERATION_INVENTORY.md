@@ -9,55 +9,53 @@ Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FI
 - Distinct direct table names: 41
 - `localStorage` string references: 96 (must be reviewed; some may be preferences rather than business records)
 - The source includes an in-memory mock backend and uses it when production configuration is absent.
-- The source contains a review-mode UI and comments that authentication was bypassed in the review build. Do not deploy this artifact for business use until production auth is enforced.
+- The source contains a review-mode UI and comments that authentication was bypassed in the review build. Do not deploy this artifact for business use until production authentication is enforced.
 
-## Direct table references and rough call counts
+## All direct table references
 
-| Table | Direct references | Notes |
+| Table | Direct references | Primary review area |
 |---|---:|---|
-| profiles | 9 | Identity/role/company profile; highest priority for secure bootstrap |
-| customers | 13 | Customer records; tenant isolation required |
-| customer_logs | 11 | Activity/CRM logs; joins reference customers |
-| stock_entries | 9 | Inventory movement/source records |
-| employees | 6 | Employee master; HR-sensitive |
-| documents | 6 | Uploaded/document metadata and access control |
-| leave_requests | 6 | HR-sensitive |
-| expenses | 8 | Finance-sensitive |
-| stock_ledger | 7 | Inventory ledger |
-| per_diem_requests | 6 | Employee expense/approval data |
-| performance_reviews | 5 | HR-sensitive |
-| proformas | 5 | Customer/commercial data; financial calculation validation required |
-| trip_plans | 5 | Staff travel and expense data |
-| disciplinary_actions | 5 | Highly sensitive HR data |
-| visit_reports | 4 | Sales/CRM |
-| sales_targets | 4 | Sales performance data |
-| company_bank_accounts | 3 | Bank account details; restrict writes to authorized roles |
-| companies | 3 | Legal entity master data |
-| customer_billings | 3 | Customer financial data |
-| notifications | 2 | User-targeted data; restrict by recipient |
-| custom_terms | 2 | Commercial document terms |
-| bokan_customers | 5 | Newer CRM model; reconcile with legacy `customers` |
-| bokan_ap_bills | 1 | Accounts payable |
-| bokan_ap_payments | 1 | Accounts payable |
-| bokan_ar_invoices | 1 | Accounts receivable |
-| bokan_ar_receipts | 1 | Accounts receivable |
-| bokan_attendance_records | 1 | HR |
-| bokan_customer_activities | 1 | CRM |
-| bokan_customer_assignments | 1 | CRM |
-| bokan_delivery_orders | 1 | Logistics |
-| bokan_employees | 1 | HR; reconcile with legacy `employees` |
-| bokan_fiscal_periods | 1 | Accounting period controls |
-| bokan_journal_entries | 1 | General ledger |
-| bokan_leave_requests | 1 | HR; reconcile with legacy `leave_requests` |
-| bokan_payroll_approvals | 1 | Payroll approval |
-| bokan_payroll_lines | 1 | Payroll-sensitive |
-| bokan_payroll_runs | 1 | Payroll-sensitive |
-| bokan_performance_reviews | 1 | HR; reconcile with legacy `performance_reviews` |
-| bokan_sales_opportunities | 1 | Sales pipeline |
-| bokan_salespeople | 1 | Sales assignment/identity |
-| bokan_shipments | 1 | Logistics |
-| bokan_fiscal_periods | 1 | Accounting controls |
-| bokan_delivery_orders | 1 | Logistics |
+| `bokan_ap_bills` | 1 | Accounts payable |
+| `bokan_ap_payments` | 1 | Accounts payable |
+| `bokan_ar_invoices` | 1 | Accounts receivable |
+| `bokan_ar_receipts` | 1 | Accounts receivable |
+| `bokan_attendance_records` | 1 | HR |
+| `bokan_customer_activities` | 1 | CRM |
+| `bokan_customer_assignments` | 1 | CRM |
+| `bokan_customers` | 5 | CRM; reconcile with legacy `customers` |
+| `bokan_delivery_orders` | 1 | Logistics |
+| `bokan_employees` | 1 | HR; reconcile with legacy `employees` |
+| `bokan_fiscal_periods` | 1 | Accounting controls |
+| `bokan_journal_entries` | 1 | General ledger |
+| `bokan_leave_requests` | 1 | HR; reconcile with legacy `leave_requests` |
+| `bokan_payroll_approvals` | 1 | Payroll approval |
+| `bokan_payroll_lines` | 1 | Payroll-sensitive |
+| `bokan_payroll_runs` | 1 | Payroll-sensitive |
+| `bokan_performance_reviews` | 1 | HR; reconcile with legacy `performance_reviews` |
+| `bokan_sales_opportunities` | 1 | Sales pipeline |
+| `bokan_salespeople` | 1 | Sales assignment/identity |
+| `bokan_shipments` | 1 | Logistics |
+| `companies` | 3 | Legal entity master data |
+| `company_bank_accounts` | 3 | Bank details; restrict writes to authorized roles |
+| `custom_terms` | 2 | Commercial document terms |
+| `customer_billings` | 3 | Customer financial data |
+| `customer_logs` | 11 | CRM and activity history |
+| `customers` | 13 | Customer master; tenant isolation required |
+| `disciplinary_actions` | 5 | Sensitive HR data |
+| `documents` | 6 | Document metadata and access control |
+| `employees` | 6 | Employee master; HR-sensitive |
+| `expenses` | 8 | Finance-sensitive |
+| `leave_requests` | 6 | HR-sensitive |
+| `notifications` | 2 | Restrict by recipient |
+| `per_diem_requests` | 6 | Employee expense/approval data |
+| `performance_reviews` | 5 | Sensitive HR data |
+| `profiles` | 9 | Identity, role, and company profile |
+| `proformas` | 5 | Commercial data and financial calculation validation |
+| `sales_targets` | 4 | Sales performance data |
+| `stock_entries` | 9 | Inventory movement/source records |
+| `stock_ledger` | 7 | Inventory ledger |
+| `trip_plans` | 5 | Staff travel and expense data |
+| `visit_reports` | 4 | Sales/CRM |
 
 ## Important reconciliation points
 - Both legacy and `bokan_*` models appear in the source for employees, leave requests, performance reviews, and customers/CRM. Do not create parallel tables by name alone; determine the intended canonical model and migrate/bridge deliberately.
