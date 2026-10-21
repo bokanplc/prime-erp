@@ -6617,7 +6617,7 @@ window.BOKAN_PROFORMA_PRODUCTION = { enabled: bokanProdEnabled };
 let BOKAN_PROD_ISSUER_CACHE = {};
 let BOKAN_PROD_SAVED_CACHE = [];
 function bokanProdMapProformaRow(r){
-  const form={companyKey:r.company_code,customer:r.customer_name||'',contactPerson:r.contact_person||'',tin:r.customer_tin||'',address:r.customer_address||'',phone:r.customer_phone||'',date:r.proforma_date||'',items:Array.isArray(r.items)?r.items:[],discount:Number(r.discount_percent||0),delivery:r.delivery_terms||'',notes:r.notes||'',transportEnabled:!!r.complementary_services?.transport,transportVehicle:r.complementary_services?.transport?.vehicle||'',transportCost:Number(r.complementary_services?.transport?.cost||0),transportRoute:r.complementary_services?.transport?.route||'',handlingEnabled:!!r.complementary_services?.handling,handlingType:r.complementary_services?.handling?.type||'Loading',handlingRate:Number(r.complementary_services?.handling?.rate_per_pc||0),handlingLocation:r.complementary_services?.handling?.location||'',withholdingEnabled:!!r.withholding_enabled,withholdingRate:Number(r.withholding_rate||3),withholdingThreshold:Number(r.withholding_threshold||10000),banks:Array.isArray(r.bank_accounts_snapshot)?r.bank_accounts_snapshot:[],terms:Array.isArray(r.terms)?r.terms:[]};
+  const form={companyKey:r.company_code,customer:r.customer_name||'',contactPerson:r.contact_person||'',tin:r.customer_tin||'',address:r.customer_address||'',phone:r.customer_phone||'',date:r.proforma_date||'',items:Array.isArray(r.items)?r.items:[],discount:Number(r.discount_percent||0),delivery:r.delivery_terms||'',notes:r.notes||'',withholdingEnabled:!!r.withholding_enabled,withholdingRate:Number(r.withholding_rate||3),withholdingThreshold:Number(r.withholding_threshold||10000),banks:Array.isArray(r.bank_accounts_snapshot)?r.bank_accounts_snapshot:[],terms:Array.isArray(r.terms)?r.terms:[]};
   return {id:r.id,proformaNo:r.proforma_no,version:Number(r.version_no||1),rootProformaId:r.root_proforma_id,customer:r.customer_name||'',companyKey:r.company_code,companyName:r.company?.legal_name||COMPANY_OPTIONS[r.company_code]?.name||r.company_code,createdAt:r.created_at,updatedAt:r.updated_at,form,summary:{grandTotal:Number(r.grand_total||0),netPayable:Number(r.net_payable||0),withholdingAmount:Number(r.withholding_amount||0)},dbRow:r};
 }
 async function bokanProdLoadIssuer(key){
@@ -6626,7 +6626,7 @@ async function bokanProdLoadIssuer(key){
     db.from('companies').select('code,legal_name,brand_name,tin,address,phone,proforma_title_color,active').eq('code',key).single(),
     db.from('company_bank_accounts').select('id,company_code,bank_name,account_number,branch_name,account_purpose,display_order,active').eq('company_code',key).eq('active',true).order('display_order',{ascending:true})
   ]);
-  if(ce) throw ce; if(be) throw be; if(se) throw se;
+  if(ce) throw ce; if(be) throw be;
   const companyRow=c;
   const companyData={key:companyRow?.code||key,name:companyRow?.legal_name||COMPANY_OPTIONS[key]?.name||key,address:companyRow?.address||COMPANY_OPTIONS[key]?.address||'',phone:companyRow?.phone||COMPANY_OPTIONS[key]?.phone||'',tin:companyRow?.tin||COMPANY_OPTIONS[key]?.tin||'',proforma_title_color:companyRow?.proforma_title_color||''};
   BOKAN_PROD_ISSUER_CACHE[key]={...companyData,banks:(banks||[]).map(b=>({id:b.id,bank_name:b.bank_name,account_number:b.account_number,purpose:b.account_purpose||b.branch_name||''}))};
