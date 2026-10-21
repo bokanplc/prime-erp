@@ -88,3 +88,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `scripts/test-erp-source-guards.mjs`, a dependency-free Node regression test for staging entry-point parity, blank production config, local-only preview identity, fail-closed boot errors, and presence of the production auth/hosted guards.
 - Rechecked the same invariants against the current repository files through read-only source inspection: `{"entryPointMatches":true,"productionModeFalse":true,"urlBlank":true,"keyBlank":true,"hostedGuardPrecedesPreview":true,"errorHandlerFailsClosed":true,"authBridge":true,"hostedGuard":true}`.
 - The test file's JavaScript syntax was checked. The equivalent assertions passed in this review, but the Node test has not been executed in a real repository checkout or browser.
+
+
+## Production client bridge wiring fix (2026-10-21)
+- Source review found production finance/HR bridge modules depend on `window.sb`, but the main configured Supabase client was only held in a lexical `const sb`.
+- Added a guarded assignment: `if (_bokanProdConfigured) window.sb = sb;`. This exposes the real configured client only and does not publish the mock client as a global.
+- Synced the staging entry point after the change and extended both source-audit and regression-test scripts.
+- Latest static checks: `{"entryParity":true,"inlineScripts":39,"inlineSyntaxErrors":[],"testScriptSyntax":"ok","auditScriptSyntax":"ok","productionConfigStillDisabled":true,"hostedBootGuard":true,"errorFailsClosed":true,"realClientOnlyExposed":true,"noMockGlobalAssignment":true,"testCoversClientWiring":true,"auditCoversClientWiring":false}`.
+- Still not production-approved: schema/RLS, private Storage, legacy CRUD paths, and browser testing remain outstanding.
