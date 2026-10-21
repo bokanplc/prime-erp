@@ -39,5 +39,8 @@ assert.match(source, /Only an authorized administrator or accounting user can re
 assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(_bokanProdConfigured\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account replacement must remain blocked until atomic audited writes exist.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
+assert.match(source, /const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
+assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Production gate must not be force-hidden by CSS.');
+assert.match(source, /Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
 
 console.log('PASS: BOKAN ERP source startup guards and staging entry-point parity.');
