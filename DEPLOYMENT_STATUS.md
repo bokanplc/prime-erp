@@ -119,3 +119,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - The regression test now covers entry-point parity, fail-closed hosted boot, production config placeholders, shared-client exposure, and blocked production document uploads. Its logic was checked against the current files; it has not been executed in a real Node checkout.
 - Supabase remains untouched: no public application tables and no migrations. Security Advisor still reports leaked-password protection disabled; no direct Auth-settings management tool is available in this workflow.
 - No deployment was made. Next major work remains canonical schema design, RLS/GRANT policy implementation, private Storage design, and real browser/Auth/RLS testing.
+
+
+## Additional high-risk write guards (2026-10-21)
+- Role-change UI now validates allowed roles, limits production requests to an authenticated admin profile, and reports failed writes. Database policy is still the actual security boundary.
+- Production bank-account replacement is blocked until the existing delete-then-insert implementation is replaced with an atomic, audited operation; this prevents partial failure from removing all account rows.
+- Synced `staging/index.html` and extended source regression/audit checks for both guards.
