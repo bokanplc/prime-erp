@@ -110,3 +110,12 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Final source syntax pass: 39 inline script blocks compiled with 0 syntax errors.
 - Rechecked Supabase: public application table list is still empty and migration list is still empty. Security Advisor output was reviewed again; no database changes were made.
 - Current config remains fail-closed with production mode disabled and blank Supabase URL/key placeholders.
+
+
+## Final source review checkpoint (2026-10-21)
+- Verified production auth bridge loads profile fields and rejects missing, inactive, terminated, or unsupported-role profiles before revealing the app.
+- Verified `config/config.js` is included after the Supabase JS library in the HTML head.
+- Verified all 39 inline scripts parse after the client-wiring and document-storage changes.
+- The regression test now covers entry-point parity, fail-closed hosted boot, production config placeholders, shared-client exposure, and blocked production document uploads. Its logic was checked against the current files; it has not been executed in a real Node checkout.
+- Supabase remains untouched: no public application tables and no migrations. Security Advisor still reports leaked-password protection disabled; no direct Auth-settings management tool is available in this workflow.
+- No deployment was made. Next major work remains canonical schema design, RLS/GRANT policy implementation, private Storage design, and real browser/Auth/RLS testing.
