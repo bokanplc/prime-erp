@@ -162,3 +162,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Confirmed the legacy adapter's development bypass is local-preview-only, the hosted gate is not force-hidden, and the missing-API message remains in source.
 - Latest completed source-guard CI run `39618720038` succeeded, including both regression and inline syntax steps.
 - No database, Auth, Storage, paid-plan, or live-deployment changes were made.
+
+
+## Owner hand-off notes prepared (2026-10-21)
+- Added `docs/OWNER_DECISIONS_BEFORE_PRODUCTION.md` so the next review can focus on the few business/architecture decisions that cannot safely be guessed.
+- Recommended direction is Supabase Auth + RLS as the single identity/data boundary, with Cloudflare Pages for static UI, but the legacy `/api/*` adapter must be migrated module by module before this is functional.
+- Draft PR #1 remains open, unmerged, and non-deploying. It is for review and automated checks only.
