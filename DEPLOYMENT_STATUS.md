@@ -168,3 +168,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `docs/OWNER_DECISIONS_BEFORE_PRODUCTION.md` so the next review can focus on the few business/architecture decisions that cannot safely be guessed.
 - Recommended direction is Supabase Auth + RLS as the single identity/data boundary, with Cloudflare Pages for static UI, but the legacy `/api/*` adapter must be migrated module by module before this is functional.
 - Draft PR #1 remains open, unmerged, and non-deploying. It is for review and automated checks only.
+
+
+## Browser SDK supply-chain guard (2026-10-21)
+- Pinned the Supabase browser SDK CDN URL to exact version `2.118.0` rather than the moving `@2` channel. The official Supabase JS release page lists v2.118.0 as a release dated 2026-10-15. <https://github.com/supabase/supabase-js/releases>
+- Added regression and static-audit checks for the exact version pin.
+- Tailwind is still loaded from its CDN development script. Before a production release, replace that with a reproducible built CSS asset and apply a reviewed Content Security Policy; do not treat the current single-file CDN setup as production-hardened.
