@@ -33,6 +33,8 @@ assert.doesNotMatch(autoBoot, /app-view['"]\)\?\.classList\.remove\(['"]hidden['
 
 assert.match(source, /if \(_bokanProdConfigured\) window\.sb = sb;/, 'Configured real Supabase client must be exposed to production bridge modules.');
 assert.match(source, /if \(_bokanProdConfigured\) \{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must remain blocked until private storage is implemented.');
+assert.match(source, /Only an authenticated administrator can request role changes/, 'Role-change UI must reject non-admin production requests.');
+assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(_bokanProdConfigured\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account replacement must remain blocked until atomic audited writes exist.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
 
