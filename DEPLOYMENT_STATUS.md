@@ -146,3 +146,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Fixed bypass to be local-preview-only, removed force-hide CSS, and kept the hosted gate visible when the API is unavailable.
 - Synced staging entry point and added source regression/audit checks.
 - **Important deployment blocker discovered:** static Cloudflare Pages does not supply the required `/api/bootstrap`, `/api/auth/login`, and `/api/store/*` server endpoints by itself. The legacy localStorage-backed modules need a real authenticated API or a deliberate migration to secured Supabase tables/RPCs before a hosted release can function safely.
+
+
+## Latest regression run and API architecture decision gate (2026-10-21)
+- After the legacy API adapter fix, GitHub Actions run `39618720038` completed successfully. The regression test and inline-JavaScript syntax job both passed for the source changes.
+- Added `docs/STATIC_HOSTING_API_GAP_ASSESSMENT.md`: identifies the legacy `/api/*` dependency and compares a Supabase-consolidation route with a separate authenticated API route, with a no-upgrade recommendation.
+- Updated draft PR #1 to clearly state that it is review-only and must not be merged/deployed as a functioning production app while the API, schema, RLS and persistence blockers remain.
+- Current source is deliberately fail-closed on hosted pages without the legacy API. This is safer than fake login but means the hosted app cannot be considered functional until the adapter is migrated or the API is implemented.
