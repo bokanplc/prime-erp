@@ -50,3 +50,8 @@ The main `boot()` path previously assigned a preview administrator unconditional
 
 ## Follow-up fix: document storage safety guard (2026-10-21)
 The repository upload and delete handlers used public Storage URL flow. Production uploads and deletions are now temporarily blocked until a private bucket, aligned Storage policies, and authorized download flow are implemented. Local preview remains available. This reduces the risk of accidentally exposing confidential documents but intentionally leaves the production document repository unavailable until the secure replacement is completed.
+
+
+## Follow-up fix: role administration and bank-account writes (2026-10-21)
+- Role change UI now validates the requested role against the supported list, permits production requests only for the authenticated admin role, and handles database errors instead of silently ignoring them. This is a UI guard only; database RLS/grants must enforce administrator-only updates to protected profile columns.
+- Production bank-account replacement is temporarily blocked because the current implementation deletes all company bank-account rows before inserting replacements, which can leave a company with no bank accounts if the insert fails. Re-enable only after an atomic, audited server/database workflow is implemented and tested.
