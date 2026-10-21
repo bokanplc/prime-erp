@@ -27,4 +27,4 @@ The mock-backend fallback means production hosting must inject valid configurati
 7. Test a manual export/restore workflow compatible with the current Free plan.
 
 ## Current state
-No application database schema changes have been made. The repository's `main` branch remains untouched. The staging branch contains deployment documentation, not yet the full ERP source code.
+No application database schema changes have been made. The repository's `main` branch remains untouched. The staging branch contains the reviewed full ERP source and deployment audit documentation; it is not yet deployed.
