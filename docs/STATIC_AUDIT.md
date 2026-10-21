@@ -1,18 +1,19 @@
 # BOKAN ERP V6.7 static audit
 
 Audit date: 2026-10-21  
-Source inspected locally: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`  
-This report describes a static review only; it is not a production certification.
+Source inspected: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`  
+This report describes static review and targeted fixes only; it is not a production certification.
 
 ## Checks completed
-- Extracted 35 non-empty inline JavaScript blocks.
-- Ran Node.js syntax validation against each extracted inline script: **0 syntax failures**.
+- Extracted 35 non-empty inline JavaScript blocks and ran Node.js syntax validation: **0 syntax failures** after the targeted patch.
 - Identified 41 distinct table names referenced by `.from(...)` calls (full list in `DATABASE_OPERATION_INVENTORY.md`).
 - Found 96 `localStorage` references in the HTML source.
 - Found mock-backend fallback logic (`makeMockSupabase()`).
 - Found no literal `service_role` or `SUPABASE_SERVICE_ROLE_KEY` strings in the inspected HTML.
 - Found explicit review-source comments indicating authentication was bypassed for the review build.
 - Confirmed the Supabase project has zero public application tables and no recorded migrations.
+- Fixed a confirmed production Proforma issuer runtime defect: an undefined `se` variable was referenced after the `companies` and `company_bank_accounts` queries. That reference is now removed; the actual query errors `ce` and `be` are still checked.
+- Removed the legacy complementary-services mapping from the Proforma row adapter, consistent with the requested removal of that section.
 
 ## Local-storage keys requiring review
 
@@ -30,7 +31,7 @@ The source contains these literal keys. The names suggest that at least some may
 | `prime_v22_corporate` | Identify corporate/business data versus UI preferences |
 | `prime_v40_transactions` | Determine whether transaction data is local-only |
 | `prime_v28_control` | Determine whether control/audit records are local-only |
-| `bokan_active_company_context` | UI context only if it is always validated against the authenticated profile |
+| `bokan_active_company_context` | UI context only if always validated against the authenticated profile |
 | `prime_v53_lastscan` | Determine if this is a harmless scan timestamp or an operational control |
 | `prime_release_environment` | Review release-mode switching; must not let users enable unsafe modes |
 | `prime_release_role` | Never trust a local-storage role as an authorization boundary |
@@ -51,4 +52,4 @@ The mock-backend fallback means production hosting must inject valid configurati
 7. **Runtime:** browser smoke tests are still required for login, roles, company switching, proforma math, history, and key workflows.
 
 ## Current state
-No application database schema changes have been made. The repository's `main` branch remains untouched. The staging branch contains the reviewed full ERP source and audit documentation; it is not yet deployed.
+No application database schema changes have been made. The repository's `main` branch remains untouched. The staging branch contains the full reviewed source and audit documentation; it is not deployed.
