@@ -153,3 +153,12 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `docs/STATIC_HOSTING_API_GAP_ASSESSMENT.md`: identifies the legacy `/api/*` dependency and compares a Supabase-consolidation route with a separate authenticated API route, with a no-upgrade recommendation.
 - Updated draft PR #1 to clearly state that it is review-only and must not be merged/deployed as a functioning production app while the API, schema, RLS and persistence blockers remain.
 - Current source is deliberately fail-closed on hosted pages without the legacy API. This is safer than fake login but means the hosted app cannot be considered functional until the adapter is migrated or the API is implemented.
+
+
+## Pre-hand-off integrity verification (2026-10-21)
+- Confirmed `staging/index.html` and `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` are byte-for-byte identical at 795,078 characters.
+- Confirmed staging config remains `PRODUCTION_MODE: false` with blank Supabase URL and key placeholders.
+- Confirmed the default `main/index.html` is still 1 byte and was not modified.
+- Confirmed the legacy adapter's development bypass is local-preview-only, the hosted gate is not force-hidden, and the missing-API message remains in source.
+- Latest completed source-guard CI run `39618720038` succeeded, including both regression and inline syntax steps.
+- No database, Auth, Storage, paid-plan, or live-deployment changes were made.
