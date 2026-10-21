@@ -102,3 +102,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Production document uploads and deletes are now blocked at the UI handler until private Storage policies and authorized download links are implemented.
 - Local preview still exercises the demo flow. The public URL helper remains in the legacy handler but is unreachable for configured production writes due to the new guard; replace it with a private signed-download flow before enabling the repository in production.
 - Synced `staging/index.html` and added a regression assertion for the production upload guard.
+
+
+## Latest read-only release gate check (2026-10-21)
+- Verified the HTML loads `config/config.js` after the Supabase JS library, so the config template is actually included in the page.
+- Current staging entry point and reviewed source are byte-for-byte identical.
+- Final source syntax pass: 39 inline script blocks compiled with 0 syntax errors.
+- Rechecked Supabase: public application table list is still empty and migration list is still empty. Security Advisor output was reviewed again; no database changes were made.
+- Current config remains fail-closed with production mode disabled and blank Supabase URL/key placeholders.
