@@ -1,30 +1,54 @@
 # BOKAN ERP V6.7 static audit
 
 Audit date: 2026-10-21  
-Source inspected locally: `BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`  
+Source inspected locally: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`  
 This report describes a static review only; it is not a production certification.
 
 ## Checks completed
 - Extracted 35 non-empty inline JavaScript blocks.
 - Ran Node.js syntax validation against each extracted inline script: **0 syntax failures**.
-- Identified 41 distinct table names referenced by `.from(...)` calls.
+- Identified 41 distinct table names referenced by `.from(...)` calls (full list in `DATABASE_OPERATION_INVENTORY.md`).
 - Found 96 `localStorage` references in the HTML source.
 - Found mock-backend fallback logic (`makeMockSupabase()`).
 - Found no literal `service_role` or `SUPABASE_SERVICE_ROLE_KEY` strings in the inspected HTML.
+- Found explicit review-source comments indicating authentication was bypassed for the review build.
+- Confirmed the Supabase project has zero public application tables and no recorded migrations.
+
+## Local-storage keys requiring review
+
+The source contains these literal keys. The names suggest that at least some may hold operational or customer data; every read/write must be traced before live use.
+
+| Key | Required review |
+|---|---|
+| `customers` | Determine whether customer records are stored locally rather than in shared Supabase |
+| `customer_logs` | Determine whether CRM activity/history is stored locally |
+| `prime_customers` | Determine scope, migration, and company isolation |
+| `prime_customer_logs` | Determine scope, migration, and company isolation |
+| `prime_proforma_requests` | Determine whether requests need shared persistence and authorization |
+| `bokan_sales_lifecycle_v1` | Sales lifecycle persistence and company scope |
+| `prime_v27_ops` | Identify operational data and convert business records to shared persistence |
+| `prime_v22_corporate` | Identify corporate/business data versus UI preferences |
+| `prime_v40_transactions` | Determine whether transaction data is local-only |
+| `prime_v28_control` | Determine whether control/audit records are local-only |
+| `bokan_active_company_context` | UI context only if it is always validated against the authenticated profile |
+| `prime_v53_lastscan` | Determine if this is a harmless scan timestamp or an operational control |
+| `prime_release_environment` | Review release-mode switching; must not let users enable unsafe modes |
+| `prime_release_role` | Never trust a local-storage role as an authorization boundary |
+| `prime_release_last` | Determine whether this is UI metadata or an operational record |
 
 ## What these results mean
 Passing JavaScript syntax checks confirms only that the extracted scripts parse. It does not prove that the page renders correctly, all features work, or the database schema/policies match the application.
 
-The mock-backend fallback means production hosting must inject valid configuration and must not let staff mistake in-memory/demo data for saved ERP records. The many local-storage references also require a module-by-module review to distinguish harmless UI preferences from business data that must be stored centrally and protected by RLS.
+The mock-backend fallback means production hosting must inject valid configuration and must not let staff mistake in-memory/demo data for saved ERP records. A role or company value in local storage is not a security boundary. The local-storage inventory above needs a module-by-module review so that customer, finance, HR, payroll, and audit data is centrally persisted and protected by database RLS.
 
-## Remaining work before live use
-1. Commit the exact reviewed full ERP HTML source into this private staging branch.
-2. Perform runtime/browser smoke tests for navigation, auth, roles, company switching, proforma calculations, history, and key workflows.
-3. Trace all 41 table names to actual field-level queries and writes; remove obsolete duplicate models where appropriate.
-4. Design and review the SQL schema, indexes, constraints, and RLS policies before applying migrations.
-5. Test that unauthenticated users and users from the other company cannot read or alter protected records.
-6. Confirm production startup fails closed when required configuration or session is absent.
-7. Test a manual export/restore workflow compatible with the current Free plan.
+## Deployment blockers
+1. **Authentication:** the review source explicitly says auth was bypassed in review mode. Production must enforce Supabase Auth and active `profiles` before showing protected ERP screens.
+2. **Database schema:** 41 direct table names are referenced; actual columns, foreign keys, write payloads, and legacy/new model duplication must be reconciled.
+3. **Tenant isolation:** PRIME and BlackRock data must be isolated in RLS policies, not just in UI tabs or local storage.
+4. **Local storage:** determine which keys contain business data and migrate those flows to shared, authorized persistence.
+5. **Mock backend:** production must fail closed when configuration/session is absent, never silently show successful in-memory writes.
+6. **Recovery:** establish and test manual export/recovery steps compatible with the current Free plan.
+7. **Runtime:** browser smoke tests are still required for login, roles, company switching, proforma math, history, and key workflows.
 
 ## Current state
-No application database schema changes have been made. The repository's `main` branch remains untouched. The staging branch contains the reviewed full ERP source and deployment audit documentation; it is not yet deployed.
+No application database schema changes have been made. The repository's `main` branch remains untouched. The staging branch contains the reviewed full ERP source and audit documentation; it is not yet deployed.
