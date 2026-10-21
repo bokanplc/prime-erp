@@ -42,3 +42,7 @@ Profile data includes role, department, company code, active state, and terminat
 - No SQL schema, RLS policy, Storage policy, or migration has been applied.
 - No production deployment has been made.
 - Keep production mode disabled and Supabase configuration placeholders blank until the blockers above are resolved.
+
+
+## Follow-up fix: hosted startup gate (2026-10-21)
+The main `boot()` path previously assigned a preview administrator unconditionally, and its error handler could unhide the app. Commit `63ad0c2e321f5544d7d84475b1b0dc75be5b4126` changes this so preview identity is assigned only on local file/localhost review, hosted startup keeps the app hidden pending the production auth bridge, and startup errors hide the app rather than reveal it. Static pattern checks passed after the change. This still requires browser testing on both local preview and hosted configuration; it does not clear the other blockers in this report.
