@@ -48,6 +48,8 @@ requirePattern(/if\s*\(!localPreview\s*\|\|\s*config\.PRODUCTION_MODE\s*===\s*tr
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configured Supabase client must be available to production bridge modules.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*\{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must be blocked until private Storage is implemented.');
 requirePattern(/Only an authenticated administrator can request role changes/, 'Role-change UI must reject non-admin production requests.');
+requirePattern(/Only an authorized administrator or accounting user can request issuer TIN changes/, 'Production issuer TIN edits must be role-restricted.');
+requirePattern(/Only an authorized administrator or accounting user can request issuer contact changes/, 'Production issuer contact edits must be role-restricted.');
 requirePattern(/async function bokanProdSaveBanks\(key,banks\)\{ if\(_bokanProdConfigured\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account replacement must remain blocked until atomic audited writes exist.');
 warnPattern(/bootResult\.catch\(function\(err\)\s*\{[\s\S]{0,250}?getElementById\(['"]app-view['"]\)\?\.classList\.remove\(['"]hidden['"]\)/, 'Boot error handler may reveal the application instead of failing closed.');
 warnPattern(/async\s+signInWithPassword\s*\(\)\s*\{\s*return\s*\{\s*error\s*:\s*null\s*\}/, 'Mock sign-in appears to accept any credentials.');
