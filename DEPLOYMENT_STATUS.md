@@ -125,3 +125,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Role-change UI now validates allowed roles, limits production requests to an authenticated admin profile, and reports failed writes. Database policy is still the actual security boundary.
 - Production bank-account replacement is blocked until the existing delete-then-insert implementation is replaced with an atomic, audited operation; this prevents partial failure from removing all account rows.
 - Synced `staging/index.html` and extended source regression/audit checks for both guards.
+
+
+## Automated CI verification and design artifacts (2026-10-21)
+- Opened draft-only review PR #1: `https://github.com/bokanplc/prime-erp/pull/1`. It is not merged and no deployment is connected to it.
+- GitHub Actions run `39617697423` completed successfully for the source-guard job: startup/staging guard regression tests passed and inline JavaScript syntax checks passed.
+- Added `docs/AUTHORIZATION_RLS_MATRIX_DRAFT.md`, `docs/SECURITY_PERSISTENCE_TEST_PLAN.md`, `docs/SCHEMA_DESIGN_DECISION_REGISTER.md`, and `docs/TRUSTED_WRITE_BOUNDARY_DESIGN.md`.
+- The schema/security docs deliberately remain design-only. They document tenant/role permissions, tests, duplicate legacy/new model decisions, and operations that need a trusted transaction boundary.
+- No production SQL, migration, Auth configuration, Storage policy, or deployment was applied. Keep PR #1 in draft until the schema and access model are reconciled and reviewed.
