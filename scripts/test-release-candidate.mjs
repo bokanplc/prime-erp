@@ -29,5 +29,5 @@ assert.match(config,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
 assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
 assert.match(html,/Server-backed modules are unavailable\. Sign-in requires the configured application API\./,'Hosted legacy adapter must fail closed.');
 assert.match(html,/Production configuration is required; demo data and preview sign-in are disabled in this build\./,'Release candidate must use the disabled, non-demo backend stub.');
-assert.doesNotMatch(html,/DEMO_USER|store\.customers\.push|store\.employees\.push/,'Release candidate must not ship hard-coded mock employee/customer records.');
+assert.doesNotMatch(html,/DEMO_USER|store\.customers\.push|store\.employees\.push|store\.profiles\.push|preview@primegroup\.local/,'Release candidate must not ship hard-coded mock users, customer/employee records, or preview email.');
 console.log('PASS: release candidate has empty fixture collections and disabled production config.');
