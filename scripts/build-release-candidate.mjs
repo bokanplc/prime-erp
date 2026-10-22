@@ -58,7 +58,35 @@ function sanitize(html){
   for(const edit of edits.sort((a,b)=>b.start-a.start))html=html.slice(0,edit.start)+edit.replacement+html.slice(edit.end);
   return html;
 }
-const releaseHtml=sanitize(source);
+let releaseHtml=sanitize(source);
+const mockStart=releaseHtml.indexOf('function makeMockSupabase() {');
+const configStart=releaseHtml.indexOf('const _bokanCfg = window.BOKAN_CONFIG || {};',mockStart);
+assert.ok(mockStart>=0&&configStart>mockStart,'Mock backend replacement markers must exist.');
+const mockStub=[
+  'function makeMockSupabase() {',
+  "  const denied = { message: 'Production configuration is required; demo data and preview sign-in are disabled in this build.' };",
+  '  function query() {',
+  '    const q = {};',
+  "    for (const method of ['select','insert','update','upsert','delete','eq','neq','in','match','order','limit','single','maybeSingle','gte','lte','is']) q[method] = () => q;",
+  '    q.then = (resolve, reject) => Promise.resolve({ data: null, error: denied }).then(resolve, reject);',
+  '    return q;',
+  '  }',
+  '  return {',
+  '    auth: {',
+  '      getSession: async () => ({ data: { session: null }, error: null }),',
+  '      getUser: async () => ({ data: { user: null }, error: null }),',
+  '      signInWithPassword: async () => ({ data: null, error: denied }),',
+  '      signOut: async () => ({ error: null }),',
+  '      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } })',
+  '    },',
+  '    from: () => query(),',
+  '    rpc: async () => ({ data: null, error: denied }),',
+  "    storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), getPublicUrl: () => ({ data: { publicUrl: null } }), remove: async () => ({ data: null, error: denied }) }) }",
+  '  };',
+  '}',
+  ''
+].join('\n');
+releaseHtml=releaseHtml.slice(0,mockStart)+mockStub+releaseHtml.slice(configStart);
 assert.match(config,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain disabled.');
 assert.match(config,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
 assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
