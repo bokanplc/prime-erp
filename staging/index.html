@@ -7002,6 +7002,10 @@ document.getElementById('repo-policies-form').addEventListener('submit', async (
 async function loadRepoFiles(category, targetElId) {
   const el = document.getElementById(targetElId);
   if (!el) return;
+  if (_bokanProdConfigured) {
+    el.innerHTML = '<p class="text-[#8D9096]">Document downloads are temporarily disabled until private storage and authorized downloads are configured.</p>';
+    return;
+  }
   const { data } = await sb.from('documents').select('*').eq('category', category).order('created_at', { ascending: false });
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No files uploaded yet.</p>'; return; }
   el.innerHTML = data.map(d => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
