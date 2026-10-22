@@ -35,6 +35,8 @@ jobs:
         run: node scripts/check-inline-js.mjs
       - name: Audit direct data-access surface
         run: node scripts/audit-erp-data-surface.mjs
+      - name: Test committed release candidate before rebuild
+        run: node scripts/test-release-candidate.mjs
       - name: Build sanitized release candidate
         run: node scripts/build-release-candidate.mjs
       - name: Test sanitized release candidate
