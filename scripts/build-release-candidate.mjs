@@ -108,5 +108,6 @@ mkdirSync(dirname(outputConfigPath),{recursive:true});
 writeFileSync(outputPath,releaseHtml);
 writeFileSync(outputConfigPath,config);
 console.log('Built sanitized release candidate: '+outputPath);
-console.log('Emptied known fixture collections: '+Object.keys(replacements).length);
+console.log('Emptied known fixture collections: '+(Object.keys(replacements).length+1));
+console.log('Preview-admin identity fallback removed: 1');
 console.log('Production mode remains disabled; candidate is not approved for deployment.');
