@@ -202,3 +202,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - The source-of-record review HTML remains unchanged and still retains local-preview fixtures. Only `staging/release/index.html` is sanitized. Do not publish `staging/` as a whole.
 - Rechecked Supabase read-only: no public application tables and no migrations. Security Advisor still reports leaked-password protection disabled; performance advisor has no findings.
 - `main/index.html` remains 1 byte and untouched. PR #1 remains draft, open and unmerged.
+
+
+## Document download hardening (2026-10-22)
+- Production document listing/download links are now blocked in addition to upload/delete while private Storage and authorized signed downloads remain unimplemented.
+- Staging entry point is synchronized; source regression and static-audit checks were extended.
+- This closes the remaining UI path that directly rendered `documents.file_url` in production. Database/Storage policies remain the required security boundary; no production data or Storage settings were changed.
