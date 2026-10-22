@@ -220,3 +220,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - A second hard-coded customer list was found under `bokan_sales_hub_v1` (separate from the earlier call-log seed). The release sanitizer now empties this RAW array too and removes the preview-admin identity fallback from the release copy.
 - Release-candidate tests now assert that the sales-hub array is empty and the preview identity/email are absent. Original source-of-record and local preview fixtures remain intact.
 - The sanitized release artifact has zero `getPublicUrl()` calls and now includes the production document-listing/download guard.
+
+
+## Sales-hub fixture sanitation verified (2026-10-22)
+- Found and removed a second hard-coded customer list from the release copy (`bokan_sales_hub_v1` RAW array); the original review/local-preview source remains unchanged.
+- Release candidate no longer contains the preview-admin identity/email, mock profile/customer/employee inserts, public Storage URL helper calls, or the seeded customer call-log/sales-hub records. Remaining phone-like literals are limited to issuer contact details and a false-positive SVG viewBox pattern in the static scan.
+- The release build script now sanitizes the nine seed literals plus the sales-hub RAW array and neutralizes the preview-admin fallback. The CI release-candidate test verifies the empty sales-hub array and absence of the preview identity.
+- Latest full workflow run `39840599793` passed every step, including source guards, inline JS parsing, data-surface inventory, release build, and release candidate tests.
+- No source-of-record fixture data was deleted; no public deployment or database/Auth/Storage change occurred.
