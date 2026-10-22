@@ -214,3 +214,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Latest CI run `39839753621` passed all configured steps, including production document-listing/download guard, source parity, inline JavaScript parsing, direct data-access surface inventory, release-candidate build and release-candidate assertions.
 - The committed sanitized candidate is synchronized with the current reviewed source, empties all nine known fixture collections, removes the demo/mock data backend, blocks fake preview sign-in, blocks production document listing/downloads, and contains no `getPublicUrl()` call.
 - Production upload/delete and bank-account replacement remain blocked. No schema, Auth, Storage settings or live deployment changes were made.
+
+
+## Additional embedded sales-hub dataset found (2026-10-22)
+- A second hard-coded customer list was found under `bokan_sales_hub_v1` (separate from the earlier call-log seed). The release sanitizer now empties this RAW array too and removes the preview-admin identity fallback from the release copy.
+- Release-candidate tests now assert that the sales-hub array is empty and the preview identity/email are absent. Original source-of-record and local preview fixtures remain intact.
+- The sanitized release artifact has zero `getPublicUrl()` calls and now includes the production document-listing/download guard.
