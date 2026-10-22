@@ -236,3 +236,7 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - CI now tests the committed release candidate before running the sanitizer, then tests the generated output again.
 - Latest full run `39841245924` passed all nine substantive steps: source guard tests, inline JS parsing, data-surface audit, pre-build release test, sanitizer, and post-build release test.
 - No production database/Auth/Storage changes or deployment occurred.
+
+
+## Issuer detail discrepancy flagged for owner (2026-10-22)
+- The current source duplicates the same phone number in both PRIME and BlackRock issuer settings. BlackRock's known contact is 978 23 48 20; PRIME's official number is not confirmed in the project records reviewed. Added this as an owner confirmation item and did not change either source value.
