@@ -30,4 +30,6 @@ assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must rema
 assert.match(html,/Server-backed modules are unavailable\. Sign-in requires the configured application API\./,'Hosted legacy adapter must fail closed.');
 assert.match(html,/Production configuration is required; demo data and preview sign-in are disabled in this build\./,'Release candidate must use the disabled, non-demo backend stub.');
 assert.doesNotMatch(html,/DEMO_USER|store\.customers\.push|store\.employees\.push|store\.profiles\.push|preview@primegroup\.local/,'Release candidate must not ship hard-coded mock users, customer/employee records, or preview email.');
+assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
+assert.match(html,/Document uploads are temporarily disabled until private Storage and authorized downloads are implemented/,'Production document uploads must remain blocked.');
 console.log('PASS: release candidate has empty fixture collections and disabled production config.');
