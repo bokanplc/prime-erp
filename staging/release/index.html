@@ -4393,158 +4393,19 @@ window.addEventListener('error', function(ev){
 // you've created your own Supabase project and tables.
 // ==================================================================
 function makeMockSupabase() {
-  const store = { profiles: [], stock_entries: [], expenses: [], customers: [], customer_logs: [],
-    sales_targets: [], per_diem_requests: [], trip_plans: [], visit_reports: [], stock_ledger: [],
-    proformas: [], customer_billings: [], documents: [], employees: [], leave_requests: [],
-    performance_reviews: [], disciplinary_actions: [], notifications: [], custom_terms: [] };
-  let uid = 1;
-  const genId = () => 'id_' + (uid++);
-  const DEMO_USER = { id: 'demo-user', email: 'preview@primegroup.local' };
-
-  store.profiles.push({ id: 'demo-user', full_name: 'Preview Admin', role: 'admin' });
-  store.profiles.push({ id: 'demo-sales', full_name: 'Selam Bekele', role: 'sales' });
-  store.employees.push({ id: genId(), full_name: 'Selam Bekele', position: 'Sales Rep', department: 'Sales',
-    employment_type: 'Full-Time', hire_date: '2025-03-01', status: 'Active', phone: '+251911223344',
-    email: 'selam@primegroup.local', emergency_contact: '', driver_license_no: '', education_level: "Bachelor's Degree",
-    notes: '', created_at: '2025-03-01T09:00:00Z' });
-  store.stock_ledger.push({ id: genId(), entry_date: '2026-08-19', purchased_by: 'PRIME', factory_qty: 600,
-    purchase_price: 4500, shipped_kolfe_qty: 600, kolfe_to_mes_qty: 200, sales_kolfe_qty: 50, sales_mes_qty: 80,
-    sold_by: 'PRIME', sale_price: 5200, notes: 'plywood yellow', created_by: 'demo-user', created_at: '2026-08-19T14:48:48Z' });
-  store.stock_entries.push({ id: genId(), entry_type: 'purchase', item_name: 'Plywood 18mm', quantity: 600,
-    unit_price: 4500, total: 2700000, location: 'Kolfe', notes: '', created_by: 'demo-user', created_at: '2026-08-19T14:48:48Z' });
-  store.stock_entries.push({ id: genId(), entry_type: 'sale', item_name: 'Plywood 18mm', quantity: 130,
-    unit_price: 5200, total: 676000, location: 'Mesalemya', notes: '', created_by: 'demo-user', created_at: '2026-08-24T11:20:00Z' });
-  store.expenses.push({ id: genId(), category: 'Direct Cost / COGS — Freight-In / Inbound Transport', amount: 84000,
-    description: 'Inbound freight to Kolfe', location: 'Kolfe', paid_by: 'PRIME', created_by: 'demo-user', created_at: '2026-08-20T09:00:00Z' });
-  store.expenses.push({ id: genId(), category: 'Administrative / G&A — Office Rent', amount: 45000,
-    description: 'August rent, Head Office', location: 'Head Office / Merkato Africa Building', paid_by: 'PRIME', created_by: 'demo-user', created_at: '2026-08-01T09:00:00Z' });
-  store.customers.push({ id: genId(), customer_name: 'Sugar Corporation / Meti Desta', contact_person: 'Meti Desta',
-    location: 'Addis Ababa', phone: '+251911000000', phones: ['+251911000000'], email: '', current_status: 'Meeting Scheduled',
-    lead_source: 'Direct Visit', assigned_rep: 'demo-sales' });
-  store.customer_logs.push({ id: genId(), customer_id: store.customers[0].id, sales_rep: 'demo-sales', status: 'Meeting Scheduled',
-    activity_type: 'Site Visit', customer_feedback: 'Interested but wants a formal quotation first.',
-    notes: 'Initial site visit, discussed 500-sheet order.', deal_value: null, units_sold: null, product_type: 'Plywood',
-    next_action_type: 'Proforma Follow-up', next_action_date: new Date(Date.now()-1*86400000).toISOString().slice(0,10),
-    created_at: '2026-08-22T10:00:00Z' });
-  store.customers.push({ id: genId(), customer_name: 'Habesha Construction PLC', contact_person: 'Yonas Tadesse',
-    location: 'Bole, Addis Ababa', phone: '+251922334455', phones: ['+251922334455'], email: '', current_status: 'New Lead',
-    lead_source: 'Cold Call', assigned_rep: 'demo-sales' });
-  store.customer_logs.push({ id: genId(), customer_id: store.customers[1].id, sales_rep: 'demo-sales', status: 'New Lead',
-    activity_type: 'Phone Call', customer_feedback: 'Asked to call back next week.',
-    notes: 'First cold call, gauging interest in bulk plywood supply.', deal_value: null, units_sold: null, product_type: 'Plywood',
-    next_action_type: 'Phone Call Follow-up', next_action_date: new Date(Date.now()-2*86400000).toISOString().slice(0,10),
-    created_at: '2026-08-18T09:30:00Z' });
-
-  function ok(data) { return Promise.resolve({ data, error: null }); }
-  function err(message) { return Promise.resolve({ data: null, error: { message } }); }
-
-  function matches(row, filters) {
-    return filters.every(f => {
-      if (f.type === 'eq') return row[f.col] === f.val;
-      if (f.type === 'gte') return row[f.col] >= f.val;
-      if (f.type === 'lte') return row[f.col] <= f.val;
-      if (f.type === 'lt') return row[f.col] < f.val;
-      if (f.type === 'not_in') return !f.vals.includes(row[f.col]);
-      if (f.type === 'not_is_null') return row[f.col] !== null && row[f.col] !== undefined;
-      return true;
-    });
+  const denied = { message: 'Production configuration is required; demo data and preview sign-in are disabled in this build.' };
+  function query() {
+    const q = {};
+    for (const method of ['select','insert','update','upsert','delete','eq','neq','in','match','order','limit','single','maybeSingle','gte','lte','is']) q[method] = () => q;
+    q.then = (resolve, reject) => Promise.resolve({ data: null, error: denied }).then(resolve, reject);
+    return q;
   }
-
-  function table(name) {
-    let filters = [];
-    let orderCol = null, orderAsc = true;
-    let limitN = null;
-    let selectCols = '*';
-
-    const api = {
-      select(cols) { selectCols = cols || '*'; return api; },
-      eq(col, val) { filters.push({ type: 'eq', col, val }); return api; },
-      gte(col, val) { filters.push({ type: 'gte', col, val }); return api; },
-      lte(col, val) { filters.push({ type: 'lte', col, val }); return api; },
-      lt(col, val) { filters.push({ type: 'lt', col, val }); return api; },
-      not(col, op, val) {
-        if (op === 'in') {
-          const vals = String(val).replace(/[()"]/g, '').split(',');
-          filters.push({ type: 'not_in', col, vals });
-        } else if (op === 'is') {
-          filters.push({ type: 'not_is_null', col });
-        }
-        return api;
-      },
-      order(col, opts) { orderCol = col; orderAsc = !(opts && opts.ascending === false); return api; },
-      limit(n) { limitN = n; return api; },
-      single() {
-        let rows = store[name].filter(r => matches(r, filters));
-        if (!rows.length) return err('No rows found');
-        return ok(rows[0]);
-      },
-      then(resolve) {
-        let rows = store[name].filter(r => matches(r, filters));
-        if (orderCol) rows = rows.slice().sort((a, b) => {
-          const av = a[orderCol], bv = b[orderCol];
-          if (av === bv) return 0;
-          return (av > bv ? 1 : -1) * (orderAsc ? 1 : -1);
-        });
-        if (limitN) rows = rows.slice(0, limitN);
-        if (selectCols && selectCols.includes('customers(customer_name)')) {
-          rows = rows.map(r => ({ ...r, customers: store.customers.find(c => c.id === r.customer_id) || null }));
-        }
-        resolve({ data: rows, error: null });
-      },
-      insert(payload) {
-        const rows = Array.isArray(payload) ? payload : [payload];
-        const inserted = rows.map(r => ({ id: genId(), created_at: new Date().toISOString(), ...r }));
-        if (name === 'stock_entries') inserted.forEach(r => { r.total = (r.quantity || 0) * (r.unit_price || 0); });
-        store[name].push(...inserted);
-        return {
-          select() { return ok(inserted); },
-          then(resolve) { resolve(ok(inserted)); }
-        };
-      },
-      update(payload) {
-        return {
-          eq(col, val) {
-            store[name].forEach(r => { if (r[col] === val) Object.assign(r, payload); });
-            return ok(null);
-          }
-        };
-      },
-      delete() {
-        return {
-          eq(col, val) {
-            store[name] = store[name].filter(r => r[col] !== val);
-            return ok(null);
-          }
-        };
-      }
-    };
-    return api;
-  }
-
   return {
-    auth: {
-      async signInWithPassword() { return { error: null }; },
-      async signOut() { return {}; },
-      async getUser() { return { data: { user: DEMO_USER } }; },
-      async getSession() { return { data: { session: { user: DEMO_USER } } }; }
-    },
-    from(name) { return table(name); },
-    storage: {
-      from() {
-        return {
-          async upload() { return { error: null }; },
-          getPublicUrl() { return { data: { publicUrl: '#' } }; },
-          async remove() { return {}; }
-        };
-      }
-    },
-    rpc(fnName) {
-      if (fnName === 'next_proforma_no') return ok('PRO-' + Date.now());
-      return ok(null);
-    }
+    auth: { getSession: async () => ({ data: { session: null }, error: null }), getUser: async () => ({ data: { user: null }, error: null }), signInWithPassword: async () => ({ data: null, error: denied }), signOut: async () => ({ error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
+    from: () => query(), rpc: async () => ({ data: null, error: denied }),
+    storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), getPublicUrl: () => ({ data: { publicUrl: null } }), remove: async () => ({ data: null, error: denied }) }) }
   };
 }
-
 const _bokanCfg = window.BOKAN_CONFIG || {};
 const _bokanProdConfigured = !!(_bokanCfg.PRODUCTION_MODE===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(_bokanCfg.SUPABASE_URL||'')) && String(_bokanCfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(_bokanCfg.SUPABASE_ANON_KEY||'')));
 const sb = _bokanProdConfigured ? window.supabase.createClient(_bokanCfg.SUPABASE_URL,_bokanCfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : makeMockSupabase();
