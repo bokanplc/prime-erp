@@ -208,3 +208,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Production document listing/download links are now blocked in addition to upload/delete while private Storage and authorized signed downloads remain unimplemented.
 - Staging entry point is synchronized; source regression and static-audit checks were extended.
 - This closes the remaining UI path that directly rendered `documents.file_url` in production. Database/Storage policies remain the required security boundary; no production data or Storage settings were changed.
+
+
+## Latest document-access guard verification (2026-10-22)
+- Latest CI run `39839753621` passed all configured steps, including production document-listing/download guard, source parity, inline JavaScript parsing, direct data-access surface inventory, release-candidate build and release-candidate assertions.
+- The committed sanitized candidate is synchronized with the current reviewed source, empties all nine known fixture collections, removes the demo/mock data backend, blocks fake preview sign-in, blocks production document listing/downloads, and contains no `getPublicUrl()` call.
+- Production upload/delete and bank-account replacement remain blocked. No schema, Auth, Storage settings or live deployment changes were made.
