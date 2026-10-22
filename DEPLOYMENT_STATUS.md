@@ -228,3 +228,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - The release build script now sanitizes the nine seed literals plus the sales-hub RAW array and neutralizes the preview-admin fallback. The CI release-candidate test verifies the empty sales-hub array and absence of the preview identity.
 - Latest full workflow run `39840599793` passed every step, including source guards, inline JS parsing, data-surface inventory, release build, and release candidate tests.
 - No source-of-record fixture data was deleted; no public deployment or database/Auth/Storage change occurred.
+
+
+## Release reproducibility and embedded-contact checks (2026-10-22)
+- Added a source seed-count assertion so adding another `const seed = ...` collection requires an explicit sanitizer update.
+- Added release-candidate checks for unexpected hard-coded phone fields and email literals; the sanitized artifact currently contains no email literals, only the two issuer phone fields, and no public URL helper.
+- CI now tests the committed release candidate before running the sanitizer, then tests the generated output again.
+- Latest full run `39841245924` passed all nine substantive steps: source guard tests, inline JS parsing, data-surface audit, pre-build release test, sanitizer, and post-build release test.
+- No production database/Auth/Storage changes or deployment occurred.
