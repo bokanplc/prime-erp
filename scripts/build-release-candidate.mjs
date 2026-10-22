@@ -65,7 +65,7 @@ assert.ok(salesHubIndex >= 0 && releaseHtml.indexOf(salesHubMarker, salesHubInde
 const salesHubStart = salesHubIndex + salesHubMarker.length - 1;
 const salesHubEnd = expressionEnd(releaseHtml, salesHubStart);
 releaseHtml = releaseHtml.slice(0, salesHubStart) + '[]' + releaseHtml.slice(salesHubEnd);
-const previewIdentity = /currentUser\\s*=\\s*\\{\\s*id:\\s*'preview-admin',\\s*email:\\s*'admin@preview\\.local'\\s*\\};\\s*currentRole\\s*=\\s*'admin';\\s*currentDeptTabs\\s*=\\s*null;/;
+const previewIdentity = /currentUser\s*=\s*\{\s*id:\s*'preview-admin',\s*email:\s*'admin@preview\.local'\s*\};\s*currentRole\s*=\s*'admin';\s*currentDeptTabs\s*=\s*null;/;
 assert.equal((releaseHtml.match(previewIdentity) || []).length, 1, 'Expected one preview-admin identity assignment to neutralize.');
 releaseHtml = releaseHtml.replace(previewIdentity, 'currentUser = null; currentRole = null; currentDeptTabs = null;');
 const mockStart=releaseHtml.indexOf('function makeMockSupabase() {');
