@@ -81,12 +81,15 @@ const mockStub=[
   '    },',
   '    from: () => query(),',
   '    rpc: async () => ({ data: null, error: denied }),',
-  "    storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), getPublicUrl: () => ({ data: { publicUrl: null } }), remove: async () => ({ data: null, error: denied }) }) }",
+  "    storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), remove: async () => ({ data: null, error: denied }) }) }",
   '  };',
   '}',
   ''
 ].join('\n');
 releaseHtml=releaseHtml.slice(0,mockStart)+mockStub+releaseHtml.slice(configStart);
+const publicUrlCall = "const { data: pub } = sb.storage.from('documents').getPublicUrl(path);";
+assert.equal(releaseHtml.split(publicUrlCall).length - 1, 1, 'Expected one legacy public document URL call to neutralize.');
+releaseHtml = releaseHtml.replace(publicUrlCall, 'const pub = { publicUrl: null };');
 assert.match(config,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain disabled.');
 assert.match(config,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
 assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
