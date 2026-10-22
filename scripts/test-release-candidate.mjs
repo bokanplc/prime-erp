@@ -36,4 +36,8 @@ assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generat
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
 assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
 assert.doesNotMatch(html,/admin@preview/,'Release candidate must not ship the preview-admin email identity.');
+const phoneFieldCount=[...html.matchAll(/\bphone\s*:\s*['"][^'"]{6,}['"]/gi)].length;
+assert.ok(phoneFieldCount<=2,'Unexpected hard-coded phone fields found; only the two issuer contact fields are currently allowed.');
+const emailLiteralCount=[...html.matchAll(/['"][A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}['"]/gi)].length;
+assert.equal(emailLiteralCount,0,'Release candidate must not contain hard-coded email addresses.');
 console.log('PASS: release candidate has empty fixture collections and disabled production config.');
