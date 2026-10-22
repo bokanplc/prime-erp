@@ -24,7 +24,11 @@ No paid plan or upgrade is assumed for either route.
 - Should users be able to view their own HR records, and which managers may see direct-report information?
 - Which document categories exist, and which roles/companies can view each category?
 
-## 4. Operational recovery
+## 4. Issuer contact detail verification
+
+- The current source repeats the same phone number in both PRIME and BlackRock issuer settings. BlackRock's known phone is 978 23 48 20, but PRIME's official phone has not been confirmed from the current project records. Confirm PRIME's number before finalizing issuer details; do not silently reuse BlackRock's number on PRIME documents.
+
+## 5. Operational recovery
 
 - Before real transactions are entered, agree who owns manual exports and document recovery under the existing free-plan constraints.
 - Confirm which non-production test users can be created for cross-company and role testing.
