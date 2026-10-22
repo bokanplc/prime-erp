@@ -35,4 +35,5 @@ assert.doesNotMatch(html,/preview-admin|preview@primegroup\\.local/,'Release can
 assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
 assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
+assert.doesNotMatch(html,/admin@preview/,'Release candidate must not ship the preview-admin email identity.');
 console.log('PASS: release candidate has empty fixture collections and disabled production config.');
