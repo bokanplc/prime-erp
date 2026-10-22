@@ -47,7 +47,8 @@ for (const match of source.matchAll(/\.from\(\s*['"]([a-z][a-z0-9_]*)['"]\s*\)\s
 }
 const rpcs = [...new Set([...source.matchAll(/\.rpc\(\s*['"]([^'"]+)['"]/g)].map(match => match[1]))].sort();
 const buckets = [...new Set([...source.matchAll(/\.storage\.from\(\s*['"]([^'"]+)['"]/g)].map(match => match[1]))].sort();
-const apiPaths = [...new Set([...source.matchAll(/['"`]\/(api\/[a-zA-Z0-9_\/:*.-]+)/g)].map(match => '/' + match[1]))].sort();
+const apiBase = [...source.matchAll(/\bconst\s+API\s*=\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+const apiPaths = [...new Set([...source.matchAll(/(?:api|fetch)\(\s*(?:API\s*\+\s*)?['"]([^'"]+)['"]/g)].map(match => match[1]))].sort();
 const localStorageKeys = [...new Set([...source.matchAll(/localStorage\.(?:getItem|setItem|removeItem)\(\s*['"]([^'"]+)['"]/g)].map(match => match[1]))].sort();
 const selectStarCount = [...source.matchAll(/\.select\(\s*['"]\*['"]\s*\)/g)].length;
 const publicStorageHelperCount = [...source.matchAll(/getPublicUrl\s*\(/g)].length;
@@ -58,7 +59,9 @@ console.log('Direct literal table names: ' + actualTables.length);
 console.log('Operation call counts: ' + JSON.stringify(operations));
 console.log('RPCs: ' + (rpcs.join(', ') || '(none detected)'));
 console.log('Storage buckets: ' + (buckets.join(', ') || '(none detected)'));
-console.log('Legacy API paths detected: ' + apiPaths.length);
+console.log('Legacy API base(s): ' + (apiBase.join(', ') || '(none detected)'));
+console.log('Legacy API endpoint suffixes detected: ' + (apiPaths.join(', ') || '(none detected)'));
+console.log('Legacy API endpoint count: ' + apiPaths.length);
 console.log('Literal localStorage keys detected: ' + localStorageKeys.length);
 console.log('select("*") call count: ' + selectStarCount);
 console.log('getPublicUrl call count: ' + publicStorageHelperCount);
