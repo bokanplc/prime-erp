@@ -193,3 +193,12 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added CI steps for release-candidate generation and tests. Latest completed run `39839056284` has the build and candidate test steps passing after the document-upload guard assertion was corrected; the full job completed successfully.
 - The data-surface inventory now detects the legacy API base `/api` and five endpoint suffixes: login, logout, change-password, bootstrap and store sync.
 - The sanitized candidate is not a working production app. Legacy API modules, canonical schema/RLS, private Storage, Tailwind CDN/CSP hardening, and real browser/Auth/RLS/persistence tests remain blockers. Do not deploy.
+
+
+## Release-candidate verification follow-up (2026-10-22)
+- Fixed the release-candidate test assertion to match the actual document-upload block message. Latest GitHub Actions run `39839248979` completed successfully.
+- Rechecked the committed release candidate: customer call-log seed is empty, mock preview user/customer/employee inserts are absent, and no `getPublicUrl()` call remains in the release artifact.
+- Rechecked release config: production mode remains false; Supabase URL and browser key remain blank.
+- The source-of-record review HTML remains unchanged and still retains local-preview fixtures. Only `staging/release/index.html` is sanitized. Do not publish `staging/` as a whole.
+- Rechecked Supabase read-only: no public application tables and no migrations. Security Advisor still reports leaked-password protection disabled; performance advisor has no findings.
+- `main/index.html` remains 1 byte and untouched. PR #1 remains draft, open and unmerged.
