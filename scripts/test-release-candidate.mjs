@@ -30,8 +30,8 @@ assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must rema
 assert.match(html,/Server-backed modules are unavailable\. Sign-in requires the configured application API\./,'Hosted legacy adapter must fail closed.');
 assert.match(html,/Production configuration is required; demo data and preview sign-in are disabled in this build\./,'Release candidate must use the disabled, non-demo backend stub.');
 assert.doesNotMatch(html,/DEMO_USER|store\.customers\.push|store\.employees\.push|store\.profiles\.push|preview@primegroup\.local/,'Release candidate must not ship hard-coded mock users, customer/employee records, or preview email.');
-assert.match(html,/const KEY='bokan_sales_hub_v1', RAW=\\[\\]/,'Release candidate must empty the separate embedded sales-hub customer list.');
-assert.doesNotMatch(html,/preview-admin|preview@primegroup\\.local/,'Release candidate must not ship a preview administrator identity.');
+assert.ok(html.includes("const KEY='bokan_sales_hub_v1', RAW=[]"),'Release candidate must empty the separate embedded sales-hub customer list.');
+assert.ok(!html.includes('preview-admin')&&!html.includes('preview@primegroup.local'),'Release candidate must not ship a preview administrator identity.');
 assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
 assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
