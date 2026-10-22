@@ -23,7 +23,7 @@ const replacements={
   bokan_access_registry_v2:'[]',
   bokan_supply_tower_v1:'{ inbound: [], deliveries: [] }'
 };
-assert.equal([...source.matchAll(/\\b(?:const|let|var)\\s+seed\\s*=/g)].length,Object.keys(replacements).length,'A new seed collection was added; review and explicitly sanitize it before release.');
+assert.equal([...source.matchAll(/\b(?:const|let|var)\s+seed\s*=/g)].length,Object.keys(replacements).length,'A new seed collection was added; review and explicitly sanitize it before release.');
 function expressionEnd(text,start){
   const stack=[];let quote=null,escape=false,lineComment=false,blockComment=false;
   for(let i=start;i<text.length;i++){
