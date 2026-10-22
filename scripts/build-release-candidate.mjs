@@ -59,6 +59,15 @@ function sanitize(html){
   return html;
 }
 let releaseHtml=sanitize(source);
+const salesHubMarker = "const KEY='bokan_sales_hub_v1', RAW=[";
+const salesHubIndex = releaseHtml.indexOf(salesHubMarker);
+assert.ok(salesHubIndex >= 0 && releaseHtml.indexOf(salesHubMarker, salesHubIndex + salesHubMarker.length) < 0, 'Expected exactly one seeded sales-hub RAW array.');
+const salesHubStart = salesHubIndex + salesHubMarker.length - 1;
+const salesHubEnd = expressionEnd(releaseHtml, salesHubStart);
+releaseHtml = releaseHtml.slice(0, salesHubStart) + '[]' + releaseHtml.slice(salesHubEnd);
+const previewIdentity = "currentUser = { id: 'preview-admin', email: 'preview@primegroup.local' }; currentRole = 'admin'; currentDeptTabs = null;";
+assert.equal(releaseHtml.split(previewIdentity).length - 1, 1, 'Expected one preview-admin identity assignment to neutralize.');
+releaseHtml = releaseHtml.replace(previewIdentity, 'currentUser = null; currentRole = null; currentDeptTabs = null;');
 const mockStart=releaseHtml.indexOf('function makeMockSupabase() {');
 const configStart=releaseHtml.indexOf('const _bokanCfg = window.BOKAN_CONFIG || {};',mockStart);
 assert.ok(mockStart>=0&&configStart>mockStart,'Mock backend replacement markers must exist.');
