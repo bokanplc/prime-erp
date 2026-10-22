@@ -4401,8 +4401,15 @@ function makeMockSupabase() {
     return q;
   }
   return {
-    auth: { getSession: async () => ({ data: { session: null }, error: null }), getUser: async () => ({ data: { user: null }, error: null }), signInWithPassword: async () => ({ data: null, error: denied }), signOut: async () => ({ error: null }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
-    from: () => query(), rpc: async () => ({ data: null, error: denied }),
+    auth: {
+      getSession: async () => ({ data: { session: null }, error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+      signInWithPassword: async () => ({ data: null, error: denied }),
+      signOut: async () => ({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } })
+    },
+    from: () => query(),
+    rpc: async () => ({ data: null, error: denied }),
     storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), getPublicUrl: () => ({ data: { publicUrl: null } }), remove: async () => ({ data: null, error: denied }) }) }
   };
 }
