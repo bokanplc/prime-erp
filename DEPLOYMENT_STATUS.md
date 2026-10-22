@@ -183,3 +183,13 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Supabase was rechecked read-only: no public application tables and no migrations.
 - Draft PR #1 is open, unmerged, and not deployed.
 - Remaining hard blockers are documented: no legacy `/api/*` backend for the older modules, no canonical database schema/RLS, private Storage not implemented, Tailwind still uses a development CDN, and real browser/Auth/RLS/persistence tests have not run.
+
+
+## Embedded data exposure review and release candidate (2026-10-22)
+- Static review found nine embedded seed collections. One includes customer call-log names, phone numbers, contacts, sales representatives and follow-up notes; another includes access-registry identity/role/company/email fields. The full mock backend also contains a preview administrator, a sample employee and sample customer/transaction records. These are visible in downloaded HTML source even when the login UI is hidden.
+- No public deployment occurred and no source-of-record seed data was deleted. The original review source and local-preview fixtures remain unchanged.
+- Added `docs/EMBEDDED_DATA_EXPOSURE_REVIEW.md` documenting this stop-ship issue and why the entire `staging/` directory must never be published as a static output directory.
+- Added `scripts/build-release-candidate.mjs` and `scripts/test-release-candidate.mjs`; the separate `staging/release/` artifact empties nine known seed collections, replaces the demo backend with an erroring/no-demo stub, disables fake preview sign-in, and neutralizes public document URL generation. Its config remains production-disabled with blank Supabase URL/key.
+- Added CI steps for release-candidate generation and tests. Latest completed run `39839056284` has the build and candidate test steps passing after the document-upload guard assertion was corrected; the full job completed successfully.
+- The data-surface inventory now detects the legacy API base `/api` and five endpoint suffixes: login, logout, change-password, bootstrap and store sync.
+- The sanitized candidate is not a working production app. Legacy API modules, canonical schema/RLS, private Storage, Tailwind CDN/CSP hardening, and real browser/Auth/RLS/persistence tests remain blockers. Do not deploy.
