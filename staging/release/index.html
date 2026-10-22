@@ -4410,7 +4410,7 @@ function makeMockSupabase() {
     },
     from: () => query(),
     rpc: async () => ({ data: null, error: denied }),
-    storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), getPublicUrl: () => ({ data: { publicUrl: null } }), remove: async () => ({ data: null, error: denied }) }) }
+    storage: { from: () => ({ upload: async () => ({ data: null, error: denied }), remove: async () => ({ data: null, error: denied }) }) }
   };
 }
 const _bokanCfg = window.BOKAN_CONFIG || {};
@@ -6858,7 +6858,7 @@ async function uploadRepoFile(category, titleInputId, fileInputId, extraCols) {
   if (!title || !file) { alert('Add a title and choose a file.'); return; }
   const path = `${category}/${Date.now()}_${file.name}`;
   await sb.storage.from('documents').upload(path, file);
-  const { data: pub } = sb.storage.from('documents').getPublicUrl(path);
+  const pub = { publicUrl: null };
   const payload = { category, title, file_path: path, file_url: pub.publicUrl, uploaded_by: currentUser.id, ...(extraCols || {}) };
   await sb.from('documents').insert([payload]);
   fileInput.value = '';
