@@ -240,3 +240,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 
 ## Issuer detail discrepancy flagged for owner (2026-10-22)
 - The current source duplicates the same phone number in both PRIME and BlackRock issuer settings. BlackRock's known contact is 978 23 48 20; PRIME's official number is not confirmed in the project records reviewed. Added this as an owner confirmation item and did not change either source value.
+
+
+## Browser storage migration inventory (2026-10-23)
+- Added `docs/LOCALSTORAGE_MIGRATION_INVENTORY.md` to classify legacy browser stores, identify demo/seed-data risk, map overlapping customer/CRM/finance keys, and define a safe dry-run migration and reconciliation sequence.
+- Important finding: the legacy adapter monkey-patches localStorage writes and attempts to synchronize arbitrary keys to `/api/store/:key`. That endpoint is absent. Do not implement a generic unvalidated key/value endpoint; migrate allowlisted modules to canonical relational models or design a strictly validated API.
+- Source contains localStorage-backed accounting/CRM/operations modules and hard-coded seed rows. Browser records cannot be assumed to be actual business data or authoritative posted transactions.
+- Rechecked Supabase read-only on 2026-10-23: public application tables = 0; migrations = 0; performance advisor has no findings; security advisor still warns that leaked-password protection is disabled. No schema, Auth setting, Storage policy, or database changes were applied.
+- Remaining owner-dependent gate: confirm whether localStorage data is genuine operational data or demo/test data before any import. No import was performed.
