@@ -116,7 +116,7 @@ Static scan found these literal localStorage keys:
 ## Follow-up source fix: versioned proforma save context (2026-10-23)
 The production call now passes the existing saved record as the second argument to `bokanProdSaveProforma(payload, existing)`, rather than including it only as a property inside the payload object. Without this, the save function always treated a revision as a new version 1, lost the root-record relationship, and could hit the company/number/version unique constraint. Regression assertions now require the correct function signature and argument passing.
 
-This fixes the JavaScript call contract only. The separate numbering RPC still returns a candidate number before the insert and is not a fully atomic number-and-save transaction; do not treat this as production-safe until that workflow is consolidated.
+The source/schema draft has since been consolidated to one `bokan_save_proforma` RPC. That removes the known separate-numbering request in the proposed path, but the SQL remains unexecuted and requires PostgreSQL concurrency, authorization, arithmetic, and Supabase JS return-shape tests before production use.
 
 
 ## Atomic proforma save contract update (2026-10-23)
