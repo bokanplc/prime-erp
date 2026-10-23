@@ -16,6 +16,7 @@ const checks = [
   [/alter table public\.proformas enable row level security/i, 'RLS is enabled on proformas'],
   [/create policy proformas_select_member[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma reads enforce company scope'],
   [/create policy proformas_insert_member[\s\S]*?created_by = \(select auth\.uid\(\)\)[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma inserts enforce actor and company scope'],
+  [/status, created_by, updated_by[\s\S]*?\(select auth\.uid\(\)\), \(select auth\.uid\(\)\)/i, 'Atomic save derives creator and updater from authenticated identity'],
   [/security invoker/i, 'Numbering RPC is not SECURITY DEFINER'],
   [/pg_advisory_xact_lock/i, 'Number allocation uses a transaction lock'],
   [/proformas_vat_total_consistency_check/i, 'VAT and grand total arithmetic is constrained'],
