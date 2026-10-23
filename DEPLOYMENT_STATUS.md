@@ -308,3 +308,12 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `scripts/test-proforma-standalone.mjs` and wired it into GitHub Actions. Latest workflow run `39966237287` passed all 11 steps, including standalone integrity/multi-item checks, inline JavaScript parsing, data-surface audit, and release-candidate checks.
 - Added `staging/release/README_PROFORMA_STANDALONE.md` with local-use instructions and limitations.
 - This copy is for local preview/customer PDF creation only. It does not connect to live Supabase or provide shared cloud persistence; save generated customer documents as PDFs. No changes were made to the default branch or live deployment.
+
+
+## Scope correction: standalone Proforma removed from ERP project (2026-10-23)
+The owner clarified that the standalone Proforma Maker is a separate personal-use artifact and must not be part of the full ERP project. Removed these standalone-only files from `deploy/secure-staging`:
+- `staging/release/BOKAN_Proforma_Maker_Standalone.html`
+- `staging/release/README_PROFORMA_STANDALONE.md`
+- `scripts/test-proforma-standalone.mjs`
+
+Removed the standalone-specific test step from `.github/workflows/erp-source-guards.yml`. The full ERP's Proforma module remains part of the ERP; the sanitized full-ERP release candidate (`staging/release/index.html` and its config) remains because it is not the standalone Proforma app. No changes were made to `main`, no deployment occurred, and the ERP's Proforma functionality was not removed.
