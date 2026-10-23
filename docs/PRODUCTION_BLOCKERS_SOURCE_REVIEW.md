@@ -79,3 +79,9 @@ Static review found CRM follow-up type, customer name, and date fields interpola
 
 ## Follow-up: preserve database identity after proforma save (2026-10-23)
 The production save result is now captured and used as the saved record when the database returns a row. This avoids replacing the real UUID and database version with a synthetic local `PF-` identifier, which could cause the next edit to fail to find the persisted version. Regression and static-audit checks now enforce this path. This is still source-level validation; browser/Auth/RLS integration tests remain pending.
+
+
+## Atomic proforma save path (2026-10-23)
+- The production browser bridge now calls `bokan_save_proforma` once, passing the existing row ID only for revisions, and uses the database-returned row as the saved record.
+- The SQL draft now holds the company/prefix advisory lock through number allocation and insert, or through revision-version allocation and insert. It calculates VAT-inclusive totals and withholding server-side and snapshots issuer details from company tables.
+- This removes the known candidate-number/insert race from the proposed first-slice design, but it is **not yet proven**. The SQL has not been executed or applied. It still requires a disposable PostgreSQL test, concurrency tests, authorization tests, and a real browser integration test before production use.
