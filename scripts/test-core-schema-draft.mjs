@@ -18,6 +18,10 @@ const checks = [
   [/create policy proformas_insert_member[\s\S]*?created_by = \(select auth\.uid\(\)\)[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma inserts enforce actor and company scope'],
   [/security invoker/i, 'Numbering RPC is not SECURITY DEFINER'],
   [/pg_advisory_xact_lock/i, 'Number allocation uses a transaction lock'],
+  [/proformas_vat_total_consistency_check/i, 'VAT and grand total arithmetic is constrained'],
+  [/proformas_withholding_math_check/i, 'Withholding is checked against the configured threshold and rate'],
+  [/proformas_net_payable_math_check/i, 'Net payable is checked against gross less withholding'],
+  [/Proforma number sequence exhausted/i, 'Proforma numbering has a defined four-digit upper bound'],
   [/revoke all on public\.companies, public\.profiles, public\.company_bank_accounts, public\.proformas from anon, authenticated/i, 'Table grants start from least privilege'],
   [/insert into public\.companies[\s\S]*?on conflict\(code\) do update/i, 'Company seed is repeatable'],
 ];
