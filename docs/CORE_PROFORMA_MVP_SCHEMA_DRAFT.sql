@@ -384,14 +384,6 @@ insert into public.companies(code,legal_name,brand_name,tin,address,phone,profor
 values
   ('PRIME','PRIME Investment Group PLC','PRIME Investment Group','009588209','Addis Ababa, Ethiopia',null,'#8B0000',true),
   ('BLACKROCK','BlackRock Investment PLC','BlackRock Investment','00930533495','Meskel Flower, Addis Ababa, Ethiopia','978 23 48 20','#E17D00',true)
-on conflict(code) do update set
-  legal_name=excluded.legal_name,
-  brand_name=excluded.brand_name,
-  tin=excluded.tin,
-  address=excluded.address,
-  phone=excluded.phone,
-  proforma_title_color=excluded.proforma_title_color,
-  active=excluded.active,
-  updated_at=now();
+on conflict(code) do nothing;
 
 commit;
