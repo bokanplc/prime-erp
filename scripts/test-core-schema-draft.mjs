@@ -23,17 +23,17 @@ const checks = [
   [/proformas_net_payable_math_check/i, 'Net payable is checked against gross less withholding'],
   [/Proforma number sequence exhausted/i, 'Proforma numbering has a defined four-digit upper bound'],
   [/revoke all on public\.companies, public\.profiles, public\.company_bank_accounts, public\.proformas from anon, authenticated/i, 'Table grants start from least privilege'],
-  [/insert into public\.companies[\s\S]*?on conflict\(code\) do update/i, 'Company seed is repeatable'],
+  [/insert into public\.companies[\s\S]*?on conflict\(code\) do nothing/i, 'Company seed is repeatable without overwriting edited issuer settings'],
 ];
 
 const failures = [];
 for (const [pattern, description] of checks) {
   if (!pattern.test(sql)) failures.push(description);
 }
-if ((sql.match(/\\bcreate or replace function public\\.bokan_save_proforma/g) || []).length !== 1) {
+if ((sql.match(/\bcreate or replace function public\.bokan_save_proforma/g) || []).length !== 1) {
   failures.push('Atomic proforma save RPC must have exactly one definition');
 }
-if ((sql.match(/\\bcommit;/gi) || []).length !== 1) {
+if ((sql.match(/\bcommit;/gi) || []).length !== 1) {
   failures.push('Schema draft must contain exactly one final COMMIT');
 }
 if (!sql.includes("and pf.proforma_no ~ ('^' || v_prefix || '[0-9]{4}$');")) {
@@ -43,10 +43,10 @@ const saveStart = sql.indexOf('create or replace function public.bokan_save_prof
 const saveBodyStart = sql.indexOf('as $$', saveStart);
 const saveEnd = sql.indexOf('$$;', saveBodyStart + 5);
 const saveFunction = sql.slice(saveStart, saveEnd);
-if (!/pg_advisory_xact_lock[\\s\\S]*?insert into public\\.proformas[\\s\\S]*?returning \\* into v_row[\\s\\S]*?return v_row;/.test(saveFunction)) {
+if (!/pg_advisory_xact_lock[\s\S]*?insert into public\.proformas[\s\S]*?returning \* into v_row[\s\S]*?return v_row;/.test(saveFunction)) {
   failures.push('Proforma number lock must remain held through the row insert and return');
 }
-if (/create or replace function public\\.bokan_next_proforma_number/.test(sql)) {
+if (/create or replace function public\.bokan_next_proforma_number/.test(sql)) {
   failures.push('Unsafe candidate-only numbering RPC must not remain in the schema draft');
 }
 if (!/if v_next >= 9999 then[\s\S]*?raise exception 'Proforma number sequence exhausted/.test(sql)) {
