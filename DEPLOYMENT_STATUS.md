@@ -300,3 +300,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added source regression and static audit assertions for this handoff and role access.
 - Latest push CI run `39955978166` passed all steps, including schema-draft checks and sanitized release-candidate tests.
 - **Still not live:** production mode is false; config URL/key are blank; schema draft has not been applied; no admin Auth account/profile has been provisioned; no browser sign-in or real proforma save has been tested.
+
+
+## Standalone Proforma Maker delivered for temporary customer use (2026-10-23)
+- Added `staging/release/BOKAN_Proforma_Maker_Standalone.html` as a separate copy of the existing ERP source, with only the external config reference replaced by an inline `PRODUCTION_MODE: false` config and a small wrapper that opens the existing Proforma tab/hides unrelated navigation.
+- Original source, Proforma section markup, and Proforma generation/multi-item functions are preserved; the source guard test compares the standalone prefix to the original after the one safe config substitution.
+- Added `scripts/test-proforma-standalone.mjs` and wired it into GitHub Actions. Latest workflow run `39966237287` passed all 11 steps, including standalone integrity/multi-item checks, inline JavaScript parsing, data-surface audit, and release-candidate checks.
+- Added `staging/release/README_PROFORMA_STANDALONE.md` with local-use instructions and limitations.
+- This copy is for local preview/customer PDF creation only. It does not connect to live Supabase or provide shared cloud persistence; save generated customer documents as PDFs. No changes were made to the default branch or live deployment.
