@@ -276,3 +276,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Latest workflow for the current staging branch: run `39955219072`; startup guard, schema draft check, inline JS parsing, direct data-access audit, release-candidate pretest, sanitizer build, and post-build test steps have all completed successfully; workflow cleanup was still running at the last check.
 - This narrows the first release target to the proforma flow instead of pretending all 41 referenced tables can be safely created at once. The complete ERP still needs separate schema slices for CRM, finance, HR/payroll, supply/logistics and document storage.
 - No live database schema, Auth settings, Storage policies, production config, or hosting deployment has been changed. The new schema remains unexecuted pending SQL validation and the required admin-account provisioning/testing step.
+
+
+## Proforma MVP hardening checkpoint (2026-10-23)
+- Fixed version actor attribution: every saved proforma version now records the authenticated user who created that version. Previously an editor could inherit the original creator ID, conflicting with the intended insert policy and obscuring who made the revision.
+- The core schema draft's number-suffix query was simplified to an explicit trailing-four-digit extraction.
+- Added static checks for the first-slice schema draft and wired them into both push and pull-request CI triggers.
+- Latest PR workflow run `39955427249` completed successfully, including the new schema draft check and release-candidate sanitizer tests.
+- Read-only access to the current Supabase project confirms a project URL and public publishable key are available; neither was added to the browser config because production mode remains disabled and the schema/user provisioning are not complete.
