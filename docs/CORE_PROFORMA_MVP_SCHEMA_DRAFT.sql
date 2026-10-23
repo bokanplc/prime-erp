@@ -131,7 +131,7 @@ create policy company_banks_select_member on public.company_bank_accounts
       select 1 from public.profiles p
       where p.id = (select auth.uid())
         and p.active and p.terminated_at is null
-        and (p.company_code = company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
+        and (p.company_code = company_bank_accounts.company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
     )
   );
 
@@ -144,7 +144,7 @@ create policy proformas_select_member on public.proformas
       where p.id = (select auth.uid())
         and p.active and p.terminated_at is null
         and p.role in ('admin','management','sales_manager','sales','accounting','data_entry')
-        and (p.company_code = company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
+        and (p.company_code = proformas.company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
     )
   );
 
@@ -161,7 +161,7 @@ create policy proformas_insert_member on public.proformas
       where p.id = (select auth.uid())
         and p.active and p.terminated_at is null
         and p.role in ('admin','management','sales_manager','sales','accounting','data_entry')
-        and (p.company_code = company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
+        and (p.company_code = proformas.company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
     )
   );
 
