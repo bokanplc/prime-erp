@@ -292,3 +292,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added regression and static-audit checks for the Supabase auth handoff and role-restricted proforma access.
 - Current push CI run `39955978166` passed all steps. The pull-request run `39955985747` is also being tracked.
 - The production switch remains off. The schema is still a draft and has not been applied; a valid Supabase Auth user plus matching `profiles` row is required before testing sign-in and saved proformas.
+
+
+## Authenticated proforma pilot integration (2026-10-23)
+- Production navigation now honors the profile-derived allowlist produced by the Supabase auth bridge. Sales and sales-manager roles can access the Proforma screen in the pilot; accounting and management receive the Proforma tab in their approved lists.
+- When the Supabase auth bridge is configured, the legacy `/api` login overlay is skipped so it cannot cover the Supabase sign-in screen. The legacy modules remain excluded by the production allowlist and are not represented as persistent.
+- Added source regression and static audit assertions for this handoff and role access.
+- Latest push CI run `39955978166` passed all steps, including schema-draft checks and sanitized release-candidate tests.
+- **Still not live:** production mode is false; config URL/key are blank; schema draft has not been applied; no admin Auth account/profile has been provisioned; no browser sign-in or real proforma save has been tested.
