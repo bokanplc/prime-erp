@@ -317,3 +317,9 @@ The owner clarified that the standalone Proforma Maker is a separate personal-us
 - `scripts/test-proforma-standalone.mjs`
 
 Removed the standalone-specific test step from `.github/workflows/erp-source-guards.yml`. The full ERP's Proforma module remains part of the ERP; the sanitized full-ERP release candidate (`staging/release/index.html` and its config) remains because it is not the standalone Proforma app. No changes were made to `main`, no deployment occurred, and the ERP's Proforma functionality was not removed.
+
+
+## Proforma version-history fix (2026-10-23)
+- Fixed production save call to pass the existing saved record as the second argument to the versioned save function; revisions now preserve the intended root/version context in the client payload.
+- Added source regression/static-audit checks and synchronized the staging entry point.
+- Identified and documented a remaining numbering race: the number RPC's transaction-level advisory lock ends when the RPC returns, before the client inserts the proforma. A single atomic number-and-save operation remains required.
