@@ -328,3 +328,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Database-backed proforma identity follow-up (2026-10-23)
 - Production save result is captured and used as the saved record, preserving the database UUID, version number, and root linkage instead of a synthetic local ID.
 - Added regression/static-audit checks for result capture and database-returned identity; staging entry point synchronized.
+
+
+## Atomic proforma save integration draft (2026-10-23)
+- Replaced the production client’s separate number-allocation RPC plus insert with one `bokan_save_proforma` RPC call. The database draft keeps its advisory lock through the insert, derives VAT-inclusive financial values from line items, and snapshots issuer details from protected company tables.
+- Production revisions pass the existing database ID; the browser now uses the returned database UUID, proforma number, and version.
+- Refreshed `docs/DATABASE_OPERATION_INVENTORY.md` with the current 41-table source surface, 145 literal table references, 88 localStorage calls, 15 literal keys, 46 `select('*')` calls, and current RPC/legacy API dependencies.
+- Added schema/source regression assertions for the atomic save path. All of this remains a source/schema draft until SQL syntax and behavior are tested against a disposable PostgreSQL database. The actual Supabase project remains unchanged.
