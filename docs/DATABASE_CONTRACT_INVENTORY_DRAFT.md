@@ -111,3 +111,9 @@ Static scan found these literal localStorage keys:
 - `BOKAN_PROFORMA_LOCAL_KEY`, `ATT_KEY`, and dynamic `K` / `KEY` expressions also occur; resolve each constant definition and inspect stored content before deciding migration.
 
 **Rule:** Local storage is user-controlled and browser-specific. It is suitable for non-sensitive preferences, never for authorization, shared company master data, audit history, or the only copy of a business transaction. Do not blindly migrate local values without reviewing their shape and whether they are stale demo data.
+
+
+## Follow-up source fix: versioned proforma save context (2026-10-23)
+The production call now passes the existing saved record as the second argument to `bokanProdSaveProforma(payload, existing)`, rather than including it only as a property inside the payload object. Without this, the save function always treated a revision as a new version 1, lost the root-record relationship, and could hit the company/number/version unique constraint. Regression assertions now require the correct function signature and argument passing.
+
+This fixes the JavaScript call contract only. The separate numbering RPC still returns a candidate number before the insert and is not a fully atomic number-and-save transaction; do not treat this as production-safe until that workflow is consolidated.
