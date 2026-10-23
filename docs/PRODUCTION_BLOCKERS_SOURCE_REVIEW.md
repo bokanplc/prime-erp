@@ -65,3 +65,7 @@ Production issuer TIN and address/phone save handlers now reject requests from r
 Source review found a second legacy production adapter using `API='/api'`, with `DEV_BYPASS=true` and CSS that force-hid its sign-in gate. If the API bootstrap failed, the catch handler hid the gate and exposed the app. The adapter now enables bypass only on local file/localhost review, removes the force-hide CSS, and fails closed on hosted origins. The hosted message makes clear that server-backed modules require a configured application API.
 
 **Architecture blocker:** the current Cloudflare static hosting path does not itself provide this `/api` backend. This change intentionally blocks the hosted legacy adapter until the API is implemented or those modules are migrated to a secure Supabase-backed path. Do not merge/deploy as a functioning production app yet.
+
+
+## Follow-up XSS hardening: CRM reminders (2026-10-23)
+Static review found CRM follow-up type, customer name, and date fields interpolated directly into an `innerHTML` template. These values may originate from database records and must be treated as untrusted. The renderer now uses the existing HTML escaping helper for all three fields. Added regression/static-audit assertions. This is a targeted fix, not a complete XSS audit; other dynamic HTML sinks still require systematic review.
