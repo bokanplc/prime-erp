@@ -4916,8 +4916,7 @@ function switchDepartment() {
 
 let expandedGroups = new Set();
 
-function buildTabs() {
-  const roleAllowed = new Set(ROLE_TABS[currentRole] || []);
+function buildTabs() { const productionAllowed = window.BOKAN_PRODUCTION_AUTH?.enabled && window.__BOKAN_PROD_ALLOWED_TABS instanceof Set ? window.__BOKAN_PROD_ALLOWED_TABS : null; const roleAllowed = new Set(productionAllowed || ROLE_TABS[currentRole] || []);
   const allowed = currentDeptTabs ? new Set(currentDeptTabs.filter(t => roleAllowed.has(t))) : roleAllowed;
 
   let firstId = null, firstGroup = null, scanGroup = null;
@@ -8217,8 +8216,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   const msg=document.getElementById('pg-msg');
   const nativeGet=Storage.prototype.getItem, nativeSet=Storage.prototype.setItem, nativeRemove=Storage.prototype.removeItem;
   let token=sessionStorage.getItem('prime_prod_token')||'';
-  const localPreview=location.protocol==='file:'||['localhost','127.0.0.1','::1'].includes(location.hostname); const DEV_BYPASS=localPreview;
-  let booted=false, syncing=false;
+  const localPreview=location.protocol==='file:'||['localhost','127.0.0.1','::1'].includes(location.hostname); const DEV_BYPASS=localPreview; if(window.BOKAN_PRODUCTION_AUTH?.enabled){gate.style.display='none';top.style.display='none';return;} let booted=false, syncing=false;
   function setMsg(t){msg.textContent=t||'';}
   function authHeaders(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'};}
   async function api(path,opts={}){const r=await fetch(API+path,Object.assign({headers:authHeaders()},opts));let d={};try{d=await r.json()}catch(e){}if(!r.ok)throw new Error(d.detail||('Request failed ('+r.status+')'));return d;}
@@ -8809,10 +8807,10 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   function roleTabs(role){
     const map={
       admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
-      management:['overview','stockreport','expenseledger','hrreports','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
-      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
-      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
-      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
+      management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
+      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
+      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
+      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
     }; return map[role]||[];
