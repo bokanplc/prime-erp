@@ -342,3 +342,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The latest completed PostgreSQL job passed schema creation, RLS/grants, financial totals (VAT-inclusive price, discount, 3% withholding threshold, net payable), revision/root linkage, cross-company denial, invalid line-item rejection, anon privilege checks, and concurrent unique numbering.
 - The concurrency test returned `CONCU1000` and `CONCU1001` from simultaneous saves. Order varied as expected; the numbers were unique and consecutive.
 - This verifies the draft against disposable PostgreSQL, **not** the actual Supabase project. No live Supabase schema/Auth/Storage settings were changed, and no deployment was made.
+
+
+## Full-ERP readiness gate (2026-10-23)
+- Added `FULL_ERP_DATA_READY: false` to the staging config.
+- Both the Supabase authentication bridge and hosted fail-closed guard now require this explicit flag to be true in addition to production mode and valid Supabase config.
+- Source tests, static audit, and sanitized release candidate tests now enforce that this flag remains false until every module's persistence, authorization, and browser tests are complete.
