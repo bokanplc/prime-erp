@@ -13,6 +13,7 @@ on:
     paths:
       - 'staging/**'
       - 'scripts/**'
+      - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
       - '.github/workflows/erp-source-guards.yml'
   workflow_dispatch:
 
