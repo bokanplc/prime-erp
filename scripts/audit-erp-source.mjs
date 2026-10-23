@@ -65,6 +65,7 @@ requirePattern(/Only an authenticated administrator can request role changes/, '
 requirePattern(/Only an authorized administrator or accounting user can request issuer TIN changes/, 'Production issuer TIN edits must be role-restricted.');
 requirePattern(/Only an authorized administrator or accounting user can request issuer contact changes/, 'Production issuer contact edits must be role-restricted.');
 requirePattern(/async function bokanProdSaveBanks\(key,banks\)\{ if\(_bokanProdConfigured\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account replacement must remain blocked until atomic audited writes exist.');
+requirePattern(/if\(bokanProdEnabled\(\)\)\{row\.querySelectorAll\('input'\)\.forEach\(el=>\{el\.readOnly=true/, 'Production proforma bank details must be read-only to prevent edited bank-account snapshots.');
 warnPattern(/bootResult\.catch\(function\(err\)\s*\{[\s\S]{0,250}?getElementById\(['"]app-view['"]\)\?\.classList\.remove\(['"]hidden['"]\)/, 'Boot error handler may reveal the application instead of failing closed.');
 warnPattern(/async\s+signInWithPassword\s*\(\)\s*\{\s*return\s*\{\s*error\s*:\s*null\s*\}/, 'Mock sign-in appears to accept any credentials.');
 warnPattern(/getPublicUrl\s*\(/, 'A public Storage URL helper is used. Confirm every file is intended to be public; sensitive files should use private storage and authorized downloads.');
