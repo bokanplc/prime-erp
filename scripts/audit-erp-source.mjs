@@ -36,6 +36,7 @@ function warnPattern(pattern, message) {
 // Configuration must remain fail-closed until a reviewed release process exists.
 if (!config) failures.push('Missing staging/config/config.js.');
 if (/PRODUCTION_MODE\s*:\s*true/.test(config)) failures.push('Production mode is enabled in the committed browser config.');
+if (/FULL_ERP_DATA_READY\s*:\s*true/.test(config)) failures.push('Full ERP data readiness is enabled before the full data migration/test gate is cleared.');
 if (/SUPABASE_URL\s*:\s*['"][^'"]+['"]/.test(config)) failures.push('Supabase URL is filled in the committed browser config; verify this is intentional.');
 if (/SUPABASE_ANON_KEY\s*:\s*['"][^'"]{20,}['"]/.test(config)) failures.push('A long Supabase browser key is committed in config; keep secrets out of source and review public configuration deliberately.');
 if (/service_role|sb_secret_/i.test(config)) failures.push('Possible service-role/secret key marker found in browser config.');
