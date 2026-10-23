@@ -248,3 +248,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Source contains localStorage-backed accounting/CRM/operations modules and hard-coded seed rows. Browser records cannot be assumed to be actual business data or authoritative posted transactions.
 - Rechecked Supabase read-only on 2026-10-23: public application tables = 0; migrations = 0; performance advisor has no findings; security advisor still warns that leaked-password protection is disabled. No schema, Auth setting, Storage policy, or database changes were applied.
 - Remaining owner-dependent gate: confirm whether localStorage data is genuine operational data or demo/test data before any import. No import was performed.
+
+
+## Implementation roadmap and effort estimate (2026-10-23)
+- Added `docs/IMPLEMENTATION_ROADMAP_AND_ESTIMATES.md` with phased work, release exit criteria, owner-dependent decisions, and no-upgrade assumptions.
+- Planning estimate: secure hosted login + one end-to-end module, 5–10 working days; limited pilot (auth/company separation/proformas/essential CRM), 2–4 weeks; broad V6.7 production release across finance, operations, HR/payroll, documents and legacy migration, 6–10+ weeks for one experienced full-time engineer, then business acceptance. This is a provisional engineering estimate, not a guaranteed launch date.
+- Reconfirmed critical path: architecture and membership decisions, canonical data models, schema/RLS/grants, migration away from missing legacy API/localStorage business stores, trusted write workflows, browser/security/persistence tests, and recovery rehearsal.
