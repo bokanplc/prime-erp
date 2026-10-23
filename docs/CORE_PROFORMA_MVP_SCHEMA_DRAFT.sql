@@ -207,7 +207,7 @@ begin
 
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(p_company || ':' || v_prefix));
 
-  select coalesce(max(nullif(regexp_replace(proforma_no, '^.*?([0-9]{4})$', '\1'), '')::integer),999)
+  select coalesce(max(substring(proforma_no from '([0-9]{4})$')::integer),999)
     into v_next
     from public.proformas
    where company_code = p_company
