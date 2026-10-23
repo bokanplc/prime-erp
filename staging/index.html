@@ -5376,8 +5376,8 @@ async function loadWeeklyActions() {
   el.innerHTML = data.map(row => {
     const isToday = row.next_action_date === today;
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${isToday ? 'bg-amber-50' : ''}">
-      <div><span class="font-semibold">${row.next_action_type || 'Follow-up'}</span> — ${row.customers?.customer_name || ''}
-      <span class="text-[#8D9096]">${row.next_action_date}${isToday ? ' (Today)' : ''}</span></div>
+      <div><span class="font-semibold">${escapeHtml(row.next_action_type || 'Follow-up')}</span> — ${escapeHtml(row.customers?.customer_name || '')}
+      <span class="text-[#8D9096]">${escapeHtml(row.next_action_date || '')}${isToday ? ' (Today)' : ''}</span></div>
     </div>`;
   }).join('');
 }
