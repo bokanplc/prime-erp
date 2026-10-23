@@ -335,3 +335,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Production revisions pass the existing database ID; the browser now uses the returned database UUID, proforma number, and version.
 - Refreshed `docs/DATABASE_OPERATION_INVENTORY.md` with the current 41-table source surface, 145 literal table references, 88 localStorage calls, 15 literal keys, 46 `select('*')` calls, and current RPC/legacy API dependencies.
 - Added schema/source regression assertions for the atomic save path. All of this remains a source/schema draft until SQL syntax and behavior are tested against a disposable PostgreSQL database. The actual Supabase project remains unchanged.
+
+
+## Disposable PostgreSQL integration test milestone (2026-10-23)
+- Added `scripts/test-core-proforma-postgres.sql` and `scripts/test-core-proforma-concurrency.sh`; GitHub Actions runs them against an isolated PostgreSQL 17 service container with a test-only Auth shim.
+- The latest completed PostgreSQL job passed schema creation, RLS/grants, financial totals (VAT-inclusive price, discount, 3% withholding threshold, net payable), revision/root linkage, cross-company denial, invalid line-item rejection, anon privilege checks, and concurrent unique numbering.
+- The concurrency test returned `CONCU1000` and `CONCU1001` from simultaneous saves. Order varied as expected; the numbers were unique and consecutive.
+- This verifies the draft against disposable PostgreSQL, **not** the actual Supabase project. No live Supabase schema/Auth/Storage settings were changed, and no deployment was made.
