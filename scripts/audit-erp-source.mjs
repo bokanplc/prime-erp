@@ -46,6 +46,8 @@ if (/service_role|sb_secret_/i.test(config)) failures.push('Possible service-rol
 requirePattern(/function\s+makeMockSupabase\s*\(/, 'Mock Supabase client was not found; review whether the intended local-preview fallback still works.');
 warnPattern(/function\s+makeMockSupabase\s*\(/, 'Mock backend exists in the source. Prove it cannot run on any hosted production path.');
 requirePattern(/if\s*\(!localPreview\s*\|\|\s*config\.PRODUCTION_MODE\s*===\s*true\)/, 'Hosted boot must not use the preview identity.');
+requirePattern(/const configured=!!\(cfg\.PRODUCTION_MODE===true && cfg\.FULL_ERP_DATA_READY===true && window\.supabase/, 'Supabase auth bridge must require full-ERP data readiness.');
+requirePattern(/const configured = !!\(cfg\.PRODUCTION_MODE === true && cfg\.FULL_ERP_DATA_READY === true && window\.supabase/, 'Hosted fail-closed guard must require full-ERP data readiness.');
 requirePattern(/const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
 requirePattern(/Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
 requirePattern(/if\(window\.BOKAN_PRODUCTION_AUTH\?\.enabled\)\{gate\.style\.display='none';top\.style\.display='none';return;\}/, 'Supabase Auth must replace the legacy API login overlay when configured.');
