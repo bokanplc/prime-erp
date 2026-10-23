@@ -50,6 +50,7 @@ requirePattern(/Server-backed modules are unavailable\. Sign-in requires the con
 if (/\#prime-prod-gate\{display:none!important\}/.test(source)) failures.push('Production API gate is force-hidden by CSS.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configured Supabase client must be available to production bridge modules.');
 requirePattern(/https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
+requirePattern(/customer_phone:payload\.phone,contact_person:payload\.contactPerson,delivery_terms:payload\.delivery\|\|''/, 'Production proforma saves must persist the selected delivery term.');
 requirePattern(/escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CRM follow-up activity type must be escaped before HTML rendering.');
 requirePattern(/escapeHtml\(row\.customers\?\.customer_name \|\| ''\)/, 'CRM customer name must be escaped before HTML rendering.');
 requirePattern(/escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-up date must be escaped before HTML rendering.');
