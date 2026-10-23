@@ -69,3 +69,9 @@ Source review found a second legacy production adapter using `API='/api'`, with 
 
 ## Follow-up XSS hardening: CRM reminders (2026-10-23)
 Static review found CRM follow-up type, customer name, and date fields interpolated directly into an `innerHTML` template. These values may originate from database records and must be treated as untrusted. The renderer now uses the existing HTML escaping helper for all three fields. Added regression/static-audit assertions. This is a targeted fix, not a complete XSS audit; other dynamic HTML sinks still require systematic review.
+
+
+## Proforma version-history fix (2026-10-23)
+- Fixed the production save call to pass the existing saved record as the second parameter. Before this fix, the save function received no `existing` argument and treated revisions as new version 1 records, risking duplicate-key failures and broken root/version history.
+- Added regression and static-audit checks and synchronized the staging entry point.
+- Remaining blocker: number allocation and proforma insert are separate requests. The transaction lock in the current candidate-number RPC does not cover the later insert, so concurrent saves can receive the same candidate. A single atomic database save/numbering operation must be designed and tested before live issuance.
