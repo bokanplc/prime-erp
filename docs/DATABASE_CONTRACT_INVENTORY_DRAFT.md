@@ -63,7 +63,7 @@ The source directly references these 41 tables. This is a verified name inventor
 - `bokan_ap_payments` — accounts payable payments.
 - `bokan_fiscal_periods` — accounting periods; bridge filters by `company_id` and sorts by `period_start`.
 - `bokan_finance_close_readiness` — referenced RPC, not a table. Called with `p_period_id`.
-- `bokan_next_proforma_number` and `next_proforma_no` — referenced RPCs; choose one secure, concurrency-safe numbering function and remove legacy fallback once reconciled.
+- `bokan_save_proforma` — intended production RPC that atomically authorizes the company, allocates a number or revision version, calculates VAT-inclusive totals/withholding, snapshots issuer details, and inserts the proforma. It is design-only until the SQL draft passes database-level tests. `next_proforma_no` remains only in the local preview path.
 
 ## B. Required architecture decisions before creating tables
 
@@ -117,3 +117,9 @@ Static scan found these literal localStorage keys:
 The production call now passes the existing saved record as the second argument to `bokanProdSaveProforma(payload, existing)`, rather than including it only as a property inside the payload object. Without this, the save function always treated a revision as a new version 1, lost the root-record relationship, and could hit the company/number/version unique constraint. Regression assertions now require the correct function signature and argument passing.
 
 This fixes the JavaScript call contract only. The separate numbering RPC still returns a candidate number before the insert and is not a fully atomic number-and-save transaction; do not treat this as production-safe until that workflow is consolidated.
+
+
+## Atomic proforma save contract update (2026-10-23)
+The first-slice schema draft now defines `bokan_save_proforma(p_company, p_existing_id, p_payload)` rather than a candidate-number RPC. The transaction holds a company/prefix advisory lock through the insert, derives financial totals from the submitted line items, derives issuer TIN and bank snapshots from protected tables, and returns the persisted row. The browser production bridge now calls this single RPC and uses the database-returned number, UUID, and version.
+
+This is still a **draft implementation**, not a verified database migration. It has not been executed against PostgreSQL or Supabase, and no SQL has been applied to the project. Required tests include SQL compilation, concurrent new-number allocation, concurrent revision versioning, malformed line items, cross-company access denial, total/withholding arithmetic, and return-shape compatibility with Supabase JS.
