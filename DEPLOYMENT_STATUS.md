@@ -260,3 +260,10 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Static review found CRM follow-up activity type, customer name, and date inserted directly into `innerHTML`. These fields now use the existing HTML escaping helper before rendering.
 - Synced `staging/index.html` and added regression/static-audit checks.
 - This was a targeted stored-XSS reduction; full review of all dynamic HTML sinks and a browser test remain required.
+
+
+## Latest verified security regression run (2026-10-23)
+- GitHub Actions run `39902510909` passed all workflow steps: startup/staging guards, inline JavaScript syntax, direct data-access surface baseline, pre-build release-candidate tests, sanitized candidate generation, and post-build candidate tests.
+- The workflow builds a sanitized release candidate on the runner, empties known embedded fixture collections, removes the preview-admin identity, replaces the mock backend with a deny-by-default stub, and checks that production configuration remains disabled. The artifact is not deployed by this workflow.
+- Added a targeted HTML-escaping fix for CRM follow-up activity type, customer name and date, with regression assertions. The passing workflow includes those new checks.
+- Added browser-storage migration inventory and phased effort estimates. No schema/Auth/Storage changes or live deployment were made.
