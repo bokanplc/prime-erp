@@ -9072,7 +9072,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   /* Standalone wrapper only: the original Proforma markup and application code are preserved. */
   #prime-prod-gate,#pg-topbar,#login-view,#landing-view,#bokan-context-bar,
   .bokan-brand-bridge,#review-access-note,#sidebar,#sidebar-overlay,
-  .md\\:hidden.fixed { display:none !important; }
+  #app-view > div.fixed.top-0 { display:none !important; }
   #app-view { display:block !important; min-height:0 !important; }
   #app-view > main { width:100% !important; padding-top:0 !important; }
   #app-view > main > .max-w-6xl { max-width:100% !important; padding:1rem !important; }
@@ -9081,7 +9081,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   @media print {
     #prime-prod-gate,#pg-topbar,#login-view,#landing-view,#bokan-context-bar,
     .bokan-brand-bridge,#review-access-note,#sidebar,#sidebar-overlay,
-    #app-view > .md\\:hidden.fixed { display:none !important; }
+    #app-view > #app-view > div.fixed.top-0 { display:none !important; }
   }
 </style>
 <script id="bokan-proforma-standalone-launch">
