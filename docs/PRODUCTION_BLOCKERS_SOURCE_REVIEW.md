@@ -75,3 +75,7 @@ Static review found CRM follow-up type, customer name, and date fields interpola
 - Fixed the production save call to pass the existing saved record as the second parameter. Before this fix, the save function received no `existing` argument and treated revisions as new version 1 records, risking duplicate-key failures and broken root/version history.
 - Added regression and static-audit checks and synchronized the staging entry point.
 - Remaining blocker: number allocation and proforma insert are separate requests. The transaction lock in the current candidate-number RPC does not cover the later insert, so concurrent saves can receive the same candidate. A single atomic database save/numbering operation must be designed and tested before live issuance.
+
+
+## Follow-up: preserve database identity after proforma save (2026-10-23)
+The production save result is now captured and used as the saved record when the database returns a row. This avoids replacing the real UUID and database version with a synthetic local `PF-` identifier, which could cause the next edit to fail to find the persisted version. Regression and static-audit checks now enforce this path. This is still source-level validation; browser/Auth/RLS integration tests remain pending.
