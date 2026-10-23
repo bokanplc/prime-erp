@@ -267,7 +267,10 @@ begin
      or v_withholding_threshold < 0 then
     raise exception 'Invalid tax, discount, or withholding settings';
   end if;
-  if jsonb_typeof(v_items) <> 'array' or jsonb_array_length(v_items) = 0 then
+  if coalesce(jsonb_typeof(v_items),'') <> 'array' then
+    raise exception 'Line items must be an array';
+  end if;
+  if jsonb_array_length(v_items) = 0 then
     raise exception 'At least one line item is required';
   end if;
   if jsonb_typeof(v_terms) <> 'array' then
