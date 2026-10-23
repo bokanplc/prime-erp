@@ -7,6 +7,7 @@ on:
     paths:
       - 'staging/**'
       - 'scripts/**'
+      - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
       - '.github/workflows/erp-source-guards.yml'
   pull_request:
     paths:
@@ -31,6 +32,8 @@ jobs:
           node-version: '22'
       - name: Test startup and staging guards
         run: node scripts/test-erp-source-guards.mjs
+      - name: Test core proforma schema draft
+        run: node scripts/test-core-schema-draft.mjs
       - name: Parse inline JavaScript
         run: node scripts/check-inline-js.mjs
       - name: Audit direct data-access surface
