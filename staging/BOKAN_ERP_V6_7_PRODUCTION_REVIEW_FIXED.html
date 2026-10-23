@@ -6752,9 +6752,14 @@ async function generateProforma() {
   let proformaNo = makeProformaNumber(customer); let productionSavedRecord=null;
   const action=document.getElementById('pf-document-action')?.value||'new'; const existingId=document.getElementById('pf-existing-proforma')?.value||window.editingProformaId||''; const existing=getSavedProformas().find(r=>r.id===existingId); if(action==='update'&&existing)proformaNo=existing.proformaNo;
   if(bokanProdEnabled()){
-    try { if(action!=='update'||!existing) proformaNo=await bokanProdNextProformaNumber(companyKey,customer); } catch(e){ alert('Unable to obtain a production Proforma number: '+e.message); return; }
     const pfDateForSave=document.getElementById('pf-date-input')?.value||new Date().toISOString().slice(0,10);
-    try { productionSavedRecord=await bokanProdSaveProforma({companyKey,proformaNo,customer,tin,address,phone,contactPerson,pfDate:pfDateForSave,date:pfDateForSave,vatPct,discountPct,discountAmount:grossMerchandise-discountedGross,delivery,notes,withholdingEnabled,withholdingRate,withholdingThreshold,withholdingAmount,grandTotal,netPayable,companyTinSnapshot:company.tin||'',banks,items,terms}, existing); } catch(e){ alert('Production save failed. Nothing was saved: '+e.message); return; }
+    try {
+      productionSavedRecord=await bokanProdSaveProforma({
+        companyKey,customer,tin,address,phone,contactPerson,date:pfDateForSave,vatPct,discountPct,
+        delivery,notes,withholdingEnabled,withholdingRate,withholdingThreshold,items,terms
+      }, existing);
+      proformaNo=productionSavedRecord.proformaNo;
+    } catch(e){ alert('Production save failed. Nothing was saved: '+e.message); return; }
   } else {
     try { const {data:noData}=await sb.rpc('next_proforma_no'); if(noData) proformaNo=noData; } catch(e) {}
     try { await sb.from('proformas').insert([{proforma_no:proformaNo,customer_name:customer,customer_tin:tin,customer_address:address,customer_phone:phone,contact_person:contactPerson,items,vat_mode:'inclusive',vat_percent:vatPct,discount_percent:discountPct,delivery_terms:delivery,terms,notes,subtotal:subtotalBeforeVAT,vat_amount:vatAmount,total:grandTotal,created_by:currentUser?.id||null,company_key:companyKey,company_name:company.name,issuer_tin:company.tin||COMPANY_OPTIONS[companyKey]?.tin,bank_accounts:banks,withholding_amount:withholdingAmount}]); } catch(e) { console.warn('Proforma database save skipped:',e); }
