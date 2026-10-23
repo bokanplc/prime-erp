@@ -39,6 +39,9 @@ assert.match(source, /Only an authorized administrator or accounting user can re
 assert.match(source, /Only an authorized administrator or accounting user can request issuer contact changes/, 'Production issuer contact edits must be role-restricted.');
 assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(_bokanProdConfigured\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account replacement must remain blocked until atomic audited writes exist.');
 assert.match(source, /https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
+assert.match(source, /escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CRM follow-up activity type must be HTML-escaped before rendering.');
+assert.match(source, /escapeHtml\(row\.customers\?\.customer_name \|\| ''\)/, 'CRM customer name must be HTML-escaped before rendering.');
+assert.match(source, /escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-up date must be HTML-escaped before rendering.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
 assert.match(source, /const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
