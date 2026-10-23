@@ -74,7 +74,7 @@ Static review found CRM follow-up type, customer name, and date fields interpola
 ## Proforma version-history fix (2026-10-23)
 - Fixed the production save call to pass the existing saved record as the second parameter. Before this fix, the save function received no `existing` argument and treated revisions as new version 1 records, risking duplicate-key failures and broken root/version history.
 - Added regression and static-audit checks and synchronized the staging entry point.
-- Remaining blocker: number allocation and proforma insert are separate requests. The transaction lock in the current candidate-number RPC does not cover the later insert, so concurrent saves can receive the same candidate. A single atomic database save/numbering operation must be designed and tested before live issuance.
+- The proposed source now uses one atomic `bokan_save_proforma` RPC rather than separate allocation and insert calls. Remaining blocker: validate the SQL function on disposable PostgreSQL/Supabase, especially concurrent numbering/revision requests, RLS behavior, and RPC return shape, before live issuance.
 
 
 ## Follow-up: preserve database identity after proforma save (2026-10-23)
