@@ -284,3 +284,11 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added static checks for the first-slice schema draft and wired them into both push and pull-request CI triggers.
 - Latest PR workflow run `39955427249` completed successfully, including the new schema draft check and release-candidate sanitizer tests.
 - Read-only access to the current Supabase project confirms a project URL and public publishable key are available; neither was added to the browser config because production mode remains disabled and the schema/user provisioning are not complete.
+
+
+## Supabase proforma pilot path (2026-10-23)
+- Updated the production navigation builder to honor the authenticated profile's allowlist rather than the older static role list. Added proforma access for sales and sales-manager pilot roles (plus accounting/management where authorized by the auth bridge).
+- When Supabase production auth is configured, the old legacy `/api` login overlay now stays out of the way; Supabase Auth owns sign-in for the pilot. This does not enable any module outside the profile's allowlist, and it does not make the legacy modules persistent.
+- Added regression and static-audit checks for the Supabase auth handoff and role-restricted proforma access.
+- Current push CI run `39955978166` passed all steps. The pull-request run `39955985747` is also being tracked.
+- The production switch remains off. The schema is still a draft and has not been applied; a valid Supabase Auth user plus matching `profiles` row is required before testing sign-in and saved proformas.
