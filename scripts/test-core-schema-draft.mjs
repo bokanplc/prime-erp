@@ -30,7 +30,7 @@ const failures = [];
 for (const [pattern, description] of checks) {
   if (!pattern.test(sql)) failures.push(description);
 }
-if ((sql.match(/\bcreate or replace function public\.bokan_next_proforma_number/g) || []).length !== 1) {
+if ((sql.match(/\bcreate or replace function public\.bokan_save_proforma/g) || []).length !== 1) {
   failures.push('Numbering RPC must have exactly one definition');
 }
 if ((sql.match(/\bcommit;/gi) || []).length !== 1) {
