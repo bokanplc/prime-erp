@@ -323,3 +323,8 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Fixed production save call to pass the existing saved record as the second argument to the versioned save function; revisions now preserve the intended root/version context in the client payload.
 - Added source regression/static-audit checks and synchronized the staging entry point.
 - Identified and documented a remaining numbering race: the number RPC's transaction-level advisory lock ends when the RPC returns, before the client inserts the proforma. A single atomic number-and-save operation remains required.
+
+
+## Database-backed proforma identity follow-up (2026-10-23)
+- Production save result is captured and used as the saved record, preserving the database UUID, version number, and root linkage instead of a synthetic local ID.
+- Added regression/static-audit checks for result capture and database-returned identity; staging entry point synchronized.
