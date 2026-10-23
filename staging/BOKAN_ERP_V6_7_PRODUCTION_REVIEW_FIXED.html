@@ -8808,7 +8808,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
 (function(){
   'use strict';
   const cfg=window.BOKAN_CONFIG||{};
-  const configured=!!(cfg.PRODUCTION_MODE===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
+  const configured=!!(cfg.PRODUCTION_MODE===true && cfg.FULL_ERP_DATA_READY===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
   window.BOKAN_PRODUCTION_AUTH={enabled:configured,client:null,profile:null};
   if(!configured){ return; }
   const auth=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -9077,7 +9077,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   // for database RLS or the authenticated profile gate.
   const localPreview = location.protocol === 'file:' || ['localhost','127.0.0.1','::1'].includes(location.hostname);
   const cfg = window.BOKAN_CONFIG || {};
-  const configured = !!(cfg.PRODUCTION_MODE === true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
+  const configured = !!(cfg.PRODUCTION_MODE === true && cfg.FULL_ERP_DATA_READY === true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
   if (localPreview || configured) return;
   document.documentElement.style.visibility = 'hidden';
   document.addEventListener('DOMContentLoaded', function(){
