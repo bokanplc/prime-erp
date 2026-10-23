@@ -56,7 +56,7 @@ requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configure
 requirePattern(/https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
 requirePattern(/customer_phone:payload\.phone,contact_person:payload\.contactPerson,delivery_terms:payload\.delivery\|\|''/, 'Production proforma saves must persist the selected delivery term.');
 requirePattern(/created_by:bokanProdUserId\(\),updated_by:bokanProdUserId\(\)/, 'Each saved proforma version must be attributed to the authenticated actor who created that version.');
-requirePattern(/await bokanProdSaveProforma\(\{[\s\S]{0,650}?banks,items,terms\}, existing\);/, 'Production proforma revision must pass existing record as the save function argument.');
+requirePattern(/productionSavedRecord=await bokanProdSaveProforma\(\{[\s\S]{0,650}?withholdingThreshold,items,terms\s*\}, existing\);/, 'Production proforma revision must pass existing record to the atomic save function.');
 requirePattern(/productionSavedRecord=await bokanProdSaveProforma\(/, 'Production save result must be captured.');
 requirePattern(/const savedRecord=productionSavedRecord\|\|\{id:existing\?\.id/, 'Production persistence must use the database-returned ID/version rather than a synthetic local ID.');
 requirePattern(/escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CRM follow-up activity type must be escaped before HTML rendering.');
