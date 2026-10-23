@@ -85,3 +85,7 @@ The production save result is now captured and used as the saved record when the
 - The production browser bridge now calls `bokan_save_proforma` once, passing the existing row ID only for revisions, and uses the database-returned row as the saved record.
 - The SQL draft now holds the company/prefix advisory lock through number allocation and insert, or through revision-version allocation and insert. It calculates VAT-inclusive totals and withholding server-side and snapshots issuer details from company tables.
 - This removes the known candidate-number/insert race from the proposed first-slice design, but it is **not yet proven**. The SQL has not been executed or applied. It still requires a disposable PostgreSQL test, concurrency tests, authorization tests, and a real browser integration test before production use.
+
+
+## Additional hosted release guard (2026-10-23)
+Source and staging config now require an explicit `FULL_ERP_DATA_READY: true` flag in addition to production mode and Supabase config before hosted authentication can initialize or the fail-closed guard can reveal the app. The committed template and sanitized release candidate must keep this flag false until every module's business data is migrated from localStorage/legacy API paths and tested. This prevents an accidental config toggle from making the full UI appear production-ready while legacy modules are not securely persisted.
