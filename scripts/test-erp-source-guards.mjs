@@ -46,6 +46,8 @@ assert.match(source, /escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /async function bokanProdSaveProforma\(payload,existing\)/, 'Production proforma save must accept existing-version context.');
 assert.match(source, /await bokanProdSaveProforma\(\{[\s\S]{0,650}?banks,items,terms\}, existing\);/, 'Production proforma revision must pass existing record as the save function argument.');
+assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\(/, 'Production save result must be captured.');
+assert.match(source, /const savedRecord=productionSavedRecord\|\|\{id:existing\?\.id/, 'Production persistence must use the database-returned ID/version rather than a synthetic local ID.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
 assert.match(source, /const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
 assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Production gate must not be force-hidden by CSS.');
