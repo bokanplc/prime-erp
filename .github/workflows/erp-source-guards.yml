@@ -45,3 +45,42 @@ jobs:
         run: node scripts/build-release-candidate.mjs
       - name: Test sanitized release candidate
         run: node scripts/test-release-candidate.mjs
+
+  postgres-schema-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bokan_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d bokan_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply draft to disposable PostgreSQL and test RLS and totals
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bokan_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-core-proforma-postgres.sql
+      - name: Test concurrent proforma numbering
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bokan_test
+        run: bash scripts/test-core-proforma-concurrency.sh
