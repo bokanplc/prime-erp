@@ -53,6 +53,8 @@ assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\(/, 'Pro
 assert.match(source, /const savedRecord=productionSavedRecord\|\|\{id:existing\?\.id/, 'Production persistence must use the database-returned ID/version rather than a synthetic local ID.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
 assert.match(source, /cfg\.FULL_ERP_DATA_READY\s*===\s*true/, 'Hosted access must require explicit full-ERP data readiness.');
+assert.match(source, /const configured=!!\(cfg\.PRODUCTION_MODE===true && cfg\.FULL_ERP_DATA_READY===true && window\.supabase/, 'Supabase auth bridge must require full-ERP data readiness.');
+assert.match(source, /const configured = !!\(cfg\.PRODUCTION_MODE === true && cfg\.FULL_ERP_DATA_READY === true && window\.supabase/, 'Hosted fail-closed guard must require full-ERP data readiness.');
 assert.match(source, /const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
 assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Production gate must not be force-hidden by CSS.');
 assert.match(source, /Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
