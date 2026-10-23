@@ -62,6 +62,12 @@ if (!/v_withholding_amount := case[\s\S]*?round\(v_grand_total \* v_withholding_
 if (!/v_company\.tin, v_banks, v_items/.test(sql)) {
   failures.push('Issuer TIN and active bank details must be snapshotted from database rows, not client payload.');
 }
+if (!/where b\.company_code = p_company and b\.active/.test(sql)) {
+  failures.push('Issuer snapshot must exclude inactive bank accounts.');
+}
+if (/p_payload->>'companyTinSnapshot'|p_payload->'banks'/.test(sql)) {
+  failures.push('Atomic save must not trust client-supplied issuer TIN or bank snapshots.');
+}
 if (/p_payload->>'grandTotal'|p_payload->>'subtotalBeforeVAT'|p_payload->>'vatAmount'/.test(sql)) {
   failures.push('Atomic save must not trust client-calculated totals.');
 }
