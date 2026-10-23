@@ -55,7 +55,7 @@ if (/\#prime-prod-gate\{display:none!important\}/.test(source)) failures.push('P
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configured Supabase client must be available to production bridge modules.');
 requirePattern(/https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
 requirePattern(/customer_phone:payload\.phone,contact_person:payload\.contactPerson,delivery_terms:payload\.delivery\|\|''/, 'Production proforma saves must persist the selected delivery term.');
-requirePattern(/created_by:bokanProdUserId\(\),updated_by:bokanProdUserId\(\)/, 'Each saved proforma version must be attributed to the authenticated actor who created that version.');
+requirePattern(/db\.rpc\('bokan_save_proforma'/, 'Production proforma saves must use the database function that derives the authenticated actor.');
 requirePattern(/productionSavedRecord=await bokanProdSaveProforma\(\{[\s\S]{0,650}?withholdingThreshold,items,terms\s*\}, existing\);/, 'Production proforma revision must pass existing record to the atomic save function.');
 requirePattern(/productionSavedRecord=await bokanProdSaveProforma\(/, 'Production save result must be captured.');
 requirePattern(/const savedRecord=productionSavedRecord\|\|\{id:existing\?\.id/, 'Production persistence must use the database-returned ID/version rather than a synthetic local ID.');
