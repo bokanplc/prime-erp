@@ -52,6 +52,18 @@ if (/create or replace function public\\.bokan_next_proforma_number/.test(sql)) 
 if (!/if v_next >= 9999 then[\s\S]*?raise exception 'Proforma number sequence exhausted/.test(sql)) {
   failures.push('Numbering upper bound must be enforced before formatting the result');
 }
+if (!/v_subtotal := round\(v_discounted_gross \/ \(1 \+ v_vat_rate \/ 100\),2\)/.test(sql)) {
+  failures.push('Atomic save must calculate the VAT-exclusive subtotal from VAT-inclusive line prices.');
+}
+if (!/v_withholding_amount := case[\s\S]*?round\(v_grand_total \* v_withholding_rate \/ 100,2\)/.test(sql)) {
+  failures.push('Atomic save must calculate withholding from VAT-inclusive grand total.');
+}
+if (!/v_company\.tin, v_banks, v_items/.test(sql)) {
+  failures.push('Issuer TIN and active bank details must be snapshotted from database rows, not client payload.');
+}
+if (/p_payload->>'grandTotal'|p_payload->>'subtotalBeforeVAT'|p_payload->>'vatAmount'/.test(sql)) {
+  failures.push('Atomic save must not trust client-calculated totals.');
+}
 if (/security definer/i.test(sql)) failures.push('Schema draft must not introduce SECURITY DEFINER functions');
 if (!/company_bank_accounts\.company_code/.test(sql)) failures.push('Bank account RLS must qualify the outer company_code');
 if (failures.length) {
