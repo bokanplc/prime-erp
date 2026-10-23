@@ -6670,9 +6670,23 @@ window.saveProformaCompanyContact=async function(){ if(bokanProdEnabled()&&!['ad
 window.saveProformaCompanyBanks=async function(){ const key=document.getElementById('pf-company')?.value||'PRIME'; const banks=[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({id:r.dataset.bankId||null,bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose); if(bokanProdEnabled()){try{await bokanProdSaveBanks(key,banks);renderProductionIssuer(key);alert('Issuer bank accounts updated in production.');}catch(e){alert('Unable to update bank accounts: '+e.message);}}else{const all=getProformaCompanySettings();all[key]={...(all[key]||{}),banks};saveProformaCompanySettings(all);alert('Issuer bank accounts updated.');} };
 window.loadIssuerBankAccounts=async function(key){ if(bokanProdEnabled()){await bokanProdRefreshIssuer(key);renderProductionIssuer(key);} else {const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;wrap.innerHTML='';const banks=getIssuerBanks(key);(banks.length?banks:[{}]).forEach(b=>addProformaBankAccount(b));} };
 
-async function bokanProdNextProformaNumber(companyKey,customer){const db=bokanProdClient();if(!db)return makeProformaNumber(customer);const {data,error}=await db.rpc('bokan_next_proforma_number',{p_company:companyKey,p_customer:customer});if(error)throw error;return data;}
-async function bokanProdSaveProforma(payload,existing){const db=bokanProdClient();if(!db)return null;const isUpdate=!!existing;const version=isUpdate?Number(existing.version||1)+1:1;const rootId=isUpdate?(existing.rootProformaId||existing.id):null;const row={company_code:payload.companyKey,proforma_no:payload.proformaNo,root_proforma_id:rootId,version_no:version,document_action:isUpdate?'update':'new',customer_name:payload.customer,customer_tin:payload.tin,customer_address:payload.address,customer_phone:payload.phone,contact_person:payload.contactPerson,delivery_terms:payload.delivery||'',proforma_date:payload.date||new Date().toISOString().slice(0,10),vat_rate:payload.vatPct,subtotal_before_vat:payload.subtotalBeforeVAT,discount_percent:payload.discountPct,discount_amount:payload.discountAmount,vat_amount:payload.vatAmount,withholding_enabled:payload.withholdingEnabled,withholding_rate:payload.withholdingRate,withholding_threshold:payload.withholdingThreshold,withholding_amount:payload.withholdingAmount,grand_total:payload.grandTotal,net_payable:payload.netPayable,company_tin_snapshot:payload.companyTinSnapshot,bank_accounts_snapshot:payload.banks,items:payload.items,notes:payload.notes,terms:payload.terms||[],status:'draft',created_by:bokanProdUserId(),updated_by:bokanProdUserId()};
-  const {data,error}=await db.from('proformas').insert([row]).select('*').single();if(error)throw error;return bokanProdMapProformaRow(data);
+async function bokanProdSaveProforma(payload,existing){
+  const db=bokanProdClient();if(!db)return null;
+  const {data,error}=await db.rpc('bokan_save_proforma',{
+    p_company:payload.companyKey,
+    p_existing_id:existing?.id||null,
+    p_payload:{
+      customer:payload.customer,tin:payload.tin,address:payload.address,phone:payload.phone,
+      contactPerson:payload.contactPerson,date:payload.date,vatPct:payload.vatPct,
+      discountPct:payload.discountPct,delivery:payload.delivery,notes:payload.notes,
+      withholdingEnabled:payload.withholdingEnabled,withholdingRate:payload.withholdingRate,
+      withholdingThreshold:payload.withholdingThreshold,items:payload.items,terms:payload.terms||[]
+    }
+  });
+  if(error)throw error;
+  const row=Array.isArray(data)?data[0]:data;
+  if(!row?.id)throw new Error('Atomic proforma save returned no saved record.');
+  return bokanProdMapProformaRow(row);
 }
 function bokanProductionCacheRecord(r){ if(!r)return; const i=BOKAN_PROD_SAVED_CACHE.findIndex(x=>x.id===r.id); if(i>=0)BOKAN_PROD_SAVED_CACHE[i]=r;else BOKAN_PROD_SAVED_CACHE.push(r); }
 async function bokanProdLoadProformas(){const db=bokanProdClient();if(!db)return[];const {data,error}=await db.from('proformas').select('*').order('updated_at',{ascending:false});if(error)throw error;BOKAN_PROD_SAVED_CACHE=(data||[]).map(bokanProdMapProformaRow);return BOKAN_PROD_SAVED_CACHE;}
