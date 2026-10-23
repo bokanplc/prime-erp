@@ -11,11 +11,13 @@ const sourceEnd = source.indexOf(documentEnd);
 assert.notEqual(sourceEnd, -1, 'Reviewed ERP source must have the expected document ending.');
 assert.ok(
   standalone.startsWith(source.slice(0, sourceEnd)),
-  'Standalone file must preserve every original source byte before the standalone-only wrapper.'
+  standalone.startsWith(source.slice(0, sourceEnd).replace('<script src="config/config.js"></script>', '<script>window.BOKAN_CONFIG = { PRODUCTION_MODE: false, SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };</script>')),
+  'Standalone file must preserve the reviewed ERP source, changing only the external config reference to a safe inline preview config.'
 );
 assert.match(standalone, /id="bokan-proforma-standalone-view"/, 'Standalone view wrapper must exist.');
 assert.match(standalone, /id="bokan-proforma-standalone-launch"/, 'Standalone launch wrapper must exist.');
 assert.match(standalone, /showTab\('proforma'\)/, 'Standalone launch must open the existing Proforma tab.');
+assert.match(standalone, /window\.BOKAN_CONFIG = \{ PRODUCTION_MODE: false, SUPABASE_URL: "", SUPABASE_ANON_KEY: "" \}/, 'Standalone configuration must be self-contained and production-disabled.');
 assert.match(standalone, /#tab-proforma\s*\{\s*display:\s*block\s*!important;/, 'Only the existing Proforma section must be force-visible.');
 assert.match(standalone, /function addProformaItem\(data=\{\}\)\s*\{\s*pfItemCount\+\+;/, 'The existing add-item function must remain unchanged and support repeated rows.');
 assert.match(standalone, /document\.getElementById\('pf-items'\)\.appendChild\(row\)/, 'Each new line item must be appended to the existing items list.');
