@@ -78,7 +78,12 @@ create table if not exists public.proformas (
   updated_by uuid not null references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint proformas_company_number_version_uq unique(company_code,proforma_no,version_no)
+  constraint proformas_company_number_version_uq unique(company_code,proforma_no,version_no),
+  constraint proformas_vat_total_consistency_check check (abs(grand_total - subtotal_before_vat - vat_amount) <= 0.02),
+  constraint proformas_withholding_math_check check (
+    abs(withholding_amount - case when withholding_enabled and grand_total > withholding_threshold then round(grand_total * withholding_rate / 100, 2) else 0 end) <= 0.01
+  ),
+  constraint proformas_net_payable_math_check check (abs(net_payable - (grand_total - withholding_amount)) <= 0.01)
 );
 
 create index if not exists proformas_company_updated_idx
@@ -211,8 +216,36 @@ begin
     into v_next
     from public.proformas
    where company_code = p_company
-     and proforma_no like v_prefix || '%'
-     and proforma_no ~ '[0-9]{4}$';
+     and proforma_no ~ ('^' || v_prefix || '[0-9]{4}
+  return v_number;
+end;
+$$;
+
+revoke all on function public.bokan_next_proforma_number(text,text) from public, anon;
+grant execute on function public.bokan_next_proforma_number(text,text) to authenticated;
+
+-- Seed legal entities with the confirmed TINs. PRIME phone is intentionally
+-- NULL pending owner verification; do not copy BlackRock's number by default.
+insert into public.companies(code,legal_name,brand_name,tin,address,phone,proforma_title_color,active)
+values
+  ('PRIME','PRIME Investment Group PLC','PRIME Investment Group','009588209','Addis Ababa, Ethiopia',null,'#8B0000',true),
+  ('BLACKROCK','BlackRock Investment PLC','BlackRock Investment','00930533495','Meskel Flower, Addis Ababa, Ethiopia','978 23 48 20','#E17D00',true)
+on conflict(code) do update set
+  legal_name=excluded.legal_name,
+  brand_name=excluded.brand_name,
+  tin=excluded.tin,
+  address=excluded.address,
+  phone=excluded.phone,
+  proforma_title_color=excluded.proforma_title_color,
+  active=excluded.active,
+  updated_at=now();
+
+commit;
+);
+
+  if v_next >= 9999 then
+    raise exception 'Proforma number sequence exhausted for prefix %', v_prefix;
+  end if;
 
   v_number := v_prefix || lpad((v_next + 1)::text,4,'0');
   return v_number;
