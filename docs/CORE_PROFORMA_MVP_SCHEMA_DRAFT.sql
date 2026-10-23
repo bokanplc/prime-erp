@@ -55,6 +55,7 @@ create table if not exists public.proformas (
   customer_address text,
   customer_phone text,
   contact_person text,
+  delivery_terms text not null default '',
   proforma_date date not null default current_date,
   vat_rate numeric(6,3) not null default 15 check (vat_rate >= 0 and vat_rate <= 100),
   subtotal_before_vat numeric(16,2) not null default 0 check (subtotal_before_vat >= 0),
