@@ -180,57 +180,203 @@ grant update (tin,address,phone) on public.companies to authenticated;
 grant select on public.company_bank_accounts to authenticated;
 grant select, insert on public.proformas to authenticated;
 
--- Idempotent, company-scoped proforma number allocation. SECURITY INVOKER is
--- intentional: RLS and grants remain in force. It does not create the proforma.
-create or replace function public.bokan_next_proforma_number(p_company text, p_customer text)
-returns text
+-- Atomic proforma number allocation + version insert.
+-- The lock remains held through INSERT, unlike a candidate-number RPC followed by a separate client insert.
+-- SECURITY INVOKER is intentional: table grants and RLS remain in force.
+create or replace function public.bokan_save_proforma(
+  p_company text,
+  p_existing_id uuid,
+  p_payload jsonb
+)
+returns public.proformas
 language plpgsql
 security invoker
 set search_path = ''
 as $$
 declare
+  v_profile public.profiles%rowtype;
+  v_company public.companies%rowtype;
+  v_existing public.proformas%rowtype;
+  v_row public.proformas%rowtype;
+  v_customer text;
   v_prefix text;
-  v_next integer;
   v_number text;
+  v_next integer;
+  v_version integer := 1;
+  v_root_id uuid;
+  v_action text := 'new';
+  v_items jsonb;
+  v_terms jsonb;
+  v_banks jsonb;
+  v_vat_rate numeric(6,3);
+  v_discount_percent numeric(6,3);
+  v_gross numeric(16,2);
+  v_discount_amount numeric(16,2);
+  v_discounted_gross numeric(16,2);
+  v_subtotal numeric(16,2);
+  v_vat_amount numeric(16,2);
+  v_grand_total numeric(16,2);
+  v_withholding_enabled boolean;
+  v_withholding_rate numeric(6,3);
+  v_withholding_threshold numeric(16,2);
+  v_withholding_amount numeric(16,2);
+  v_net_payable numeric(16,2);
+  v_proforma_date date;
 begin
-  if p_company not in ('PRIME','BLACKROCK') or coalesce(trim(p_customer),'') = '' then
-    raise exception 'Invalid company or customer';
+  if (select auth.uid()) is null then
+    raise exception 'Authentication required';
+  end if;
+  if p_company not in ('PRIME','BLACKROCK') or jsonb_typeof(p_payload) <> 'object' then
+    raise exception 'Invalid company or proforma payload';
   end if;
 
-  if not exists (
-    select 1 from public.profiles p
-    where p.id = (select auth.uid())
-      and p.active and p.terminated_at is null
-      and p.role in ('admin','management','sales_manager','sales','accounting','data_entry')
-      and (p.company_code = p_company or (p.company_code = 'GROUP' and p.role in ('admin','management')))
-  ) then
+  select * into v_profile
+    from public.profiles p
+   where p.id = (select auth.uid())
+     and p.active and p.terminated_at is null
+     and p.role in ('admin','management','sales_manager','sales','accounting','data_entry')
+     and (p.company_code = p_company or (p.company_code = 'GROUP' and p.role in ('admin','management')));
+  if not found then
     raise exception 'Not authorized for this company';
   end if;
 
-  v_prefix := left(regexp_replace(upper(split_part(trim(p_customer),' ',1)), '[^A-Z]', '', 'g'),5);
-  if v_prefix = '' then v_prefix := 'CUST'; end if;
-
-  -- Serialize allocations for a given company/customer prefix. The function
-  -- returns a candidate only; a unique constraint remains the final guard.
-  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(p_company || ':' || v_prefix));
-
-  select coalesce(max(substring(proforma_no from '([0-9]{4})$')::integer),999)
-    into v_next
-    from public.proformas
-   where company_code = p_company
-     and proforma_no ~ ('^' || v_prefix || '[0-9]{4}$');
-
-  if v_next >= 9999 then
-    raise exception 'Proforma number sequence exhausted for prefix %', v_prefix;
+  select * into v_company
+    from public.companies c
+   where c.code = p_company and c.active;
+  if not found then
+    raise exception 'Company is inactive or unavailable';
   end if;
 
-  v_number := v_prefix || lpad((v_next + 1)::text,4,'0');
-  return v_number;
+  v_customer := trim(coalesce(p_payload->>'customer',''));
+  if v_customer = '' or trim(coalesce(p_payload->>'tin','')) = '' then
+    raise exception 'Customer name and TIN are required';
+  end if;
+
+  v_vat_rate := coalesce(nullif(p_payload->>'vatPct','')::numeric,15);
+  v_discount_percent := coalesce(nullif(p_payload->>'discountPct','')::numeric,0);
+  v_withholding_enabled := coalesce(nullif(p_payload->>'withholdingEnabled','')::boolean,true);
+  v_withholding_rate := coalesce(nullif(p_payload->>'withholdingRate','')::numeric,3);
+  v_withholding_threshold := coalesce(nullif(p_payload->>'withholdingThreshold','')::numeric,10000);
+  v_proforma_date := coalesce(nullif(p_payload->>'date','')::date,current_date);
+  v_items := p_payload->'items';
+  v_terms := coalesce(p_payload->'terms','[]'::jsonb);
+
+  if v_vat_rate < 0 or v_vat_rate > 100
+     or v_discount_percent < 0 or v_discount_percent > 100
+     or v_withholding_rate < 0 or v_withholding_rate > 100
+     or v_withholding_threshold < 0 then
+    raise exception 'Invalid tax, discount, or withholding settings';
+  end if;
+  if jsonb_typeof(v_items) <> 'array' or jsonb_array_length(v_items) = 0 then
+    raise exception 'At least one line item is required';
+  end if;
+  if jsonb_typeof(v_terms) <> 'array' then
+    raise exception 'Terms must be an array';
+  end if;
+  if exists (
+    select 1
+      from jsonb_array_elements(v_items) as item
+     where coalesce(trim(item->>'description'),'') = ''
+        or coalesce((item->>'qty')::numeric,0) <= 0
+        or coalesce((item->>'unit_price')::numeric,-1) < 0
+  ) then
+    raise exception 'Every line item requires a description, positive quantity, and non-negative VAT-inclusive unit price';
+  end if;
+
+  select round(coalesce(sum((item->>'qty')::numeric * (item->>'unit_price')::numeric),0),2)
+    into v_gross
+    from jsonb_array_elements(v_items) as item;
+  v_discount_amount := round(v_gross * v_discount_percent / 100,2);
+  v_discounted_gross := round(v_gross - v_discount_amount,2);
+  v_subtotal := round(v_discounted_gross / (1 + v_vat_rate / 100),2);
+  v_vat_amount := round(v_discounted_gross - v_subtotal,2);
+  v_grand_total := v_discounted_gross;
+  v_withholding_amount := case
+    when v_withholding_enabled and v_grand_total > v_withholding_threshold
+      then round(v_grand_total * v_withholding_rate / 100,2)
+    else 0
+  end;
+  v_net_payable := round(v_grand_total - v_withholding_amount,2);
+
+  -- Issuer identity and bank details are read from the protected company tables,
+  -- not trusted from browser-supplied snapshots.
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'bank_name', b.bank_name,
+        'account_number', b.account_number,
+        'purpose', coalesce(b.account_purpose,''),
+        'branch_name', coalesce(b.branch_name,'')
+      ) order by b.display_order, b.id
+    ),
+    '[]'::jsonb
+  ) into v_banks
+    from public.company_bank_accounts b
+   where b.company_code = p_company and b.active;
+
+  if p_existing_id is not null then
+    select * into v_existing
+      from public.proformas pf
+     where pf.id = p_existing_id
+       and pf.company_code = p_company
+       and pf.status <> 'void';
+    if not found then
+      raise exception 'Existing proforma is unavailable for revision';
+    end if;
+    v_number := v_existing.proforma_no;
+    v_prefix := regexp_replace(v_number,'[0-9]{4}$','');
+    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(p_company || ':' || v_number));
+    select coalesce(max(pf.version_no),0) + 1
+      into v_version
+      from public.proformas pf
+     where pf.company_code = p_company and pf.proforma_no = v_number;
+    v_root_id := coalesce(v_existing.root_proforma_id,v_existing.id);
+    v_action := 'revision';
+  else
+    v_prefix := left(regexp_replace(upper(split_part(v_customer,' ',1)), '[^A-Z]', '', 'g'),5);
+    if v_prefix = '' then v_prefix := 'CUST'; end if;
+    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(p_company || ':' || v_prefix));
+    select coalesce(max(substring(pf.proforma_no from '([0-9]{4})$')::integer),999)
+      into v_next
+      from public.proformas pf
+     where pf.company_code = p_company
+       and pf.proforma_no ~ ('^' || v_prefix || '[0-9]{4}$');
+    if v_next >= 9999 then
+      raise exception 'Proforma number sequence exhausted for prefix %', v_prefix;
+    end if;
+    v_number := v_prefix || lpad((v_next + 1)::text,4,'0');
+    v_root_id := null;
+    v_version := 1;
+  end if;
+
+  insert into public.proformas (
+    company_code, proforma_no, root_proforma_id, version_no, document_action,
+    customer_name, customer_tin, customer_address, customer_phone, contact_person,
+    delivery_terms, proforma_date, vat_rate, subtotal_before_vat,
+    discount_percent, discount_amount, vat_amount, withholding_enabled,
+    withholding_rate, withholding_threshold, withholding_amount, grand_total,
+    net_payable, company_tin_snapshot, bank_accounts_snapshot, items, notes, terms,
+    status, created_by, updated_by
+  ) values (
+    p_company, v_number, v_root_id, v_version, v_action,
+    v_customer, trim(p_payload->>'tin'), nullif(trim(coalesce(p_payload->>'address','')),''),
+    nullif(trim(coalesce(p_payload->>'phone','')),''),
+    nullif(trim(coalesce(p_payload->>'contactPerson','')),''),
+    coalesce(p_payload->>'delivery',''), v_proforma_date, v_vat_rate, v_subtotal,
+    v_discount_percent, v_discount_amount, v_vat_amount, v_withholding_enabled,
+    v_withholding_rate, v_withholding_threshold, v_withholding_amount, v_grand_total,
+    v_net_payable, v_company.tin, v_banks, v_items,
+    nullif(coalesce(p_payload->>'notes',''),''), v_terms,
+    'draft', (select auth.uid()), (select auth.uid())
+  )
+  returning * into v_row;
+
+  return v_row;
 end;
 $$;
 
-revoke all on function public.bokan_next_proforma_number(text,text) from public, anon;
-grant execute on function public.bokan_next_proforma_number(text,text) to authenticated;
+revoke all on function public.bokan_save_proforma(text,uuid,jsonb) from public, anon;
+grant execute on function public.bokan_save_proforma(text,uuid,jsonb) to authenticated;
 
 -- Seed legal entities with the confirmed TINs. PRIME phone is intentionally
 -- NULL pending owner verification; do not copy BlackRock's number by default.
