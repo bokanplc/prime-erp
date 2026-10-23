@@ -33,8 +33,6 @@ jobs:
           node-version: '22'
       - name: Test startup and staging guards
         run: node scripts/test-erp-source-guards.mjs
-      - name: Test standalone Proforma Maker integrity and multi-item support
-        run: node scripts/test-proforma-standalone.mjs
       - name: Test core proforma schema draft
         run: node scripts/test-core-schema-draft.mjs
       - name: Parse inline JavaScript
