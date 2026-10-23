@@ -9,9 +9,12 @@ const documentEnd = '</body>\n</html>';
 const sourceEnd = source.indexOf(documentEnd);
 
 assert.notEqual(sourceEnd, -1, 'Reviewed ERP source must have the expected document ending.');
+const expectedPrefix = source.slice(0, sourceEnd).replace(
+  '<script src="config/config.js"></script>',
+  '<script>window.BOKAN_CONFIG = { PRODUCTION_MODE: false, SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };</script>'
+);
 assert.ok(
-  standalone.startsWith(source.slice(0, sourceEnd)),
-  standalone.startsWith(source.slice(0, sourceEnd).replace('<script src="config/config.js"></script>', '<script>window.BOKAN_CONFIG = { PRODUCTION_MODE: false, SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };</script>')),
+  standalone.startsWith(expectedPrefix),
   'Standalone file must preserve the reviewed ERP source, changing only the external config reference to a safe inline preview config.'
 );
 assert.match(standalone, /id="bokan-proforma-standalone-view"/, 'Standalone view wrapper must exist.');
