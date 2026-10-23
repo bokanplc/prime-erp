@@ -254,3 +254,9 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - Added `docs/IMPLEMENTATION_ROADMAP_AND_ESTIMATES.md` with phased work, release exit criteria, owner-dependent decisions, and no-upgrade assumptions.
 - Planning estimate: secure hosted login + one end-to-end module, 5–10 working days; limited pilot (auth/company separation/proformas/essential CRM), 2–4 weeks; broad V6.7 production release across finance, operations, HR/payroll, documents and legacy migration, 6–10+ weeks for one experienced full-time engineer, then business acceptance. This is a provisional engineering estimate, not a guaranteed launch date.
 - Reconfirmed critical path: architecture and membership decisions, canonical data models, schema/RLS/grants, migration away from missing legacy API/localStorage business stores, trusted write workflows, browser/security/persistence tests, and recovery rehearsal.
+
+
+## CRM rendering security fix (2026-10-23)
+- Static review found CRM follow-up activity type, customer name, and date inserted directly into `innerHTML`. These fields now use the existing HTML escaping helper before rendering.
+- Synced `staging/index.html` and added regression/static-audit checks.
+- This was a targeted stored-XSS reduction; full review of all dynamic HTML sinks and a browser test remain required.
