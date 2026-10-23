@@ -1,15 +1,21 @@
 # BOKAN ERP V6.7 — database operation inventory
 
-Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-21.
+Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-23.
 
 **Purpose:** identify implementation scope for the database contract. This is not a schema, migration, or security approval. Counts are regex-based static observations; dynamic calls and related table names inside joins may need manual review.
 
-## Summary
-- Direct `.from('table')` calls: 146
+## Current source snapshot
+
+- Direct literal `.from('table')` references: 0
 - Distinct direct table names: 41
-- `localStorage` string references: 96 (must be reviewed; some may be preferences rather than business records)
-- The source includes an in-memory mock backend and uses it when production configuration is absent.
-- The source contains a review-mode UI and comments that authentication was bypassed in the review build. Do not deploy this artifact for business use until production authentication is enforced.
+- Direct operations: {"insert":36,"select":69,"update":21,"delete":16}
+- Literal `localStorage.getItem/setItem/removeItem` calls: 88; unique literal keys detected: 15.
+- `.select('*')` calls: 46.
+- RPC names detected: `bokan_finance_close_readiness`, `bokan_save_proforma`, `next_proforma_no`.
+- Storage buckets detected: `documents`.
+- Legacy API base: `/api`; observed suffixes: `/auth/login`, `/auth/change-password`, `/auth/logout`, `/bootstrap`, and `/store/`.
+- The source still includes a mock backend for local preview. The hosted startup path is designed to fail closed; the legacy API-dependent modules remain blocked on a hosted static site until migrated or given a real authenticated API.
+- Production document upload/download and bank-account replacement remain disabled pending private Storage and atomic audited workflows.
 
 ## All direct table references
 
@@ -19,25 +25,25 @@ Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FI
 | `bokan_ap_payments` | 1 | Accounts payable |
 | `bokan_ar_invoices` | 1 | Accounts receivable |
 | `bokan_ar_receipts` | 1 | Accounts receivable |
-| `bokan_attendance_records` | 1 | HR |
+| `bokan_attendance_records` | 1 | HR / attendance |
 | `bokan_customer_activities` | 1 | CRM |
 | `bokan_customer_assignments` | 1 | CRM |
-| `bokan_customers` | 5 | CRM; reconcile with legacy `customers` |
+| `bokan_customers` | 5 | CRM; reconcile with legacy customers |
 | `bokan_delivery_orders` | 1 | Logistics |
-| `bokan_employees` | 1 | HR; reconcile with legacy `employees` |
+| `bokan_employees` | 1 | HR; reconcile with legacy employees |
 | `bokan_fiscal_periods` | 1 | Accounting controls |
 | `bokan_journal_entries` | 1 | General ledger |
-| `bokan_leave_requests` | 1 | HR; reconcile with legacy `leave_requests` |
-| `bokan_payroll_approvals` | 1 | Payroll approval |
+| `bokan_leave_requests` | 1 | HR; reconcile with legacy leave_requests |
+| `bokan_payroll_approvals` | 1 | Payroll approvals |
 | `bokan_payroll_lines` | 1 | Payroll-sensitive |
 | `bokan_payroll_runs` | 1 | Payroll-sensitive |
-| `bokan_performance_reviews` | 1 | HR; reconcile with legacy `performance_reviews` |
+| `bokan_performance_reviews` | 1 | HR; reconcile with legacy performance_reviews |
 | `bokan_sales_opportunities` | 1 | Sales pipeline |
 | `bokan_salespeople` | 1 | Sales assignment/identity |
 | `bokan_shipments` | 1 | Logistics |
 | `companies` | 3 | Legal entity master data |
-| `company_bank_accounts` | 3 | Bank details; restrict writes to authorized roles |
-| `custom_terms` | 2 | Commercial document terms |
+| `company_bank_accounts` | 3 | Bank details; restrict writes |
+| `custom_terms` | 2 | Commercial terms |
 | `customer_billings` | 3 | Customer financial data |
 | `customer_logs` | 11 | CRM and activity history |
 | `customers` | 13 | Customer master; tenant isolation required |
@@ -50,24 +56,49 @@ Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FI
 | `per_diem_requests` | 6 | Employee expense/approval data |
 | `performance_reviews` | 5 | Sensitive HR data |
 | `profiles` | 9 | Identity, role, and company profile |
-| `proformas` | 5 | Commercial data and financial calculation validation |
+| `proformas` | 4 | Commercial data and financial validation |
 | `sales_targets` | 4 | Sales performance data |
 | `stock_entries` | 9 | Inventory movement/source records |
 | `stock_ledger` | 7 | Inventory ledger |
 | `trip_plans` | 5 | Staff travel and expense data |
 | `visit_reports` | 4 | Sales/CRM |
 
+## Literal localStorage keys detected
+
+- `bokan_active_company_context`
+- `bokan_sales_lifecycle_v1`
+- `customer_logs`
+- `customers`
+- `prime_customer_logs`
+- `prime_customers`
+- `prime_proforma_requests`
+- `prime_release_environment`
+- `prime_release_last`
+- `prime_release_role`
+- `prime_v22_corporate`
+- `prime_v27_ops`
+- `prime_v28_control`
+- `prime_v40_transactions`
+- `prime_v53_lastscan`
+
+These are not necessarily all business records; some may be release flags or UI context. They still need a per-module decision: migrate to canonical protected database tables, keep as non-sensitive UI preference, or remove. Client-controlled role/company context must never authorize access.
+
 ## Important reconciliation points
-- Both legacy and `bokan_*` models appear in the source for employees, leave requests, performance reviews, and customers/CRM. Do not create parallel tables by name alone; determine the intended canonical model and migrate/bridge deliberately.
+
+- Both legacy and `bokan_*` models appear for employees, leave requests, performance reviews, and customers/CRM. Do not create parallel tables by name alone; determine the intended canonical model and migrate deliberately.
 - Many legacy reads use `select('*')`, so field-level compatibility cannot be inferred from narrow selects alone.
 - Some operations include nested relationships such as `customers(customer_name)`; foreign keys and PostgREST relationship names must match.
 - Profile role and company code affect the UI, but UI filtering is not a security boundary. Database RLS must enforce company isolation and permitted operations.
-- A mock backend can make UI workflows appear to save successfully even when no database write occurred. Production must never silently use it.
+- The new `bokan_save_proforma` RPC draft is intended to allocate the number, calculate VAT-inclusive totals/withholding, snapshot issuer details, and insert a revision in one transaction. It is design-only and has **not** been applied or integration-tested.
+- The legacy `next_proforma_no` call remains in the non-production preview path; it must not be used by the hosted production path.
+- The source still contains public Storage URL helper references in legacy code. The sanitized release candidate removes the helper path and blocks document access until private signed downloads exist.
 
-## Recommended next implementation sequence
-1. Trace each table operation to the payload objects and required columns.
-2. Decide canonical legacy/new table models and update the source consistently.
-3. Define constraints, indexes, foreign keys, audit fields, and deletion/retention policy.
-4. Write SQL migrations in version control.
+## Recommended implementation sequence
+
+1. Reconcile canonical legacy/new table models and map every module's payload fields and joins.
+2. Validate the first-slice proforma schema and atomic save RPC on an isolated disposable database, including concurrent insert and revision tests.
+3. Define constraints, indexes, foreign keys, audit fields, and deletion/retention policy for each remaining module.
+4. Write reviewed SQL migrations in version control; do not apply the draft to the current Supabase project until test results and access design are reviewed.
 5. Enable RLS and add operation-specific policies, including company and role checks.
-6. Test as anonymous user, PRIME user, BlackRock user, and admin before enabling production config.
+6. Implement private Storage and a secure route for the legacy `/api/*` dependency or complete a module-by-module migration to Supabase.
+7. Test as anonymous user, PRIME user, BlackRock user, and admin before enabling production configuration.
