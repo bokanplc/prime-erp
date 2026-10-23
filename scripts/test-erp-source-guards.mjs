@@ -47,7 +47,7 @@ assert.match(source, /id="bokan-v61-production-auth"/, 'Production authenticatio
 assert.match(source, /async function bokanProdSaveProforma\(payload,existing\)/, 'Production proforma save must accept existing-version context.');
 assert.match(source, /db\.rpc\('bokan_save_proforma'/, 'Production proforma save must use the atomic database RPC.');
 assert.doesNotMatch(source, /bokanProdNextProformaNumber|bokan_next_proforma_number/, 'Production must not use the separate candidate-number RPC.');
-assert.match(source, /await bokanProdSaveProforma\(\{[\s\S]{0,650}?banks,items,terms\}, existing\);/, 'Production proforma revision must pass existing record as the save function argument.');
+assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\(\{[\s\S]{0,650}?withholdingThreshold,items,terms\s*\}, existing\);/, 'Production proforma revision must pass existing record to the atomic save function.');
 assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\(/, 'Production save result must be captured.');
 assert.match(source, /const savedRecord=productionSavedRecord\|\|\{id:existing\?\.id/, 'Production persistence must use the database-returned ID/version rather than a synthetic local ID.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
