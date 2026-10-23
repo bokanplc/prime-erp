@@ -50,6 +50,9 @@ requirePattern(/Server-backed modules are unavailable\. Sign-in requires the con
 if (/\#prime-prod-gate\{display:none!important\}/.test(source)) failures.push('Production API gate is force-hidden by CSS.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configured Supabase client must be available to production bridge modules.');
 requirePattern(/https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
+requirePattern(/escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CRM follow-up activity type must be escaped before HTML rendering.');
+requirePattern(/escapeHtml\(row\.customers\?\.customer_name \|\| ''\)/, 'CRM customer name must be escaped before HTML rendering.');
+requirePattern(/escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-up date must be escaped before HTML rendering.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*\{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must be blocked until private Storage is implemented.');
 requirePattern(/Document downloads are temporarily disabled until private storage and authorized downloads are configured/, 'Production document listing/download links must remain blocked until private signed downloads are implemented.');
 requirePattern(/Only an authenticated administrator can request role changes/, 'Role-change UI must reject non-admin production requests.');
