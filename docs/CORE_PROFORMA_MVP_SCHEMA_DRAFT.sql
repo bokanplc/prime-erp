@@ -210,38 +210,15 @@ begin
   v_prefix := left(regexp_replace(upper(split_part(trim(p_customer),' ',1)), '[^A-Z]', '', 'g'),5);
   if v_prefix = '' then v_prefix := 'CUST'; end if;
 
+  -- Serialize allocations for a given company/customer prefix. The function
+  -- returns a candidate only; a unique constraint remains the final guard.
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(p_company || ':' || v_prefix));
 
   select coalesce(max(substring(proforma_no from '([0-9]{4})$')::integer),999)
     into v_next
     from public.proformas
    where company_code = p_company
-     and proforma_no ~ ('^' || v_prefix || '[0-9]{4}
-  return v_number;
-end;
-$$;
-
-revoke all on function public.bokan_next_proforma_number(text,text) from public, anon;
-grant execute on function public.bokan_next_proforma_number(text,text) to authenticated;
-
--- Seed legal entities with the confirmed TINs. PRIME phone is intentionally
--- NULL pending owner verification; do not copy BlackRock's number by default.
-insert into public.companies(code,legal_name,brand_name,tin,address,phone,proforma_title_color,active)
-values
-  ('PRIME','PRIME Investment Group PLC','PRIME Investment Group','009588209','Addis Ababa, Ethiopia',null,'#8B0000',true),
-  ('BLACKROCK','BlackRock Investment PLC','BlackRock Investment','00930533495','Meskel Flower, Addis Ababa, Ethiopia','978 23 48 20','#E17D00',true)
-on conflict(code) do update set
-  legal_name=excluded.legal_name,
-  brand_name=excluded.brand_name,
-  tin=excluded.tin,
-  address=excluded.address,
-  phone=excluded.phone,
-  proforma_title_color=excluded.proforma_title_color,
-  active=excluded.active,
-  updated_at=now();
-
-commit;
-);
+     and proforma_no ~ ('^' || v_prefix || '[0-9]{4}$');
 
   if v_next >= 9999 then
     raise exception 'Proforma number sequence exhausted for prefix %', v_prefix;
@@ -266,6 +243,7 @@ on conflict(code) do update set
   brand_name=excluded.brand_name,
   tin=excluded.tin,
   address=excluded.address,
+  phone=excluded.phone,
   proforma_title_color=excluded.proforma_title_color,
   active=excluded.active,
   updated_at=now();
