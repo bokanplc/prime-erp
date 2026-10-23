@@ -37,6 +37,11 @@ VALUES
   ('11111111-1111-4111-8111-111111111111', 'CI PRIME Sales', 'sales', 'Sales', 'PRIME', true),
   ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true);
 
+INSERT INTO public.company_bank_accounts(company_code, bank_name, account_number, account_purpose, display_order, active)
+VALUES
+  ('PRIME', 'CI Test Bank', 'CI-123456', 'Settlement', 1, true),
+  ('PRIME', 'Inactive Test Bank', 'CI-999999', 'Inactive', 2, false);
+
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', false);
 
@@ -66,7 +71,9 @@ BEGIN
     'items', jsonb_build_array(jsonb_build_object(
       'description', 'Test item', 'spec', 'Standard', 'qty', 1, 'unit_price', 11500
     )),
-    'terms', jsonb_build_array('Payment', 'Delivery')
+    'terms', jsonb_build_array('Payment', 'Delivery'),
+    'companyTinSnapshot', 'CLIENT-SPOOF-TIN',
+    'banks', jsonb_build_array(jsonb_build_object('bank_name','Client Spoof Bank','account_number','SPOOF'))
   );
 
   v_first := public.bokan_save_proforma('PRIME', NULL, v_payload);
@@ -86,8 +93,13 @@ BEGIN
       v_first.subtotal_before_vat, v_first.vat_amount, v_first.discount_amount,
       v_first.grand_total, v_first.withholding_amount, v_first.net_payable;
   END IF;
-  IF v_first.company_tin_snapshot <> '009588209' OR jsonb_typeof(v_first.bank_accounts_snapshot) <> 'array' THEN
-    RAISE EXCEPTION 'Issuer TIN/bank snapshots were not populated from company records';
+  IF v_first.company_tin_snapshot <> '009588209'
+     OR jsonb_typeof(v_first.bank_accounts_snapshot) <> 'array'
+     OR jsonb_array_length(v_first.bank_accounts_snapshot) <> 1
+     OR v_first.bank_accounts_snapshot->0->>'bank_name' <> 'CI Test Bank'
+     OR v_first.bank_accounts_snapshot->0->>'account_number' <> 'CI-123456'
+     OR v_first.bank_accounts_snapshot->0->>'purpose' <> 'Settlement' THEN
+    RAISE EXCEPTION 'Issuer TIN/bank snapshots were not sourced only from active company records';
   END IF;
 
   v_revision := public.bokan_save_proforma('PRIME', v_first.id, v_payload);
