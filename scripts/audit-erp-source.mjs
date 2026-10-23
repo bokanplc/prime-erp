@@ -74,15 +74,15 @@ warnPattern(/async\s+signInWithPassword\s*\(\)\s*\{\s*return\s*\{\s*error\s*:\s*
 warnPattern(/getPublicUrl\s*\(/, 'A public Storage URL helper is used. Confirm every file is intended to be public; sensitive files should use private storage and authorized downloads.');
 warnPattern(/\.from\(['"](?:customers|customer_logs|employees|leave_requests|performance_reviews|expenses|sales_targets|stock_entries|stock_ledger|trip_plans|visit_reports|documents|proformas)['"]\)\.(?:insert|update|upsert|delete)\s*\(/, 'Legacy table mutation paths remain. Verify company isolation and least-privilege policies for every legacy path.');
 warnPattern(/\.from\(['"]profiles['"]\)\.update\(\s*\{\s*role\s*\}/, 'Client code can attempt to update a profile role. RLS/grants must deny this except through a controlled admin path.');
-warnPattern(/\.rpc\(['"]next_proforma_no['"]/, 'Legacy proforma-number RPC path remains alongside the newer numbering function.');
-warnPattern(/\.rpc\(['"]bokan_next_proforma_number['"]/, 'New proforma-number RPC is referenced; confirm the function is company-scoped, concurrency-safe, and has restricted EXECUTE grants.');
+warnPattern(/\.rpc\(['"]next_proforma_no['"]/, 'Legacy preview numbering RPC remains in the non-production path; confirm this path stays local-preview-only.');
+
 
 // Basic coverage markers: these do not validate the implementation itself.
 const requiredMarkers = [
   ['production guard', /_bokanProdConfigured/],
   ['profile verification', /company_code,active,terminated_at/],
   ['authenticated sign-in flow', /signInWithPassword\(\{email,password\}\)/],
-  ['new proforma numbering', /bokan_next_proforma_number/],
+  ['atomic proforma save', /bokan_save_proforma/],
 ];
 for (const [label, pattern] of requiredMarkers) {
   if (!pattern.test(source)) failures.push(`Expected source marker missing: ${label}.`);
