@@ -30,6 +30,19 @@ const failures = [];
 for (const [pattern, description] of checks) {
   if (!pattern.test(sql)) failures.push(description);
 }
+if ((sql.match(/\bcreate or replace function public\.bokan_next_proforma_number/g) || []).length !== 1) failures.push('Numbering RPC must have exactly one definition');
+if ((sql.match(/\bcommit;/gi) || []).length !== 1) failures.push('Schema draft must contain exactly one final COMMIT');
+if (!/proforma_no ~ \('\^' \|\| v_prefix \|\| '\[0-9\]\{4\}\
+if (!/company_bank_accounts\.company_code/.test(sql)) failures.push('Bank account RLS must qualify the outer company_code');
+if (failures.length) {
+  console.error('Core schema draft checks failed:');
+  failures.forEach(f => console.error(' - ' + f));
+  process.exit(1);
+}
+console.log('Core schema draft checks passed (' + checks.length + ' checks).');
+\)/.test(sql)) failures.push('Numbering query must use a complete anchored four-digit prefix pattern');
+if (/proforma_no ~ \([^\n]*\n\s*return v_number/.test(sql)) failures.push('Numbering query appears truncated or malformed');
+if (!/if v_next >= 9999 then[\s\S]*?raise exception 'Proforma number sequence exhausted/.test(sql)) failures.push('Numbering upper bound must be enforced before formatting the result');
 if (/security definer/i.test(sql)) failures.push('Schema draft must not introduce SECURITY DEFINER functions');
 if (!/company_bank_accounts\.company_code/.test(sql)) failures.push('Bank account RLS must qualify the outer company_code');
 if (failures.length) {
