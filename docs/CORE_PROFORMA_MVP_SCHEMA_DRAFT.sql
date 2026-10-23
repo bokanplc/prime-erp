@@ -275,17 +275,17 @@ begin
   end if;
   if exists (
     select 1
-      from jsonb_array_elements(v_items) as item
-     where coalesce(trim(item->>'description'),'') = ''
-        or coalesce((item->>'qty')::numeric,0) <= 0
-        or coalesce((item->>'unit_price')::numeric,-1) < 0
+      from jsonb_array_elements(v_items) as item(value)
+     where coalesce(trim(item.value->>'description'),'') = ''
+        or coalesce((item.value->>'qty')::numeric,0) <= 0
+        or coalesce((item.value->>'unit_price')::numeric,-1) < 0
   ) then
     raise exception 'Every line item requires a description, positive quantity, and non-negative VAT-inclusive unit price';
   end if;
 
-  select round(coalesce(sum((item->>'qty')::numeric * (item->>'unit_price')::numeric),0),2)
+  select round(coalesce(sum((item.value->>'qty')::numeric * (item.value->>'unit_price')::numeric),0),2)
     into v_gross
-    from jsonb_array_elements(v_items) as item;
+    from jsonb_array_elements(v_items) as item(value);
   v_discount_amount := round(v_gross * v_discount_percent / 100,2);
   v_discounted_gross := round(v_gross - v_discount_amount,2);
   v_subtotal := round(v_discounted_gross / (1 + v_vat_rate / 100),2);
