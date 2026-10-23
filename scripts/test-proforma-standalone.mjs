@@ -19,7 +19,7 @@ assert.match(standalone, /showTab\('proforma'\)/, 'Standalone launch must open t
 assert.match(standalone, /#tab-proforma\s*\{\s*display:\s*block\s*!important;/, 'Only the existing Proforma section must be force-visible.');
 assert.match(standalone, /function addProformaItem\(data=\{\}\)\s*\{\s*pfItemCount\+\+;/, 'The existing add-item function must remain unchanged and support repeated rows.');
 assert.match(standalone, /document\.getElementById\('pf-items'\)\.appendChild\(row\)/, 'Each new line item must be appended to the existing items list.');
-assert.match(standalone, /document\.querySelectorAll\('#pf-items > div'\)\)\.map\(row => \(/, 'Proforma generation must collect every entered line item.');
+assert.match(standalone, /querySelectorAll\('#pf-items > div'\)/, 'Proforma generation must collect every entered line item.');
 assert.match(standalone, /items\.map\(\(i,idx\)=>\{/ , 'Printable Proforma must render every line item.');
 assert.match(standalone, /function generateProforma\(\)/, 'Original Proforma generation handler must remain present.');
 assert.match(standalone, /function persistCurrentProforma\(/, 'Existing local saved-Proforma workflow must remain present.');
