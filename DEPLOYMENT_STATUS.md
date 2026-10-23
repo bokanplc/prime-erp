@@ -267,3 +267,12 @@ Use the existing Supabase Free project, keep the schema lean, retain migration f
 - The workflow builds a sanitized release candidate on the runner, empties known embedded fixture collections, removes the preview-admin identity, replaces the mock backend with a deny-by-default stub, and checks that production configuration remains disabled. The artifact is not deployed by this workflow.
 - Added a targeted HTML-escaping fix for CRM follow-up activity type, customer name and date, with regression assertions. The passing workflow includes those new checks.
 - Added browser-storage migration inventory and phased effort estimates. No schema/Auth/Storage changes or live deployment were made.
+
+
+## ASAP delivery slice prepared (2026-10-23)
+- Added `docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql`: a first-slice design for Auth-linked profiles, the PRIME/BlackRock issuer master, read-only bank account lookup, proforma persistence, company-scoped RLS, least-privilege grants, and a concurrency-locked proforma number allocator. It is a **draft only** and has not been applied to Supabase.
+- Added `scripts/test-core-schema-draft.mjs` and CI step to check tenant policy, RLS, least-privilege grant, Auth linkage, delivery-term persistence, and numbering design.
+- Fixed a real proforma persistence bug: selected delivery terms were not included in the production database insert, so saved/revised proformas could lose the delivery time. The field is now written and covered by source regression checks; the schema draft includes the matching column.
+- Latest workflow for the current staging branch: run `39955219072`; startup guard, schema draft check, inline JS parsing, direct data-access audit, release-candidate pretest, sanitizer build, and post-build test steps have all completed successfully; workflow cleanup was still running at the last check.
+- This narrows the first release target to the proforma flow instead of pretending all 41 referenced tables can be safely created at once. The complete ERP still needs separate schema slices for CRM, finance, HR/payroll, supply/logistics and document storage.
+- No live database schema, Auth settings, Storage policies, production config, or hosting deployment has been changed. The new schema remains unexecuted pending SQL validation and the required admin-account provisioning/testing step.
