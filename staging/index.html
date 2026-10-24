@@ -5512,8 +5512,8 @@ async function loadCustomerHistory(customerName) {
   if (currentRole === 'admin' || currentRole === 'sales_manager') {
     reassignWrap.classList.remove('hidden');
     const sel = document.getElementById('timeline-reassign-select');
-    sel.innerHTML = (profiles || []).filter(p => ['sales','sales_manager','admin'].includes(store_role_lookup(p.id))).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${p.full_name}</option>`).join('')
-      || (profiles || []).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${p.full_name}</option>`).join('');
+    sel.innerHTML = (profiles || []).filter(p => ['sales','sales_manager','admin'].includes(store_role_lookup(p.id))).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${escapeHtml(p.full_name)}</option>`).join('')
+      || (profiles || []).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${escapeHtml(p.full_name)}</option>`).join('');
   } else {
     reassignWrap.classList.add('hidden');
   }
@@ -5682,11 +5682,11 @@ async function loadSalesTargets() {
     const overrideBreakdown = r.override.sources.length ? r.override.sources.map(s => `${s.pct}% override from ${s.from}: ETB ${s.amount.toLocaleString(undefined,{maximumFractionDigits:0})}`).join(' · ') : '';
     return `<div class="border-b border-[#ECEEF1] py-2">
       <div class="flex justify-between items-center mb-1">
-        <div>${ragDot(rag)}<span class="font-semibold">${r.employee_name}</span> <span class="text-[#8D9096]">(${r.period})</span></div>
+        <div>${ragDot(rag)}<span class="font-semibold">${escapeHtml(r.employee_name)}</span> <span class="text-[#8D9096]">(${escapeHtml(r.period)})</span></div>
         ${r.target > 0 ? `<div class="text-[#6B6C72]">${pct.toFixed(0)}% of target</div>` : ''}
       </div>
       ${r.target > 0 ? `<div class="bar-track mb-1"><div class="bar-fill" style="width:${Math.min(pct,100)}%;background:${RAG_COLORS[rag]}"></div></div>` : ''}
-      <div class="text-[#6B6C72] mb-0.5">${r.target > 0 ? `Target: ${r.target.toLocaleString()} units · Actual: ${r.actual.toLocaleString()} units · ` : ''}Own commission (${r.commissionLabel}): ETB ${r.ownCommission.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+      <div class="text-[#6B6C72] mb-0.5">${r.target > 0 ? `Target: ${escapeHtml(r.target.toLocaleString())} units · Actual: ${escapeHtml(r.actual.toLocaleString())} units · ` : ''}Own commission (${escapeHtml(r.commissionLabel)}): ETB ${r.ownCommission.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
       ${overrideBreakdown ? `<div class="text-[#6B6C72] mb-0.5">Override earned: ${overrideBreakdown}</div>` : ''}
       <div class="flex justify-between items-center">
         <span class="font-semibold text-[#2CA01C]">Total commission: ETB ${totalCommission.toLocaleString(undefined,{maximumFractionDigits:0})}</span>
@@ -5727,7 +5727,7 @@ async function refreshPerDiemTripPlanOptions() {
   banner.classList.add('hidden');
   form.classList.remove('hidden');
   sel.innerHTML = '<option value="">— Select the Trip Plan this request is for —</option>' +
-    available.map(p => `<option value="${p.id}">${p.employee_name} — ${p.destination} (${p.departure_date})</option>`).join('');
+    available.map(p => `<option value="${p.id}">${escapeHtml(p.employee_name)} — ${escapeHtml(p.destination)} (${escapeHtml(p.departure_date)})</option>`).join('');
 }
 
 function applyTripPlanToPerDiem() {
@@ -6091,7 +6091,7 @@ async function loadLedger() {
     mesBal = mesBal + kolfeMes - salesMes;
     totals.primePurch += primePurch; totals.brPurch += brPurch; totals.shipped += shipped; totals.kolfeMes += kolfeMes; totals.salesKolfe += salesKolfe; totals.salesMes += salesMes;
     return `<tr class="border-b border-[#ECEEF1] hover:bg-[#F4F5F8]">
-      <td class="py-1.5 px-2 whitespace-nowrap">${row.entry_date}</td>
+      <td class="py-1.5 px-2 whitespace-nowrap">${escapeHtml(row.entry_date)}</td>
       <td class="py-1.5 px-2">${openingKolfe.toLocaleString()}</td>
       <td class="py-1.5 px-2" style="color:#2CA01C">${primePurch || 0}</td>
       <td class="py-1.5 px-2" style="color:#2CA01C">${brPurch || 0}</td>
@@ -6148,8 +6148,8 @@ async function loadMyLedger() {
   ledgerData = data || [];
   if (!ledgerData.length) { el.innerHTML = '<p class="text-[#8D9096] text-xs">No entries yet.</p>'; return; }
   el.innerHTML = ledgerData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 text-xs">
-      <div><span class="font-semibold">${row.entry_date}</span> — Factory: ${row.factory_qty || 0} (${row.purchased_by || 'none'}) · Shipped Kolfe: ${row.shipped_kolfe_qty || 0} · Kolfe→Mes: ${row.kolfe_to_mes_qty || 0} · Sales@Kolfe: ${row.sales_kolfe_qty || 0} · Sales@Mes: ${row.sales_mes_qty || 0}
-      <span class="text-[#8D9096]">${row.notes ? '· ' + row.notes : ''}</span></div>
+      <div><span class="font-semibold">${escapeHtml(row.entry_date)}</span> — Factory: ${escapeHtml(row.factory_qty || 0)} (${escapeHtml(row.purchased_by || 'none')}) · Shipped Kolfe: ${escapeHtml(row.shipped_kolfe_qty || 0)} · Kolfe→Mes: ${escapeHtml(row.kolfe_to_mes_qty || 0)} · Sales@Kolfe: ${escapeHtml(row.sales_kolfe_qty || 0)} · Sales@Mes: ${escapeHtml(row.sales_mes_qty || 0)}
+      <span class="text-[#8D9096]">${escapeHtml(row.notes ? '· ' + row.notes : '')}</span></div>
       <div class="flex gap-2 no-print"><button onclick="editLedger('${row.id}')" class="text-[#2CA01C] font-semibold">Edit</button><button onclick="deleteLedger('${row.id}')" class="text-red-600">Delete</button></div>
     </div>`).join('');
 }
@@ -6220,7 +6220,7 @@ async function loadOverview() {
     ? Object.entries(pipelineCounts).map(([s,c]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${s}</span><span class="font-semibold">${c}</span></div>`).join('')
     : '<p class="text-[#8D9096]">No open leads.</p>';
 
-  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${row.entry_type} — ${escapeHtml(row.item_name)} × ${escapeHtml(row.quantity)} = ETB ${escapeHtml(row.total)} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
+  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${escapeHtml(row.entry_type)} — ${escapeHtml(row.item_name)} × ${escapeHtml(row.quantity)} = ETB ${escapeHtml(row.total)} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
 
   const marginPct = revenue > 0 ? (netMargin / revenue * 100) : 0;
   const healthWord = netMargin < 0 ? 'a loss' : marginPct < 10 ? 'a thin margin' : 'a healthy margin';
@@ -7102,7 +7102,7 @@ async function loadEmployees() {
   const { data } = await sb.from('employees').select('*').order('full_name');
   employeeData = data || [];
   const dl = document.getElementById('employee-namelist');
-  if (dl) dl.innerHTML = employeeData.map(e => `<option value="${e.full_name}">`).join('');
+  if (dl) dl.innerHTML = employeeData.map(e => `<option value="${escapeHtml(e.full_name)}">`).join('');
   el.innerHTML = employeeData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5">
       <div><span class="font-semibold">${escapeHtml(row.full_name)}</span> — ${escapeHtml(row.position)}
         <span class="text-xs px-2 py-0.5 rounded ${STATUS_COLORS[row.status]||''} ml-1">${escapeHtml(row.status)}</span>
