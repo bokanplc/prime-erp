@@ -451,3 +451,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Corrected a proforma totals mismatch: the print layout showed a separate discount after subtotal/VAT while the old formula had already reduced subtotal and VAT by the discount. UI and SQL draft now reconcile subtotal + VAT - discount = grand total.
 - Updated the disposable PostgreSQL expected totals, schema contract test, UI/SQL contract test, and documentation. Example: ETB 11,500 inclusive gross, ETB 1,150 discount, subtotal ETB 10,000, VAT ETB 1,500, grand total ETB 10,350, withholding ETB 310.50, net payable ETB 10,039.50.
 - The tax treatment of discounts still requires confirmation by the company's Ethiopian tax/accounting adviser before live invoice use.
+
+
+## Readiness-gate regression test (2026-10-24)
+- Added `scripts/test-erp-release-readiness.mjs`. It runs the readiness audit in a temporary copy with the current disabled config, then simulates enabling production mode and asserts that the audit exits with a stop-ship failure while the 51-table/API gaps remain.
+- Added this regression test to GitHub Actions. The first run exposed a test assertion reading the wrong output stream; fixed it to check stderr, then reran.
+- Latest PR workflow run `40088863876` and push workflow run `40088859385` both completed successfully: source guards, readiness-gate simulation, sanitized release build/test, disposable PostgreSQL RLS/financial tests, and concurrent proforma numbering all passed.
