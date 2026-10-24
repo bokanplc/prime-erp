@@ -6184,7 +6184,7 @@ async function loadOverview() {
   const byLoc = {};
   stockRows.forEach(r => { const k = r.location || 'Unspecified'; (byLoc[k] = byLoc[k] || {count:0,total:0}); byLoc[k].count++; byLoc[k].total += Number(r.total||0); });
   document.getElementById('overview-warehouse').innerHTML = Object.entries(byLoc).length
-    ? Object.entries(byLoc).map(([loc,v]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${loc}</span><span class="text-[#6B6C72]">${v.count} entries · ETB ${v.total.toLocaleString()}</span></div>`).join('')
+    ? Object.entries(byLoc).map(([loc,v]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${escapeHtml(loc)}</span><span class="text-[#6B6C72]">${v.count} entries · ETB ${v.total.toLocaleString()}</span></div>`).join('')
     + `<div class="flex justify-between border-b border-[#ECEEF1] py-1 font-semibold text-[#393A3D]"><span>Factory (not yet shipped)</span><span>${factoryBal.toLocaleString()} pcs</span></div>`
     + `<div class="flex justify-between border-b border-[#ECEEF1] py-1 font-semibold text-[#393A3D]"><span>Kolfe (Plywood Ledger)</span><span>${kolfeBal.toLocaleString()} pcs</span></div>`
     + `<div class="flex justify-between border-b border-[#ECEEF1] py-1 font-semibold text-[#393A3D]"><span>Mesalemya (Plywood Ledger)</span><span>${mesBal.toLocaleString()} pcs</span></div>`
