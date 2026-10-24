@@ -21,6 +21,7 @@ assert.match(bridge, /p_existing_id:\s*existing\?\.id\|\|null/, 'Revision must p
 assert.match(bridge, /terms:\s*payload\.terms\|\|\[\]/, 'Commercial terms must be passed as an array.');
 
 assert.match(source, /const items = \[\.\.\.document\.querySelectorAll\('#pf-items > div'\)\]\.map\(row => \(\{[\s\S]{0,500}description:[\s\S]{0,200}spec:[\s\S]{0,200}qty:[\s\S]{0,200}unit_price:/, 'The Proforma UI must preserve description, specification, quantity and VAT-inclusive unit_price fields.');
+assert.match(source, /Proforma save could not be confirmed\. Check the saved Proforma list before retrying to avoid a duplicate\./, 'Ambiguous save/network errors must tell users to verify persistence before retrying.');
 assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\([\s\S]{0,350}items,terms\s*\},\s*existing\)/, 'The UI must pass the current item array and terms to the production RPC.');
 assert.match(source, /function restoreProformaFormState\(x\)[\s\S]{0,900}\(x\.items\|\|\[\]\)\.forEach\(i=>addProformaItem\(i\)\)/, 'Saved item rows must be restored into the Proforma editor.');
 assert.match(source, /row\.querySelector\('\.pf-desc'\)\.value=data\.description\|\|''/, 'Restored rows must read the saved item description.');
