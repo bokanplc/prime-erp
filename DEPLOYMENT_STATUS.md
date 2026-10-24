@@ -531,3 +531,12 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Additional stored-output escaping (2026-10-24)
 - Escaped stock-location group labels and CRM pipeline status labels before rendering them into HTML. These values can originate from stored business records and should not be inserted raw into markup.
 - Added both sinks to the tracked HTML-escaping regression suite and the full release-readiness stop-ship audit. The test is expected to fail if either raw interpolation returns.
+
+
+## Duplicate-save behavior test and final verification (2026-10-24)
+- Added `scripts/test-proforma-save-guard.mjs`, a behavioral test that runs the actual wrapper in a Node VM with a mocked button. It verifies concurrent calls are ignored, the button enters its saving state, and the lock/button recover after both success and unexpected failure.
+- Added the behavior test to GitHub Actions. Latest full run `40104436655` passed both jobs: source checks, Proforma save-guard behavior, HTML escaping, inline JavaScript parsing, readiness gate, sanitized release candidate, disposable PostgreSQL RLS/grants/financial checks, and concurrent numbering.
+- Extended the tracked output-escaping guard for CRM pipeline status and stock-location labels. The first test run correctly exposed a second, separate stock-location sink; it was escaped as well. The current full test suite passes.
+- Rechecked final integrity: reviewed source and `staging/index.html` match exactly at 800,058 characters; `PRODUCTION_MODE=false`, `FULL_ERP_DATA_READY=false`, and Supabase URL/key placeholders remain blank; `main/index.html` remains 1 byte.
+- Rechecked Supabase read-only: no public application tables and no migrations. Security Advisor still reports only `auth_leaked_password_protection` disabled; performance advisor has no findings.
+- No production schema, Auth/Storage settings, paid plans, or live deployment were changed. Draft PR #1 remains unmerged.
