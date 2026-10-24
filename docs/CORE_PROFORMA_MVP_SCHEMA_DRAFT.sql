@@ -5,6 +5,11 @@
 
 begin;
 
+-- Keep the privileged implementation in a schema that must not be exposed through the Data API.
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+grant usage on schema private to authenticated;
+
 create table if not exists public.companies (
   code text primary key check (code in ('PRIME','BLACKROCK')),
   legal_name text not null,
@@ -154,23 +159,6 @@ create policy proformas_select_member on public.proformas
     )
   );
 
-drop policy if exists proformas_insert_member on public.proformas;
-create policy proformas_insert_member on public.proformas
-  for insert to authenticated
-  with check (
-    created_by = (select auth.uid())
-    and updated_by = (select auth.uid())
-    and status = 'draft'
-    and version_no > 0
-    and exists (
-      select 1 from public.profiles p
-      where p.id = (select auth.uid())
-        and p.active and p.terminated_at is null
-        and p.role in ('admin','management','sales_manager','sales','accounting','data_entry')
-        and (p.company_code = proformas.company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
-    )
-  );
-
 -- Keep grants narrow. No client-side delete/update of issued proformas or bank
 -- accounts; bank maintenance remains disabled until an atomic audited workflow exists.
 revoke all on public.companies, public.profiles, public.company_bank_accounts, public.proformas from anon, authenticated;
@@ -178,12 +166,14 @@ grant select on public.profiles to authenticated;
 grant select on public.companies to authenticated;
 grant update (tin,address,phone) on public.companies to authenticated;
 grant select on public.company_bank_accounts to authenticated;
-grant select, insert on public.proformas to authenticated;
+grant select on public.proformas to authenticated;
 
 -- Atomic proforma number allocation + version insert.
 -- The lock remains held through INSERT, unlike a candidate-number RPC followed by a separate client insert.
--- SECURITY INVOKER is intentional: table grants and RLS remain in force.
-create or replace function public.bokan_save_proforma(
+-- This private implementation is SECURITY DEFINER only because direct table INSERT is revoked.
+-- It explicitly validates auth.uid(), profile status/role, company scope, and every financial invariant.
+-- The private schema must not be exposed through the Data API.
+create or replace function private.bokan_save_proforma(
   p_company text,
   p_existing_id uuid,
   p_payload jsonb
@@ -376,8 +366,25 @@ begin
 
   return v_row;
 end;
-$$;
+$;
 
+-- Public RPC wrapper remains SECURITY INVOKER. It delegates to the non-exposed
+-- private implementation, which is the only path granted permission to insert.
+create or replace function public.bokan_save_proforma(
+  p_company text,
+  p_existing_id uuid,
+  p_payload jsonb
+)
+returns public.proformas
+language sql
+security invoker
+set search_path = ''
+as $
+  select private.bokan_save_proforma(p_company, p_existing_id, p_payload);
+$;
+
+revoke all on function private.bokan_save_proforma(text,uuid,jsonb) from public, anon;
+grant execute on function private.bokan_save_proforma(text,uuid,jsonb) to authenticated;
 revoke all on function public.bokan_save_proforma(text,uuid,jsonb) from public, anon;
 grant execute on function public.bokan_save_proforma(text,uuid,jsonb) to authenticated;
 
