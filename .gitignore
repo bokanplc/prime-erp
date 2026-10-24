@@ -1,5 +1,6 @@
 # Generated, sanitized release output. Build it from the reviewed source in CI/Cloudflare Pages.
 staging/release/
+dist/release/
 
 # Local tooling output
 node_modules/
