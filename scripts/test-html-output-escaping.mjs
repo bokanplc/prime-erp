@@ -47,24 +47,24 @@ const trackedRawSinks = [
   /\$\{row\.factory_qty\s*\|\|\s*0\}/,
   /\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/,
   /\$\{row\.entry_type\}/,
-  /\$\{r\.employee_name\}/
-  /\$\{row\.status\|\|'Pending'\}/
-  /\$\{d\.location \|\| 'Delivery'\}/
-  /\$\{d\.vehicle \? ' — ' \+ d\.vehicle : ''\}/
-  /\$\{i\.product_type\}/
-  /\$\{i\.quality \|\| '-'\}/
-  /\$\{i\.qty\}/
-  /\$\{i\.unit_price\.toLocaleString\(\)\}/
-  /\$\{\(i\.qty\*i\.unit_price\)\.toLocaleString\(\)\}/
-  /\$\{p\.proforma_no\}/
-  /\$\{p\.customer_name\}/
-  /\$\{u\.role\}/
-  /\$\{salesKolfe \? \(row\.sold_by \|\| '-'\) : '-'\}/
-  /\$\{salesMes \? \(row\.sold_by \|\| '-'\) : '-'\}/
-  /\$\{r\.version\|\|1\}/
-  /\$\{r\.vatPct\}/
-  /\$\{data\.qty \?\? ''\}/
-  /\$\{data\.unit_price \?\? ''\}/]
+  /\$\{r\.employee_name\}/,
+  /\$\{row\.status\|\|'Pending'\}/,
+  /\$\{d\.location \|\| 'Delivery'\}/,
+  /\$\{d\.vehicle \? ' — ' \+ d\.vehicle : ''\}/,
+  /\$\{i\.product_type\}/,
+  /\$\{i\.quality \|\| '-'\}/,
+  /\$\{i\.qty\}/,
+  /\$\{i\.unit_price\.toLocaleString\(\)\}/,
+  /\$\{\(i\.qty\*i\.unit_price\)\.toLocaleString\(\)\}/,
+  /\$\{p\.proforma_no\}/,
+  /\$\{p\.customer_name\}/,
+  /\$\{u\.role\}/,
+  /\$\{salesKolfe \? \(row\.sold_by \|\| '-'\) : '-'\}/,
+  /\$\{salesMes \? \(row\.sold_by \|\| '-'\) : '-'\}/,
+  /\$\{r\.version\|\|1\}/,
+  /\$\{r\.vatPct\}/,
+  /\$\{data\.qty \?\? ''\}/,
+  /\$\{data\.unit_price \?\? ''\}/
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
