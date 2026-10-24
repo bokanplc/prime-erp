@@ -526,3 +526,8 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Wrapped Proforma generation with an in-flight guard that ignores repeated clicks while a save is running, disables the button and announces the saving state, then restores the button and releases the lock in `finally`.
 - Added regression assertions to the UI/database contract test and sanitized release-candidate test.
 - This reduces accidental duplicate proformas from rapid/repeated clicks; it does not replace a future database idempotency key for retries across network failures.
+
+
+## Additional stored-output escaping (2026-10-24)
+- Escaped stock-location group labels and CRM pipeline status labels before rendering them into HTML. These values can originate from stored business records and should not be inserted raw into markup.
+- Added both sinks to the tracked HTML-escaping regression suite and the full release-readiness stop-ship audit. The test is expected to fail if either raw interpolation returns.
