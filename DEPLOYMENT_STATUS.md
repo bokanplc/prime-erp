@@ -362,3 +362,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Updated the database contract and operation inventory to record 55 distinct logical table names: 41 direct names plus 14 helper-passed names.
 - Updated `scripts/audit-erp-data-surface.mjs` to fail CI if the generic helper table-name baseline changes unexpectedly.
 - The additional procurement/logistics tables still have no live schema and their fields, foreign keys, company scoping, role policies, and trusted write workflows must be mapped before those modules can be enabled.
+
+
+## Latest CI and release-data sanitization (2026-10-24)
+- GitHub Actions run `40084245085` passed both jobs: source guards, schema-draft checks, inline JavaScript parsing, direct and generic-helper table-surface audit, committed release-candidate checks, release rebuild/retest, disposable PostgreSQL RLS/grants/financial tests, and concurrent numbering.
+- The release-candidate builder now also empties the hard-coded enterprise master-data, stock, and payroll example collections (`master`, `stock`, and `pay`) in the V4.5 enterprise layer. Tests assert the sample customer, supplier, employee and stock identifiers are absent from the release artifact.
+- The table inventory now covers 55 distinct logical database table names, including 14 additional procurement/logistics tables passed through generic CRUD helpers. These remaining tables are still unimplemented in the live database.
+- All checks ran against the repository and disposable CI PostgreSQL only. Supabase production still has zero application tables and migrations; no live schema changes were applied.
