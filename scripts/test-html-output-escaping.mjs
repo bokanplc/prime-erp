@@ -34,22 +34,22 @@ const trackedRawSinks = [
   /\.innerHTML\s*=\s*perfData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/,
   /\.innerHTML\s*=\s*discData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/,
   /\.innerHTML\s*=\s*alerts\.map\(a\s*=>\s*`[\s\S]{0,300}\$\{a\.text\}/,
-  /\$\{e\.full_name\}/
-  /\$\{p\.full_name\}/
-  /\$\{c\.contact_person\s*\|\|\s*'—'\}/
-  /\$\{c\.location\s*\|\|\s*'—'\}/
-  /\$\{nameById\[c\.assigned_rep\]\s*\|\|\s*'Unassigned'\}/
-  /\$\{c\.current_status\s*\|\|\s*''\}/
-  /onclick="document\.getElementById\('cust-name'\)\.value='\$\{c\.customer_name\.replace/
-  /\$\{log\.escalate_reason\s*\|\|\s*''\}/
-  /\$\{row\.customers\?\.customer_name\s*\|\|\s*''\}/
-  /\$\{row\.notes\s*\|\|\s*''\}/
-  /\$\{row\.factory_qty\s*\|\|\s*0\}/
-  /\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/
-  /\$\{row\.entry_type\}/
+  /\$\{e\.full_name\}/,
+  /\$\{p\.full_name\}/,
+  /\$\{c\.contact_person\s*\|\|\s*'—'\}/,
+  /\$\{c\.location\s*\|\|\s*'—'\}/,
+  /\$\{nameById\[c\.assigned_rep\]\s*\|\|\s*'Unassigned'\}/,
+  /\$\{c\.current_status\s*\|\|\s*''\}/,
+  /onclick="document\.getElementById\('cust-name'\)\.value='\$\{c\.customer_name\.replace/,
+  /\$\{log\.escalate_reason\s*\|\|\s*''\}/,
+  /\$\{row\.customers\?\.customer_name\s*\|\|\s*''\}/,
+  /\$\{row\.notes\s*\|\|\s*''\}/,
+  /\$\{row\.factory_qty\s*\|\|\s*0\}/,
+  /\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/,
+  /\$\{row\.entry_type\}/,
   /\$\{r\.employee_name\}/]
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
 assert.match(source, /data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/, 'Document delete handlers must not interpolate stored values into JavaScript string literals.');
-console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 14 tracked sink patterns.');
+console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 28 tracked sink patterns.');
