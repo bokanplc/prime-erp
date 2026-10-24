@@ -377,3 +377,12 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The document-sequence widget now displays an em dash when the sanitized catalogue is empty instead of calculating `-Infinity`.
 - Release candidate is regenerated and tests confirm these fixture arrays are empty and their example records absent. The reviewed source and staging entry point remain byte-for-byte identical.
 - These results are repository/CI validation only. No live Supabase schema, Auth configuration, Storage policy, paid plan, or deployment was changed.
+
+
+## Financial input validation hardening (2026-10-24)
+- Hardened the draft proforma transaction to require JSON-native numeric/boolean/date types for financial settings before casting.
+- Added a separate line-item JSON shape/type validation pass before numeric comparisons, so malformed strings cannot reach quantity/unit-price casts through boolean-expression reordering.
+- Extended disposable PostgreSQL tests for string-valued `"NaN"` in unit price and VAT rate; both must be rejected before any proforma is inserted.
+- Extended schema-draft regression assertions for the new type guards.
+- Expanded PostgreSQL smoke tests to create a legitimate BlackRock proforma and verify a PRIME authenticated session cannot read it through RLS, and to reject inactive and terminated profiles at the trusted write boundary.
+- CI run for the latest test changes is queued/in progress; record final outcome after it completes. All work remains in the staging branch and draft PR only.
