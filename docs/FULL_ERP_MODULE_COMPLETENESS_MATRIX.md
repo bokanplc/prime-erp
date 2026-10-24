@@ -6,8 +6,8 @@
 ## Current coverage
 
 - Distinct logical table names referenced by the full V6.7 source: **55**
-- Table definitions in the only current schema draft: **4**
-- Table definitions still missing: **51**
+- Table definitions in the only current schema draft: **5**
+- Table definitions still missing: **50**
 - Required legacy API endpoint groups: login, change-password, logout, bootstrap, store. These are not implemented in the repository's expected Cloudflare Pages Functions paths.
 - Production mode: disabled.
 - Full ERP data readiness: disabled.
@@ -22,6 +22,7 @@ The full ERP is **not** ready for deployment as a working application. A green s
 | `companies` | PRIME and BlackRock issuer master, legal identity and TIN |
 | `profiles` | Supabase Auth-linked user profile, role, company code, active/terminated status |
 | `company_bank_accounts` | Issuer bank accounts; read-only for browser users until atomic audited maintenance exists |
+| `custom_terms` | Company-scoped commercial terms; authenticated company users may add terms, but client updates/deletes are not granted |
 | `proformas` | Proforma header/items/snapshots, versioning, totals, numbering, trusted save RPC |
 
 The draft has passed disposable PostgreSQL tests for RLS/grants, tenant read isolation, inactive/terminated profile denial, financial totals, malformed input rejection, and concurrent numbering. It has **not** been applied to the live Supabase project.
@@ -62,7 +63,6 @@ The draft has passed disposable PostgreSQL tests for RLS/grants, tenant read iso
 - `bokan_shipments`
 - `bokan_stock_reservations`
 - `bokan_warehouses`
-- `custom_terms`
 - `customer_billings`
 - `customer_logs`
 - `customers`
