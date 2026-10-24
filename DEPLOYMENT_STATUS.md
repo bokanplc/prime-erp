@@ -495,3 +495,8 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Document links now require a configured Supabase URL and only allow HTTPS URLs from that exact project origin whose path starts with \`/storage/v1/object/sign/documents/\`. Public bucket URLs, external HTTPS URLs, HTTP URLs, JavaScript/data URLs, and all document URLs while config is blank are rejected.
 - Added \`rel=\"noopener noreferrer\"\` for opened document tabs and regression tests for allowed signed paths, external hosts, public storage paths, dangerous schemes, and blank config.
 - GitHub Actions run \`40100784683\` passed both jobs: source guard/release artifact checks and disposable PostgreSQL schema tests, including the proforma RLS/financial checks and concurrent numbering.
+
+
+## Release artifact directory isolation (2026-10-24)
+- Moved generated sanitized output from \`staging/release/\` to \`dist/release/\`, outside the review/source directory. Updated the builder, candidate tests, ignore rules and exposure review.
+- This reduces the chance that a future static host accidentally publishes the full \`staging/\` directory containing source fixtures. If/when a Pages project is configured, the build command and output directory must be reviewed explicitly; this does not make the current candidate production-ready.
