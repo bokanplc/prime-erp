@@ -40,3 +40,7 @@ The default branch is unchanged, the PR remains draft-only, production mode is d
 
 ## Existing Supabase security-advisor warning
 The read-only security advisor still reports Leaked Password Protection Disabled (auth_leaked_password_protection). The current connected workflow has no supported Auth-settings action to toggle it. Before production accounts are invited, enable the protection in Supabase Auth settings if available on the existing plan, then re-run the security advisor. Do not compensate by lowering password requirements.
+
+
+## Proforma withholding rule confirmation (2026-10-24)
+The current UI treats withholding as automatic at 3% when the VAT-inclusive Grand Total is strictly above ETB 10,000. The trusted database draft now enforces that same fixed rate/threshold and rejects direct RPC payloads that try to disable or alter them. The UI still needs a final accounting review of discount/VAT treatment; do not use live documents until that tax treatment is confirmed.
