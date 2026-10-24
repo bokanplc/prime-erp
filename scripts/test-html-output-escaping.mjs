@@ -78,7 +78,7 @@ const trackedRawSinks = [
   /\$\{i\.cert \|\| ''\}/,
   /\$\{d\}<\/span><span class="value">\$\{c\}/,
   /\.innerHTML\s*=\s*Object\.entries\(byLoc\)[\s\S]{0,500}\$\{loc\}<\/span>/,
-  /\.innerHTML\s*=\s*Object\.keys\(pipelineCounts\)[\s\S]{0,300}\$\{s\}<\/span><span class="font-semibold">\$\{c\}/
+  /\.innerHTML\s*=\s*Object\.keys\(pipelineCounts\)[\s\S]{0,300}\$\{s\}<\/span><span class="font-semibold">\$\{c\}/,
   /grid\.innerHTML\s*=\s*available\.map\(d => `[^`]*\$\{d\.label\}[^`]*\$\{d\.desc\}/,
   /stockData\.map\(row => `[^`]*onclick="editStock\('\$\{row\.id\}'\)"/,
   /stockData\.map\(row => `[^`]*onclick="deleteStock\('\$\{row\.id\}'\)"/,
