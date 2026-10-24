@@ -45,3 +45,7 @@ The modular production bridge currently performs several high-impact writes dire
 ## Release condition
 
 No production mode, live deployment, or business data entry until each listed operation is implemented or deliberately disabled, its database schema and policies are reviewed, and tests cover both successful authorized requests and direct unauthorized API attempts.
+
+
+## Proforma lifecycle restriction (2026-10-24)
+The first-slice database transaction currently supports creating a new draft and creating a revision of an existing non-void record. It does not yet implement a trusted issue/finalize or void operation. The legacy UI's direct delete handler is therefore blocked when production is configured. Do not grant direct table UPDATE/DELETE to work around this: design a role-authorized, audited lifecycle RPC that preserves history and prevents voiding or revising records contrary to the agreed business process.
