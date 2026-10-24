@@ -34,7 +34,7 @@ try {
   try {
     execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8',stdio:'pipe'});
   } catch (error) {
-    rejected=error.status===1 && String(error.stdout||'').includes('FAIL: production/full-data mode cannot be enabled');
+    rejected=error.status===1 && String(error.stderr||'').includes('FAIL: production/full-data mode cannot be enabled');
   }
   assert.ok(rejected,'The release gate must fail when production mode is enabled while schema/API blockers remain.');
   console.log('PASS: full-ERP release gate reports incomplete modules and rejects premature production enablement.');
