@@ -419,3 +419,11 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Removed `staging/release/index.html` and `staging/release/config/config.js` from version control; they are generated on each build by `node scripts/build-release-candidate.mjs`.
 - The corrected Cloudflare configuration is: repository root, build command `node scripts/build-release-candidate.mjs`, output directory `staging/release`, Node.js 22. No Pages project or deployment has been created.
 - This avoids serving a stale release file. It does not remove the legacy `/api/*` backend, schema/RLS, private Storage, or browser integration blockers.
+
+
+## Fresh-build pipeline and production delete guard verified (2026-10-24)
+- GitHub Actions run `40085830975` completed successfully after removing the stale committed release candidate and changing the workflow to build the sanitized output before testing it.
+- The same run passed source guards, schema/UI contracts, static JavaScript checks, the 55-table access-surface audit, release sanitizer and generated-release tests, plus disposable PostgreSQL/RLS/financial/concurrency tests.
+- The legacy production proforma delete handler now refuses deletion until an audited void workflow exists. Source audit, source regression tests, and release-candidate tests enforce this temporary guard.
+- Documented that proforma creation/revision is the only currently drafted lifecycle operation; issuance/finalization and void/reversal need a trusted, audited operation rather than direct table mutations.
+- Generated release output is no longer committed; Cloudflare Pages must run the sanitizer from repository root and publish `staging/release`.
