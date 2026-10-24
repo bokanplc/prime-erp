@@ -13,6 +13,7 @@ const config = readFileSync('staging/config/config.js', 'utf8');
 assert.equal(entry, source, 'staging/index.html must match the reviewed source exactly.');
 assert.match(config, /PRODUCTION_MODE\s*:\s*false/, 'Production mode must remain disabled until release approval.');
 assert.match(config, /FULL_ERP_DATA_READY\s*:\s*false/, 'Full ERP data readiness must remain disabled until all modules are migrated and tested.');
+assert.match(config, /ENABLED_PRODUCTION_TABS\s*:\s*\[\]/, 'No production module may be enabled before explicit review.');
 assert.match(config, /SUPABASE_URL\s*:\s*""/, 'Supabase URL placeholder must remain blank in the committed template.');
 assert.match(config, /SUPABASE_ANON_KEY\s*:\s*""/, 'Supabase browser key placeholder must remain blank in the committed template.');
 
@@ -32,7 +33,10 @@ const autoBoot = source.slice(autoStart, autoEnd);
 assert.match(autoBoot, /app-view['"]\)\?\.classList\.add\(['"]hidden['"]\)/, 'Startup failure must hide the app.');
 assert.doesNotMatch(autoBoot, /app-view['"]\)\?\.classList\.remove\(['"]hidden['"]\)/, 'Startup failure must never reveal the app.');
 
-assert.match(source, /const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.supabase/, 'Core Supabase client must require full ERP data readiness.');
+assert.match(source, /window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/, 'No module is currently approved for production.');
+assert.match(source, /window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function\(cfg\)/, 'Production activation must require an explicit reviewed module.');
+assert.match(source, /const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(_bokanCfg\) && window\.supabase/, 'Core Supabase client must require full readiness and a reviewed enabled module.');
+assert.match(source, /return \(map\[role\]\|\|\[\]\)\.filter\(tab=>enabled\.has\(tab\)\)/, 'Production navigation must intersect role permissions with the reviewed module allowlist.');
 assert.match(source, /if \(_bokanProdConfigured\) window\.sb = sb;/, 'Configured real Supabase client must be exposed to production bridge modules.');
 assert.match(source, /if \(_bokanProdConfigured\) \{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must remain blocked until private storage is implemented.');
 assert.match(source, /Document downloads are temporarily disabled until private storage and authorized downloads are configured/, 'Production document listing/download links must remain blocked until private signed downloads are implemented.');
@@ -55,8 +59,8 @@ assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\(/, 'Pro
 assert.match(source, /const savedRecord=productionSavedRecord\|\|\{id:existing\?\.id/, 'Production persistence must use the database-returned ID/version rather than a synthetic local ID.');
 assert.match(source, /id="bokan-v67-hosted-fail-closed"/, 'Hosted fail-closed guard must exist.');
 assert.match(source, /cfg\.FULL_ERP_DATA_READY\s*===\s*true/, 'Hosted access must require explicit full-ERP data readiness.');
-assert.match(source, /const configured=!!\(cfg\.PRODUCTION_MODE===true && cfg\.FULL_ERP_DATA_READY===true && window\.supabase/, 'Supabase auth bridge must require full-ERP data readiness.');
-assert.match(source, /const configured = !!\(cfg\.PRODUCTION_MODE === true && cfg\.FULL_ERP_DATA_READY === true && window\.supabase/, 'Hosted fail-closed guard must require full-ERP data readiness.');
+assert.match(source, /const configured=!!\(cfg\.PRODUCTION_MODE===true && cfg\.FULL_ERP_DATA_READY===true && typeof window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB==='function' && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(cfg\)/, 'Supabase auth bridge must require a reviewed enabled module.');
+assert.match(source, /const configured = !!\(cfg\.PRODUCTION_MODE === true && cfg\.FULL_ERP_DATA_READY === true && typeof window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB === 'function' && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(cfg\)/, 'Hosted fail-closed guard must require a reviewed enabled module.');
 assert.match(source, /const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
 assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Production gate must not be force-hidden by CSS.');
 assert.match(source, /Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
