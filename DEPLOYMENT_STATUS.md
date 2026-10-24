@@ -473,3 +473,13 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Tightened the trusted revision path so a sales user cannot revise another salesperson's proforma in the same company; authorized supervisory/accounting roles retain that capability.
 - Added disposable PostgreSQL tests for malformed text payload rejection and same-company revision ownership. Latest PR run `40089304041` and push run `40089301132` both passed all source and PostgreSQL jobs, including the new math helper and revision checks.
 - Added `.gitignore` to prevent generated `staging/release/` artifacts from being committed; Cloudflare must generate this directory during build.
+
+
+## Stored-XSS hardening and latest full CI verification (2026-10-24)
+- Escaped database/local-data output in the reviewed customer, CRM, stock, delivery, billing, proforma, employee, leave, performance, disciplinary, notification, role, visit-report and alert templates.
+- Removed customer-name interpolation from a dynamic inline JavaScript string; the click handler now reads a safely escaped data attribute.
+- Added HTTPS-only document URL validation and changed document-delete parameters to escaped dataset attributes.
+- Added \`scripts/test-html-output-escaping.mjs\`; expanded the release audit from 14 to 45 tracked interpolation patterns. Latest GitHub Actions run \`40100297898\` passed both source-guard and disposable PostgreSQL jobs, including HTML escaping tests, sanitized release-candidate checks, RLS/grant/totals smoke tests and concurrent proforma numbering.
+- The audit now reports zero matches across the 45 tracked raw-interpolation patterns. This is a bounded static regression check, not proof that all HTML injection risks are gone; full browser testing and further review remain required.
+- Added \`docs/DATA_API_EXPOSURE_CHANGE_NOTE.md\` after reviewing current Supabase documentation and the announced 2026-10-30 Data API default-grants change. The schema draft uses explicit grants, but the actual exposed-schema setting still needs verification before any migration.
+- No Supabase tables/migrations, Auth settings, Storage settings, production config, live branch or deployment were changed.
