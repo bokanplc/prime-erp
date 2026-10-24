@@ -3,6 +3,9 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const sql = fs.readFileSync('docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20261024000000_core_proforma_mvp.sql', 'utf8');
+const stripLeadingComments = text => text.replace(/^(?:--[^\\n]*\\n)+/, '').trim();
+assert.equal(stripLeadingComments(migration), stripLeadingComments(sql), 'Candidate migration body must match the SQL draft exercised by schema checks.');
 const checks = [
   [/create table if not exists public\.companies/i, 'Company master table exists'],
   [/create table if not exists public\.profiles[\s\S]*?references auth\.users\(id\)/i, 'Profiles are linked to Supabase Auth users'],
