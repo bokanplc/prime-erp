@@ -610,3 +610,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Added this behavior test to GitHub Actions. Latest full PR workflow run `40109149724` passed both jobs, including source/release-candidate checks and disposable PostgreSQL RLS/grant/financial/concurrency tests.
 - The release-readiness test also proves the builder rejects a config-only `proforma` tab before any candidate can be generated.
 - Final status remains unchanged: both allowlists empty, production/full-data flags false, Supabase URL/key blank, source/index byte-identical, main entry untouched. No live deployment or Supabase mutation.
+
+
+## Candidate migration is now exercised by disposable CI (2026-10-24)
+- Added `supabase/migrations/20261024000000_core_proforma_mvp.sql` as the versioned candidate for the first Proforma slice. It is not applied to the connected Supabase project.
+- Updated the PostgreSQL test harness to execute the candidate migration in an ephemeral PostgreSQL 17 service rather than applying only the draft SQL.
+- Added a parity assertion that the versioned migration body exactly matches `docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql`; CI is triggered by migration-file changes.
+- The migration remains unapproved for the live project until real Supabase Auth/Data API/RLS checks, advisor remediation and browser persistence tests are complete.
