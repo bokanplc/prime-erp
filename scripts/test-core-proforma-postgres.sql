@@ -30,12 +30,16 @@ GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 
 INSERT INTO auth.users(id) VALUES
   ('11111111-1111-4111-8111-111111111111'),
-  ('22222222-2222-4222-8222-222222222222');
+  ('22222222-2222-4222-8222-222222222222'),
+  ('33333333-3333-4333-8333-333333333333'),
+  ('44444444-4444-4444-8444-444444444444');
 
-INSERT INTO public.profiles(id, full_name, role, department, company_code, active)
+INSERT INTO public.profiles(id, full_name, role, department, company_code, active, terminated_at)
 VALUES
   ('11111111-1111-4111-8111-111111111111', 'CI PRIME Sales', 'sales', 'Sales', 'PRIME', true),
-  ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true);
+  ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true),
+  ('33333333-3333-4333-8333-333333333333', 'CI Inactive Sales', 'sales', 'Sales', 'PRIME', false),
+  ('44444444-4444-4444-8444-444444444444', 'CI Terminated Sales', 'sales', 'Sales', 'PRIME', true, now());
 
 INSERT INTO public.company_bank_accounts(company_code, bank_name, account_number, account_purpose, display_order, active)
 VALUES
@@ -51,6 +55,8 @@ DECLARE
   v_first public.proformas;
   v_revision public.proformas;
   v_next public.proformas;
+  v_blackrock public.proformas;
+  v_visible integer := 0;
   v_denied boolean := false;
   v_invalid boolean := false;
   v_invalid_type boolean := false;
@@ -117,7 +123,22 @@ BEGIN
     RAISE EXCEPTION 'Second proforma number was not incremented atomically: %', v_next.proforma_no;
   END IF;
 
+  -- Create one BlackRock row as a legitimate BlackRock user, then verify
+  -- the PRIME session cannot read it through table-level SELECT/RLS.
   PERFORM set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
+  v_blackrock := public.bokan_save_proforma('BLACKROCK', NULL, v_payload);
+
+  PERFORM set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+  SELECT count(*) INTO v_visible
+    FROM public.proformas
+   WHERE company_code = 'BLACKROCK';
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'PRIME user could read % BlackRock proforma rows', v_visible;
+  END IF;
+
+  -- BlackRock user must not save a PRIME proforma, even when calling the RPC directly.
+  PERFORM set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
+  v_denied := false;
   BEGIN
     PERFORM public.bokan_save_proforma('PRIME', NULL, v_payload);
   EXCEPTION WHEN OTHERS THEN
@@ -182,6 +203,42 @@ BEGIN
   END IF;
 END
 $test$;
+
+RESET ROLE;
+SET ROLE authenticated;
+
+DO $inactive_users$
+DECLARE
+  v_denied boolean := false;
+  v_payload jsonb := jsonb_build_object(
+    'customer','Inactive Test','tin','123456789','vatPct',15,'discountPct',0,
+    'withholdingEnabled',true,'withholdingRate',3,'withholdingThreshold',10000,
+    'items',jsonb_build_array(jsonb_build_object('description','Item','qty',1,'unit_price',100)),
+    'terms',jsonb_build_array()
+  );
+  v_user uuid;
+BEGIN
+  FOREACH v_user IN ARRAY ARRAY[
+    '33333333-3333-4333-8333-333333333333'::uuid,
+    '44444444-4444-4444-8444-444444444444'::uuid
+  ] LOOP
+    PERFORM set_config('request.jwt.claim.sub', v_user::text, true);
+    v_denied := false;
+    BEGIN
+      PERFORM public.bokan_save_proforma('PRIME', NULL, v_payload);
+    EXCEPTION WHEN OTHERS THEN
+      IF SQLERRM = 'Not authorized for this company' THEN
+        v_denied := true;
+      ELSE
+        RAISE;
+      END IF;
+    END;
+    IF NOT v_denied THEN
+      RAISE EXCEPTION 'Inactive or terminated profile % was allowed to save a proforma', v_user;
+    END IF;
+  END LOOP;
+END
+$inactive_users$;
 
 RESET ROLE;
 
