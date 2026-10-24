@@ -90,6 +90,8 @@ BEGIN
   );
 
   v_first := public.bokan_save_proforma('PRIME', NULL, v_payload);
+  INSERT INTO public.custom_terms(company_code, category, label, created_by)
+  VALUES ('PRIME','payment','CI PRIME payment term',(select auth.uid()));
   IF v_first.proforma_no <> 'ACME1000' THEN
     RAISE EXCEPTION 'Expected first number ACME1000, got %', v_first.proforma_no;
   END IF;
@@ -149,6 +151,24 @@ BEGIN
   -- the PRIME session cannot read it through table-level SELECT/RLS.
   PERFORM set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
   v_blackrock := public.bokan_save_proforma('BLACKROCK', NULL, v_payload);
+
+  -- Custom terms must be isolated by company and cannot be inserted cross-tenant.
+  SELECT count(*) INTO v_visible
+    FROM public.custom_terms
+   WHERE company_code = 'PRIME' AND label = 'CI PRIME payment term';
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'BlackRock user could read PRIME custom terms';
+  END IF;
+  v_denied := false;
+  BEGIN
+    INSERT INTO public.custom_terms(company_code, category, label, created_by)
+    VALUES ('PRIME','payment','CI unauthorized cross-company term',(select auth.uid()));
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'BlackRock user could insert a PRIME custom term';
+  END IF;
 
   PERFORM set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
   SELECT count(*) INTO v_visible
@@ -344,6 +364,11 @@ BEGIN
      OR has_table_privilege('authenticated', 'public.company_bank_accounts', 'UPDATE')
      OR has_table_privilege('authenticated', 'public.company_bank_accounts', 'DELETE') THEN
     RAISE EXCEPTION 'authenticated clients must not directly mutate company bank accounts';
+  END IF;
+  IF has_table_privilege('anon', 'public.custom_terms', 'SELECT')
+     OR has_table_privilege('authenticated', 'public.custom_terms', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.custom_terms', 'DELETE') THEN
+    RAISE EXCEPTION 'Custom terms must be private to authenticated users and append-only for clients';
   END IF;
   IF has_function_privilege('anon', 'private.bokan_save_proforma(text,uuid,jsonb)', 'EXECUTE') THEN
     RAISE EXCEPTION 'anon must not execute the private proforma implementation';
