@@ -67,29 +67,40 @@ const salesHubStart = salesHubIndex + salesHubMarker.length - 1;
 const salesHubEnd = expressionEnd(releaseHtml, salesHubStart);
 releaseHtml = releaseHtml.slice(0, salesHubStart) + '[]' + releaseHtml.slice(salesHubEnd);
 
-const fixtureBindings = {
-  master: '{customers:[], suppliers:[], products:[]}',
-  stock: '[]',
-  pay: '[]'
-};
-for (const [name, replacement] of Object.entries(fixtureBindings)) {
-  const moduleMarker = 'id="prime-v45-enterprise-layer"';
-  const moduleAt = releaseHtml.indexOf(moduleMarker);
-  assert.ok(moduleAt >= 0, 'Enterprise fixture module is missing.');
-  const scriptStart = releaseHtml.lastIndexOf('<script', moduleAt);
-  const scriptEnd = releaseHtml.indexOf('</script>', moduleAt);
-  assert.ok(scriptStart >= 0 && scriptEnd > moduleAt, 'Enterprise fixture script boundary is missing.');
-  const script = releaseHtml.slice(scriptStart, scriptEnd);
-  const declaration = new RegExp('\\bconst\\s+' + name + '\\s*=', 'g');
-  const matches = [...script.matchAll(declaration)];
-  assert.equal(matches.length, 1, 'Expected exactly one embedded fixture binding in enterprise module: ' + name);
-  const eq = script.indexOf('=', matches[0].index);
-  let start = scriptStart + eq + 1;
-  while (/\s/.test(releaseHtml[start] || '')) start++;
-  assert.ok(releaseHtml[start] === '[' || releaseHtml[start] === '{', 'Fixture binding must be a literal: ' + name);
-  const end = expressionEnd(releaseHtml, start);
-  releaseHtml = releaseHtml.slice(0, start) + replacement + releaseHtml.slice(end);
+const fixtureBindings = [
+  { module: 'prime-v45-enterprise-layer', values: { master: '{customers:[], suppliers:[], products:[]}', stock: '[]', pay: '[]' } },
+  { module: 'prime-v41-governance-reporting', values: { seedA: '[]', seedD: '[]' } },
+  { module: 'prime-v50-integrated-controls', values: { recSeed: '[]', closeSeed: '[]', seedTx: '[]', docs: '[]' } },
+  { module: 'bokan-sales-hub-v1', values: { seedReps: '[]' } }
+];
+let sanitizedFixtureBindingCount = 0;
+for (const group of fixtureBindings) {
+  for (const [name, replacement] of Object.entries(group.values)) {
+    const moduleMarker = 'id="' + group.module + '"';
+    const moduleAt = releaseHtml.indexOf(moduleMarker);
+    assert.ok(moduleAt >= 0, 'Fixture module is missing: ' + group.module);
+    const scriptStart = releaseHtml.lastIndexOf('<script', moduleAt);
+    const scriptEnd = releaseHtml.indexOf('</script>', moduleAt);
+    assert.ok(scriptStart >= 0 && scriptEnd > moduleAt, 'Fixture script boundary is missing: ' + group.module);
+    const script = releaseHtml.slice(scriptStart, scriptEnd);
+    const declaration = new RegExp('\\bconst\\s+' + name + '\\s*=', 'g');
+    const matches = [...script.matchAll(declaration)];
+    assert.equal(matches.length, 1, 'Expected exactly one embedded fixture binding in ' + group.module + ': ' + name);
+    const eq = script.indexOf('=', matches[0].index);
+    let start = scriptStart + eq + 1;
+    while (/\s/.test(releaseHtml[start] || '')) start++;
+    assert.ok(releaseHtml[start] === '[' || releaseHtml[start] === '{', 'Fixture binding must be a literal: ' + name);
+    const end = expressionEnd(releaseHtml, start);
+    releaseHtml = releaseHtml.slice(0, start) + replacement + releaseHtml.slice(end);
+    sanitizedFixtureBindingCount++;
+  }
 }
+const seedBindingNames = [...source.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/g)]
+  .map(match => match[1])
+  .filter(name => /seed/i.test(name));
+const allowedSeedBindingNames = new Set(['seed','seedA','seedD','recSeed','closeSeed','seedTx','seedReps']);
+const unreviewedSeedBindings = [...new Set(seedBindingNames.filter(name => !allowedSeedBindingNames.has(name)))];
+assert.deepEqual(unreviewedSeedBindings, [], 'A new seed-like fixture binding was added; review and explicitly sanitize it before release.');
 const previewIdentity = /currentUser\s*=\s*\{\s*id:\s*'preview-admin',\s*email:\s*'admin@preview\.local'\s*\};\s*currentRole\s*=\s*'admin';\s*currentDeptTabs\s*=\s*null;/;
 assert.equal((releaseHtml.match(previewIdentity) || []).length, 1, 'Expected one preview-admin identity assignment to neutralize.');
 releaseHtml = releaseHtml.replace(previewIdentity, 'currentUser = null; currentRole = null; currentDeptTabs = null;');
@@ -133,6 +144,6 @@ mkdirSync(dirname(outputConfigPath),{recursive:true});
 writeFileSync(outputPath,releaseHtml);
 writeFileSync(outputConfigPath,config);
 console.log('Built sanitized release candidate: '+outputPath);
-console.log('Emptied known fixture collections: '+(Object.keys(replacements).length+1+Object.keys(fixtureBindings).length));
+console.log('Emptied known fixture collections: '+(Object.keys(replacements).length+1+sanitizedFixtureBindingCount));
 console.log('Preview-admin identity fallback removed: 1');
 console.log('Production mode remains disabled; candidate is not approved for deployment.');
