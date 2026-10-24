@@ -26,6 +26,7 @@ for(const [key,literal] of Object.entries(expected)){
 }
 assert.match(config,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain disabled.');
 assert.match(config,/FULL_ERP_DATA_READY\s*:\s*false/,'Full ERP data readiness must remain disabled.');
+assert.match(html,/const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.supabase/,'Release candidate must retain the full-ERP readiness gate on the core Supabase client.');
 assert.match(config,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
 assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
 assert.match(html,/Server-backed modules are unavailable\. Sign-in requires the configured application API\./,'Hosted legacy adapter must fail closed.');
