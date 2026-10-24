@@ -13,10 +13,10 @@ const source=readFileSync(sourcePath,'utf8');
 const entry=readFileSync(entryPath,'utf8');
 const config=readFileSync(configPath,'utf8');
 assert.equal(entry,source,'Staging entry point must match reviewed source before sanitization.');
-assert.match(config,/PRODUCTION_MODE\\s*:\\s*false/,'Production mode must remain disabled in the release template.');
-assert.match(config,/FULL_ERP_DATA_READY\\s*:\\s*false/,'Full ERP readiness must remain disabled in the release template.');
-assert.match(config,/ENABLED_PRODUCTION_TABS\\s*:\\s*\\[\\]/,'No production tabs may be enabled in the release template.');
-assert.match(source,/window\\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\\.freeze\\(\\[\\]\\)/,'No module is source-approved for production in the release candidate.');
+assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain disabled in the release template.');
+assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
+assert.ok(config.includes('ENABLED_PRODUCTION_TABS: []'),'No production tabs may be enabled in the release template.');
+assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([])'),'No module is source-approved for production in the release candidate.');
 const replacements={
   prime_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
