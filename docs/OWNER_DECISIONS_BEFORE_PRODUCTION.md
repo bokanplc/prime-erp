@@ -33,9 +33,15 @@ No paid plan or upgrade is assumed for either route.
 - Before real transactions are entered, agree who owns manual exports and document recovery under the existing free-plan constraints.
 - Confirm which non-production test users can be created for cross-company and role testing.
 
+## 6. Proforma tax and numbering confirmation
+
+- The current UI applies 3% withholding automatically when VAT-inclusive Grand Total is strictly greater than ETB 10,000. The database candidate now enforces this server-side. Confirm this rule is correct for the company's use cases before production documents are issued.
+- The current discount formula displays pre-discount VAT and subtracts the discount from the VAT-inclusive total. Ask the company's accountant to confirm this VAT/discount treatment for Ethiopian tax compliance.
+- Confirm the generated Proforma number convention (customer-name prefix plus a four-digit sequence) is acceptable, or provide the official format to preserve.
+
 ## Current safe position
 
-The default branch is unchanged, the PR remains draft-only, production mode is disabled, Supabase has no application schema/migrations, and no live deployment has been made. Work that does not depend on these decisions can continue: source analysis, tests, schema drafts, security guards, and CI.
+The default branch is unchanged, the PR remains draft-only, production mode and both module allowlists are disabled/empty, and no live deployment has been made. The connected Supabase project still has no application tables or applied migration history; the repository contains a candidate first-slice migration tested only in disposable PostgreSQL. Work that does not depend on owner decisions can continue: source analysis, tests, schema drafts, security guards, and CI.
 
 
 ## Existing Supabase security-advisor warning
