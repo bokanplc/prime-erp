@@ -76,7 +76,7 @@ const rawHtmlSinkPatterns = [
   ['local proforma version',/\$\{r\.version\|\|1\}/],
   ['local proforma VAT rate',/\$\{r\.vatPct\}/],
   ['local proforma item quantity attribute',/\$\{data\.qty \?\? ''\}/],
-  ['local proforma unit price attribute',/\$\{data\.unit_price \?\? ''\}/]
+  ['local proforma unit price attribute',/\$\{data\.unit_price \?\? ''\}/],
   ['withholding form date',/\$\{i\.date \|\| ''\}/],
   ['withholding invoice number',/\$\{i\.inv \|\| ''\}/],
   ['withholding description',/\$\{i\.desc \|\| ''\}/],
