@@ -161,6 +161,21 @@ BEGIN
   IF has_table_privilege('authenticated', 'public.proformas', 'INSERT') THEN
     RAISE EXCEPTION 'authenticated clients must not insert proformas directly; use the trusted RPC';
   END IF;
+  IF has_table_privilege('authenticated', 'public.proformas', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.proformas', 'DELETE') THEN
+    RAISE EXCEPTION 'authenticated clients must not directly update or delete proformas';
+  END IF;
+  IF has_table_privilege('authenticated', 'public.profiles', 'UPDATE')
+     OR has_column_privilege('authenticated', 'public.profiles', 'role', 'UPDATE')
+     OR has_column_privilege('authenticated', 'public.profiles', 'company_code', 'UPDATE')
+     OR has_column_privilege('authenticated', 'public.profiles', 'active', 'UPDATE') THEN
+    RAISE EXCEPTION 'authenticated users must not edit protected profile authorization fields';
+  END IF;
+  IF has_table_privilege('authenticated', 'public.company_bank_accounts', 'INSERT')
+     OR has_table_privilege('authenticated', 'public.company_bank_accounts', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.company_bank_accounts', 'DELETE') THEN
+    RAISE EXCEPTION 'authenticated clients must not directly mutate company bank accounts';
+  END IF;
   IF has_function_privilege('anon', 'private.bokan_save_proforma(text,uuid,jsonb)', 'EXECUTE') THEN
     RAISE EXCEPTION 'anon must not execute the private proforma implementation';
   END IF;
