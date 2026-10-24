@@ -8674,7 +8674,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   document.getElementById('v35-posted').textContent=posted;
   document.getElementById('v35-debit').textContent=p.reduce((s,x)=>s+Number(x.debit||0),0).toLocaleString();
   document.getElementById('v35-credit').textContent=p.reduce((s,x)=>s+Number(x.credit||0),0).toLocaleString();
-  document.getElementById('v35-rows').innerHTML=p.map(x=>`<tr><td>${escapeHtml(x.doc)}</td><td>${escapeHtml(x.source)}</td><td>${escapeHtml(x.date)}</td><td>${Number(x.debit).toLocaleString()}</td><td>${Number(x.credit).toLocaleString()}</td><td>${x.status}</td></tr>`).join('');
+  document.getElementById('v35-rows').innerHTML=p.map(x=>`<tr><td>${escapeHtml(x.doc)}</td><td>${escapeHtml(x.source)}</td><td>${escapeHtml(x.date)}</td><td>${Number(x.debit).toLocaleString()}</td><td>${Number(x.credit).toLocaleString()}</td><td>${escapeHtml(x.status)}</td></tr>`).join('');
  }
  document.addEventListener('DOMContentLoaded',render);
  window.primeV35PostingEngine={refresh:render};
