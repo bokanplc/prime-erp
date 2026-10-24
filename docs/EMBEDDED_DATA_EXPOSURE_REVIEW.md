@@ -40,3 +40,10 @@ The public-URL helper references must be removed or proven harmless before confi
 6. Keep production mode disabled until all tests pass.
 
 The sanitized artifact is a precaution, not a substitute for these gates.
+
+## Follow-up: tracked stored-XSS paths hardened (2026-10-24)
+- Added \`escapeHtml\` around database/local-data fields in notifications, customer selection/directory/history, overdue follow-ups, weekly CRM activity, stock/inventory, visit reports, role labels, documents, billings, employee/leave/performance/disciplinary views, delivery summaries, proforma lists, and local proforma form attributes.
+- Customer selection no longer interpolates a customer name into an inline JavaScript string. The handler reads an escaped \`data-customer\` attribute instead.
+- Document URLs now pass through \`safeDocumentHref\`, which permits HTTPS only; document delete actions pass escaped data attributes rather than injecting file paths into JavaScript literals.
+- Added \`scripts/test-html-output-escaping.mjs\`; the latest CI run passed the escaping tests and the expanded release audit reported **0 matches across 45 tracked raw-interpolation patterns**.
+- Scope limitation: this is a regression guard for a reviewed set of patterns, not a proof that every \`innerHTML\` assignment is safe. Continue manual review and browser testing, especially any future templates or inline event handlers. The embedded-data stop-ship finding remains until genuine business data is distinguished from demo fixtures and the release artifact is independently reviewed.
