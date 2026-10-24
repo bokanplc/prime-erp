@@ -603,3 +603,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - GitHub Actions run `40108945486` passed both jobs after these changes: all source/release-candidate checks and the disposable PostgreSQL schema/RLS/grants/financial/concurrency suite.
 - Supabase rechecked read-only: no public application tables, no migration history, no performance advisor findings. The existing security warning remains: leaked-password protection is disabled. No Auth setting was changed.
 - No live SQL, RLS, Auth, Storage, paid-plan, or deployment changes were made. Draft PR #1 remains unmerged.
+
+
+## Runtime behavior test for module allowlist (2026-10-24)
+- Added `scripts/test-production-module-allowlist.mjs`, which executes the actual source gate in a VM and verifies: config-only tabs are denied, empty/missing config is denied, a tab passes only when present in both the source-reviewed list and config, and unreviewed tabs remain denied.
+- Added this behavior test to GitHub Actions. Latest full PR workflow run `40109149724` passed both jobs, including source/release-candidate checks and disposable PostgreSQL RLS/grant/financial/concurrency tests.
+- The release-readiness test also proves the builder rejects a config-only `proforma` tab before any candidate can be generated.
+- Final status remains unchanged: both allowlists empty, production/full-data flags false, Supabase URL/key blank, source/index byte-identical, main entry untouched. No live deployment or Supabase mutation.
