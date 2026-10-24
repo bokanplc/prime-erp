@@ -77,6 +77,8 @@ const trackedRawSinks = [
   /\$\{\(i\.gross\*i\.rate\/100\)\.toLocaleString\(\)\}/,
   /\$\{i\.cert \|\| ''\}/,
   /\$\{d\}<\/span><span class="value">\$\{c\}/
+  /\.innerHTML\s*=\s*Object\.entries\(byLoc\)[\s\S]{0,500}\$\{loc\}<\/span>/,
+  /\.innerHTML\s*=\s*Object\.keys\(pipelineCounts\)[\s\S]{0,300}\$\{s\}<\/span><span class="font-semibold">\$\{c\}/
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
