@@ -126,3 +126,7 @@ The direct `.from('table')` scan alone misses table names passed to the shared p
 - `bokan_inventory_balances`
 
 These names are passed to generic CRUD helpers in the supply/procurement/logistics production bridge. They are not in the current Supabase schema, and the bridge must remain disabled until each table's company scope, foreign keys, payload fields, role permissions, atomic workflow, and test cases are designed. The updated static audit now tracks both the 41 direct table names and the generic helper table names.
+
+
+## Proforma arithmetic consistency check (2026-10-24)
+The print layout's displayed order is subtotal before VAT, VAT, discount, grand total. The production UI and first-slice trusted SQL draft now use a reconciled formula: pre-discount VAT-exclusive subtotal + pre-discount VAT − VAT-inclusive discount = grand total. Withholding uses the final grand total. Regression tests cover the same expected example: gross ETB 11,500, discount ETB 1,150, subtotal ETB 10,000, VAT ETB 1,500, grand total ETB 10,350, withholding ETB 310.50, net payable ETB 10,039.50. Confirm discount tax treatment with an Ethiopian accountant before live use.
