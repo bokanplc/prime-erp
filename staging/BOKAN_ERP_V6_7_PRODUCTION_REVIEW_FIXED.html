@@ -5139,7 +5139,7 @@ async function loadStock() {
   const renderRow = (row) => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
       <div>
         <span class="font-semibold">${row.entry_type === 'purchase' ? 'Purchase' : 'Sale'}</span>
-        — ${escapeHtml(row.item_name)} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
+        — ${escapeHtml(row.item_name)} × ${escapeHtml(row.quantity)} @ ETB ${escapeHtml(row.unit_price)} = <strong>ETB ${escapeHtml(row.total)}</strong>
         <span class="text-[#8D9096]">(${escapeHtml(row.location || '')})</span>
         <div class="text-xs text-[#8D9096]">${new Date(row.created_at).toLocaleString()}</div>
       </div>
@@ -5174,7 +5174,7 @@ async function loadMyStock() {
   el.innerHTML = stockData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 text-xs">
       <div>
         <span class="font-semibold">${row.entry_type === 'purchase' ? 'Purchase' : 'Sale'}</span>
-        — ${escapeHtml(row.item_name)} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
+        — ${escapeHtml(row.item_name)} × ${escapeHtml(row.quantity)} @ ETB ${escapeHtml(row.unit_price)} = <strong>ETB ${escapeHtml(row.total)}</strong>
         <span class="text-[#8D9096]">(${escapeHtml(row.location || '')})</span>
         <span class="text-[#8D9096]">· ${new Date(row.created_at).toLocaleString()}</span>
       </div>
@@ -5253,7 +5253,7 @@ async function loadExpenses() {
       <td class="py-2 px-3 text-xs text-[#8D9096] whitespace-nowrap">${new Date(row.created_at).toLocaleDateString()}</td>
       <td class="py-2 px-3">${label} <span class="text-xs text-[#8D9096] block">(${group})</span></td>
       <td class="py-2 px-3 text-[#6B6C72]">${escapeHtml(row.description || '')}</td>
-      <td class="py-2 px-3">${row.paid_by || row.location || ''}</td>
+      <td class="py-2 px-3">${escapeHtml(row.paid_by || row.location || '')}</td>
       <td class="py-2 px-3 text-right font-semibold">ETB ${Number(row.amount).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
       <td class="py-2 px-3 no-print whitespace-nowrap">
         <button onclick="editExpense('${row.id}')" class="text-[#2CA01C] text-xs font-semibold mr-2">Edit</button>
@@ -5273,7 +5273,7 @@ async function loadMyExpenses() {
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 text-xs">
       <div>
         <span class="font-semibold">${label}</span> <span class="text-[#8D9096]">(${group})</span>
-        — ETB ${Number(row.amount).toLocaleString()} <span class="text-[#8D9096]">(${row.paid_by || row.location || ''})</span>
+        — ETB ${Number(row.amount).toLocaleString()} <span class="text-[#8D9096]">(${escapeHtml(row.paid_by || row.location || '')})</span>
         <span class="text-[#8D9096]">· ${new Date(row.created_at).toLocaleString()}</span>
       </div>
       <div class="flex gap-2 no-print">
@@ -5329,10 +5329,10 @@ async function renderCustomerDirectory() {
     const overdue = latest && latest.next_action_date && latest.next_action_date < today;
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${overdue ? 'bg-red-50' : ''}">
       <div>
-        <button onclick="document.getElementById('cust-name').value='${c.customer_name.replace(/'/g,"\\'")}';loadCustomerHistory('${c.customer_name.replace(/'/g,"\\'")}');loadCustomerIntoForm('${c.customer_name.replace(/'/g,"\\'")}');document.getElementById('timeline-container').scrollIntoView({behavior:'smooth'})" class="font-semibold text-[#2CA01C] hover:underline text-left">${escapeHtml(c.customer_name)}</button>
-        <span class="text-[#8D9096]"> — ${c.contact_person || '—'} · ${c.location || '—'}</span>
+        <button type="button" data-customer="${escapeHtml(c.customer_name)}" onclick="selectCustomerFromButton(this)" class="font-semibold text-[#2CA01C] hover:underline text-left">${escapeHtml(c.customer_name)}</button>
+        <span class="text-[#8D9096]"> — ${escapeHtml(c.contact_person || '—')} · ${escapeHtml(c.location || '—')}</span>
         ${overdue ? '<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 ml-1">Overdue follow-up</span>' : ''}
-        <div class="text-xs text-[#8D9096]">Assigned to: ${nameById[c.assigned_rep] || 'Unassigned'} · ${c.current_status || ''}</div>
+        <div class="text-xs text-[#8D9096]">Assigned to: ${escapeHtml(nameById[c.assigned_rep] || 'Unassigned')} · ${escapeHtml(c.current_status || '')}</div>
       </div>
     </div>`;
   }).join('') : '<p class="text-[#8D9096]">No customers match.</p>';
@@ -5340,7 +5340,16 @@ async function renderCustomerDirectory() {
   computeOverdueFollowups(customers, logs, nameById, today);
 }
 
-async function computeOverdueFollowups(customers, logs, nameById, today) {
+async function selectCustomerFromButton(button) {
+  const customerName = button?.dataset?.customer || '';
+  const input = document.getElementById('cust-name');
+  if (input) input.value = customerName;
+  loadCustomerHistory(customerName);
+  loadCustomerIntoForm(customerName);
+  document.getElementById('timeline-container')?.scrollIntoView({behavior:'smooth'});
+}
+
+function computeOverdueFollowups(customers, logs, nameById, today) {
   const wrap = document.getElementById('overdue-followups-wrap');
   const el = document.getElementById('overdue-followups-list');
   if (!wrap || !el) return;
@@ -5523,8 +5532,8 @@ async function loadCustomerHistory(customerName) {
         </div>
         <p class="text-xs text-[#393A3D]">${escapeHtml(log.notes || '')}</p>
         ${log.customer_feedback ? `<p class="text-xs text-[#6B6C72] mt-1"><strong>Feedback:</strong> ${escapeHtml(log.customer_feedback)}</p>` : ''}
-        ${log.next_action_date ? `<p class="text-xs text-[#6B6C72] mt-1"><strong>Next:</strong> ${log.next_action_type || 'Follow-up'} by ${log.next_action_date}</p>` : ''}
-        ${log.escalated ? `<p class="text-xs text-red-700 mt-1"><strong>Escalation reason:</strong> ${log.escalate_reason || ''}${log.escalate_note ? ' — ' + log.escalate_note : ''}</p>` : ''}
+        ${log.next_action_date ? `<p class="text-xs text-[#6B6C72] mt-1"><strong>Next:</strong> ${escapeHtml(log.next_action_type || 'Follow-up')} by ${escapeHtml(log.next_action_date)}</p>` : ''}
+        ${log.escalated ? `<p class="text-xs text-red-700 mt-1"><strong>Escalation reason:</strong> ${escapeHtml(log.escalate_reason || '')}${escapeHtml(log.escalate_note ? ' — ' + log.escalate_note : '')}</p>` : ''}
       </div>`).join('');
     container.classList.remove('hidden');
   }
@@ -5560,9 +5569,9 @@ async function loadReport() {
   el.innerHTML = data.map(row => `
     <tr class="border-b border-[#ECEEF1] align-top">
       <td class="py-2 pr-3 text-xs text-[#8D9096] whitespace-nowrap">${new Date(row.created_at).toLocaleDateString()}</td>
-      <td class="py-2 pr-3 font-semibold">${row.customers?.customer_name || ''}</td>
-      <td class="py-2 pr-3"><span class="text-xs bg-[#F4F5F8] rounded px-2 py-0.5">${row.activity_type || row.status}</span></td>
-      <td class="py-2 text-[#6B6C72]">${row.notes || ''}${row.escalated ? ' <span class="text-red-600 font-semibold">⚑ Escalated</span>' : ''}</td>
+      <td class="py-2 pr-3 font-semibold">${escapeHtml(row.customers?.customer_name || '')}</td>
+      <td class="py-2 pr-3"><span class="text-xs bg-[#F4F5F8] rounded px-2 py-0.5">${escapeHtml(row.activity_type || row.status)}</span></td>
+      <td class="py-2 text-[#6B6C72]">${escapeHtml(row.notes || '')}${row.escalated ? ' <span class="text-red-600 font-semibold">⚑ Escalated</span>' : ''}</td>
       <td class="py-2 pr-3 no-print"><button onclick="deleteCustomerLog('${row.id}')" class="text-red-600 text-xs">Delete</button></td>
     </tr>`).join('');
 }
@@ -5795,10 +5804,10 @@ async function loadPerDiem() {
     return `<div class="border-b border-[#ECEEF1] py-2">
       <div class="flex justify-between items-start gap-2">
         <div>
-          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${row.destination} <span class="text-[#8D9096]">(${row.request_date})</span>
-          <span class="text-xs px-2 py-0.5 rounded ${statusColor} ml-1">${row.status || 'Pending'}</span>
+          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${escapeHtml(row.destination)} <span class="text-[#8D9096]">(${escapeHtml(row.request_date)})</span>
+          <span class="text-xs px-2 py-0.5 rounded ${statusColor} ml-1">${escapeHtml(row.status || 'Pending')}</span>
           ${row.trip_plan_id ? '<span class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 ml-1">✓ Linked Trip Plan</span>' : '<span class="text-xs px-2 py-0.5 rounded bg-red-50 text-red-700 ml-1">⚠ No Trip Plan</span>'}
-          <div class="text-xs text-[#6B6C72] mt-1">Transport: ETB ${Number(row.transport_cost).toLocaleString()}${extended ? ` + ${row.nights} night(s) meal/room` : ''} — Total: <strong>ETB ${Number(row.total_requested).toLocaleString()}</strong></div>
+          <div class="text-xs text-[#6B6C72] mt-1">Transport: ETB ${Number(row.transport_cost).toLocaleString()}${extended ? ` + ${escapeHtml(row.nights)} night(s) meal/room` : ''} — Total: <strong>ETB ${Number(row.total_requested).toLocaleString()}</strong></div>
         </div>
         <div class="flex flex-col items-end gap-1 no-print">
           <select onchange="updatePerDiemStatus('${row.id}', this.value)" class="border border-[#D4D7DC] rounded text-xs p-1">
@@ -5917,10 +5926,10 @@ async function loadTripPlans() {
     return `<div class="border-b border-[#ECEEF1] py-2">
       <div class="flex justify-between items-start gap-2">
         <div>
-          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${row.destination}
-          <span class="text-[#8D9096]">(${row.departure_date}${row.return_date ? ' → ' + row.return_date : ''})</span>
+          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${escapeHtml(row.destination)}
+          <span class="text-[#8D9096]">(${escapeHtml(row.departure_date)}${escapeHtml(row.return_date ? ' → ' + row.return_date : '')})</span>
           ${row.is_late_exception ? '<span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800 ml-1">⚠ Late exception</span>' : ''}
-          <div class="text-xs text-[#6B6C72] mt-1">${row.purpose || ''}</div>
+          <div class="text-xs text-[#6B6C72] mt-1">${escapeHtml(row.purpose || '')}</div>
           ${visits.length ? `<div class="text-xs text-[#6B6C72] mt-1">Visiting: ${visits.map(v => v.company_name + (v.contact_person ? ' (' + v.contact_person + ')' : '')).join(', ')}</div>` : ''}
           ${row.is_late_exception ? `<div class="text-xs text-amber-800 mt-1"><strong>Late reason:</strong> ${escapeHtml(row.late_explanation || '')}</div>` : ''}
         </div>
@@ -6016,7 +6025,7 @@ async function loadVisitReports() {
           ${row.is_late ? '<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 ml-1">⚠ Late</span>' : ''}
           <div class="text-xs text-[#6B6C72] mt-1">${escapeHtml(row.contact_person ? 'Contact: ' + row.contact_person + ' · ' : '')}${escapeHtml(row.location || '')}</div>
           <div class="text-xs text-[#393A3D] mt-1">${escapeHtml(row.outcome || '')}</div>
-          ${row.next_steps ? `<div class="text-xs text-[#6B6C72] mt-1">Next: ${escapeHtml(row.next_steps)}${row.follow_up_date ? ' (by ' + row.follow_up_date + ')' : ''}</div>` : ''}
+          ${row.next_steps ? `<div class="text-xs text-[#6B6C72] mt-1">Next: ${escapeHtml(row.next_steps)}${escapeHtml(row.follow_up_date ? ' (by ' + row.follow_up_date + ')' : '')}</div>` : ''}
           ${row.is_late ? `<div class="text-xs text-red-700 mt-1"><strong>Late reason:</strong> ${escapeHtml(row.late_explanation || '')}</div>` : ''}
         </div>
         <div class="flex gap-2 no-print"><button onclick="editVisitReport('${row.id}')" class="text-[#2CA01C] text-xs font-semibold">Edit</button><button onclick="deleteVisitReport('${row.id}')" class="text-red-600 text-xs">Delete</button></div>
@@ -6211,7 +6220,7 @@ async function loadOverview() {
     ? Object.entries(pipelineCounts).map(([s,c]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${s}</span><span class="font-semibold">${c}</span></div>`).join('')
     : '<p class="text-[#8D9096]">No open leads.</p>';
 
-  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${row.entry_type} — ${escapeHtml(row.item_name)} × ${row.quantity} = ETB ${row.total} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
+  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${row.entry_type} — ${escapeHtml(row.item_name)} × ${escapeHtml(row.quantity)} = ETB ${escapeHtml(row.total)} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
 
   const marginPct = revenue > 0 ? (netMargin / revenue * 100) : 0;
   const healthWord = netMargin < 0 ? 'a loss' : marginPct < 10 ? 'a thin margin' : 'a healthy margin';
