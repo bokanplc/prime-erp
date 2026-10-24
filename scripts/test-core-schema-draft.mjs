@@ -58,8 +58,12 @@ if (/create or replace function public\.bokan_next_proforma_number/.test(sql)) {
 if (!/if v_next >= 9999 then[\s\S]*?raise exception 'Proforma number sequence exhausted/.test(sql)) {
   failures.push('Numbering upper bound must be enforced before formatting the result');
 }
-if (!/v_subtotal := round\(v_discounted_gross \/ \(1 \+ v_vat_rate \/ 100\),2\)/.test(sql)) {
-  failures.push('Atomic save must calculate the VAT-exclusive subtotal from VAT-inclusive line prices.');
+if (!/v_subtotal := round\(v_gross \/ \(1 \+ v_vat_rate \/ 100\),2\)/.test(sql)) {
+  failures.push('Atomic save must calculate the VAT-exclusive subtotal from the pre-discount VAT-inclusive line prices so the displayed discount row reconciles.');
+}
+
+if (!/constraint proformas_vat_total_consistency_check check \(abs\(grand_total - subtotal_before_vat - vat_amount \+ discount_amount\) <= 0\.02\)/.test(sql)) {
+  failures.push('Grand total must equal subtotal plus VAT less the displayed discount.');
 }
 if (!/v_withholding_amount := case[\s\S]*?round\(v_grand_total \* v_withholding_rate \/ 100,2\)/.test(sql)) {
   failures.push('Atomic save must calculate withholding from VAT-inclusive grand total.');
