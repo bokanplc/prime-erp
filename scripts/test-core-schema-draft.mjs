@@ -42,7 +42,7 @@ if ((sql.match(/\bcommit;/gi) || []).length !== 1) {
 if (!sql.includes("and pf.proforma_no ~ ('^' || v_prefix || '[0-9]{4}$');")) {
   failures.push('Atomic save RPC must use a complete anchored four-digit prefix pattern');
 }
-const saveStart = sql.indexOf('create or replace function public.bokan_save_proforma');
+const saveStart = sql.indexOf('create or replace function private.bokan_save_proforma');
 const saveBodyStart = sql.indexOf('as $$', saveStart);
 const saveEnd = sql.indexOf('$$;', saveBodyStart + 5);
 const saveFunction = sql.slice(saveStart, saveEnd);
