@@ -6700,6 +6700,20 @@ window.persistCurrentProforma=function(record){if(bokanProdEnabled()){bokanProdu
 // After the normal page initializes, hydrate the selected issuer and production saved list.
 document.addEventListener('DOMContentLoaded',function(){if(!bokanProdEnabled())return;const ps=document.getElementById('pf-production-status');if(ps)ps.classList.remove('hidden');const key=document.getElementById('pf-company')?.value||'PRIME';bokanProdRefreshIssuer(key).then(()=>renderProductionIssuer(key)).catch(()=>{});bokanProdLoadProformas().then(()=>window.loadSavedProformas()).catch(()=>{});});
 
+function calculateBokanProformaTotals(items, vatPct, discountPct, withholdingEnabled=true, withholdingRate=3, withholdingThreshold=10000) {
+  const grossMerchandise = Math.round(items.reduce((sum,i)=>sum+i.qty*i.unit_price,0)*100)/100;
+  const discountAmount = Math.round(grossMerchandise * discountPct / 100 * 100)/100;
+  const subtotalBeforeVAT = Math.round(grossMerchandise / (1 + vatPct/100) * 100)/100;
+  const vatAmount = Math.round((grossMerchandise - subtotalBeforeVAT)*100)/100;
+  const discountedGross = Math.round((grossMerchandise - discountAmount)*100)/100;
+  const grandTotal = discountedGross;
+  const withholdingAmount = withholdingEnabled && grandTotal > withholdingThreshold
+    ? Math.round(grandTotal * withholdingRate / 100 * 100)/100
+    : 0;
+  const netPayable = Math.round((grandTotal - withholdingAmount)*100)/100;
+  return { grossMerchandise, discountAmount, subtotalBeforeVAT, vatAmount, discountedGross, grandTotal, withholdingAmount, netPayable };
+}
+
 async function generateProforma() {
   const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
   const company = getCompany(companyKey) || COMPANY_OPTIONS[companyKey];
@@ -6741,15 +6755,8 @@ async function generateProforma() {
   const withholdingRate = 3;
   const withholdingThreshold = 10000;
 
-  const grossMerchandise = Math.round(items.reduce((sum,i)=>sum+i.qty*i.unit_price,0)*100)/100;
-  // Keep the displayed arithmetic explicit: subtotal before VAT + VAT - discount = grand total.
-  const discountAmount = Math.round(grossMerchandise * discountPct / 100 * 100)/100;
-  const subtotalBeforeVAT = Math.round(grossMerchandise / (1 + vatPct/100) * 100)/100;
-  const vatAmount = Math.round((grossMerchandise - subtotalBeforeVAT)*100)/100;
-  const discountedGross = Math.round((grossMerchandise - discountAmount)*100)/100;
-  const grandTotal = discountedGross;
-  const withholdingAmount = grandTotal > withholdingThreshold ? grandTotal * withholdingRate/100 : 0;
-  const netPayable = grandTotal - withholdingAmount;
+  const { grossMerchandise, discountAmount, subtotalBeforeVAT, vatAmount, discountedGross, grandTotal, withholdingAmount, netPayable } =
+    calculateBokanProformaTotals(items, vatPct, discountPct, withholdingEnabled, withholdingRate, withholdingThreshold);
 
   let proformaNo = makeProformaNumber(customer); let productionSavedRecord=null;
   const action=document.getElementById('pf-document-action')?.value||'new'; const existingId=document.getElementById('pf-existing-proforma')?.value||window.editingProformaId||''; const existing=getSavedProformas().find(r=>r.id===existingId); if(action==='update'&&existing)proformaNo=existing.proformaNo;
