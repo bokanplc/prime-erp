@@ -46,5 +46,6 @@ assert.match(sql, /revoke all on public\.companies, public\.profiles, public\.co
 assert.match(source, /from\('custom_terms'\)\.select\('\*'\)\.eq\('company_code', companyKey\)/, 'Custom terms must be loaded only for the selected company.');
 assert.match(source, /company_code: companyKey, category, label, created_by: currentUser\?\.id/, 'Custom terms must be saved with the selected company and authenticated creator.');
 assert.match(source, /id="pf-company"[^>]*onchange="syncProformaCompanyTIN\(\); loadProformaTermOptions\(\)"/, 'Switching PRIME/BlackRock must refresh company-scoped terms.');
+assert.match(source, /value="\$\{escapeHtml\(label\)\}"[\s\S]{0,180}<span>\$\{escapeHtml\(label\)\}<\/span>/, 'Custom term labels must be HTML-escaped in both the radio value and visible label.');
 
 console.log('PASS: Proforma UI payload, saved-row restoration, financial math and trusted RPC contract match.');
