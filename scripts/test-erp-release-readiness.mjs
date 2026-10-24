@@ -11,7 +11,8 @@ const files = [
   'staging/index.html',
   'staging/config/config.js',
   'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql',
-  'scripts/audit-erp-release-readiness.mjs'
+  'scripts/audit-erp-release-readiness.mjs',
+  'scripts/build-release-candidate.mjs'
 ];
 try {
   for (const file of files) {
@@ -23,12 +24,23 @@ try {
   const config=readFileSync(configPath,'utf8');
   assert.match(config,/PRODUCTION_MODE:\s*false/);
   assert.match(config,/FULL_ERP_DATA_READY:\s*false/);
+  assert.match(config,/ENABLED_PRODUCTION_TABS:\s*\[\]/);
 
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
   assert.match(disabledOutput,/Tables still missing schema: 50/,'Readiness audit must detect the current incomplete schema.');
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/PASS: production remains disabled/,'Disabled candidate should be reported safely.');
+
+  writeFileSync(configPath,config.replace('ENABLED_PRODUCTION_TABS: []',"ENABLED_PRODUCTION_TABS: ['proforma']"));
+  let unreviewedTabRejected=false;
+  try {
+    execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',stdio:'pipe'});
+  } catch (error) {
+    unreviewedTabRejected=error.status===1 && String(error.stderr||'').includes('No production tabs may be enabled');
+  }
+  assert.ok(unreviewedTabRejected,'The release builder must reject a config-enabled tab that has not been source-reviewed.');
+  writeFileSync(configPath,config);
 
   writeFileSync(configPath,config.replace('PRODUCTION_MODE: false','PRODUCTION_MODE: true'));
   let rejected=false;
@@ -38,7 +50,7 @@ try {
     rejected=error.status===1 && String(error.stderr||'').includes('FAIL: production/full-data mode cannot be enabled');
   }
   assert.ok(rejected,'The release gate must fail when production mode is enabled while schema/API blockers remain.');
-  console.log('PASS: full-ERP release gate reports incomplete modules and rejects premature production enablement.');
+  console.log('PASS: full-ERP release gate rejects premature production enablement and unreviewed module tabs.');
 } finally {
   rmSync(root,{recursive:true,force:true});
 }
