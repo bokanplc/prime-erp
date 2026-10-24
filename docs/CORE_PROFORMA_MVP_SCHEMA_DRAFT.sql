@@ -366,7 +366,7 @@ begin
 
   return v_row;
 end;
-$;
+$$;
 
 -- Public RPC wrapper remains SECURITY INVOKER. It delegates to the non-exposed
 -- private implementation, which is the only path granted permission to insert.
@@ -379,9 +379,9 @@ returns public.proformas
 language sql
 security invoker
 set search_path = ''
-as $
+as $$
   select private.bokan_save_proforma(p_company, p_existing_id, p_payload);
-$;
+$$;
 
 revoke all on function private.bokan_save_proforma(text,uuid,jsonb) from public, anon;
 grant execute on function private.bokan_save_proforma(text,uuid,jsonb) to authenticated;
