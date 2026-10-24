@@ -4815,7 +4815,7 @@ async function renderNotifications() {
   const { data } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No notifications yet.</p>'; return; }
   el.innerHTML = data.map(n => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1">
-      <span>${NOTIF_ICONS[n.type] || '•'} ${n.message}</span>
+      <span>${NOTIF_ICONS[n.type] || '•'} ${escapeHtml(n.message)}</span>
       <span class="text-[#8D9096] whitespace-nowrap ml-2">${new Date(n.created_at).toLocaleString()}</span>
     </div>`).join('');
 }
@@ -5139,8 +5139,8 @@ async function loadStock() {
   const renderRow = (row) => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
       <div>
         <span class="font-semibold">${row.entry_type === 'purchase' ? 'Purchase' : 'Sale'}</span>
-        — ${row.item_name} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
-        <span class="text-[#8D9096]">(${row.location || ''})</span>
+        — ${escapeHtml(row.item_name)} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
+        <span class="text-[#8D9096]">(${escapeHtml(row.location || '')})</span>
         <div class="text-xs text-[#8D9096]">${new Date(row.created_at).toLocaleString()}</div>
       </div>
       <div class="flex gap-3 no-print">
@@ -5174,8 +5174,8 @@ async function loadMyStock() {
   el.innerHTML = stockData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 text-xs">
       <div>
         <span class="font-semibold">${row.entry_type === 'purchase' ? 'Purchase' : 'Sale'}</span>
-        — ${row.item_name} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
-        <span class="text-[#8D9096]">(${row.location || ''})</span>
+        — ${escapeHtml(row.item_name)} × ${row.quantity} @ ETB ${row.unit_price} = <strong>ETB ${row.total}</strong>
+        <span class="text-[#8D9096]">(${escapeHtml(row.location || '')})</span>
         <span class="text-[#8D9096]">· ${new Date(row.created_at).toLocaleString()}</span>
       </div>
       <div class="flex gap-2 no-print">
@@ -5252,7 +5252,7 @@ async function loadExpenses() {
     return `<tr class="border-b border-[#ECEEF1] align-top">
       <td class="py-2 px-3 text-xs text-[#8D9096] whitespace-nowrap">${new Date(row.created_at).toLocaleDateString()}</td>
       <td class="py-2 px-3">${label} <span class="text-xs text-[#8D9096] block">(${group})</span></td>
-      <td class="py-2 px-3 text-[#6B6C72]">${row.description || ''}</td>
+      <td class="py-2 px-3 text-[#6B6C72]">${escapeHtml(row.description || '')}</td>
       <td class="py-2 px-3">${row.paid_by || row.location || ''}</td>
       <td class="py-2 px-3 text-right font-semibold">ETB ${Number(row.amount).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
       <td class="py-2 px-3 no-print whitespace-nowrap">
@@ -5303,7 +5303,7 @@ let currentTimelineCustomerId = null;
 
 async function initSalesPortal() {
   const { data } = await sb.from('customers').select('customer_name');
-  if (data) document.getElementById('customer-list').innerHTML = data.map(c => `<option value="${c.customer_name}">`).join('');
+  if (data) document.getElementById('customer-list').innerHTML = data.map(c => `<option value="${escapeHtml(c.customer_name)}">`).join('');
   renderCustomerDirectory();
 }
 
@@ -5329,7 +5329,7 @@ async function renderCustomerDirectory() {
     const overdue = latest && latest.next_action_date && latest.next_action_date < today;
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${overdue ? 'bg-red-50' : ''}">
       <div>
-        <button onclick="document.getElementById('cust-name').value='${c.customer_name.replace(/'/g,"\\'")}';loadCustomerHistory('${c.customer_name.replace(/'/g,"\\'")}');loadCustomerIntoForm('${c.customer_name.replace(/'/g,"\\'")}');document.getElementById('timeline-container').scrollIntoView({behavior:'smooth'})" class="font-semibold text-[#2CA01C] hover:underline text-left">${c.customer_name}</button>
+        <button onclick="document.getElementById('cust-name').value='${c.customer_name.replace(/'/g,"\\'")}';loadCustomerHistory('${c.customer_name.replace(/'/g,"\\'")}');loadCustomerIntoForm('${c.customer_name.replace(/'/g,"\\'")}');document.getElementById('timeline-container').scrollIntoView({behavior:'smooth'})" class="font-semibold text-[#2CA01C] hover:underline text-left">${escapeHtml(c.customer_name)}</button>
         <span class="text-[#8D9096]"> — ${c.contact_person || '—'} · ${c.location || '—'}</span>
         ${overdue ? '<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 ml-1">Overdue follow-up</span>' : ''}
         <div class="text-xs text-[#8D9096]">Assigned to: ${nameById[c.assigned_rep] || 'Unassigned'} · ${c.current_status || ''}</div>
@@ -5355,13 +5355,13 @@ async function computeOverdueFollowups(customers, logs, nameById, today) {
   if (!overdue.length) { wrap.classList.add('hidden'); return; }
   wrap.classList.remove('hidden');
   el.innerHTML = overdue.map(o => `<div class="border-b border-[#ECEEF1] py-1.5">
-      <span class="font-semibold">${o.customer.customer_name}</span> — ${o.log.next_action_type || 'Follow-up'} was due <span class="text-red-600 font-semibold">${o.log.next_action_date}</span>
-      <span class="text-[#8D9096]"> · Assigned to: ${nameById[o.customer.assigned_rep] || 'Unassigned'}</span>
+      <span class="font-semibold">${escapeHtml(o.customer.customer_name)}</span> — ${escapeHtml(o.log.next_action_type || 'Follow-up')} was due <span class="text-red-600 font-semibold">${escapeHtml(o.log.next_action_date)}</span>
+      <span class="text-[#8D9096]"> · Assigned to: ${escapeHtml(nameById[o.customer.assigned_rep] || 'Unassigned')}</span>
     </div>`).join('');
   // Flag once per session so we don't spam notifications on every render.
   if (!window.__overdueFlagged) {
     window.__overdueFlagged = true;
-    overdue.forEach(o => pushNotification('overdue_followup', `Overdue follow-up: ${o.customer.customer_name} (was due ${o.log.next_action_date})`, { customer_id: o.customer.id }));
+    overdue.forEach(o => pushNotification('overdue_followup', `Overdue follow-up: ${escapeHtml(o.customer.customer_name)} (was due ${escapeHtml(o.log.next_action_date)})`, { customer_id: o.customer.id }));
   }
 }
 
@@ -5513,16 +5513,16 @@ async function loadCustomerHistory(customerName) {
     document.getElementById('timeline-logs').innerHTML = logs.map(log => `
       <div class="bg-[#F4F5F8] p-3 border-l-4 ${log.escalated ? 'border-red-500' : 'border-[#2CA01C]'} rounded">
         <div class="flex justify-between text-xs text-[#8D9096] mb-1">
-          <span>${new Date(log.created_at).toLocaleString()} · ${nameById[log.sales_rep] || 'Unknown'}</span>
+          <span>${new Date(log.created_at).toLocaleString()} · ${escapeHtml(nameById[log.sales_rep] || 'Unknown')}</span>
           <button onclick="deleteCustomerLog('${log.id}'); loadCustomerHistory('${customerName.replace(/'/g,"\\'")}')" class="text-red-600 no-print">Delete</button>
         </div>
         <div class="flex items-center gap-1 mb-1">
-          ${log.activity_type ? `<span class="text-xs px-2 py-0.5 rounded bg-white border border-[#D4D7DC] font-semibold">${log.activity_type}</span>` : ''}
-          <span class="font-semibold text-xs text-[#2CA01C]">${log.status}</span>
+          ${log.activity_type ? `<span class="text-xs px-2 py-0.5 rounded bg-white border border-[#D4D7DC] font-semibold">${escapeHtml(log.activity_type)}</span>` : ''}
+          <span class="font-semibold text-xs text-[#2CA01C]">${escapeHtml(log.status)}</span>
           ${log.escalated ? '<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">⚑ Escalated</span>' : ''}
         </div>
-        <p class="text-xs text-[#393A3D]">${log.notes || ''}</p>
-        ${log.customer_feedback ? `<p class="text-xs text-[#6B6C72] mt-1"><strong>Feedback:</strong> ${log.customer_feedback}</p>` : ''}
+        <p class="text-xs text-[#393A3D]">${escapeHtml(log.notes || '')}</p>
+        ${log.customer_feedback ? `<p class="text-xs text-[#6B6C72] mt-1"><strong>Feedback:</strong> ${escapeHtml(log.customer_feedback)}</p>` : ''}
         ${log.next_action_date ? `<p class="text-xs text-[#6B6C72] mt-1"><strong>Next:</strong> ${log.next_action_type || 'Follow-up'} by ${log.next_action_date}</p>` : ''}
         ${log.escalated ? `<p class="text-xs text-red-700 mt-1"><strong>Escalation reason:</strong> ${log.escalate_reason || ''}${log.escalate_note ? ' — ' + log.escalate_note : ''}</p>` : ''}
       </div>`).join('');
@@ -5795,7 +5795,7 @@ async function loadPerDiem() {
     return `<div class="border-b border-[#ECEEF1] py-2">
       <div class="flex justify-between items-start gap-2">
         <div>
-          <span class="font-semibold">${row.employee_name}</span> — ${row.destination} <span class="text-[#8D9096]">(${row.request_date})</span>
+          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${row.destination} <span class="text-[#8D9096]">(${row.request_date})</span>
           <span class="text-xs px-2 py-0.5 rounded ${statusColor} ml-1">${row.status || 'Pending'}</span>
           ${row.trip_plan_id ? '<span class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 ml-1">✓ Linked Trip Plan</span>' : '<span class="text-xs px-2 py-0.5 rounded bg-red-50 text-red-700 ml-1">⚠ No Trip Plan</span>'}
           <div class="text-xs text-[#6B6C72] mt-1">Transport: ETB ${Number(row.transport_cost).toLocaleString()}${extended ? ` + ${row.nights} night(s) meal/room` : ''} — Total: <strong>ETB ${Number(row.total_requested).toLocaleString()}</strong></div>
@@ -5917,12 +5917,12 @@ async function loadTripPlans() {
     return `<div class="border-b border-[#ECEEF1] py-2">
       <div class="flex justify-between items-start gap-2">
         <div>
-          <span class="font-semibold">${row.employee_name}</span> — ${row.destination}
+          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${row.destination}
           <span class="text-[#8D9096]">(${row.departure_date}${row.return_date ? ' → ' + row.return_date : ''})</span>
           ${row.is_late_exception ? '<span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800 ml-1">⚠ Late exception</span>' : ''}
           <div class="text-xs text-[#6B6C72] mt-1">${row.purpose || ''}</div>
           ${visits.length ? `<div class="text-xs text-[#6B6C72] mt-1">Visiting: ${visits.map(v => v.company_name + (v.contact_person ? ' (' + v.contact_person + ')' : '')).join(', ')}</div>` : ''}
-          ${row.is_late_exception ? `<div class="text-xs text-amber-800 mt-1"><strong>Late reason:</strong> ${row.late_explanation || ''}</div>` : ''}
+          ${row.is_late_exception ? `<div class="text-xs text-amber-800 mt-1"><strong>Late reason:</strong> ${escapeHtml(row.late_explanation || '')}</div>` : ''}
         </div>
         <div class="flex gap-2 no-print"><button onclick="editTripPlan('${row.id}')" class="text-[#2CA01C] text-xs font-semibold">Edit</button><button onclick="deleteTripPlan('${row.id}')" class="text-red-600 text-xs">Delete</button></div>
       </div>
@@ -6011,13 +6011,13 @@ async function loadVisitReports() {
     <div class="border-b border-[#ECEEF1] py-2">
       <div class="flex justify-between items-start gap-2">
         <div>
-          <span class="font-semibold">${row.employee_name}</span> — ${row.customer_name}
-          <span class="text-[#8D9096]">(${row.visit_date})</span>
+          <span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${escapeHtml(row.customer_name)}
+          <span class="text-[#8D9096]">(${escapeHtml(row.visit_date)})</span>
           ${row.is_late ? '<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 ml-1">⚠ Late</span>' : ''}
-          <div class="text-xs text-[#6B6C72] mt-1">${row.contact_person ? 'Contact: ' + row.contact_person + ' · ' : ''}${row.location || ''}</div>
-          <div class="text-xs text-[#393A3D] mt-1">${row.outcome || ''}</div>
-          ${row.next_steps ? `<div class="text-xs text-[#6B6C72] mt-1">Next: ${row.next_steps}${row.follow_up_date ? ' (by ' + row.follow_up_date + ')' : ''}</div>` : ''}
-          ${row.is_late ? `<div class="text-xs text-red-700 mt-1"><strong>Late reason:</strong> ${row.late_explanation || ''}</div>` : ''}
+          <div class="text-xs text-[#6B6C72] mt-1">${escapeHtml(row.contact_person ? 'Contact: ' + row.contact_person + ' · ' : '')}${escapeHtml(row.location || '')}</div>
+          <div class="text-xs text-[#393A3D] mt-1">${escapeHtml(row.outcome || '')}</div>
+          ${row.next_steps ? `<div class="text-xs text-[#6B6C72] mt-1">Next: ${escapeHtml(row.next_steps)}${row.follow_up_date ? ' (by ' + row.follow_up_date + ')' : ''}</div>` : ''}
+          ${row.is_late ? `<div class="text-xs text-red-700 mt-1"><strong>Late reason:</strong> ${escapeHtml(row.late_explanation || '')}</div>` : ''}
         </div>
         <div class="flex gap-2 no-print"><button onclick="editVisitReport('${row.id}')" class="text-[#2CA01C] text-xs font-semibold">Edit</button><button onclick="deleteVisitReport('${row.id}')" class="text-red-600 text-xs">Delete</button></div>
       </div>
@@ -6211,7 +6211,7 @@ async function loadOverview() {
     ? Object.entries(pipelineCounts).map(([s,c]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${s}</span><span class="font-semibold">${c}</span></div>`).join('')
     : '<p class="text-[#8D9096]">No open leads.</p>';
 
-  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${row.entry_type} — ${row.item_name} × ${row.quantity} = ETB ${row.total} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
+  document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${row.entry_type} — ${escapeHtml(row.item_name)} × ${row.quantity} = ETB ${row.total} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
 
   const marginPct = revenue > 0 ? (netMargin / revenue * 100) : 0;
   const healthWord = netMargin < 0 ? 'a loss' : marginPct < 10 ? 'a thin margin' : 'a healthy margin';
@@ -6235,7 +6235,7 @@ async function loadOverview() {
   if (netVat < 0) alerts.push({ level: 'ok', text: `Net VAT position is refundable (ETB ${Math.abs(netVat).toLocaleString()}). Consider filing for a VAT refund/credit with the Ministry of Revenue.` });
   else if (netVat > 0) alerts.push({ level: 'warn', text: `Net VAT payable is estimated at ETB ${netVat.toLocaleString()} — ensure this is set aside ahead of the filing deadline.` });
   if ((leads || []).length > 10) alerts.push({ level: 'ok', text: `${leads.length} open leads in the pipeline — good pipeline volume. Focus follow-up on the "Payment Pending" and "Proforma Sent" stages to convert.` });
-  document.getElementById('overview-alerts').innerHTML = alerts.map(a => `<div class="rounded-lg p-4 text-xs alert-card ${a.level === 'danger' ? 'danger' : a.level === 'ok' ? 'ok' : ''}">${a.text}</div>`).join('') || '<p class="text-[#8D9096] text-xs">No alerts — not enough data yet for this period.</p>';
+  document.getElementById('overview-alerts').innerHTML = alerts.map(a => `<div class="rounded-lg p-4 text-xs alert-card ${a.level === 'danger' ? 'danger' : a.level === 'ok' ? 'ok' : ''}">${escapeHtml(a.text)}</div>`).join('') || '<p class="text-[#8D9096] text-xs">No alerts — not enough data yet for this period.</p>';
 }
 
 // ==================== MANAGEMENT REPORT ====================
@@ -6330,7 +6330,7 @@ async function loadUsers() {
   if (!el) return;
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No users found.</p>'; return; }
   el.innerHTML = data.map(u => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
-      <div>${u.full_name} <span class="text-[#8D9096]">(${u.role})</span></div>
+      <div>${escapeHtml(u.full_name)} <span class="text-[#8D9096]">(${u.role})</span></div>
       <select onchange="updateRole('${u.id}', this.value)" class="border border-[#D4D7DC] rounded p-1 text-xs">
         ${['admin','data_entry','accounting','sales','sales_manager','management','hr'].map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('')}
       </select>
@@ -6389,6 +6389,12 @@ function addProformaRequestItem(data = {}){
 }
 function escapeHtml(v){
   return String(v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+}
+function safeDocumentHref(value){
+  try {
+    const parsed = new URL(String(value || ''), location.origin);
+    return parsed.protocol === 'https:' ? escapeHtml(parsed.href) : '#';
+  } catch (_) { return '#'; }
 }
 function collectProformaRequestForm(){
   const items = [...document.querySelectorAll('#pfr-items > div')].map(row => ({
@@ -6900,7 +6906,7 @@ async function loadBillings() {
   billingData = data || [];
   if (!billingData.length) { el.innerHTML = '<p class="text-[#8D9096] text-xs">No billings generated yet.</p>'; return; }
   el.innerHTML = billingData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5">
-      <div><span class="font-semibold">${row.billing_no}</span> — ${row.customer_name} <span class="text-[#8D9096]">(${row.billing_date})</span> · <strong>ETB ${Number(row.total).toLocaleString()}</strong></div>
+      <div><span class="font-semibold">${escapeHtml(row.billing_no)}</span> — ${escapeHtml(row.customer_name)} <span class="text-[#8D9096]">(${escapeHtml(row.billing_date)})</span> · <strong>ETB ${Number(row.total).toLocaleString()}</strong></div>
       <div class="flex items-center gap-3"><span class="text-[#8D9096]">${new Date(row.created_at).toLocaleDateString()}</span><button onclick="deleteBilling('${row.id}')" class="text-red-600 no-print">Delete</button></div>
     </div>`).join('');
 }
@@ -7040,8 +7046,8 @@ async function loadRepoFiles(category, targetElId) {
   const { data } = await sb.from('documents').select('*').eq('category', category).order('created_at', { ascending: false });
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No files uploaded yet.</p>'; return; }
   el.innerHTML = data.map(d => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
-      <div><a href="${d.file_url}" target="_blank" class="text-[#2CA01C] font-semibold underline">${d.title}</a></div>
-      <div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(d.created_at).toLocaleDateString()}</span><button onclick="deleteRepoFile('${d.id}','${d.file_path}','${category}','${targetElId}')" class="text-red-600 text-xs no-print">Delete</button></div>
+      <div><a href="${safeDocumentHref(d.file_url)}" target="_blank" class="text-[#2CA01C] font-semibold underline">${escapeHtml(d.title)}</a></div>
+      <div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(d.created_at).toLocaleDateString()}</span><button type="button" data-doc-id="${escapeHtml(d.id)}" data-file-path="${escapeHtml(d.file_path)}" data-doc-category="${escapeHtml(category)}" data-target-el="${escapeHtml(targetElId)}" onclick="deleteRepoFile(this.dataset.docId,this.dataset.filePath,this.dataset.docCategory,this.dataset.targetEl)" class="text-red-600 text-xs no-print">Delete</button></div>
     </div>`).join('');
 }
 async function deleteRepoFile(id, filePath, category, targetElId) { if (_bokanProdConfigured) { alert('Document deletion is temporarily disabled until private document storage policies are configured.'); return; } if (!confirm('Delete this file? This cannot be undone.')) return; await sb.storage.from('documents').remove([filePath]); await sb.from('documents').delete().eq('id', id); loadRepoFiles(category, targetElId); }
@@ -7089,9 +7095,9 @@ async function loadEmployees() {
   const dl = document.getElementById('employee-namelist');
   if (dl) dl.innerHTML = employeeData.map(e => `<option value="${e.full_name}">`).join('');
   el.innerHTML = employeeData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5">
-      <div><span class="font-semibold">${row.full_name}</span> — ${row.position}
-        <span class="text-xs px-2 py-0.5 rounded ${STATUS_COLORS[row.status]||''} ml-1">${row.status}</span>
-        <div class="text-xs text-[#8D9096]">${row.department} · ${row.employment_type} · Hired ${row.hire_date || '—'} ${row.phone ? '· ' + row.phone : ''}${row.education_level ? ' · ' + row.education_level : ''}${row.driver_license_no ? ' · License# ' + row.driver_license_no : ''}</div></div>
+      <div><span class="font-semibold">${escapeHtml(row.full_name)}</span> — ${escapeHtml(row.position)}
+        <span class="text-xs px-2 py-0.5 rounded ${STATUS_COLORS[row.status]||''} ml-1">${escapeHtml(row.status)}</span>
+        <div class="text-xs text-[#8D9096]">${escapeHtml(row.department)} · ${escapeHtml(row.employment_type)} · Hired ${escapeHtml(row.hire_date || '—')} ${escapeHtml(row.phone ? '· ' + row.phone : '')}${escapeHtml(row.education_level ? ' · ' + row.education_level : '')}${escapeHtml(row.driver_license_no ? ' · License# ' + row.driver_license_no : '')}</div></div>
       <div class="flex gap-2 no-print"><button onclick="editEmployee('${row.id}')" class="text-[#2CA01C] font-semibold">Edit</button><button onclick="deleteEmployee('${row.id}')" class="text-red-600">Delete</button></div>
     </div>`).join('') || '<p class="text-[#8D9096]">No employees yet.</p>';
 }
@@ -7147,9 +7153,9 @@ async function loadLeaveRequests() {
   if (!leaveData.length) { el.innerHTML = '<p class="text-[#8D9096]">No leave requests yet.</p>'; return; }
   const statusColor = { Approved: 'text-green-700 bg-green-50', Rejected: 'text-red-700 bg-red-50', Pending: 'text-amber-700 bg-amber-50' };
   el.innerHTML = leaveData.map(row => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5">
-      <div><span class="font-semibold">${row.employee_name}</span> — ${row.leave_type} <span class="text-[#8D9096]">(${row.start_date} → ${row.end_date}, ${row.days_requested}d)</span>
+      <div><span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${escapeHtml(row.leave_type)} <span class="text-[#8D9096]">(${escapeHtml(row.start_date)} → ${escapeHtml(row.end_date)}, ${escapeHtml(row.days_requested)}d)</span>
         <span class="text-xs px-2 py-0.5 rounded ${statusColor[row.status]||''} ml-1">${row.status||'Pending'}</span>
-        <div class="text-xs text-[#6B6C72]">${row.reason || ''}</div></div>
+        <div class="text-xs text-[#6B6C72]">${escapeHtml(row.reason || '')}</div></div>
       <div class="flex items-center gap-2 no-print">
         <select onchange="updateLeaveStatus('${row.id}', this.value)" class="border border-[#D4D7DC] rounded p-1 text-xs">${['Pending','Approved','Rejected'].map(s => `<option value="${s}" ${s===(row.status||'Pending')?'selected':''}>${s}</option>`).join('')}</select>
         <button onclick="editLeave('${row.id}')" class="text-[#2CA01C] font-semibold">Edit</button><button onclick="deleteLeave('${row.id}')" class="text-red-600">Delete</button></div>
@@ -7195,9 +7201,9 @@ async function loadPerformanceReviews() {
   const ratingColor = { 'Exceeds Expectations': 'text-green-700 bg-green-50', 'Meets Expectations': 'text-sky-700 bg-sky-50', 'Needs Improvement': 'text-amber-700 bg-amber-50', 'Unsatisfactory': 'text-red-700 bg-red-50' };
   el.innerHTML = perfData.map(row => `<div class="border-b border-[#ECEEF1] py-1.5">
       <div class="flex justify-between items-start gap-2">
-        <div><span class="font-semibold">${row.employee_name}</span> <span class="text-[#8D9096]">(${row.review_period || row.review_date})</span>
-          <span class="text-xs px-2 py-0.5 rounded ${ratingColor[row.rating]||''} ml-1">${row.rating}</span>
-          <div class="text-xs text-[#6B6C72]">Reviewer: ${row.reviewer_name}</div></div>
+        <div><span class="font-semibold">${escapeHtml(row.employee_name)}</span> <span class="text-[#8D9096]">(${escapeHtml(row.review_period || row.review_date)})</span>
+          <span class="text-xs px-2 py-0.5 rounded ${ratingColor[row.rating]||''} ml-1">${escapeHtml(row.rating)}</span>
+          <div class="text-xs text-[#6B6C72]">Reviewer: ${escapeHtml(row.reviewer_name)}</div></div>
         <div class="flex gap-2 no-print"><button onclick="editPerf('${row.id}')" class="text-[#2CA01C] font-semibold">Edit</button><button onclick="deletePerf('${row.id}')" class="text-red-600">Delete</button></div>
       </div></div>`).join('');
 }
@@ -7238,9 +7244,9 @@ async function loadDisciplinary() {
   if (!discData.length) { el.innerHTML = '<p class="text-[#8D9096]">No disciplinary records.</p>'; return; }
   el.innerHTML = discData.map(row => `<div class="border-b border-[#ECEEF1] py-1.5">
       <div class="flex justify-between items-start gap-2">
-        <div><span class="font-semibold">${row.employee_name}</span> — ${row.issue_type} <span class="text-[#8D9096]">(${row.action_date})</span>
-          <span class="text-xs px-2 py-0.5 rounded bg-red-50 text-red-700 ml-1">${row.action_taken}</span>
-          <div class="text-xs text-[#6B6C72]">${row.description || ''} — Issued by ${row.issued_by}</div></div>
+        <div><span class="font-semibold">${escapeHtml(row.employee_name)}</span> — ${escapeHtml(row.issue_type)} <span class="text-[#8D9096]">(${escapeHtml(row.action_date)})</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-red-50 text-red-700 ml-1">${escapeHtml(row.action_taken)}</span>
+          <div class="text-xs text-[#6B6C72]">${escapeHtml(row.description || '')} — Issued by ${escapeHtml(row.issued_by)}</div></div>
         <div class="flex gap-2 no-print"><button onclick="editDisc('${row.id}')" class="text-[#2CA01C] font-semibold">Edit</button><button onclick="deleteDisc('${row.id}')" class="text-red-600">Delete</button></div>
       </div></div>`).join('');
 }
