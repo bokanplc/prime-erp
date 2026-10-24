@@ -2,8 +2,8 @@
 /** Verify that the sanitized release candidate is generated and contains no known fixture collections. */
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-const html=readFileSync('staging/release/index.html','utf8');
-const config=readFileSync('staging/release/config/config.js','utf8');
+const html=readFileSync('dist/release/index.html','utf8');
+const config=readFileSync('dist/release/config/config.js','utf8');
 const expected={
   prime_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
