@@ -36,9 +36,9 @@ INSERT INTO auth.users(id) VALUES
 
 INSERT INTO public.profiles(id, full_name, role, department, company_code, active, terminated_at)
 VALUES
-  ('11111111-1111-4111-8111-111111111111', 'CI PRIME Sales', 'sales', 'Sales', 'PRIME', true),
-  ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true),
-  ('33333333-3333-4333-8333-333333333333', 'CI Inactive Sales', 'sales', 'Sales', 'PRIME', false),
+  ('11111111-1111-4111-8111-111111111111', 'CI PRIME Sales', 'sales', 'Sales', 'PRIME', true, NULL),
+  ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true, NULL),
+  ('33333333-3333-4333-8333-333333333333', 'CI Inactive Sales', 'sales', 'Sales', 'PRIME', false, NULL),
   ('44444444-4444-4444-8444-444444444444', 'CI Terminated Sales', 'sales', 'Sales', 'PRIME', true, now());
 
 INSERT INTO public.company_bank_accounts(company_code, bank_name, account_number, account_purpose, display_order, active)
