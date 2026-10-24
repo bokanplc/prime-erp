@@ -66,6 +66,23 @@ assert.ok(salesHubIndex >= 0 && releaseHtml.indexOf(salesHubMarker, salesHubInde
 const salesHubStart = salesHubIndex + salesHubMarker.length - 1;
 const salesHubEnd = expressionEnd(releaseHtml, salesHubStart);
 releaseHtml = releaseHtml.slice(0, salesHubStart) + '[]' + releaseHtml.slice(salesHubEnd);
+
+const fixtureBindings = {
+  master: '{customers:[], suppliers:[], products:[]}',
+  stock: '[]',
+  pay: '[]'
+};
+for (const [name, replacement] of Object.entries(fixtureBindings)) {
+  const declaration = new RegExp('\\bconst\\s+' + name + '\\s*=', 'g');
+  const matches = [...releaseHtml.matchAll(declaration)];
+  assert.equal(matches.length, 1, 'Expected exactly one embedded fixture binding: ' + name);
+  const eq = releaseHtml.indexOf('=', matches[0].index);
+  let start = eq + 1;
+  while (/\\s/.test(releaseHtml[start] || '')) start++;
+  assert.ok(releaseHtml[start] === '[' || releaseHtml[start] === '{', 'Fixture binding must be a literal: ' + name);
+  const end = expressionEnd(releaseHtml, start);
+  releaseHtml = releaseHtml.slice(0, start) + replacement + releaseHtml.slice(end);
+}
 const previewIdentity = /currentUser\s*=\s*\{\s*id:\s*'preview-admin',\s*email:\s*'admin@preview\.local'\s*\};\s*currentRole\s*=\s*'admin';\s*currentDeptTabs\s*=\s*null;/;
 assert.equal((releaseHtml.match(previewIdentity) || []).length, 1, 'Expected one preview-admin identity assignment to neutralize.');
 releaseHtml = releaseHtml.replace(previewIdentity, 'currentUser = null; currentRole = null; currentDeptTabs = null;');
@@ -109,6 +126,6 @@ mkdirSync(dirname(outputConfigPath),{recursive:true});
 writeFileSync(outputPath,releaseHtml);
 writeFileSync(outputConfigPath,config);
 console.log('Built sanitized release candidate: '+outputPath);
-console.log('Emptied known fixture collections: '+(Object.keys(replacements).length+1));
+console.log('Emptied known fixture collections: '+(Object.keys(replacements).length+1+Object.keys(fixtureBindings).length));
 console.log('Preview-admin identity fallback removed: 1');
 console.log('Production mode remains disabled; candidate is not approved for deployment.');
