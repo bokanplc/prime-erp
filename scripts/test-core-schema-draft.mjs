@@ -15,7 +15,6 @@ const checks = [
   [/alter table public\.company_bank_accounts enable row level security/i, 'RLS is enabled on bank accounts'],
   [/alter table public\.proformas enable row level security/i, 'RLS is enabled on proformas'],
   [/create policy proformas_select_member[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma reads enforce company scope'],
-  [/create policy proformas_insert_member[\s\S]*?created_by = \(select auth\.uid\(\)\)[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma inserts enforce actor and company scope'],
   [/status, created_by, updated_by[\s\S]*?\(select auth\.uid\(\)\), \(select auth\.uid\(\)\)/i, 'Atomic save derives creator and updater from authenticated identity'],
   [/create or replace function public\.bokan_save_proforma[\s\S]*?security invoker/i, 'Public proforma RPC wrapper remains SECURITY INVOKER'],
   [/create or replace function private\.bokan_save_proforma[\s\S]*?security definer[\s\S]*?set search_path = ''/i, 'Privileged implementation is isolated in private schema with a pinned empty search_path'],
@@ -77,6 +76,8 @@ if (/p_payload->>'grandTotal'|p_payload->>'subtotalBeforeVAT'|p_payload->>'vatAm
 if (/create or replace function public\.bokan_save_proforma[\s\S]*?security definer/i.test(sql)) failures.push('Public proforma RPC must not be SECURITY DEFINER');
 if (!/create or replace function private\.bokan_save_proforma[\s\S]*?security definer[\s\S]*?set search_path = ''/i.test(sql)) failures.push('Privileged implementation must be in private schema with an empty search_path');
 if (/create policy proformas_insert_member/i.test(sql)) failures.push('Direct client proforma inserts must not be allowed; inserts go through the trusted RPC');
+if (!/v_profile public\.profiles%rowtype[\s\S]*?if \(select auth\.uid\(\)\) is null[\s\S]*?Not authorized for this company/i.test(sql)) failures.push('Private trusted write must validate authenticated identity and company membership');
+if (!/grant select on public\.proformas to authenticated/i.test(sql)) failures.push('Authenticated users need read-only proforma table access');
 if (/grant select, insert on public\.proformas to authenticated/i.test(sql)) failures.push('Authenticated clients must not have direct proforma INSERT privilege');
 if (!/company_bank_accounts\.company_code/.test(sql)) failures.push('Bank account RLS must qualify the outer company_code');
 if (failures.length) {
