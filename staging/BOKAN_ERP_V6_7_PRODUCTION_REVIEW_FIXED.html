@@ -4888,8 +4888,8 @@ function showLanding(available) {
   const grid = document.getElementById('landing-grid');
   grid.innerHTML = available.map(d => `
     <button onclick="enterDepartment('${d.id}')" class="text-left bg-white border border-[#D4D7DC] rounded-lg shadow-sm p-5 hover:border-[#2CA01C] hover:shadow-md transition">
-      <div class="font-bold text-sm text-[#393A3D] mb-1">${d.label}</div>
-      <div class="text-xs text-[#6B6C72]">${d.desc}</div>
+      <div class="font-bold text-sm text-[#393A3D] mb-1">${escapeHtml(d.label)}</div>
+      <div class="text-xs text-[#6B6C72]">${escapeHtml(d.desc)}</div>
     </button>`).join('');
 }
 
@@ -5144,8 +5144,8 @@ async function loadStock() {
         <div class="text-xs text-[#8D9096]">${new Date(row.created_at).toLocaleString()}</div>
       </div>
       <div class="flex gap-3 no-print">
-        <button onclick="editStock('${row.id}')" class="text-[#2CA01C] text-xs font-semibold">Edit</button>
-        <button onclick="deleteStock('${row.id}')" class="text-red-600 text-xs">Delete</button>
+        <button data-stock-id="${escapeHtml(row.id)}" onclick="editStock(this.dataset.stockId)" class="text-[#2CA01C] text-xs font-semibold">Edit</button>
+        <button data-stock-id="${escapeHtml(row.id)}" onclick="deleteStock(this.dataset.stockId)" class="text-red-600 text-xs">Delete</button>
       </div>
     </div>`;
   const grouped = document.getElementById('stock-group-toggle')?.checked;
@@ -5179,7 +5179,7 @@ async function loadMyStock() {
         <span class="text-[#8D9096]">· ${new Date(row.created_at).toLocaleString()}</span>
       </div>
       <div class="flex gap-2 no-print">
-        <button onclick="editStock('${row.id}')" class="text-[#2CA01C] font-semibold">Edit</button><button onclick="deleteStock('${row.id}')" class="text-red-600">Delete</button>
+        <button data-stock-id="${escapeHtml(row.id)}" onclick="editStock(this.dataset.stockId)" class="text-[#2CA01C] font-semibold">Edit</button><button data-stock-id="${escapeHtml(row.id)}" onclick="deleteStock(this.dataset.stockId)" class="text-red-600">Delete</button>
       </div>
     </div>`).join('') || '<p class="text-[#8D9096] text-xs">No entries yet.</p>';
 }
@@ -8654,7 +8654,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   window.primeV33Reconciliation={refresh:render};
 })();
 </script>
-<script id="prime-v34-close-control">(function(){const KEY='prime_v34_close_control';const seed={areas:[{area:'Bank & Cash',control:'Bank reconciliation',status:'Ready',owner:'Finance'},{area:'Accounts Receivable',control:'AR reconciliation',status:'Ready',owner:'Finance'},{area:'Accounts Payable',control:'AP reconciliation',status:'Review',owner:'Finance'},{area:'Inventory',control:'Inventory reconciliation',status:'Review',owner:'Operations'},{area:'Fixed Assets',control:'Asset register review',status:'Ready',owner:'Finance'},{area:'Payroll',control:'Payroll review',status:'Ready',owner:'HR'}],statements:[{statement:'Income Statement',prerequisite:'GL & period close',status:'Ready'},{statement:'Balance Sheet',prerequisite:'Reconciliations',status:'Review'},{statement:'Cash Flow',prerequisite:'Bank & cash controls',status:'Ready'},{statement:'VAT / Tax',prerequisite:'Tax reconciliation',status:'Review'}]};function load(){try{return JSON.parse(localStorage.getItem(KEY))||seed}catch(e){return seed}}function render(){const d=load(),a=d.areas||[],s=d.statements||[];const open=a.filter(x=>!/ready|complete/i.test(x.status)).length;const unr=a.filter(x=>/recon/i.test(x.control)&&!/ready|complete/i.test(x.status)).length;const crit=s.filter(x=>/critical/i.test(x.status)).length;const ready=[...a.map(x=>x.status),...s.map(x=>x.status)].filter(x=>/ready|complete/i.test(x)).length;const total=a.length+s.length;document.getElementById('v34-readiness').textContent=(total?Math.round(ready/total*100):100)+'%';document.getElementById('v34-open').textContent=open;document.getElementById('v34-unreconciled').textContent=unr;document.getElementById('v34-critical').textContent=crit;document.getElementById('v34-area-rows').innerHTML=a.map(x=>`<tr><td>${x.area}</td><td>${x.control}</td><td>${x.status}</td><td>${x.owner}</td></tr>`).join('');document.getElementById('v34-statement-rows').innerHTML=s.map(x=>`<tr><td>${x.statement}</td><td>${x.prerequisite}</td><td>${x.status}</td></tr>`).join('')}document.addEventListener('DOMContentLoaded',render);window.primeV34CloseControl={refresh:render}})();</script>
+<script id="prime-v34-close-control">(function(){const KEY='prime_v34_close_control';const seed={areas:[{area:'Bank & Cash',control:'Bank reconciliation',status:'Ready',owner:'Finance'},{area:'Accounts Receivable',control:'AR reconciliation',status:'Ready',owner:'Finance'},{area:'Accounts Payable',control:'AP reconciliation',status:'Review',owner:'Finance'},{area:'Inventory',control:'Inventory reconciliation',status:'Review',owner:'Operations'},{area:'Fixed Assets',control:'Asset register review',status:'Ready',owner:'Finance'},{area:'Payroll',control:'Payroll review',status:'Ready',owner:'HR'}],statements:[{statement:'Income Statement',prerequisite:'GL & period close',status:'Ready'},{statement:'Balance Sheet',prerequisite:'Reconciliations',status:'Review'},{statement:'Cash Flow',prerequisite:'Bank & cash controls',status:'Ready'},{statement:'VAT / Tax',prerequisite:'Tax reconciliation',status:'Review'}]};function load(){try{return JSON.parse(localStorage.getItem(KEY))||seed}catch(e){return seed}}function render(){const d=load(),a=d.areas||[],s=d.statements||[];const open=a.filter(x=>!/ready|complete/i.test(x.status)).length;const unr=a.filter(x=>/recon/i.test(x.control)&&!/ready|complete/i.test(x.status)).length;const crit=s.filter(x=>/critical/i.test(x.status)).length;const ready=[...a.map(x=>x.status),...s.map(x=>x.status)].filter(x=>/ready|complete/i.test(x)).length;const total=a.length+s.length;document.getElementById('v34-readiness').textContent=(total?Math.round(ready/total*100):100)+'%';document.getElementById('v34-open').textContent=open;document.getElementById('v34-unreconciled').textContent=unr;document.getElementById('v34-critical').textContent=crit;document.getElementById('v34-area-rows').innerHTML=a.map(x=>`<tr><td>${escapeHtml(x.area)}</td><td>${escapeHtml(x.control)}</td><td>${escapeHtml(x.status)}</td><td>${escapeHtml(x.owner)}</td></tr>`).join('');document.getElementById('v34-statement-rows').innerHTML=s.map(x=>`<tr><td>${escapeHtml(x.statement)}</td><td>${escapeHtml(x.prerequisite)}</td><td>${escapeHtml(x.status)}</td></tr>`).join('')}document.addEventListener('DOMContentLoaded',render);window.primeV34CloseControl={refresh:render}})();</script>
 
 
 <script id="prime-v35-posting-engine">
@@ -8674,7 +8674,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   document.getElementById('v35-posted').textContent=posted;
   document.getElementById('v35-debit').textContent=p.reduce((s,x)=>s+Number(x.debit||0),0).toLocaleString();
   document.getElementById('v35-credit').textContent=p.reduce((s,x)=>s+Number(x.credit||0),0).toLocaleString();
-  document.getElementById('v35-rows').innerHTML=p.map(x=>`<tr><td>${x.doc}</td><td>${x.source}</td><td>${x.date}</td><td>${Number(x.debit).toLocaleString()}</td><td>${Number(x.credit).toLocaleString()}</td><td>${x.status}</td></tr>`).join('');
+  document.getElementById('v35-rows').innerHTML=p.map(x=>`<tr><td>${escapeHtml(x.doc)}</td><td>${escapeHtml(x.source)}</td><td>${escapeHtml(x.date)}</td><td>${Number(x.debit).toLocaleString()}</td><td>${Number(x.credit).toLocaleString()}</td><td>${x.status}</td></tr>`).join('');
  }
  document.addEventListener('DOMContentLoaded',render);
  window.primeV35PostingEngine={refresh:render};
@@ -9063,8 +9063,8 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
       try{
         const [inbound,deliveries]=await Promise.all([listInbound(),listDeliveries()]);
         const ir=document.getElementById('st-inbound-rows'),dr=document.getElementById('st-delivery-rows');
-        if(ir) ir.innerHTML=inbound.map(x=>`<tr><td><strong>${String(x.carrier||'Factory / Supplier').replace(/[&<>]/g,'')}</strong></td><td>${x.purchasing_entity}</td><td>—</td><td>${x.eta||'—'}</td><td><span class="slx-tag">${x.status}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No production inbound plans.</td></tr>';
-        if(dr) dr.innerHTML=deliveries.map(x=>`<tr><td><strong>${x.customer_id||'Customer / Project'}</strong></td><td>${x.legal_owner_company_code}</td><td>—</td><td>—</td><td><span class="slx-tag">${x.delivery_status}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No production delivery controls.</td></tr>';
+        if(ir) ir.innerHTML=inbound.map(x=>`<tr><td><strong>${escapeHtml(x.carrier||'Factory / Supplier')}</strong></td><td>${escapeHtml(x.purchasing_entity)}</td><td>—</td><td>${escapeHtml(x.eta||'—')}</td><td><span class="slx-tag">${escapeHtml(x.status)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No production inbound plans.</td></tr>';
+        if(dr) dr.innerHTML=deliveries.map(x=>`<tr><td><strong>${escapeHtml(x.customer_id||'Customer / Project')}</strong></td><td>${escapeHtml(x.legal_owner_company_code)}</td><td>—</td><td>—</td><td><span class="slx-tag">${escapeHtml(x.delivery_status)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No production delivery controls.</td></tr>';
       }catch(e){console.error('V6.4 supply refresh',e);localRefresh()}
     };
   });
