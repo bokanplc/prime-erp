@@ -505,3 +505,13 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Hosting hand-off and Auth advisor note (2026-10-24)
 - Updated docs/CLOUDFLARE_PAGES_BUILD_SETTINGS.md to match the builder's isolated output at dist/release. Future Pages settings should use the repository root, build command node scripts/build-release-candidate.mjs, and output directory dist/release. Do not publish staging/.
 - Added the remaining Supabase Auth security-advisor warning (auth_leaked_password_protection) to the owner decision checklist; no supported in-chat Auth settings action was available, so it remains unchanged.
+
+
+## Final integrity checkpoint after build-path isolation (2026-10-24)
+- Confirmed staging/index.html still matches the reviewed source byte-for-byte at 799,111 characters.
+- Confirmed PRODUCTION_MODE=false, FULL_ERP_DATA_READY=false, and both Supabase browser configuration placeholders remain blank.
+- Confirmed main/index.html remains 1 byte and untouched.
+- Rechecked Supabase read-only: zero public application tables and zero migrations.
+- GitHub Actions run 40100973866 passed both source-guard/release-candidate tests and disposable PostgreSQL schema tests, including RLS/grants, financial totals, and concurrent numbering.
+- Draft PR #1 remains open, unmerged and undeployed.
+- Generated release output is now isolated at dist/release/; do not publish staging/.
