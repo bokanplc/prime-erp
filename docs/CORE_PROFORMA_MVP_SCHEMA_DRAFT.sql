@@ -310,7 +310,7 @@ begin
   if (p_payload ? 'withholdingEnabled' and p_payload->'withholdingEnabled' is distinct from 'true'::jsonb)
      or (p_payload ? 'withholdingRate' and p_payload->'withholdingRate' is distinct from '3'::jsonb)
      or (p_payload ? 'withholdingThreshold' and p_payload->'withholdingThreshold' is distinct from '10000'::jsonb) then
-    raise exception 'Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered';
+    raise exception 'Withholding is fixed at 3%% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered';
   end if;
   v_withholding_enabled := true;
   v_withholding_rate := 3;
