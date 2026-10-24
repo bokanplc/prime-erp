@@ -84,3 +84,14 @@ The frontend references the following table names. Some may be legacy/overlappin
 - [ ] Proforma totals and VAT/withholding rules tested
 - [ ] Syntax and browser smoke tests pass
 - [ ] Recovery/export procedure documented and tested
+
+
+## Proforma display arithmetic follow-up (2026-10-24)
+The current Proforma print layout displays subtotal before VAT, VAT, a separate discount row, then grand total. The trusted save draft and UI have been aligned so:
+- `subtotal_before_vat` is extracted from the original VAT-inclusive line total before discount.
+- `vat_amount` is the original VAT-inclusive gross less that subtotal.
+- `discount_amount` is the percentage discount on the VAT-inclusive gross.
+- `grand_total = subtotal_before_vat + vat_amount - discount_amount`.
+- Withholding remains 3% of final VAT-inclusive grand total only when it is strictly greater than ETB 10,000.
+
+This is the requested presentation arithmetic. The final tax treatment of discounts should be confirmed by the business's Ethiopian tax/accounting adviser before live invoice use. The schema remains a draft and has not been applied to Supabase.
