@@ -85,3 +85,10 @@ Do not apply these until actual payloads, joins, nullability and historical comp
 ## 6. Current factual state
 
 Read-only checks on 2026-10-21 reported no public application tables and no migration history in the connected Supabase project. Therefore, the app has not yet been proven to persist data in this project. No database changes are made by this document.
+
+
+## Trusted proforma write boundary update (2026-10-24)
+- Direct authenticated INSERT/UPDATE/DELETE on `public.proformas` is revoked; clients read rows and save only through the RPC.
+- The exposed `public.bokan_save_proforma` wrapper remains SECURITY INVOKER and delegates to `private.bokan_save_proforma`.
+- The private implementation is SECURITY DEFINER only because direct INSERT is revoked. It uses an empty search path and explicit actor/profile/company/role validation, with EXECUTE revoked from PUBLIC/anon and granted to authenticated.
+- The private schema must not be added to Supabase's exposed Data API schemas. Do not apply this draft to the current Supabase project until the full test gate passes and the exact deployed function owner/grants are reviewed.
