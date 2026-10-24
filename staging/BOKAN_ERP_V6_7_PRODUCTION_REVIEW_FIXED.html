@@ -9142,7 +9142,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   // for database RLS or the authenticated profile gate.
   const localPreview = location.protocol === 'file:' || ['localhost','127.0.0.1','::1'].includes(location.hostname);
   const cfg = window.BOKAN_CONFIG || {};
-  const configured = !!(cfg.PRODUCTION_MODE === true && cfg.FULL_ERP_DATA_READY === true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
+  const configured = !!(cfg.PRODUCTION_MODE === true && cfg.FULL_ERP_DATA_READY === true && typeof window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB === 'function' && window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB(cfg) && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
   if (localPreview || configured) return;
   document.documentElement.style.visibility = 'hidden';
   document.addEventListener('DOMContentLoaded', function(){
