@@ -4736,7 +4736,7 @@ async function boot() {
   document.getElementById('app-view')?.classList.remove('hidden');
 
   const badge = document.getElementById('user-badge');
-  if (badge) badge.textContent = 'Preview Admin — admin';
+  if (badge) badge.textContent = 'Review build — sign-in disabled';
 
   const dept = document.getElementById('current-dept-label');
   if (dept) dept.textContent = 'All Departments';
@@ -7637,16 +7637,8 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
 <script id="prime-v41-governance-reporting">
 (function(){
   const AK='prime_v41_approvals', DK='prime_v41_audit';
-  const seedA=[
-    {title:'Supplier payment approval',module:'Finance',priority:'High',owner:'Finance Manager',status:'Pending',date:'2026-09-09'},
-    {title:'Sales discount exception',module:'Sales',priority:'Normal',owner:'Sales Manager',status:'Approved',date:'2026-09-08'},
-    {title:'Inventory adjustment',module:'Inventory',priority:'Critical',owner:'Operations Manager',status:'Pending',date:'2026-09-09'}
-  ];
-  const seedD=[
-    {date:'2026-09-09 09:00',actor:'Preview Admin',module:'Sales',action:'Viewed Sales Report',ref:'SALES-REPORT',severity:'Normal'},
-    {date:'2026-09-09 09:05',actor:'Preview Admin',module:'Finance',action:'Posted transaction',ref:'INV-1001',severity:'High'},
-    {date:'2026-09-09 09:10',actor:'Preview Admin',module:'Inventory',action:'Reviewed stock risk',ref:'INV-RISK',severity:'Normal'}
-  ];
+  const seedA=[];
+  const seedD=[];
   function read(k,seed){try{return JSON.parse(localStorage.getItem(k))||seed}catch(e){return seed}}
   function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
   function money(n){return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -7762,19 +7754,10 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
 <script id="prime-v50-integrated-controls">
 (function(){
  const RK='prime_v50_reconciliation', CK='prime_v50_close';
- const recSeed=[
-  {control:'Accounts Receivable',source:'AR Subledger',system:2500,control:2500,status:'Matched'},
-  {control:'Accounts Payable',source:'AP Subledger',system:2200,control:2150,status:'Open'},
-  {control:'Cash & Bank',source:'Cash Book',system:1500,control:1500,status:'Matched'},
-  {control:'Inventory',source:'Inventory Valuation',system:3400,control:3450,status:'Open'}
- ];
- const closeSeed=[
-  ['Bank reconciliation','Finance','Completed'],['AR aging review','Finance','Completed'],['AP aging review','Finance','Pending'],
-  ['Inventory valuation review','Operations','Pending'],['VAT/tax review','Finance','Pending'],['Payroll accrual review','HR','Pending'],
-  ['Fixed asset depreciation','Finance','Completed'],['Management action review','Management','Pending']
- ];
- const docs=[['Sales Order','SO',1007],['Proforma','PF',1012],['Invoice','INV',1001],['Receipt','GRN',1004],['Supplier Bill','BILL',2001],['Payment','PAY',2002],['Journal','JV',3001]];
- const seedTx=[{doc:'INV-1001',type:'AR Invoice',amount:6000,status:'Posted'},{doc:'COL-1002',type:'AR Collection',amount:3500,status:'Posted'},{doc:'BILL-2001',type:'AP Bill',amount:4200,status:'Posted'},{doc:'PAY-2002',type:'AP Payment',amount:2000,status:'Pending'}];
+ const recSeed=[];
+ const closeSeed=[];
+ const docs=[];
+ const seedTx=[];
  function read(k,s){try{return JSON.parse(localStorage.getItem(k))||s}catch(e){return s}}
  function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
  function money(n){return Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -7794,7 +7777,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   const open=r.filter(x=>x.status!=='Matched').length,matched=r.length-open,varr=r.reduce((s,x)=>s+Math.abs(Number(x.system)-Number(x.control)),0);document.getElementById('v50-rec-open').textContent=open;document.getElementById('v50-rec-matched').textContent=matched;document.getElementById('v50-rec-var').textContent=money(varr);document.getElementById('v50-rec-rate').textContent=(r.length?Math.round(matched/r.length*100):0)+'%';
   document.getElementById('v50-recrows').innerHTML=r.map((x,i)=>`<tr class="border-b"><td class="py-2">${esc(x.control)}</td><td>${esc(x.source)}</td><td class="text-right">${money(x.system)}</td><td class="text-right">${money(x.control)}</td><td class="text-right">${money(Number(x.system)-Number(x.control))}</td><td>${esc(x.status)}</td><td><button data-rec="${i}" class="border rounded px-2 py-1 text-xs">${x.status==='Matched'?'Reopen':'Match'}</button></td></tr>`).join('');
   const done=c.filter(x=>x[2]==='Completed').length;document.getElementById('v50-close-total').textContent=c.length;document.getElementById('v50-close-done').textContent=done;document.getElementById('v50-close-ex').textContent=c.length-done;document.getElementById('v50-close-rate').textContent=(c.length?Math.round(done/c.length*100):0)+'%';document.getElementById('v50-closerows').innerHTML=c.map((x,i)=>`<div class="flex items-center justify-between border-b pb-2"><div><strong>${esc(x[0])}</strong><div class="text-xs text-slate-500">${esc(x[1])}</div></div><button data-close="${i}" class="border rounded px-2 py-1 text-xs">${esc(x[2])}</button></div>`).join('');
-  document.getElementById('v50-doc-types').textContent=docs.length;document.getElementById('v50-next-number').textContent=Math.max(...docs.map(x=>x[2]))+1;document.getElementById('v50-docrows').innerHTML=docs.map(x=>`<tr class="border-b"><td class="py-2">${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[2]+1}</td><td>Active</td></tr>`).join('');
+  document.getElementById('v50-doc-types').textContent=docs.length;document.getElementById('v50-next-number').textContent=docs.length?Math.max(...docs.map(x=>x[2]))+1:'—';document.getElementById('v50-docrows').innerHTML=docs.map(x=>`<tr class="border-b"><td class="py-2">${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[2]+1}</td><td>Active</td></tr>`).join('');
  }
  document.addEventListener('DOMContentLoaded',function(){render();
   document.getElementById('v50-rec-refresh').onclick=render;
@@ -8174,7 +8157,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
 (function(){
 const KEY='bokan_sales_hub_v1', RAW=[], orderStages=['Customer Order','Confirmed','Stock Check','Stock Reserved','Waiting Payment','Ready Delivery','Dispatched','Delivered','Customer Confirmation','After-Sales','Cancelled'];
 let selectedId=null;
-const seedReps=[{id:'REP-001',name:'Derej',phone:'',email:'',territory:'',target:0,entity:'PRIME Investment Group PLC',status:'Active'},{id:'REP-002',name:'Yohannes',phone:'',email:'',territory:'',target:0,entity:'PRIME Investment Group PLC',status:'Active'},{id:'REP-003',name:'Fikadu',phone:'',email:'',territory:'',target:0,entity:'PRIME Investment Group PLC',status:'Active'}];
+const seedReps=[];
 const acts=['Phone Call','WhatsApp / Message','In-Person Meeting','Site Visit','Sample Delivered','Quotation Sent','Proforma Sent','Price Discussion','Negotiation','Check Payment','Check Order','Check Production','Check Shipment','Check Delivery','Customer Service','Create Sales Order','Follow-up','Other'];
 const nexts=['Phone Call Follow-up','WhatsApp','Meeting','Site Visit','Send Quotation','Send Proforma','Send Sample','Negotiate Price','Check Payment','Check Order','Check Production','Check Shipment','Check Delivery','Customer Service','Create Sales Order','Follow up later','No further action','Lost Opportunity'];
 const today=()=>new Date().toISOString().slice(0,10), addDays=n=>new Date(Date.now()+n*86400000).toISOString().slice(0,10), norm=s=>String(s||'').trim().toLowerCase(), esc=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
