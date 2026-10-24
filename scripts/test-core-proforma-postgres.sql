@@ -63,6 +63,7 @@ DECLARE
   v_invalid boolean := false;
   v_invalid_type boolean := false;
   v_invalid_settings boolean := false;
+  v_invalid_text boolean := false;
 BEGIN
   v_payload := jsonb_build_object(
     'customer', 'Acme Corporation',
@@ -202,6 +203,22 @@ BEGIN
   END;
   IF NOT v_invalid_settings THEN
     RAISE EXCEPTION 'String-valued NaN VAT rate was not rejected by JSON type validation';
+  END IF;
+
+  BEGIN
+    PERFORM public.bokan_save_proforma(
+      'PRIME', NULL,
+      jsonb_set(v_payload, '{customer}', '{"name":"spoof"}'::jsonb)
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Customer and optional text fields must be JSON strings' THEN
+      v_invalid_text := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_invalid_text THEN
+    RAISE EXCEPTION 'Object-valued customer name was not rejected by text field validation';
   END IF;
 END
 $test$;
