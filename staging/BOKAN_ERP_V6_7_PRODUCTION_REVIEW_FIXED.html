@@ -6741,10 +6741,12 @@ async function generateProforma() {
   const withholdingRate = 3;
   const withholdingThreshold = 10000;
 
-  const grossMerchandise = items.reduce((sum,i)=>sum+i.qty*i.unit_price,0);
-  const discountedGross = grossMerchandise * (1 - discountPct/100);
-  const subtotalBeforeVAT = discountedGross / (1 + vatPct/100);
-  const vatAmount = discountedGross - subtotalBeforeVAT;
+  const grossMerchandise = Math.round(items.reduce((sum,i)=>sum+i.qty*i.unit_price,0)*100)/100;
+  // Keep the displayed arithmetic explicit: subtotal before VAT + VAT - discount = grand total.
+  const discountAmount = Math.round(grossMerchandise * discountPct / 100 * 100)/100;
+  const subtotalBeforeVAT = Math.round(grossMerchandise / (1 + vatPct/100) * 100)/100;
+  const vatAmount = Math.round((grossMerchandise - subtotalBeforeVAT)*100)/100;
+  const discountedGross = Math.round((grossMerchandise - discountAmount)*100)/100;
   const grandTotal = discountedGross;
   const withholdingAmount = grandTotal > withholdingThreshold ? grandTotal * withholdingRate/100 : 0;
   const netPayable = grandTotal - withholdingAmount;
@@ -6779,7 +6781,7 @@ async function generateProforma() {
   const bankBox=document.getElementById('pf-out-banks'); if(bankBox){const bankContent=bankBox.querySelector('.pf-bank-content'); if(bankContent) bankContent.innerHTML=banks.length?`<div class="space-y-1">${banks.map((b,i)=>`<div><strong>${i+1}. ${escapeHtml(b.bank_name||'Bank Account')}</strong>${b.account_number?' — '+escapeHtml(b.account_number):''}${b.purpose?' — '+escapeHtml(b.purpose):''}</div>`).join('')}</div>`:'<div class="text-[#8D9096]">No payment bank account specified.</div>'; bankBox.classList.toggle('hidden',!banks.length);}
   document.getElementById('pf-out-vatmode-label').textContent='';
   document.getElementById('pf-out-subtotal').textContent='ETB '+subtotalBeforeVAT.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  const discountRow=document.getElementById('pf-out-discount-row'); if(discountPct>0){discountRow.classList.remove('hidden');document.getElementById('pf-out-discountpct').textContent=discountPct;document.getElementById('pf-out-discount').textContent='- ETB '+(grossMerchandise-discountedGross).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}else discountRow.classList.add('hidden');
+  const discountRow=document.getElementById('pf-out-discount-row'); if(discountPct>0){discountRow.classList.remove('hidden');document.getElementById('pf-out-discountpct').textContent=discountPct;document.getElementById('pf-out-discount').textContent='- ETB '+discountAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}else discountRow.classList.add('hidden');
   document.getElementById('pf-out-vatpct').textContent=vatPct; document.getElementById('pf-out-vat').textContent='ETB '+vatAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); document.getElementById('pf-out-total').textContent='ETB '+grandTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const wr=document.getElementById('pf-out-withholding-row'); if(withholdingAmount>0){wr.classList.remove('hidden');document.getElementById('pf-out-withholding').textContent='- ETB '+withholdingAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}else wr.classList.add('hidden'); document.getElementById('pf-out-net').textContent='ETB '+netPayable.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const formattedTerms=terms.map(t=>{const isDelivery=/^(2-3 business days|3-5 business days|5-7 business days|2 weeks)$/.test(t);return isDelivery?`Delivery Time: ${t}`:t;}); document.getElementById('pf-out-terms').innerHTML=formattedTerms.length?formattedTerms.map(t=>`<li>${escapeHtml(t)}</li>`).join(''):'<li>No specific terms selected.</li>'; document.getElementById('pf-out-notes').textContent=notes; document.getElementById('proforma-print').classList.remove('hidden'); syncProformaCompanyTIN();
