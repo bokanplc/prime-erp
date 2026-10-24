@@ -442,3 +442,12 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Updated the UI and trusted SQL draft so subtotal + VAT − discount equals grand total; discount remains calculated on VAT-inclusive gross, and withholding remains based on final grand total.
 - Updated the disposable PostgreSQL expected totals and static UI/schema contract tests.
 - These are source changes only. The schema is still draft-only and has not been applied to Supabase. The discount's legal VAT treatment should be confirmed with the company's Ethiopian tax/accounting adviser before production.
+
+
+## Full-ERP completeness gate and display-math regression coverage (2026-10-24)
+- Added `scripts/audit-erp-release-readiness.mjs` to inventory referenced tables against the current schema draft and check for the missing legacy API endpoint groups.
+- Added `docs/FULL_ERP_MODULE_COMPLETENESS_MATRIX.md`: current inventory finds 55 logical table names referenced by the source, only 4 defined in the first-slice schema draft, and 51 still missing. The expected legacy API groups are also absent. The audit prints STOP-SHIP and prevents production/full-data flags being enabled while these gaps remain.
+- Added the readiness audit to GitHub Actions.
+- Corrected a proforma totals mismatch: the print layout showed a separate discount after subtotal/VAT while the old formula had already reduced subtotal and VAT by the discount. UI and SQL draft now reconcile subtotal + VAT - discount = grand total.
+- Updated the disposable PostgreSQL expected totals, schema contract test, UI/SQL contract test, and documentation. Example: ETB 11,500 inclusive gross, ETB 1,150 discount, subtotal ETB 10,000, VAT ETB 1,500, grand total ETB 10,350, withholding ETB 310.50, net payable ETB 10,039.50.
+- The tax treatment of discounts still requires confirmation by the company's Ethiopian tax/accounting adviser before live invoice use.
