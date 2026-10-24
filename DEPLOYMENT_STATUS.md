@@ -515,3 +515,8 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - GitHub Actions run 40100973866 passed both source-guard/release-candidate tests and disposable PostgreSQL schema tests, including RLS/grants, financial totals, and concurrent numbering.
 - Draft PR #1 remains open, unmerged and undeployed.
 - Generated release output is now isolated at dist/release/; do not publish staging/.
+
+
+## Full table-to-UI map prepared (2026-10-24)
+- Added docs/TABLE_TO_UI_ACCESS_MAP.md with all 55 logical table names, direct Supabase calls, legacy helper calls, operation counts, and nearby named function references.
+- The map is explicitly labeled as a lexical inventory aid, not a semantic schema or authorization proof. It identifies the remaining 50-table gap and legacy/new model pairs without guessing their canonical schema.
