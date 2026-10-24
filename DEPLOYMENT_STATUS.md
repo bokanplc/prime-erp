@@ -540,3 +540,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Rechecked final integrity: reviewed source and `staging/index.html` match exactly at 800,058 characters; `PRODUCTION_MODE=false`, `FULL_ERP_DATA_READY=false`, and Supabase URL/key placeholders remain blank; `main/index.html` remains 1 byte.
 - Rechecked Supabase read-only: no public application tables and no migrations. Security Advisor still reports only `auth_leaked_password_protection` disabled; performance advisor has no findings.
 - No production schema, Auth/Storage settings, paid plans, or live deployment were changed. Draft PR #1 remains unmerged.
+
+
+## Baseline static-hosting security headers (2026-10-24)
+- The sanitized build now emits Cloudflare Pages `dist/release/_headers` with `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, a restrictive referrer policy, and a Permissions Policy disabling unused camera, microphone, geolocation and payment APIs.
+- Release-candidate tests verify those headers are present in the generated output.
+- A strict Content Security Policy is intentionally not added yet because the single-file app still relies on inline scripts/styles and CDN-loaded Tailwind; adding a guessed policy could break the app, while permitting all inline scripts would offer weak XSS protection. Bundle/build hardening remains a release blocker.
