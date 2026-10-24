@@ -5158,7 +5158,7 @@ async function loadStock() {
       const subtotal = rows.reduce((s, r) => s + Number(r.total || 0), 0);
       return `<div class="mb-4">
         <div class="flex justify-between items-baseline bg-[#F4F5F8] px-2 py-1 rounded font-semibold text-[#393A3D]">
-          <span>${loc}</span><span class="text-xs text-[#6B6C72]">${rows.length} entries · ETB ${subtotal.toLocaleString()}</span>
+          <span>${escapeHtml(loc)}</span><span class="text-xs text-[#6B6C72]">${rows.length} entries · ETB ${subtotal.toLocaleString()}</span>
         </div>
         ${rows.slice(0, 20).map(renderRow).join('')}
       </div>`;
@@ -6217,7 +6217,7 @@ async function loadOverview() {
   const pipelineCounts = {};
   (leads || []).forEach(l => { pipelineCounts[l.current_status] = (pipelineCounts[l.current_status]||0)+1; });
   document.getElementById('overview-pipeline').innerHTML = Object.keys(pipelineCounts).length
-    ? Object.entries(pipelineCounts).map(([s,c]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${s}</span><span class="font-semibold">${c}</span></div>`).join('')
+    ? Object.entries(pipelineCounts).map(([s,c]) => `<div class="flex justify-between border-b border-[#ECEEF1] py-1"><span>${escapeHtml(s)}</span><span class="font-semibold">${c}</span></div>`).join('')
     : '<p class="text-[#8D9096]">No open leads.</p>';
 
   document.getElementById('overview-list').innerHTML = stockRows.slice(0,20).map(row => `<div class="border-b border-[#ECEEF1] py-2 text-xs">${escapeHtml(row.entry_type)} — ${escapeHtml(row.item_name)} × ${escapeHtml(row.quantity)} = ETB ${escapeHtml(row.total)} <span class="text-xs text-[#8D9096]">(${new Date(row.created_at).toLocaleString()})</span></div>`).join('');
