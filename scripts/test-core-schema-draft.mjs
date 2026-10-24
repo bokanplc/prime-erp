@@ -17,10 +17,10 @@ const checks = [
   [/create policy proformas_select_member[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma reads enforce company scope'],
   [/create policy proformas_insert_member[\s\S]*?created_by = \(select auth\.uid\(\)\)[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma inserts enforce actor and company scope'],
   [/status, created_by, updated_by[\s\S]*?\(select auth\.uid\(\)\), \(select auth\.uid\(\)\)/i, 'Atomic save derives creator and updater from authenticated identity'],
-  [/create or replace function public\\.bokan_save_proforma[\\s\\S]*?security invoker/i, 'Public proforma RPC wrapper remains SECURITY INVOKER'],
-  [/create or replace function private\\.bokan_save_proforma[\\s\\S]*?security definer[\\s\\S]*?set search_path = ''/i, 'Privileged implementation is isolated in private schema with a pinned empty search_path'],
-  [/revoke all on function public\\.bokan_save_proforma\\(text,uuid,jsonb\\) from public, anon/i, 'Public wrapper is not executable by anon or PUBLIC'],
-  [/revoke all on function private\\.bokan_save_proforma\\(text,uuid,jsonb\\) from public, anon/i, 'Private implementation is not executable by anon or PUBLIC'],
+  [/create or replace function public\.bokan_save_proforma[\s\S]*?security invoker/i, 'Public proforma RPC wrapper remains SECURITY INVOKER'],
+  [/create or replace function private\.bokan_save_proforma[\s\S]*?security definer[\s\S]*?set search_path = ''/i, 'Privileged implementation is isolated in private schema with a pinned empty search_path'],
+  [/revoke all on function public\.bokan_save_proforma\(text,uuid,jsonb\) from public, anon/i, 'Public wrapper is not executable by anon or PUBLIC'],
+  [/revoke all on function private\.bokan_save_proforma\(text,uuid,jsonb\) from public, anon/i, 'Private implementation is not executable by anon or PUBLIC'],
   [/pg_advisory_xact_lock/i, 'Number allocation uses a transaction lock'],
   [/proformas_vat_total_consistency_check/i, 'VAT and grand total arithmetic is constrained'],
   [/proformas_withholding_math_check/i, 'Withholding is checked against the configured threshold and rate'],
@@ -74,10 +74,10 @@ if (/p_payload->>'companyTinSnapshot'|p_payload->'banks'/.test(sql)) {
 if (/p_payload->>'grandTotal'|p_payload->>'subtotalBeforeVAT'|p_payload->>'vatAmount'/.test(sql)) {
   failures.push('Atomic save must not trust client-calculated totals.');
 }
-if (/create or replace function public\\.bokan_save_proforma[\\s\\S]*?security definer/i.test(sql)) failures.push('Public proforma RPC must not be SECURITY DEFINER');
-if (!/create or replace function private\\.bokan_save_proforma[\\s\\S]*?security definer[\\s\\S]*?set search_path = ''/i.test(sql)) failures.push('Privileged implementation must be in private schema with an empty search_path');
+if (/create or replace function public\.bokan_save_proforma[\s\S]*?security definer/i.test(sql)) failures.push('Public proforma RPC must not be SECURITY DEFINER');
+if (!/create or replace function private\.bokan_save_proforma[\s\S]*?security definer[\s\S]*?set search_path = ''/i.test(sql)) failures.push('Privileged implementation must be in private schema with an empty search_path');
 if (/create policy proformas_insert_member/i.test(sql)) failures.push('Direct client proforma inserts must not be allowed; inserts go through the trusted RPC');
-if (/grant select, insert on public\\.proformas to authenticated/i.test(sql)) failures.push('Authenticated clients must not have direct proforma INSERT privilege');
+if (/grant select, insert on public\.proformas to authenticated/i.test(sql)) failures.push('Authenticated clients must not have direct proforma INSERT privilege');
 if (!/company_bank_accounts\.company_code/.test(sql)) failures.push('Bank account RLS must qualify the outer company_code');
 if (failures.length) {
   console.error('Core schema draft checks failed:');
