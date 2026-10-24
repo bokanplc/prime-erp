@@ -48,8 +48,25 @@ const trackedRawSinks = [
   /\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/,
   /\$\{row\.entry_type\}/,
   /\$\{r\.employee_name\}/
+  /\$\{row\.status\|\|'Pending'\}/
+  /\$\{d\.location \|\| 'Delivery'\}/
+  /\$\{d\.vehicle \? ' — ' \+ d\.vehicle : ''\}/
+  /\$\{i\.product_type\}/
+  /\$\{i\.quality \|\| '-'\}/
+  /\$\{i\.qty\}/
+  /\$\{i\.unit_price\.toLocaleString\(\)\}/
+  /\$\{\(i\.qty\*i\.unit_price\)\.toLocaleString\(\)\}/
+  /\$\{p\.proforma_no\}/
+  /\$\{p\.customer_name\}/
+  /\$\{u\.role\}/
+  /\$\{salesKolfe \? \(row\.sold_by \|\| '-'\) : '-'\}/
+  /\$\{salesMes \? \(row\.sold_by \|\| '-'\) : '-'\}/
+  /\$\{r\.version\|\|1\}/
+  /\$\{r\.vatPct\}/
+  /\$\{data\.qty \?\? ''\}/
+  /\$\{data\.unit_price \?\? ''\}/]
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
 assert.match(source, /data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/, 'Document delete handlers must not interpolate stored values into JavaScript string literals.');
-console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 28 tracked sink patterns.');
+console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 45 tracked sink patterns.');
