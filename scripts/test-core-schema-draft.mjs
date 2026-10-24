@@ -31,7 +31,7 @@ const checks = [
   [/Not authorized to revise this proforma/, 'Sales users cannot revise another user\u2019s proforma without a supervisory role'],
   [/proformas_vat_total_consistency_check/i, 'VAT and grand total arithmetic is constrained'],
   [/proformas_withholding_math_check/i, 'Withholding is checked against the configured threshold and rate'],
-  [/Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered/, 'Withholding rate and threshold cannot be altered by direct RPC callers'],
+  [/Withholding is fixed at 3%% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered/, 'Withholding rate and threshold cannot be altered by direct RPC callers'],
   [/v_withholding_enabled := true;[\s\S]*?v_withholding_rate := 3;[\s\S]*?v_withholding_threshold := 10000;/, 'Withholding business rule is fixed at 3% above ETB 10,000'],
   [/proformas_net_payable_math_check/i, 'Net payable is checked against gross less withholding'],
   [/Tax, discount, withholding and date fields have invalid JSON types/, 'Financial settings reject string-valued numeric inputs before casting'],
