@@ -8,6 +8,7 @@ on:
       - 'staging/**'
       - 'scripts/**'
       - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
+      - 'supabase/migrations/**'
       - '.github/workflows/erp-source-guards.yml'
   pull_request:
     paths:
@@ -80,7 +81,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - name: Apply draft to disposable PostgreSQL and test RLS and totals
+      - name: Apply candidate migration to disposable PostgreSQL and test RLS and totals
         env:
           PGHOST: localhost
           PGPORT: 5432
