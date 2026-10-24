@@ -84,7 +84,7 @@ create table if not exists public.proformas (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint proformas_company_number_version_uq unique(company_code,proforma_no,version_no),
-  constraint proformas_vat_total_consistency_check check (abs(grand_total - subtotal_before_vat - vat_amount) <= 0.02),
+  constraint proformas_vat_total_consistency_check check (abs(grand_total - subtotal_before_vat - vat_amount + discount_amount) <= 0.02),
   constraint proformas_withholding_math_check check (
     abs(withholding_amount - case when withholding_enabled and grand_total > withholding_threshold then round(grand_total * withholding_rate / 100, 2) else 0 end) <= 0.01
   ),
@@ -306,8 +306,9 @@ begin
     from jsonb_array_elements(v_items) as item(value);
   v_discount_amount := round(v_gross * v_discount_percent / 100,2);
   v_discounted_gross := round(v_gross - v_discount_amount,2);
-  v_subtotal := round(v_discounted_gross / (1 + v_vat_rate / 100),2);
-  v_vat_amount := round(v_discounted_gross - v_subtotal,2);
+  -- Match the printed proforma row order: pre-discount subtotal + VAT - discount = grand total.
+  v_subtotal := round(v_gross / (1 + v_vat_rate / 100),2);
+  v_vat_amount := round(v_gross - v_subtotal,2);
   v_grand_total := v_discounted_gross;
   v_withholding_amount := case
     when v_withholding_enabled and v_grand_total > v_withholding_threshold
