@@ -348,3 +348,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Added `FULL_ERP_DATA_READY: false` to the staging config.
 - Both the Supabase authentication bridge and hosted fail-closed guard now require this explicit flag to be true in addition to production mode and valid Supabase config.
 - Source tests, static audit, and sanitized release candidate tests now enforce that this flag remains false until every module's persistence, authorization, and browser tests are complete.
+
+
+## Trusted proforma write boundary tightened (2026-10-24)
+- Found and closed a schema-design bypass: an authenticated client with direct INSERT on `proformas` could avoid the atomic financial calculations and issuer snapshots. Direct proforma INSERT/UPDATE/DELETE is now revoked in the draft.
+- The public SECURITY INVOKER RPC delegates to an isolated `private.bokan_save_proforma` SECURITY DEFINER implementation. The private function pins an empty `search_path`, revalidates actor/profile/company/role, and is not to be exposed through the Data API.
+- Extended schema tests for the private trusted-write boundary and PostgreSQL privilege tests for direct proforma mutations, profile authorization fields, and bank-account mutations.
+- All changes remain draft-only. No real Supabase schema, Auth setting, Storage policy, or live deployment was changed.
