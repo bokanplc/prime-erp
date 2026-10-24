@@ -71,3 +71,7 @@ This is a requirements table, not an implemented API.
 - Keep the project on free plans; no upgrades or paid services are assumed.
 
 No user decision is required to continue static source review, documentation, test design, and guardrails. Selecting a live authentication/data architecture and provisioning real company users are decision gates; do not guess those.
+
+
+## Release activation refinement (2026-10-24)
+The source now requires a source-reviewed module tab and an explicitly enabled config tab in addition to the existing full-data and production flags. Both allowlists are empty. This prevents the boolean readiness flags alone from revealing every role-allowed module. The separate localStorage migration inventory is `docs/LOCAL_STORAGE_MODULE_MIGRATION_MAP.md`; per-module readiness is tracked in `docs/PRODUCTION_MODULE_READINESS_MATRIX.md`.
