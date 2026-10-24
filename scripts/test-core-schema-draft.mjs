@@ -25,6 +25,8 @@ const checks = [
   [/proformas_withholding_math_check/i, 'Withholding is checked against the configured threshold and rate'],
   [/proformas_net_payable_math_check/i, 'Net payable is checked against gross less withholding'],
   [/Tax, discount, withholding and date fields have invalid JSON types/, 'Financial settings reject string-valued numeric inputs before casting'],
+  [/Customer and optional text fields must be JSON strings/, 'Customer/contact text fields reject malformed JSON objects and arrays'],
+  [/Each commercial term must be a string/, 'Commercial terms reject non-string JSON values'],
   [/jsonb_typeof\(item\.value->'qty'\) is distinct from 'number'[\s\S]*?jsonb_typeof\(item\.value->'unit_price'\) is distinct from 'number'/, 'Line item quantities and prices must be JSON numbers'],
   [/Line items must contain objects with a text description and numeric quantity\/unit price/, 'Malformed item JSON is rejected before numeric casts'],
   [/Proforma number sequence exhausted/i, 'Proforma numbering has a defined four-digit upper bound'],
