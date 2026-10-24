@@ -574,3 +574,8 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - GitHub Actions run `40105059565` passed both jobs after these changes: all source guards, HTML escaping and safe-document URL tests, inline JS syntax, release-readiness gate, sanitized release build/header tests, disposable PostgreSQL RLS/grant/financial tests, and concurrent numbering.
 - Final source integrity recheck: staging entry point matches the reviewed source byte-for-byte at 800,791 characters; production and full-data readiness flags remain false; Supabase URL/key placeholders remain blank; `main/index.html` remains 1 byte.
 - Supabase remains untouched: no public application tables or migrations. No deployment, paid upgrade, or live configuration change was made.
+
+
+## Ambiguous Proforma save outcome messaging (2026-10-24)
+- Changed the production save-error message so a network/response failure no longer claims that nothing was saved. The UI now tells the user to check the saved Proforma list before retrying, reducing duplicate-document risk when the database may have committed but the response was lost.
+- Added a regression assertion for the safer message. Database-level idempotency keys remain a future enhancement.
