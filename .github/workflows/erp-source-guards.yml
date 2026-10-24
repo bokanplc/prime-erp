@@ -37,6 +37,8 @@ jobs:
         run: node scripts/test-core-schema-draft.mjs
       - name: Test Proforma UI and database contract
         run: node scripts/test-proforma-ui-contract.mjs
+      - name: Test duplicate Proforma save guard behavior
+        run: node scripts/test-proforma-save-guard.mjs
       - name: Test actual Proforma calculation helper
         run: node scripts/test-proforma-math.mjs
       - name: Test HTML output escaping and safe document URLs
