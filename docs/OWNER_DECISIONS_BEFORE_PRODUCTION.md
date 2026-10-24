@@ -36,3 +36,7 @@ No paid plan or upgrade is assumed for either route.
 ## Current safe position
 
 The default branch is unchanged, the PR remains draft-only, production mode is disabled, Supabase has no application schema/migrations, and no live deployment has been made. Work that does not depend on these decisions can continue: source analysis, tests, schema drafts, security guards, and CI.
+
+
+## Existing Supabase security-advisor warning
+The read-only security advisor still reports Leaked Password Protection Disabled (auth_leaked_password_protection). The current connected workflow has no supported Auth-settings action to toggle it. Before production accounts are invited, enable the protection in Supabase Auth settings if available on the existing plan, then re-run the security advisor. Do not compensate by lowering password requirements.
