@@ -8945,7 +8945,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   async function user(){const {data,error}=await db().auth.getUser();if(error)throw error;if(!data?.user)throw new Error('Please sign in.');return data.user}
   const q=async(table,query)=>{const {data,error}=await query;if(error)throw error;return data||[]};
   async function list(table,order='created_at'){await user();return q(table,db().from(table).select('*').order(order,{ascending:false}))}
-  async function insert(table,row){const u=await user();const payload={...row,created_by:row.created_by||u.id};const {data,error}=await db().from(table).insert(payload).select().single();if(error)throw error;return data}
+  async function insert(table,row){const u=await user();const payload={...row,created_by:u.id};const {data,error}=await db().from(table).insert(payload).select().single();if(error)throw error;return data}
   async function update(table,id,row){await user();const {data,error}=await db().from(table).update(row).eq('id',id).select().single();if(error)throw error;return data}
   async function createFactory(row){return insert('bokan_factories',row)}
   async function createWarehouse(row){return insert('bokan_warehouses',row)}
