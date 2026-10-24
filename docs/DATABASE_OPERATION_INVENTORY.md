@@ -6,8 +6,10 @@ Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FI
 
 ## Current source snapshot
 
-- Direct literal `.from('table')` references: 0
+- Literal `.from('table')` call sites: 41
 - Distinct direct table names: 41
+- Additional table names passed into generic `insert`/`update`/`q`/`count` helpers: 14
+- Distinct logical database table names observed across direct and helper calls: 55
 - Direct operations: {"insert":36,"select":69,"update":21,"delete":16}
 - Literal `localStorage.getItem/setItem/removeItem` calls: 88; unique literal keys detected: 15.
 - `.select('*')` calls: 46.
@@ -102,3 +104,25 @@ These are not necessarily all business records; some may be release flags or UI 
 5. Enable RLS and add operation-specific policies, including company and role checks.
 6. Implement private Storage and a secure route for the legacy `/api/*` dependency or complete a module-by-module migration to Supabase.
 7. Test as anonymous user, PRIME user, BlackRock user, and admin before enabling production configuration.
+
+
+## Additional table names passed through generic data-access helpers
+
+The direct `.from('table')` scan alone misses table names passed to the shared production helper functions. Static review found these 14 additional logical database table names; their complete payload/relationship mapping is still outstanding:
+
+- `bokan_factories`
+- `bokan_warehouses`
+- `bokan_purchase_requests`
+- `bokan_purchase_request_lines`
+- `bokan_purchase_orders`
+- `bokan_purchase_order_lines`
+- `bokan_shipment_containers`
+- `bokan_goods_receipts`
+- `bokan_inventory_movements`
+- `bokan_stock_reservations`
+- `bokan_delivery_order_lines`
+- `bokan_delivery_events`
+- `bokan_logistics_exceptions`
+- `bokan_inventory_balances`
+
+These names are passed to generic CRUD helpers in the supply/procurement/logistics production bridge. They are not in the current Supabase schema, and the bridge must remain disabled until each table's company scope, foreign keys, payload fields, role permissions, atomic workflow, and test cases are designed. The updated static audit now tracks both the 41 direct table names and the generic helper table names.
