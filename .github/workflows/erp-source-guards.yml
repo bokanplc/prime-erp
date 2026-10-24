@@ -37,6 +37,8 @@ jobs:
         run: node scripts/test-core-schema-draft.mjs
       - name: Test Proforma UI and database contract
         run: node scripts/test-proforma-ui-contract.mjs
+      - name: Test actual Proforma calculation helper
+        run: node scripts/test-proforma-math.mjs
       - name: Parse inline JavaScript
         run: node scripts/check-inline-js.mjs
       - name: Audit direct data-access surface
