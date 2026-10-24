@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 const html=readFileSync('dist/release/index.html','utf8');
 const config=readFileSync('dist/release/config/config.js','utf8');
+const headers=readFileSync('dist/release/_headers','utf8');
 const expected={
   prime_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
@@ -60,4 +61,8 @@ const phoneFieldCount=[...html.matchAll(/\bphone\s*:\s*['"][^'"]{6,}['"]/gi)].le
 assert.ok(phoneFieldCount<=2,'Unexpected hard-coded phone fields found; only the two issuer contact fields are currently allowed.');
 const emailLiteralCount=[...html.matchAll(/['"][A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}['"]/gi)].length;
 assert.equal(emailLiteralCount,0,'Release candidate must not contain hard-coded email addresses.');
+assert.match(headers, /X-Content-Type-Options: nosniff/, 'Release candidate must set nosniff.');
+assert.match(headers, /X-Frame-Options: DENY/, 'Release candidate must deny framing.');
+assert.match(headers, /Referrer-Policy: strict-origin-when-cross-origin/, 'Release candidate must set a referrer policy.');
+assert.match(headers, /Permissions-Policy: camera=\(\), microphone=\(\), geolocation=\(\), payment=\(\)/, 'Release candidate must disable unused sensitive browser capabilities.');
 console.log('PASS: release candidate has empty fixture collections and disabled production config.');
