@@ -59,7 +59,7 @@ const rawHtmlSinkPatterns = [
   ['stock ledger quantity fields',/\$\{row\.factory_qty\s*\|\|\s*0\}/],
   ['stock ledger note fields',/\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/],
   ['stock overview entry type',/\$\{row\.entry_type\}/],
-  ['sales target employee names',/\$\{r\.employee_name\}/]
+  ['sales target employee names',/\$\{r\.employee_name\}/],
   ['leave status text',/\$\{row\.status\|\|'Pending'\}/],
   ['delivery location',/\$\{d\.location \|\| 'Delivery'\}/],
   ['delivery vehicle',/\$\{d\.vehicle \? ' — ' \+ d\.vehicle : ''\}/],
