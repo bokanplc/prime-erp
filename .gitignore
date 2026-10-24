@@ -1,0 +1,7 @@
+# Generated, sanitized release output. Build it from the reviewed source in CI/Cloudflare Pages.
+staging/release/
+
+# Local tooling output
+node_modules/
+.DS_Store
+Thumbs.db
