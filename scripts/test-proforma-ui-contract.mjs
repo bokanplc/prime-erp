@@ -45,5 +45,6 @@ assert.match(sql, /create or replace function public\.bokan_save_proforma[\s\S]*
 assert.match(sql, /revoke all on public\.companies, public\.profiles, public\.company_bank_accounts, public\.custom_terms, public\.proformas from anon, authenticated;[\s\S]*?grant select on public\.proformas to authenticated;/, 'Authenticated users must not have direct proforma write grants.');
 assert.match(source, /from\('custom_terms'\)\.select\('\*'\)\.eq\('company_code', companyKey\)/, 'Custom terms must be loaded only for the selected company.');
 assert.match(source, /company_code: companyKey, category, label, created_by: currentUser\?\.id/, 'Custom terms must be saved with the selected company and authenticated creator.');
+assert.match(source, /id="pf-company"[^>]*onchange="syncProformaCompanyTIN\(\); loadProformaTermOptions\(\)"/, 'Switching PRIME/BlackRock must refresh company-scoped terms.');
 
 console.log('PASS: Proforma UI payload, saved-row restoration, financial math and trusted RPC contract match.');
