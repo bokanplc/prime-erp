@@ -46,6 +46,7 @@ assert.match(source, /escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CR
 assert.match(source, /escapeHtml\(row\.customers\?\.customer_name \|\| ''\)/, 'CRM customer name must be HTML-escaped before rendering.');
 assert.match(source, /escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-up date must be HTML-escaped before rendering.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
+assert.match(source, /async function deleteProforma\(id\) \{ if \(_bokanProdConfigured\) \{ alert\('Proforma deletion is disabled in production until an audited void workflow is implemented\.'\); return; \}/, 'Production proforma deletion must remain blocked until an audited void workflow exists.');
 assert.match(source, /async function bokanProdSaveProforma\(payload,existing\)/, 'Production proforma save must accept existing-version context.');
 assert.match(source, /db\.rpc\('bokan_save_proforma'/, 'Production proforma save must use the atomic database RPC.');
 assert.doesNotMatch(source, /bokanProdNextProformaNumber|bokan_next_proforma_number/, 'Production must not use the separate candidate-number RPC.');
