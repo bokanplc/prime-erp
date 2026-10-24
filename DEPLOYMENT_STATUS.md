@@ -553,3 +553,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Candidate tests verify the generated header directives. Strict CSP remains deferred until inline scripts/styles are removed or a deliberate nonce/hash strategy is implemented.
 - GitHub Actions run `40104607347` passed both jobs after the header generation change: all source/release-candidate checks and disposable PostgreSQL RLS/grants/financial/concurrency tests passed.
 - No Cloudflare deployment was created; these are generated release files only.
+
+
+## Further stored-output hardening (2026-10-24)
+- Escaped department landing labels, stock control identifiers (moved edit/delete actions to escaped data attributes), finance close-control fields, posting register fields, and supply-tower inbound/delivery labels before inserting them into HTML.
+- Expanded both the HTML output-escaping regression suite and the full release-readiness stop-ship audit to track these additional sinks.
+- This is continued defense-in-depth on review source; the full module set is still blocked from production until its schema, auth, persistence, and browser tests are complete.
