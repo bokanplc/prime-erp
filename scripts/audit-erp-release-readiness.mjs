@@ -46,6 +46,20 @@ const rawHtmlSinkPatterns = [
   ['performance review names',/\.innerHTML\s*=\s*perfData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
   ['disciplinary action names',/\.innerHTML\s*=\s*discData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
   ['alert text',/\.innerHTML\s*=\s*alerts\.map\(a\s*=>\s*`[\s\S]{0,300}\$\{a\.text\}/]
+  ['employee autocomplete values',/\$\{e\.full_name\}/],
+  ['CRM reassignment profile names',/\$\{p\.full_name\}/],
+  ['CRM contact values',/\$\{c\.contact_person\s*\|\|\s*'—'\}/],
+  ['CRM location values',/\$\{c\.location\s*\|\|\s*'—'\}/],
+  ['CRM assigned salesperson names',/\$\{nameById\[c\.assigned_rep\]\s*\|\|\s*'Unassigned'\}/],
+  ['CRM status values',/\$\{c\.current_status\s*\|\|\s*''\}/],
+  ['CRM inline customer-name handler',/onclick="document\.getElementById\('cust-name'\)\.value='\$\{c\.customer_name\.replace/],
+  ['CRM escalation reasons',/\$\{log\.escalate_reason\s*\|\|\s*''\}/],
+  ['weekly CRM customer names',/\$\{row\.customers\?\.customer_name\s*\|\|\s*''\}/],
+  ['weekly CRM notes',/\$\{row\.notes\s*\|\|\s*''\}/],
+  ['stock ledger quantity fields',/\$\{row\.factory_qty\s*\|\|\s*0\}/],
+  ['stock ledger note fields',/\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/],
+  ['stock overview entry type',/\$\{row\.entry_type\}/],
+  ['sales target employee names',/\$\{r\.employee_name\}/]
 ];
 const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
