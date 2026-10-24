@@ -102,6 +102,11 @@ const rawHtmlSinkPatterns = [
 const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
 const fullDataReady = /FULL_ERP_DATA_READY\s*:\s*true/.test(config);
+const enabledTabsMatch = config.match(/ENABLED_PRODUCTION_TABS\s*:\s*\[([^\]]*)\]/);
+const enabledTabs = enabledTabsMatch ? [...enabledTabsMatch[1].matchAll(/['\"]([^'\"]+)['\"]/g)].map(m=>m[1]) : [];
+const reviewedTabsMatch = source.match(/window\.BOKAN_REVIEWED_PRODUCTION_TABS\s*=\s*Object\.freeze\(\[([^\]]*)\]\)/);
+const reviewedTabs = reviewedTabsMatch ? [...reviewedTabsMatch[1].matchAll(/['\"]([^'\"]+)['\"]/g)].map(m=>m[1]) : [];
+const unreviewedEnabledTabs = enabledTabs.filter(tab=>!reviewedTabs.includes(tab));
 const blockers = [];
 if(missing.length) blockers.push('Missing database table definitions ('+missing.length+'/'+referenced.length+'): '+missing.join(', '));
 if(!apiBackendPresent) blockers.push('Legacy authenticated /api backend is missing these Cloudflare Pages Functions groups: '+missingApiGroups.join(', ')+'.');
@@ -112,6 +117,9 @@ if(!/SUPABASE_URL\s*:\s*""/.test(config) || !/SUPABASE_ANON_KEY\s*:\s*""/.test(c
 }
 if(!/create or replace function public\.bokan_save_proforma/.test(schema)) blockers.push('Trusted proforma save function is missing from the reviewed first-slice schema.');
 if(!/enable row level security/i.test(schema)) blockers.push('The schema draft contains no RLS enablement.');
+if(!enabledTabsMatch) blockers.push('Production config is missing ENABLED_PRODUCTION_TABS.');
+if(unreviewedEnabledTabs.length) blockers.push('Production config enables tabs not approved by source-level module review: '+unreviewedEnabledTabs.join(', ')+'.');
+if((productionMode || fullDataReady) && enabledTabs.length===0) blockers.push('Production/full-data mode requires at least one explicitly reviewed production module tab.');
 
 console.log('BOKAN ERP full-release readiness audit');
 console.log('Referenced logical database tables: '+referenced.length);
@@ -121,6 +129,8 @@ console.log('Legacy API endpoint groups missing: '+(missingApiGroups.join(', ')|
 console.log('Known raw HTML sink patterns remaining: '+rawHtmlSinks.length+(rawHtmlSinks.length?' ('+rawHtmlSinks.join(', ')+')':''));
 console.log('PRODUCTION_MODE: '+productionMode);
 console.log('FULL_ERP_DATA_READY: '+fullDataReady);
+console.log('Source-reviewed production tabs: '+(reviewedTabs.join(', ')||'(none)'));
+console.log('Configured production tabs: '+(enabledTabs.join(', ')||'(none)'));
 if(blockers.length) {
   console.log('STOP-SHIP:');
   for(const blocker of blockers) console.log(' - '+blocker);
