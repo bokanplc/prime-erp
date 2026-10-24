@@ -6738,7 +6738,7 @@ function calculateBokanProformaTotals(items, vatPct, discountPct, withholdingEna
   return { grossMerchandise, discountAmount, subtotalBeforeVAT, vatAmount, discountedGross, grandTotal, withholdingAmount, netPayable };
 }
 
-async function generateProforma() {
+async function generateProformaInternal() {
   const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
   const company = getCompany(companyKey) || COMPANY_OPTIONS[companyKey];
   const customer = document.getElementById('pf-customer').value.trim();
@@ -6821,6 +6821,31 @@ async function generateProforma() {
   if(activeProformaRequestId) markProformaRequestProcessed(activeProformaRequestId); if(!document.getElementById('tab-repository').classList.contains('hidden')) loadRepoProformas();
 }
 
+let _bokanProformaSaveInFlight = false;
+async function generateProforma() {
+  if (_bokanProformaSaveInFlight) return;
+  _bokanProformaSaveInFlight = true;
+  const button = document.querySelector('button[onclick="generateProforma()"]');
+  const previousText = button?.textContent;
+  if (button) {
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.textContent = 'Saving Proforma…';
+  }
+  try {
+    return await generateProformaInternal();
+  } catch (error) {
+    console.error('Unexpected Proforma generation error:', error);
+    alert('Unable to generate the Proforma. Please review the details and try again.');
+  } finally {
+    _bokanProformaSaveInFlight = false;
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      if (previousText !== null && previousText !== undefined) button.textContent = previousText;
+    }
+  }
+}
 function addProformaBankAccount(data={}){const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;const row=document.createElement('div');row.className='pf-bank-row grid grid-cols-1 md:grid-cols-12 gap-2';row.innerHTML=`<input class="pf-bank-name md:col-span-3 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Bank Name"><input class="pf-bank-account md:col-span-4 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Account Number"><input class="pf-bank-purpose md:col-span-4 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Purpose / Branch"><button type="button" class="md:col-span-1 text-red-600 font-bold" onclick="deleteIssuerBankAccountRow(this)">Delete</button>`;row.querySelector('.pf-bank-name').value=data.bank_name||'';row.querySelector('.pf-bank-account').value=data.account_number||'';row.querySelector('.pf-bank-purpose').value=data.purpose||'';if(bokanProdEnabled()){row.querySelectorAll('input').forEach(el=>{el.readOnly=true;el.setAttribute('aria-readonly','true');});const del=row.querySelector('button');if(del){del.disabled=true;del.title='Bank account changes require administrator approval.';}document.querySelectorAll('[onclick="addProformaBankAccount()"]')?.forEach(btn=>{btn.disabled=true;btn.title='Bank account changes require administrator approval.';});}wrap.appendChild(row);}
 function deleteIssuerBankAccountRow(btn){const row=btn.parentElement;const name=row.querySelector('.pf-bank-name')?.value||'this bank account';if(confirm('Permanently remove '+name+' from the selected company bank account list?'))row.remove();}
 function proformaShareText(){ const p=window.currentBokanProforma||{}; return `BOKAN Proforma ${p.proformaNo||''} — ${p.company?.name||''} — Customer: ${p.customer||''} — Amount: ETB ${(p.netPayable||p.grandTotal||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}.` }
