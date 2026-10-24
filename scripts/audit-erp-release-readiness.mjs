@@ -31,11 +31,29 @@ const missingApiGroups = requiredApiFileGroups
   .filter(([,paths])=>!paths.some(path=>existsSync(path)))
   .map(([name])=>name);
 const apiBackendPresent = missingApiGroups.length === 0;
+const rawHtmlSinkPatterns = [
+  ['notification messages',/\.innerHTML\s*=\s*data\.map\(n\s*=>\s*`[\s\S]{0,500}\$\{n\.message\}/],
+  ['customer dropdown values',/\.innerHTML\s*=\s*data\.map\(c\s*=>\s*`<option value="\$\{c\.customer_name\}/],
+  ['stock item names',/\.innerHTML\s*=\s*stockData\.map\(row\s*=>\s*`[\s\S]{0,500}\$\{row\.item_name\}/],
+  ['CRM overdue customer names',/\.innerHTML\s*=\s*overdue\.map\(o\s*=>\s*`[\s\S]{0,500}\$\{o\.customer\.customer_name\}/],
+  ['customer activity actor names',/\.innerHTML\s*=\s*logs\.map\(log\s*=>\s*`[\s\S]{0,500}\$\{nameById\[log\.sales_rep\]/],
+  ['visit report names',/\.innerHTML\s*=\s*visitReportData\.map\(row\s*=>\s*`[\s\S]{0,500}\$\{row\.employee_name\}/],
+  ['role panel names',/\.innerHTML\s*=\s*data\.map\(u\s*=>\s*`[\s\S]{0,400}\$\{u\.full_name\}/],
+  ['document titles and URLs',/\.innerHTML\s*=\s*data\.map\(d\s*=>\s*`[\s\S]{0,500}href="\$\{d\.file_url\}"[\s\S]{0,150}\$\{d\.title\}/],
+  ['billing customer names',/\.innerHTML\s*=\s*billingData\.map\(row\s*=>\s*`[\s\S]{0,500}\$\{row\.customer_name\}/],
+  ['employee names',/\.innerHTML\s*=\s*employeeData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.full_name\}/],
+  ['leave request names',/\.innerHTML\s*=\s*leaveData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
+  ['performance review names',/\.innerHTML\s*=\s*perfData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
+  ['disciplinary action names',/\.innerHTML\s*=\s*discData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
+  ['alert text',/\.innerHTML\s*=\s*alerts\.map\(a\s*=>\s*`[\s\S]{0,300}\$\{a\.text\}/]
+];
+const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
 const fullDataReady = /FULL_ERP_DATA_READY\s*:\s*true/.test(config);
 const blockers = [];
 if(missing.length) blockers.push('Missing database table definitions ('+missing.length+'/'+referenced.length+'): '+missing.join(', '));
 if(!apiBackendPresent) blockers.push('Legacy authenticated /api backend is missing these Cloudflare Pages Functions groups: '+missingApiGroups.join(', ')+'.');
+if(rawHtmlSinks.length) blockers.push('Known unescaped data-driven HTML sinks remain: '+rawHtmlSinks.join(', ')+'.');
 if(!/SUPABASE_URL\s*:\s*""/.test(config) || !/SUPABASE_ANON_KEY\s*:\s*""/.test(config)) {
   // A configured browser key is not a release approval; the full readiness gate must still be satisfied.
   console.log('INFO: browser Supabase configuration is non-empty; this is not proof of schema or RLS readiness.');
@@ -48,6 +66,7 @@ console.log('Referenced logical database tables: '+referenced.length);
 console.log('Tables defined in current first-slice schema: '+defined.length+' ('+defined.join(', ')+')');
 console.log('Tables still missing schema: '+missing.length);
 console.log('Legacy API endpoint groups missing: '+(missingApiGroups.join(', ')||'(none)'));
+console.log('Known raw HTML sink patterns remaining: '+rawHtmlSinks.length+(rawHtmlSinks.length?' ('+rawHtmlSinks.join(', ')+')':''));
 console.log('PRODUCTION_MODE: '+productionMode);
 console.log('FULL_ERP_DATA_READY: '+fullDataReady);
 if(blockers.length) {
