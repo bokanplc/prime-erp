@@ -579,3 +579,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Ambiguous Proforma save outcome messaging (2026-10-24)
 - Changed the production save-error message so a network/response failure no longer claims that nothing was saved. The UI now tells the user to check the saved Proforma list before retrying, reducing duplicate-document risk when the database may have committed but the response was lost.
 - Added a regression assertion for the safer message. Database-level idempotency keys remain a future enhancement.
+
+
+## Save-outcome messaging regression verified (2026-10-24)
+- The production save-error path no longer claims that nothing was saved when the response fails. It now instructs the user to check the saved Proforma list before retrying, because a network failure can leave commit status uncertain.
+- The UI contract regression test verifies the safer message.
+- GitHub Actions run `40105232368` passed both jobs after the change: all source checks, save-guard behavior, HTML sink regression/audit, release sanitizer/header tests, disposable PostgreSQL RLS/grants/financial tests, and concurrent numbering.
