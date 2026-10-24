@@ -4,6 +4,7 @@
 // Never put a Supabase service-role/secret key in this browser file.
 window.BOKAN_CONFIG = {
   PRODUCTION_MODE: false,
+  FULL_ERP_DATA_READY: false,
   SUPABASE_URL: "",
   SUPABASE_ANON_KEY: ""
 };
