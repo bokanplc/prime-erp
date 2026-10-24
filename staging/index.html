@@ -4546,7 +4546,7 @@ function makeMockSupabase() {
 }
 
 const _bokanCfg = window.BOKAN_CONFIG || {};
-const _bokanProdConfigured = !!(_bokanCfg.PRODUCTION_MODE===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(_bokanCfg.SUPABASE_URL||'')) && String(_bokanCfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(_bokanCfg.SUPABASE_ANON_KEY||'')));
+const _bokanProdConfigured = !!(_bokanCfg.PRODUCTION_MODE===true && _bokanCfg.FULL_ERP_DATA_READY===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(_bokanCfg.SUPABASE_URL||'')) && String(_bokanCfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(_bokanCfg.SUPABASE_ANON_KEY||'')));
 const sb = _bokanProdConfigured ? window.supabase.createClient(_bokanCfg.SUPABASE_URL,_bokanCfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : makeMockSupabase();
 // Expose only the configured real client for production bridge modules. Never publish the mock client as a global API.
 if (_bokanProdConfigured) window.sb = sb;
