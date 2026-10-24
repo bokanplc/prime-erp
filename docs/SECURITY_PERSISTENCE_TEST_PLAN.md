@@ -124,3 +124,6 @@ The disposable PostgreSQL smoke suite now explicitly exercises:
 - String-valued `"NaN"` cannot be supplied as an item price or VAT rate; JSON-native types are checked before financial casts.
 - Negative quantities are rejected, while valid VAT-inclusive calculations and concurrent unique numbering still pass.
 These tests validate only the first-slice proforma draft in an ephemeral PostgreSQL service. They do not substitute for a real Supabase Auth/JWT, Data API exposure, or browser test, and they do not authorize applying the draft to the live project.
+
+
+Additional first-slice role test (2026-10-24): the disposable PostgreSQL suite now verifies that a sales user cannot update its company's issuer TIN, an accounting user can update the permitted issuer field for its own company, and authenticated users cannot update company code or active status. Test-only TIN edits are restored before the suite completes.
