@@ -7707,11 +7707,9 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
 <script id="prime-v45-enterprise-layer">
 (function(){
  const MK='prime_v45_master', SK='prime_v45_stock', PK='prime_v45_pay';
- const master={customers:[{name:'Sugar Corporation / Meti Desta',status:'Active'},{name:'Habesha Construction PLC',status:'Active'}],
- suppliers:[{name:'Supplier A',status:'Active'},{name:'Supplier B',status:'Needs Review'}],
- products:[{sku:'PLY-G-18',name:'Green Plywood',status:'Active'},{sku:'PLY-Y-18',name:'Yellow Plywood',status:'Active'},{sku:'PF-01',name:'Plastic Formwork',status:'Needs Review'}]};
- const stock=[{sku:'PLY-G-18',name:'Green Plywood',units:240,cost:850,reorder:100},{sku:'PLY-Y-18',name:'Yellow Plywood',units:65,cost:920,reorder:100},{sku:'PF-01',name:'Plastic Formwork',units:40,cost:1200,reorder:50}];
- const pay=[{name:'Employee A',dept:'Sales',base:18000,adjust:1000,status:'Ready'},{name:'Employee B',dept:'Operations',base:15000,adjust:0,status:'Review'},{name:'Employee C',dept:'Finance',base:22000,adjust:1500,status:'Ready'}];
+ const master={customers:[], suppliers:[], products:[]};
+ const stock=[];
+ const pay=[];
  const roles=[['Administrator','Full enterprise control'],['Finance Manager','Finance, close, approvals'],['Sales Manager','CRM, pipeline, customer coverage'],['HR Manager','Employees, leave, payroll'],['Operations Manager','Inventory, procurement, logistics']];
  const perms=[['View dashboard','✓','✓','✓','✓','✓'],['Post GL','✓','✓','','',''],['Approve payments','✓','✓','','',''],['Manage CRM','✓','','✓','',''],['Manage payroll','✓','','','✓',''],['Manage inventory','✓','','','','✓'],['Master data administration','✓','✓','','✓','✓']];
  function read(k,seed){try{return JSON.parse(localStorage.getItem(k))||seed}catch(e){return seed}}
