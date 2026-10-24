@@ -21,6 +21,7 @@ const checks = [
   [/revoke all on function public\.bokan_save_proforma\(text,uuid,jsonb\) from public, anon/i, 'Public wrapper is not executable by anon or PUBLIC'],
   [/revoke all on function private\.bokan_save_proforma\(text,uuid,jsonb\) from public, anon/i, 'Private implementation is not executable by anon or PUBLIC'],
   [/pg_advisory_xact_lock/i, 'Number allocation uses a transaction lock'],
+  [/Not authorized to revise this proforma/, 'Sales users cannot revise another user\u2019s proforma without a supervisory role'],
   [/proformas_vat_total_consistency_check/i, 'VAT and grand total arithmetic is constrained'],
   [/proformas_withholding_math_check/i, 'Withholding is checked against the configured threshold and rate'],
   [/proformas_net_payable_math_check/i, 'Net payable is checked against gross less withholding'],
