@@ -464,3 +464,12 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Verified the test in both PR and push workflows. Run `40088863876` (PR) and `40088859385` (push) both passed both jobs.
 - The simulated production enablement is rejected while 51 table definitions and all five legacy API endpoint groups are missing.
 - The sanitized candidate still builds successfully but remains intentionally non-functional for live business use; this is a security control, not a deployment-ready application.
+
+
+## Additional proforma validation and unit tests (2026-10-24)
+- Extracted the Proforma arithmetic into `calculateBokanProformaTotals` so the live UI and a Node unit test exercise the same helper.
+- Added `scripts/test-proforma-math.mjs` and CI coverage for VAT-inclusive ETB 6,025, discount math, exact ETB 10,000 threshold behavior, discounting below the threshold, and net payable rounding.
+- Tightened the trusted SQL draft to reject object/array values in customer/contact text fields and non-string commercial terms before storing them.
+- Tightened the trusted revision path so a sales user cannot revise another salesperson's proforma in the same company; authorized supervisory/accounting roles retain that capability.
+- Added disposable PostgreSQL tests for malformed text payload rejection and same-company revision ownership. Latest PR run `40089304041` and push run `40089301132` both passed all source and PostgreSQL jobs, including the new math helper and revision checks.
+- Added `.gitignore` to prevent generated `staging/release/` artifacts from being committed; Cloudflare must generate this directory during build.
