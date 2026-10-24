@@ -26,7 +26,7 @@ GRANT USAGE ON SCHEMA auth TO authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 
 -- Apply only to the ephemeral CI database.
-\i docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql
+\i supabase/migrations/20261024000000_core_proforma_mvp.sql
 
 INSERT INTO auth.users(id) VALUES
   ('11111111-1111-4111-8111-111111111111'),
