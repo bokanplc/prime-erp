@@ -43,6 +43,8 @@ jobs:
         run: node scripts/audit-erp-data-surface.mjs
       - name: Audit full ERP release readiness (stop-ship report)
         run: node scripts/audit-erp-release-readiness.mjs
+      - name: Test full ERP release gate rejects premature enablement
+        run: node scripts/test-erp-release-readiness.mjs
       - name: Build sanitized release candidate
         run: node scripts/build-release-candidate.mjs
       - name: Test sanitized release candidate
