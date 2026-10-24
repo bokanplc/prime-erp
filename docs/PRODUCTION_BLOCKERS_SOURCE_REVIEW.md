@@ -93,3 +93,9 @@ Source and staging config now require an explicit `FULL_ERP_DATA_READY: true` fl
 
 ## Additional release fixture data removed (2026-10-24)
 Static review found that the release sanitizer was not clearing all seed-like variables with names other than exactly `seed`: governance approval/audit arrays, reconciliation and close-control rows, sample finance transactions, sample document sequence numbers, and sales-representative defaults. The release builder now empties these module-specific variables, neutralizes the preview-admin badge label, and checks for unreviewed seed-like binding names. The release tests assert the corresponding example records are absent. This is a release-candidate data hygiene control; the reviewed source retains local-preview examples for development, and production remains disabled.
+
+
+## Per-module production release allowlist (2026-10-24)
+Source review found that a single `FULL_ERP_DATA_READY` flag could otherwise expose the entire role-based navigation tree as soon as it was set true. Added a second, source-controlled module allowlist: `window.BOKAN_REVIEWED_PRODUCTION_TABS`, initially empty. Staging config also has `ENABLED_PRODUCTION_TABS: []`. The core Supabase client, Auth bridge and hosted fail-closed guard now require at least one configured tab that is also source-reviewed. Production navigation is the intersection of role permissions and the reviewed/enabled tab set.
+
+This is defense-in-depth, not authorization: RLS/grants remain mandatory. No tab is approved today. A module must pass real Supabase Auth/Data API, schema/RLS, persistence and browser tests before its tab is added to the source allowlist.
