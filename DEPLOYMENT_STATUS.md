@@ -478,7 +478,7 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Stored-XSS hardening and latest full CI verification (2026-10-24)
 - Escaped database/local-data output in the reviewed customer, CRM, stock, delivery, billing, proforma, employee, leave, performance, disciplinary, notification, role, visit-report and alert templates.
 - Removed customer-name interpolation from a dynamic inline JavaScript string; the click handler now reads a safely escaped data attribute.
-- Added HTTPS-only document URL validation and changed document-delete parameters to escaped dataset attributes.
+- Added same-project private signed-storage URL validation and changed document-delete parameters to escaped dataset attributes.
 - Added \`scripts/test-html-output-escaping.mjs\`; expanded the release audit from 14 to 53 tracked interpolation patterns. Latest GitHub Actions run \`40100297898\` passed both source-guard and disposable PostgreSQL jobs, including HTML escaping tests, sanitized release-candidate checks, RLS/grant/totals smoke tests and concurrent proforma numbering.
 - The audit now reports zero matches across the 45 tracked raw-interpolation patterns. This is a bounded static regression check, not proof that all HTML injection risks are gone; full browser testing and further review remain required.
 - Added \`docs/DATA_API_EXPOSURE_CHANGE_NOTE.md\` after reviewing current Supabase documentation and the announced 2026-10-30 Data API default-grants change. The schema draft uses explicit grants, but the actual exposed-schema setting still needs verification before any migration.
@@ -489,3 +489,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Added escaping to withholding-certificate output fields, computed withholding values, HR department report labels, delivery line details, and remaining local proforma form attributes.
 - Expanded the static regression inventory to **53 tracked raw-interpolation patterns**. Latest GitHub Actions run \`40100513990\` passed the HTML escaping tests, release audit, sanitized candidate checks, disposable PostgreSQL RLS/grant/financial tests, and concurrent proforma-numbering test.
 - The tracked pattern count is a guardrail only; unknown \`innerHTML\` sinks and inline event-handler contexts still require broader review and browser-based security testing.
+
+
+## Private document URL tightening and final test pass (2026-10-24)
+- Document links now require a configured Supabase URL and only allow HTTPS URLs from that exact project origin whose path starts with \`/storage/v1/object/sign/documents/\`. Public bucket URLs, external HTTPS URLs, HTTP URLs, JavaScript/data URLs, and all document URLs while config is blank are rejected.
+- Added \`rel=\"noopener noreferrer\"\` for opened document tabs and regression tests for allowed signed paths, external hosts, public storage paths, dangerous schemes, and blank config.
+- GitHub Actions run \`40100784683\` passed both jobs: source guard/release artifact checks and disposable PostgreSQL schema tests, including the proforma RLS/financial checks and concurrent numbering.
