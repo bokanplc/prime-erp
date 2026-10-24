@@ -84,3 +84,7 @@ Expected result: only explicitly authorized rows and operations succeed. A UI-hi
 7. Draft and test schema/grants/RLS together; do not apply policies to a schema that has not been designed and reconciled.
 
 No SQL, RLS policy, grant, Auth setting, Storage setting, or deployment is changed by this document.
+
+
+## Proforma write privilege refinement (2026-10-24)
+Direct table INSERT/UPDATE/DELETE is not granted to authenticated clients for `proformas`. All creation/revision writes go through the authenticated public wrapper and isolated private transaction function. Role/company authorization is revalidated inside the private function; UI role checks are not trusted. The private schema must remain unexposed through the Data API.
