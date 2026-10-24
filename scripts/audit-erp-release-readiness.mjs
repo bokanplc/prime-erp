@@ -60,6 +60,23 @@ const rawHtmlSinkPatterns = [
   ['stock ledger note fields',/\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/],
   ['stock overview entry type',/\$\{row\.entry_type\}/],
   ['sales target employee names',/\$\{r\.employee_name\}/]
+  ['leave status text',/\$\{row\.status\|\|'Pending'\}/],
+  ['delivery location',/\$\{d\.location \|\| 'Delivery'\}/],
+  ['delivery vehicle',/\$\{d\.vehicle \? ' — ' \+ d\.vehicle : ''\}/],
+  ['delivery product type',/\$\{i\.product_type\}/],
+  ['delivery quality',/\$\{i\.quality \|\| '-'\}/],
+  ['delivery quantity',/\$\{i\.qty\}/],
+  ['delivery unit price',/\$\{i\.unit_price\.toLocaleString\(\)\}/],
+  ['delivery line total',/\$\{\(i\.qty\*i\.unit_price\)\.toLocaleString\(\)\}/],
+  ['proforma list number',/\$\{p\.proforma_no\}/],
+  ['proforma list customer',/\$\{p\.customer_name\}/],
+  ['user role label',/\$\{u\.role\}/],
+  ['stock seller label for Kolfe',/\$\{salesKolfe \? \(row\.sold_by \|\| '-'\) : '-'\}/],
+  ['stock seller label for Meskel Flower',/\$\{salesMes \? \(row\.sold_by \|\| '-'\) : '-'\}/],
+  ['local proforma version',/\$\{r\.version\|\|1\}/],
+  ['local proforma VAT rate',/\$\{r\.vatPct\}/],
+  ['local proforma item quantity attribute',/\$\{data\.qty \?\? ''\}/],
+  ['local proforma unit price attribute',/\$\{data\.unit_price \?\? ''\}/]
 ];
 const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
