@@ -47,7 +47,7 @@ const trackedRawSinks = [
   /\$\{row\.factory_qty\s*\|\|\s*0\}/,
   /\$\{row\.notes\s*\?\s*'· '\s*\+\s*row\.notes\s*:\s*''\}/,
   /\$\{row\.entry_type\}/,
-  /\$\{r\.employee_name\}/]
+  /\$\{r\.employee_name\}/
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
