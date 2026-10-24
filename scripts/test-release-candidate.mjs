@@ -48,6 +48,8 @@ assert.doesNotMatch(html,/Preview Admin|Supplier payment approval|Sales discount
 assert.ok(!html.includes('preview-admin')&&!html.includes('preview@primegroup.local'),'Release candidate must not ship a preview administrator identity.');
 assert.doesNotMatch(html,/Preview Admin|Preview Admin — admin/,'Release candidate must not display a preview administrator label or audit actor.');
 assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
+assert.match(html,/function safeDocumentHref\(value\)[\s\S]{0,220}parsed\.protocol === 'https:'/,'Release candidate must restrict document links to HTTPS URLs.');
+assert.match(html,/data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/,'Document delete actions must pass data through escaped dataset attributes, not inline JavaScript string interpolation.');
 assert.match(html,/Proforma deletion is disabled in production until an audited void workflow is implemented/,'Production proforma deletion must remain blocked until an audited void workflow exists.');
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
 assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
