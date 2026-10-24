@@ -7,12 +7,14 @@ const checks = [
   [/create table if not exists public\.companies/i, 'Company master table exists'],
   [/create table if not exists public\.profiles[\s\S]*?references auth\.users\(id\)/i, 'Profiles are linked to Supabase Auth users'],
   [/create table if not exists public\.company_bank_accounts/i, 'Company bank account table exists'],
+  [/create table if not exists public\.custom_terms/i, 'Company-scoped custom Proforma terms table exists'],
   [/create table if not exists public\.proformas/i, 'Proforma persistence table exists'],
   [/delivery_terms text not null default ''/i, 'Delivery terms are persisted'],
   [/constraint proformas_company_number_version_uq unique\(company_code,proforma_no,version_no\)/i, 'Proforma number/version uniqueness is company-scoped'],
   [/alter table public\.companies enable row level security/i, 'RLS is enabled on companies'],
   [/alter table public\.profiles enable row level security/i, 'RLS is enabled on profiles'],
   [/alter table public\.company_bank_accounts enable row level security/i, 'RLS is enabled on bank accounts'],
+  [/alter table public\.custom_terms enable row level security/i, 'RLS is enabled on custom Proforma terms'],
   [/alter table public\.proformas enable row level security/i, 'RLS is enabled on proformas'],
   [/create policy proformas_select_member[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma reads enforce company scope'],
   [/status, created_by, updated_by[\s\S]*?\(select auth\.uid\(\)\), \(select auth\.uid\(\)\)/i, 'Atomic save derives creator and updater from authenticated identity'],
@@ -31,7 +33,7 @@ const checks = [
   [/jsonb_typeof\(item\.value->'qty'\) is distinct from 'number'[\s\S]*?jsonb_typeof\(item\.value->'unit_price'\) is distinct from 'number'/, 'Line item quantities and prices must be JSON numbers'],
   [/Line items must contain objects with a text description and numeric quantity\/unit price/, 'Malformed item JSON is rejected before numeric casts'],
   [/Proforma number sequence exhausted/i, 'Proforma numbering has a defined four-digit upper bound'],
-  [/revoke all on public\.companies, public\.profiles, public\.company_bank_accounts, public\.proformas from anon, authenticated/i, 'Table grants start from least privilege'],
+  [/revoke all on public\.companies, public\.profiles, public\.company_bank_accounts, public\.custom_terms, public\.proformas from anon, authenticated/i, 'Table grants start from least privilege'],
   [/insert into public\.companies[\s\S]*?on conflict\(code\) do nothing/i, 'Company seed is repeatable without overwriting edited issuer settings'],
 ];
 
