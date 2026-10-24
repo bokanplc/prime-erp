@@ -147,7 +147,7 @@ mkdirSync(dirname(outputPath),{recursive:true});
 mkdirSync(dirname(outputConfigPath),{recursive:true});
 writeFileSync(outputPath,releaseHtml);
 writeFileSync(outputConfigPath,config);
-const securityHeaders = ['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\\n');
+const securityHeaders = ['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\n');
 writeFileSync(outputHeadersPath,securityHeaders);
 console.log('Built sanitized release candidate: '+outputPath);
 console.log('Emptied known fixture collections: '+(Object.keys(replacements).length+1+sanitizedFixtureBindingCount));
