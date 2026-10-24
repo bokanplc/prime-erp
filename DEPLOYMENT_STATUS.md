@@ -520,3 +520,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Full table-to-UI map prepared (2026-10-24)
 - Added docs/TABLE_TO_UI_ACCESS_MAP.md with all 55 logical table names, direct Supabase calls, legacy helper calls, operation counts, and nearby named function references.
 - The map is explicitly labeled as a lexical inventory aid, not a semantic schema or authorization proof. It identifies the remaining 50-table gap and legacy/new model pairs without guessing their canonical schema.
+
+
+## Duplicate Proforma-save protection (2026-10-24)
+- Wrapped Proforma generation with an in-flight guard that ignores repeated clicks while a save is running, disables the button and announces the saving state, then restores the button and releases the lock in `finally`.
+- Added regression assertions to the UI/database contract test and sanitized release-candidate test.
+- This reduces accidental duplicate proformas from rapid/repeated clicks; it does not replace a future database idempotency key for retries across network failures.
