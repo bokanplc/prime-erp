@@ -64,15 +64,15 @@ const trackedRawSinks = [
   /\$\{r\.version\|\|1\}/,
   /\$\{r\.vatPct\}/,
   /\$\{data\.qty \?\? ''\}/,
-  /\$\{data\.unit_price \?\? ''\}/
-  /\$\{i\.date \|\| ''\}/
-  /\$\{i\.inv \|\| ''\}/
-  /\$\{i\.desc \|\| ''\}/
-  /\$\{i\.gross\.toLocaleString\(\)\}/
-  /\$\{i\.rate\}/
-  /\$\{\(i\.gross\*i\.rate\/100\)\.toLocaleString\(\)\}/
-  /\$\{i\.cert \|\| ''\}/
-  /\$\{d\}<\/span><span class="value">\$\{c\}/]
+  /\$\{data\.unit_price \?\? ''\}/,
+  /\$\{i\.date \|\| ''\}/,
+  /\$\{i\.inv \|\| ''\}/,
+  /\$\{i\.desc \|\| ''\}/,
+  /\$\{i\.gross\.toLocaleString\(\)\}/,
+  /\$\{i\.rate\}/,
+  /\$\{\(i\.gross\*i\.rate\/100\)\.toLocaleString\(\)\}/,
+  /\$\{i\.cert \|\| ''\}/,
+  /\$\{d\}<\/span><span class="value">\$\{c\}/
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
