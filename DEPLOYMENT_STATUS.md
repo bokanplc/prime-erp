@@ -585,3 +585,11 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The production save-error path no longer claims that nothing was saved when the response fails. It now instructs the user to check the saved Proforma list before retrying, because a network failure can leave commit status uncertain.
 - The UI contract regression test verifies the safer message.
 - GitHub Actions run `40105232368` passed both jobs after the change: all source checks, save-guard behavior, HTML sink regression/audit, release sanitizer/header tests, disposable PostgreSQL RLS/grants/financial tests, and concurrent numbering.
+
+
+## Per-module release gate and migration inventories (2026-10-24)
+- Added `ENABLED_PRODUCTION_TABS: []` to the staging config and a source-controlled `BOKAN_REVIEWED_PRODUCTION_TABS` allowlist, also empty.
+- Core client initialization, Supabase Auth bridge and hosted fail-closed guard require at least one tab enabled in config and approved in source. Production navigation is filtered by both role and the module allowlist.
+- Added regression checks in source guard, static audit, release build, release-candidate tests, and full-release readiness audit. The release builder now refuses to generate a candidate if production mode/readiness/tabs are enabled prematurely.
+- Added `docs/LOCAL_STORAGE_MODULE_MIGRATION_MAP.md` to map legacy browser storage to server-side data requirements and `docs/PRODUCTION_MODULE_READINESS_MATRIX.md` to track each module's actual backend/test status.
+- This avoids relying on a single boolean flag to expose the entire ERP navigation tree. It does not replace RLS or backend authorization; no modules are approved for production yet.
