@@ -4546,7 +4546,14 @@ function makeMockSupabase() {
 }
 
 const _bokanCfg = window.BOKAN_CONFIG || {};
-const _bokanProdConfigured = !!(_bokanCfg.PRODUCTION_MODE===true && _bokanCfg.FULL_ERP_DATA_READY===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(_bokanCfg.SUPABASE_URL||'')) && String(_bokanCfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(_bokanCfg.SUPABASE_ANON_KEY||'')));
+// A global FULL_ERP_DATA_READY flag is not sufficient to expose every module. Each tab must be explicitly reviewed in source and explicitly enabled in config.
+window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([]);
+window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function(cfg){
+  const reviewed = window.BOKAN_REVIEWED_PRODUCTION_TABS;
+  const enabled = Array.isArray(cfg?.ENABLED_PRODUCTION_TABS) ? cfg.ENABLED_PRODUCTION_TABS : [];
+  return Array.isArray(reviewed) && enabled.some(tab => reviewed.includes(tab));
+};
+const _bokanProdConfigured = !!(_bokanCfg.PRODUCTION_MODE===true && _bokanCfg.FULL_ERP_DATA_READY===true && window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB(_bokanCfg) && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(_bokanCfg.SUPABASE_URL||'')) && String(_bokanCfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(_bokanCfg.SUPABASE_ANON_KEY||'')));
 const sb = _bokanProdConfigured ? window.supabase.createClient(_bokanCfg.SUPABASE_URL,_bokanCfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : makeMockSupabase();
 // Expose only the configured real client for production bridge modules. Never publish the mock client as a global API.
 if (_bokanProdConfigured) window.sb = sb;
@@ -8866,7 +8873,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
 (function(){
   'use strict';
   const cfg=window.BOKAN_CONFIG||{};
-  const configured=!!(cfg.PRODUCTION_MODE===true && cfg.FULL_ERP_DATA_READY===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
+  const configured=!!(cfg.PRODUCTION_MODE===true && cfg.FULL_ERP_DATA_READY===true && typeof window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB==='function' && window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB(cfg) && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
   window.BOKAN_PRODUCTION_AUTH={enabled:configured,client:null,profile:null};
   if(!configured){ return; }
   const auth=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -8890,7 +8897,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
       accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
-    }; return map[role]||[];
+    }; const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
   }
   function applyProfile(profile,user){
     window.BOKAN_PRODUCTION_AUTH.profile=profile;
