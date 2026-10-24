@@ -33,6 +33,8 @@ jobs:
           node-version: '22'
       - name: Test startup and staging guards
         run: node scripts/test-erp-source-guards.mjs
+      - name: Test reviewed production module allowlist
+        run: node scripts/test-production-module-allowlist.mjs
       - name: Test core proforma schema draft
         run: node scripts/test-core-schema-draft.mjs
       - name: Test Proforma UI and database contract
