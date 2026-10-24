@@ -167,6 +167,9 @@ BEGIN
   IF (SELECT prosecdef FROM pg_proc WHERE oid = 'public.bokan_save_proforma(text,uuid,jsonb)'::regprocedure) THEN
     RAISE EXCEPTION 'Proforma save RPC must remain SECURITY INVOKER';
   END IF;
+  IF NOT (SELECT prosecdef FROM pg_proc WHERE oid = 'private.bokan_save_proforma(text,uuid,jsonb)'::regprocedure) THEN
+    RAISE EXCEPTION 'Private implementation must be SECURITY DEFINER';
+  END IF;
 END
 $privileges$;
 
