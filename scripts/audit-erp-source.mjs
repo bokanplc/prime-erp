@@ -47,7 +47,7 @@ requirePattern(/function\s+makeMockSupabase\s*\(/, 'Mock Supabase client was not
 warnPattern(/function\s+makeMockSupabase\s*\(/, 'Mock backend exists in the source. Prove it cannot run on any hosted production path.');
 requirePattern(/if\s*\(!localPreview\s*\|\|\s*config\.PRODUCTION_MODE\s*===\s*true\)/, 'Hosted boot must not use the preview identity.');
 requirePattern(/const configured=!!\(cfg\.PRODUCTION_MODE===true && cfg\.FULL_ERP_DATA_READY===true && window\.supabase/, 'Supabase auth bridge must require full-ERP data readiness.');
-requirePattern(/const configured = !!\(cfg\.PRODUCTION_MODE === true && cfg\.FULL_ERP_DATA_READY === true && window\.supabase/, 'Hosted fail-closed guard must require full-ERP data readiness.');
+requirePattern(/const configured = !!\(cfg\.PRODUCTION_MODE === true && cfg\.FULL_ERP_DATA_READY === true && typeof window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB === 'function' && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(cfg\)/, 'Hosted fail-closed guard must require a reviewed enabled module.');
 requirePattern(/const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const DEV_BYPASS=localPreview;/, 'Legacy API bypass must be local-preview-only.');
 requirePattern(/Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
 requirePattern(/if\(window\.BOKAN_PRODUCTION_AUTH\?\.enabled\)\{gate\.style\.display='none';top\.style\.display='none';return;\}/, 'Supabase Auth must replace the legacy API login overlay when configured.');
@@ -55,7 +55,10 @@ requirePattern(/const productionAllowed = window\.BOKAN_PRODUCTION_AUTH\?\.enabl
 requirePattern(/sales_manager:\['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma'/, 'Sales managers must be allowed to create proformas.');
 requirePattern(/sales:\['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');
 if (/\#prime-prod-gate\{display:none!important\}/.test(source)) failures.push('Production API gate is force-hidden by CSS.');
-requirePattern(/const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.supabase/, 'Core Supabase client must require full ERP data readiness.');
+requirePattern(/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/, 'No module is currently approved for production.');
+requirePattern(/window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function\(cfg\)/, 'Production activation must require an explicit reviewed module.');
+requirePattern(/const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(_bokanCfg\) && window\.supabase/, 'Core Supabase client must require full readiness and a reviewed enabled module.');
+requirePattern(/return \(map\[role\]\|\|\[\]\)\.filter\(tab=>enabled\.has\(tab\)\)/, 'Production navigation must intersect role permissions with the reviewed module allowlist.');
 requirePattern(/if\s*\(_bokanProdConfigured\)\s*window\.sb\s*=\s*sb/, 'Configured Supabase client must be available to production bridge modules.');
 requirePattern(/https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
 requirePattern(/customer_phone:payload\.phone,contact_person:payload\.contactPerson,delivery_terms:payload\.delivery\|\|''/, 'Production proforma saves must persist the selected delivery term.');
