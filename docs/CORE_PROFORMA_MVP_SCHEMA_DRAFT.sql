@@ -48,6 +48,16 @@ create table if not exists public.company_bank_accounts (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.custom_terms (
+  id uuid primary key default gen_random_uuid(),
+  company_code text not null references public.companies(code),
+  category text not null check (category in ('validity','payment','delivery','transport')),
+  label text not null check (length(trim(label)) between 1 and 300),
+  created_by uuid not null references auth.users(id),
+  created_at timestamptz not null default now(),
+  constraint custom_terms_company_category_label_uq unique(company_code, category, label)
+);
+
 create table if not exists public.proformas (
   id uuid primary key default gen_random_uuid(),
   company_code text not null references public.companies(code),
@@ -99,6 +109,7 @@ create index if not exists company_bank_accounts_company_active_idx
 alter table public.companies enable row level security;
 alter table public.profiles enable row level security;
 alter table public.company_bank_accounts enable row level security;
+alter table public.custom_terms enable row level security;
 alter table public.proformas enable row level security;
 
 -- The profile is the source of app role/company scope. Users cannot self-edit
@@ -146,6 +157,32 @@ create policy company_banks_select_member on public.company_bank_accounts
     )
   );
 
+drop policy if exists custom_terms_select_member on public.custom_terms;
+create policy custom_terms_select_member on public.custom_terms
+  for select to authenticated
+  using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = (select auth.uid())
+        and p.active and p.terminated_at is null
+        and (p.company_code = custom_terms.company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
+    )
+  );
+
+drop policy if exists custom_terms_insert_member on public.custom_terms;
+create policy custom_terms_insert_member on public.custom_terms
+  for insert to authenticated
+  with check (
+    created_by = (select auth.uid())
+    and exists (
+      select 1 from public.profiles p
+      where p.id = (select auth.uid())
+        and p.active and p.terminated_at is null
+        and p.role in ('admin','management','sales_manager','sales','accounting','data_entry')
+        and (p.company_code = custom_terms.company_code or (p.company_code = 'GROUP' and p.role in ('admin','management')))
+    )
+  );
+
 drop policy if exists proformas_select_member on public.proformas;
 create policy proformas_select_member on public.proformas
   for select to authenticated
@@ -161,11 +198,12 @@ create policy proformas_select_member on public.proformas
 
 -- Keep grants narrow. No client-side delete/update of issued proformas or bank
 -- accounts; bank maintenance remains disabled until an atomic audited workflow exists.
-revoke all on public.companies, public.profiles, public.company_bank_accounts, public.proformas from anon, authenticated;
+revoke all on public.companies, public.profiles, public.company_bank_accounts, public.custom_terms, public.proformas from anon, authenticated;
 grant select on public.profiles to authenticated;
 grant select on public.companies to authenticated;
 grant update (tin,address,phone) on public.companies to authenticated;
 grant select on public.company_bank_accounts to authenticated;
+grant select, insert on public.custom_terms to authenticated;
 grant select on public.proformas to authenticated;
 
 -- Atomic proforma number allocation + version insert.
