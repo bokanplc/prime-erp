@@ -79,8 +79,17 @@ const trackedRawSinks = [
   /\$\{d\}<\/span><span class="value">\$\{c\}/,
   /\.innerHTML\s*=\s*Object\.entries\(byLoc\)[\s\S]{0,500}\$\{loc\}<\/span>/,
   /\.innerHTML\s*=\s*Object\.keys\(pipelineCounts\)[\s\S]{0,300}\$\{s\}<\/span><span class="font-semibold">\$\{c\}/
+  /grid\.innerHTML\s*=\s*available\.map\(d => `[^`]*\$\{d\.label\}[^`]*\$\{d\.desc\}/,
+  /stockData\.map\(row => `[^`]*onclick="editStock\('\$\{row\.id\}'\)"/,
+  /stockData\.map\(row => `[^`]*onclick="deleteStock\('\$\{row\.id\}'\)"/,
+  /v34-area-rows'\)\.innerHTML=a\.map\(x=>`[^`]*\$\{x\.area\}/,
+  /v34-statement-rows'\)\.innerHTML=s\.map\(x=>`[^`]*\$\{x\.statement\}/,
+  /v35-rows'\)\.innerHTML=p\.map\(x=>`[^`]*\$\{x\.doc\}/,
+  /v35-rows'\)\.innerHTML=p\.map\(x=>`[^`]*\$\{x\.status\}/,
+  /innerHTML=inbound\.map\(x=>`[^`]*\$\{x\.purchasing_entity\}/,
+  /innerHTML=deliveries\.map\(x=>`[^`]*\$\{x\.customer_id/
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
 assert.match(source, /data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/, 'Document delete handlers must not interpolate stored values into JavaScript string literals.');
-console.log('PASS: HTML escaping, same-project private signed document URLs, dataset-based document actions, and 55 tracked sink patterns.');
+console.log('PASS: HTML escaping, same-project private signed document URLs, dataset-based document actions, and 64 tracked sink patterns.');
