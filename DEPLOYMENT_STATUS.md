@@ -355,3 +355,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The public SECURITY INVOKER RPC delegates to an isolated `private.bokan_save_proforma` SECURITY DEFINER implementation. The private function pins an empty `search_path`, revalidates actor/profile/company/role, and is not to be exposed through the Data API.
 - Extended schema tests for the private trusted-write boundary and PostgreSQL privilege tests for direct proforma mutations, profile authorization fields, and bank-account mutations.
 - All changes remain draft-only. No real Supabase schema, Auth setting, Storage policy, or live deployment was changed.
+
+
+## Database table-surface inventory expanded (2026-10-24)
+- A deeper source scan found that the earlier 41-table inventory counted literal `.from('table')` calls but missed 14 additional table names passed to generic insert/update helpers in procurement/logistics modules.
+- Updated the database contract and operation inventory to record 55 distinct logical table names: 41 direct names plus 14 helper-passed names.
+- Updated `scripts/audit-erp-data-surface.mjs` to fail CI if the generic helper table-name baseline changes unexpectedly.
+- The additional procurement/logistics tables still have no live schema and their fields, foreign keys, company scoping, role policies, and trusted write workflows must be mapped before those modules can be enabled.
