@@ -158,6 +158,12 @@ BEGIN
   IF has_table_privilege('anon', 'public.proformas', 'SELECT') THEN
     RAISE EXCEPTION 'anon must not select proformas';
   END IF;
+  IF has_table_privilege('authenticated', 'public.proformas', 'INSERT') THEN
+    RAISE EXCEPTION 'authenticated clients must not insert proformas directly; use the trusted RPC';
+  END IF;
+  IF has_function_privilege('anon', 'private.bokan_save_proforma(text,uuid,jsonb)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'anon must not execute the private proforma implementation';
+  END IF;
   IF (SELECT prosecdef FROM pg_proc WHERE oid = 'public.bokan_save_proforma(text,uuid,jsonb)'::regprocedure) THEN
     RAISE EXCEPTION 'Proforma save RPC must remain SECURITY INVOKER';
   END IF;
