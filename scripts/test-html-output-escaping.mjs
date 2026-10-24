@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 const source = readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
 const helper = source.match(/function escapeHtml\(v\)\s*\{[\s\S]*?\n\}\s*function safeDocumentHref\(value\)\s*\{[\s\S]*?\n\}/);
 assert.ok(helper, 'HTML escaping and safe document URL helpers must exist together.');
-const sandbox = { URL, location: { origin: 'https://erp.example.test' } };
+const sandbox = { URL, location: { origin: 'https://erp.example.test' }, window: { BOKAN_CONFIG: { SUPABASE_URL: 'https://project.supabase.co' } } };
 vm.runInNewContext(helper[0] + '\nglobalThis.__tested = { escapeHtml, safeDocumentHref };', sandbox);
 const { escapeHtml, safeDocumentHref } = sandbox.__tested;
 
@@ -17,7 +17,11 @@ assert.equal(escapeHtml("O'Reilly & Co"), 'O&#039;Reilly &amp; Co');
 assert.equal(safeDocumentHref('javascript:alert(1)'), '#');
 assert.equal(safeDocumentHref('data:text/html,<script>alert(1)</script>'), '#');
 assert.equal(safeDocumentHref('http://example.com/document.pdf'), '#');
-assert.equal(safeDocumentHref('https://files.example.test/document.pdf?x="y'), 'https://files.example.test/document.pdf?x=%22y');
+assert.equal(safeDocumentHref('https://files.example.test/storage/v1/object/sign/documents/document.pdf?token=abc'), '#');
+assert.equal(safeDocumentHref('https://project.supabase.co/storage/v1/object/public/documents/document.pdf'), '#');
+assert.equal(safeDocumentHref('https://project.supabase.co/storage/v1/object/sign/documents/document.pdf?token=abc'), 'https://project.supabase.co/storage/v1/object/sign/documents/document.pdf?token=abc');
+sandbox.window.BOKAN_CONFIG.SUPABASE_URL = '';
+assert.equal(safeDocumentHref('https://project.supabase.co/storage/v1/object/sign/documents/document.pdf?token=abc'), '#');
 
 const trackedRawSinks = [
   /\.innerHTML\s*=\s*data\.map\(n\s*=>\s*`[\s\S]{0,500}\$\{n\.message\}/,
@@ -77,4 +81,4 @@ const trackedRawSinks = [
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
 assert.match(source, /data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/, 'Document delete handlers must not interpolate stored values into JavaScript string literals.');
-console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 53 tracked sink patterns.');
+console.log('PASS: HTML escaping, same-project private signed document URLs, dataset-based document actions, and 53 tracked sink patterns.');
