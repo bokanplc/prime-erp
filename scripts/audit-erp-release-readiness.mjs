@@ -77,6 +77,14 @@ const rawHtmlSinkPatterns = [
   ['local proforma VAT rate',/\$\{r\.vatPct\}/],
   ['local proforma item quantity attribute',/\$\{data\.qty \?\? ''\}/],
   ['local proforma unit price attribute',/\$\{data\.unit_price \?\? ''\}/]
+  ['withholding form date',/\$\{i\.date \|\| ''\}/],
+  ['withholding invoice number',/\$\{i\.inv \|\| ''\}/],
+  ['withholding description',/\$\{i\.desc \|\| ''\}/],
+  ['withholding gross amount',/\$\{i\.gross\.toLocaleString\(\)\}/],
+  ['withholding rate',/\$\{i\.rate\}/],
+  ['withholding computed tax',/\$\{\(i\.gross\*i\.rate\/100\)\.toLocaleString\(\)\}/],
+  ['withholding certificate',/\$\{i\.cert \|\| ''\}/],
+  ['HR department name',/\$\{d\}<\/span><span class="value">\$\{c\}/]
 ];
 const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
