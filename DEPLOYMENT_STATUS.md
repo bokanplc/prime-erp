@@ -617,3 +617,11 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Updated the PostgreSQL test harness to execute the candidate migration in an ephemeral PostgreSQL 17 service rather than applying only the draft SQL.
 - Added a parity assertion that the versioned migration body exactly matches `docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql`; CI is triggered by migration-file changes.
 - The migration remains unapproved for the live project until real Supabase Auth/Data API/RLS checks, advisor remediation and browser persistence tests are complete.
+
+
+## Versioned candidate migration test verified (2026-10-24)
+- The first-slice SQL is now present as `supabase/migrations/20261024000000_core_proforma_mvp.sql`; it is a candidate file only, not applied to the connected Supabase project.
+- The CI schema contract checks exact parity between the migration body and the draft SQL. The disposable PostgreSQL harness now applies the versioned migration itself, then tests RLS, least-privilege grants, issuer-setting role restrictions, financial calculations, inactive/terminated profiles, revisions, and concurrent numbering.
+- Latest full workflow run `40109490786` passed both jobs: source/release checks and PostgreSQL migration smoke/concurrency tests.
+- Rechecked the actual Supabase project read-only after adding the migration file: no public application tables and no applied migration history. This confirms the repository migration has not changed the live project.
+- No production deployment, Auth/Storage setting, paid upgrade, or live database change was made. All production flags and both module allowlists remain disabled/empty.
