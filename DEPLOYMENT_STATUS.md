@@ -500,3 +500,8 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 ## Release artifact directory isolation (2026-10-24)
 - Moved generated sanitized output from \`staging/release/\` to \`dist/release/\`, outside the review/source directory. Updated the builder, candidate tests, ignore rules and exposure review.
 - This reduces the chance that a future static host accidentally publishes the full \`staging/\` directory containing source fixtures. If/when a Pages project is configured, the build command and output directory must be reviewed explicitly; this does not make the current candidate production-ready.
+
+
+## Hosting hand-off and Auth advisor note (2026-10-24)
+- Updated docs/CLOUDFLARE_PAGES_BUILD_SETTINGS.md to match the builder's isolated output at dist/release. Future Pages settings should use the repository root, build command node scripts/build-release-candidate.mjs, and output directory dist/release. Do not publish staging/.
+- Added the remaining Supabase Auth security-advisor warning (auth_leaked_password_protection) to the owner decision checklist; no supported in-chat Auth settings action was available, so it remains unchanged.
