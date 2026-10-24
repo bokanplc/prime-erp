@@ -6792,7 +6792,7 @@ async function generateProformaInternal() {
         delivery,notes,withholdingEnabled,withholdingRate,withholdingThreshold,items,terms
       }, existing);
       proformaNo=productionSavedRecord.proformaNo;
-    } catch(e){ alert('Production save failed. Nothing was saved: '+e.message); return; }
+    } catch(e){ alert('Proforma save could not be confirmed. Check the saved Proforma list before retrying to avoid a duplicate. Details: '+e.message); return; }
   } else {
     try { const {data:noData}=await sb.rpc('next_proforma_no'); if(noData) proformaNo=noData; } catch(e) {}
     try { await sb.from('proformas').insert([{proforma_no:proformaNo,customer_name:customer,customer_tin:tin,customer_address:address,customer_phone:phone,contact_person:contactPerson,items,vat_mode:'inclusive',vat_percent:vatPct,discount_percent:discountPct,delivery_terms:delivery,terms,notes,subtotal:subtotalBeforeVAT,vat_amount:vatAmount,total:grandTotal,created_by:currentUser?.id||null,company_key:companyKey,company_name:company.name,issuer_tin:company.tin||COMPANY_OPTIONS[companyKey]?.tin,bank_accounts:banks,withholding_amount:withholdingAmount}]); } catch(e) { console.warn('Proforma database save skipped:',e); }
