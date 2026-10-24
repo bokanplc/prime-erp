@@ -2415,7 +2415,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
         <div class="text-xs font-bold uppercase tracking-wide text-[#6B6C72] mb-2">Company &amp; Customer</div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <select id="pf-company" class="border border-[#D4D7DC] p-2 rounded text-xs" required onchange="syncProformaCompanyTIN()">
+          <select id="pf-company" class="border border-[#D4D7DC] p-2 rounded text-xs" required onchange="syncProformaCompanyTIN(); loadProformaTermOptions()">
             <option value="PRIME">PRIME Investment Group Plc</option>
             <option value="BLACKROCK">BlackRock Investment Plc</option>
           </select>
