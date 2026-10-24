@@ -38,3 +38,7 @@ Before any deployment is approved:
 7. Keep the existing free plan; no paid service or upgrade is assumed.
 
 No user action is needed now. This document corrects the earlier ambiguous suggestion to use `staging` as the output directory.
+
+
+## Generated artifact handling correction (2026-10-24)
+The sanitized `staging/release/index.html` and `staging/release/config/config.js` are now **generated build outputs and are intentionally not committed**. Cloudflare Pages and CI must run `node scripts/build-release-candidate.mjs` from the repository root before publishing/testing the `staging/release` output directory. This prevents a stale committed HTML artifact from being deployed after source fixes.
