@@ -625,3 +625,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Latest full workflow run `40109490786` passed both jobs: source/release checks and PostgreSQL migration smoke/concurrency tests.
 - Rechecked the actual Supabase project read-only after adding the migration file: no public application tables and no applied migration history. This confirms the repository migration has not changed the live project.
 - No production deployment, Auth/Storage setting, paid upgrade, or live database change was made. All production flags and both module allowlists remain disabled/empty.
+
+
+## Withholding anti-tampering control (2026-10-24)
+- Review found that the trusted proforma RPC accepted `withholdingEnabled`, `withholdingRate`, and `withholdingThreshold` from the browser. A direct RPC caller could therefore bypass the UI's automatic 3% / ETB 10,000 rule.
+- The SQL draft and versioned candidate migration now force the rule to enabled, 3%, and ETB 10,000, and reject payloads attempting to disable or change it.
+- Added schema-contract assertions and disposable PostgreSQL tests for attempts to disable withholding, set the rate to zero, or raise the threshold to ETB 100,000.
+- This rule is based on the current source UI/business requirements; discount/VAT tax treatment still requires confirmation from the company's accountant. The migration remains unapplied to the real Supabase project.
