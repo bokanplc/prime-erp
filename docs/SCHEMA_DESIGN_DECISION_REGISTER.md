@@ -92,3 +92,7 @@ Read-only checks on 2026-10-21 reported no public application tables and no migr
 - The exposed `public.bokan_save_proforma` wrapper remains SECURITY INVOKER and delegates to `private.bokan_save_proforma`.
 - The private implementation is SECURITY DEFINER only because direct INSERT is revoked. It uses an empty search path and explicit actor/profile/company/role validation, with EXECUTE revoked from PUBLIC/anon and granted to authenticated.
 - The private schema must not be added to Supabase's exposed Data API schemas. Do not apply this draft to the current Supabase project until the full test gate passes and the exact deployed function owner/grants are reviewed.
+
+
+## Candidate migration file added (2026-10-24)
+A versioned file now exists at `supabase/migrations/20261024000000_core_proforma_mvp.sql`. It mirrors the first-slice SQL draft; it has **not** been applied to the connected Supabase project. CI checks that the candidate migration body stays in sync with the draft and executes the versioned migration only in its disposable PostgreSQL service. This improves reproducibility but does not make the migration approved for the real project.
