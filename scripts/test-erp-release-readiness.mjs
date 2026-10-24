@@ -27,7 +27,7 @@ try {
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
   assert.match(disabledOutput,/Tables still missing schema: 50/,'Readiness audit must detect the current incomplete schema.');
-  assert.match(disabledOutput,/Known raw HTML sink patterns remaining: [1-9][0-9]*/,'Readiness audit must report remaining unescaped data-driven HTML sinks.');
+  assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/PASS: production remains disabled/,'Disabled candidate should be reported safely.');
 
   writeFileSync(configPath,config.replace('PRODUCTION_MODE: false','PRODUCTION_MODE: true'));
