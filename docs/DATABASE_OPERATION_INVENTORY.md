@@ -1,6 +1,6 @@
 # BOKAN ERP V6.7 — database operation inventory
 
-Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-23.
+Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-24.
 
 **Purpose:** identify implementation scope for the database contract. This is not a schema, migration, or security approval. Counts are regex-based static observations; dynamic calls and related table names inside joins may need manual review.
 
