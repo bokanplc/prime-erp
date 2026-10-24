@@ -404,3 +404,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Updated the deployment note to correct the earlier ambiguous Cloudflare output-directory guidance. The full review source under `staging/` is not the sanitized artifact; future builds must run the sanitizer from repository root and publish only `staging/release/`.
 - Added `docs/CLOUDFLARE_PAGES_BUILD_SETTINGS.md` with the exact future build command/output settings and a clear no-deployment warning.
 - The draft PR remains open and unmerged. Supabase application schema/migrations remain empty; production mode and credentials remain disabled/blank.
+
+
+## Production proforma delete/void safety (2026-10-24)
+- The legacy `deleteProforma` UI handler previously attempted a direct table DELETE even though the first-slice schema intentionally revokes direct DELETE and no audited void RPC exists.
+- It now explicitly blocks the production delete action and tells the user an audited void workflow is required. Local review mode remains separate.
+- Synced `staging/index.html` with reviewed source and added source-guard, static-audit, and release-candidate regression checks for this rule.
+- No direct proforma DELETE privilege or void operation was added. This is intentionally a safe temporary limitation.
