@@ -566,3 +566,11 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Updated record lookup comparisons to tolerate the string form provided by HTML datasets.
 - Added regression assertions and expanded the release readiness audit to track both old unsafe patterns.
 - Source and staging entry point currently match: yes (800791 characters).
+
+
+## Latest combined hardening and full CI verification (2026-10-24)
+- Added dataset-based ID handling for the customer call log and access registry, alongside the stock row edit/delete handlers, to avoid interpolating stored identifiers directly into inline JavaScript.
+- Expanded the tracked HTML-sink regression suite to 66 patterns and expanded the release-readiness audit to flag the newly identified legacy control/logistics and inline-ID patterns.
+- GitHub Actions run `40105059565` passed both jobs after these changes: all source guards, HTML escaping and safe-document URL tests, inline JS syntax, release-readiness gate, sanitized release build/header tests, disposable PostgreSQL RLS/grant/financial tests, and concurrent numbering.
+- Final source integrity recheck: staging entry point matches the reviewed source byte-for-byte at 800,791 characters; production and full-data readiness flags remain false; Supabase URL/key placeholders remain blank; `main/index.html` remains 1 byte.
+- Supabase remains untouched: no public application tables or migrations. No deployment, paid upgrade, or live configuration change was made.
