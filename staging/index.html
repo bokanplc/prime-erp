@@ -6573,8 +6573,8 @@ async function loadProformaTermOptions() {
     const prevChecked = wrap.querySelector('input:checked')?.value;
     wrap.innerHTML = options.map((label, idx) => `
       <label class="flex items-center gap-1.5">
-        <input type="radio" name="pf-term-${category}" value="${label.replace(/"/g,'&quot;')}" ${label === prevChecked || (!prevChecked && idx === 0) ? 'checked' : ''}>
-        <span>${label}</span>
+        <input type="radio" name="pf-term-${category}" value="${escapeHtml(label)}" ${label === prevChecked || (!prevChecked && idx === 0) ? 'checked' : ''}>
+        <span>${escapeHtml(label)}</span>
       </label>`).join('') + `
       <label class="flex items-center gap-1.5 text-[#8D9096]">
         <input type="radio" name="pf-term-${category}" value="__none__">
