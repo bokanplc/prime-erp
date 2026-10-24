@@ -78,7 +78,7 @@ for (const [name, replacement] of Object.entries(fixtureBindings)) {
   assert.equal(matches.length, 1, 'Expected exactly one embedded fixture binding: ' + name);
   const eq = releaseHtml.indexOf('=', matches[0].index);
   let start = eq + 1;
-  while (/\\s/.test(releaseHtml[start] || '')) start++;
+  while (/\s/.test(releaseHtml[start] || '')) start++;
   assert.ok(releaseHtml[start] === '[' || releaseHtml[start] === '{', 'Fixture binding must be a literal: ' + name);
   const end = expressionEnd(releaseHtml, start);
   releaseHtml = releaseHtml.slice(0, start) + replacement + releaseHtml.slice(end);
