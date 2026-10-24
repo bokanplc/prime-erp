@@ -5,6 +5,8 @@
 window.BOKAN_CONFIG = {
   PRODUCTION_MODE: false,
   FULL_ERP_DATA_READY: false,
+  // No production modules are approved yet. Add a tab only after its database, RLS, persistence and browser tests pass and source allowlist is updated.
+  ENABLED_PRODUCTION_TABS: [],
   SUPABASE_URL: "",
   SUPABASE_ANON_KEY: ""
 };
