@@ -104,6 +104,9 @@ assert.deepEqual(unreviewedSeedBindings, [], 'A new seed-like fixture binding wa
 const previewIdentity = /currentUser\s*=\s*\{\s*id:\s*'preview-admin',\s*email:\s*'admin@preview\.local'\s*\};\s*currentRole\s*=\s*'admin';\s*currentDeptTabs\s*=\s*null;/;
 assert.equal((releaseHtml.match(previewIdentity) || []).length, 1, 'Expected one preview-admin identity assignment to neutralize.');
 releaseHtml = releaseHtml.replace(previewIdentity, 'currentUser = null; currentRole = null; currentDeptTabs = null;');
+const previewBadge = "badge.textContent = 'Preview Admin — admin';";
+assert.equal(releaseHtml.split(previewBadge).length - 1, 1, 'Expected one preview-admin badge label to neutralize.');
+releaseHtml = releaseHtml.replace(previewBadge, "badge.textContent = 'Review build — sign-in disabled';");
 const mockStart=releaseHtml.indexOf('function makeMockSupabase() {');
 const configStart=releaseHtml.indexOf('const _bokanCfg = window.BOKAN_CONFIG || {};',mockStart);
 assert.ok(mockStart>=0&&configStart>mockStart,'Mock backend replacement markers must exist.');
