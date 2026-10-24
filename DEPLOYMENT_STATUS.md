@@ -546,3 +546,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The sanitized build now emits Cloudflare Pages `dist/release/_headers` with `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, a restrictive referrer policy, and a Permissions Policy disabling unused camera, microphone, geolocation and payment APIs.
 - Release-candidate tests verify those headers are present in the generated output.
 - A strict Content Security Policy is intentionally not added yet because the single-file app still relies on inline scripts/styles and CDN-loaded Tailwind; adding a guessed policy could break the app, while permitting all inline scripts would offer weak XSS protection. Bundle/build hardening remains a release blocker.
+
+
+## Baseline release-header generation verified (2026-10-24)
+- Sanitized build now writes Cloudflare Pages `dist/release/_headers` with `nosniff`, `DENY` framing, strict-origin referrer policy, and a restrictive Permissions Policy.
+- Candidate tests verify the generated header directives. Strict CSP remains deferred until inline scripts/styles are removed or a deliberate nonce/hash strategy is implemented.
+- GitHub Actions run `40104607347` passed both jobs after the header generation change: all source/release-candidate checks and disposable PostgreSQL RLS/grants/financial/concurrency tests passed.
+- No Cloudflare deployment was created; these are generated release files only.
