@@ -632,3 +632,9 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The SQL draft and versioned candidate migration now force the rule to enabled, 3%, and ETB 10,000, and reject payloads attempting to disable or change it.
 - Added schema-contract assertions and disposable PostgreSQL tests for attempts to disable withholding, set the rate to zero, or raise the threshold to ETB 100,000.
 - This rule is based on the current source UI/business requirements; discount/VAT tax treatment still requires confirmation from the company's accountant. The migration remains unapplied to the real Supabase project.
+
+## Fixed withholding enforcement verified in disposable PostgreSQL (2026-10-24)
+- A new direct-RPC test exposed a SQL `RAISE EXCEPTION` formatting bug: the literal percent sign in the message was interpreted as a placeholder. The error string is now escaped as `3%%` in SQL so callers receive the intended readable `3%` message.
+- The candidate migration and SQL draft remain byte-for-byte aligned after normalizing their header comments.
+- The disposable PostgreSQL test now verifies direct RPC callers cannot disable withholding, change the rate to zero, or raise the threshold to ETB 100,000. The latest full workflow run `40109973529` passed both jobs after this fix.
+- This test suite runs only in ephemeral CI PostgreSQL. The connected Supabase project still has no app tables/applied migrations; no live database or Auth setting was changed.
