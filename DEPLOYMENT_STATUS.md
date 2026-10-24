@@ -411,3 +411,11 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - It now explicitly blocks the production delete action and tells the user an audited void workflow is required. Local review mode remains separate.
 - Synced `staging/index.html` with reviewed source and added source-guard, static-audit, and release-candidate regression checks for this rule.
 - No direct proforma DELETE privilege or void operation was added. This is intentionally a safe temporary limitation.
+
+
+## Generated release artifact freshness fix (2026-10-24)
+- CI caught that the committed sanitized HTML could lag behind source security fixes because it was tested before the sanitizer rebuilt it.
+- Removed the pre-rebuild release test from the workflow. CI now runs the source/schema/security tests, builds the sanitized candidate, then tests the generated candidate.
+- Removed `staging/release/index.html` and `staging/release/config/config.js` from version control; they are generated on each build by `node scripts/build-release-candidate.mjs`.
+- The corrected Cloudflare configuration is: repository root, build command `node scripts/build-release-candidate.mjs`, output directory `staging/release`, Node.js 22. No Pages project or deployment has been created.
+- This avoids serving a stale release file. It does not remove the legacy `/api/*` backend, schema/RLS, private Storage, or browser integration blockers.
