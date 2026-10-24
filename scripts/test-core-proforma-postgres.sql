@@ -33,7 +33,8 @@ INSERT INTO auth.users(id) VALUES
   ('22222222-2222-4222-8222-222222222222'),
   ('33333333-3333-4333-8333-333333333333'),
   ('44444444-4444-4444-8444-444444444444'),
-  ('55555555-5555-4555-8555-555555555555');
+  ('55555555-5555-4555-8555-555555555555'),
+  ('66666666-6666-4666-8666-666666666666');
 
 INSERT INTO public.profiles(id, full_name, role, department, company_code, active, terminated_at)
 VALUES
@@ -41,7 +42,8 @@ VALUES
   ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true, NULL),
   ('33333333-3333-4333-8333-333333333333', 'CI Inactive Sales', 'sales', 'Sales', 'PRIME', false, NULL),
   ('44444444-4444-4444-8444-444444444444', 'CI Terminated Sales', 'sales', 'Sales', 'PRIME', true, now()),
-  ('55555555-5555-4555-8555-555555555555', 'CI PRIME Accounting', 'accounting', 'Accounting', 'PRIME', true, NULL);
+  ('55555555-5555-4555-8555-555555555555', 'CI PRIME Accounting', 'accounting', 'Accounting', 'PRIME', true, NULL),
+  ('66666666-6666-4666-8666-666666666666', 'CI PRIME Sales Other', 'sales', 'Sales', 'PRIME', true, NULL);
 
 INSERT INTO public.company_bank_accounts(company_code, bank_name, account_number, account_purpose, display_order, active)
 VALUES
@@ -120,6 +122,23 @@ BEGIN
      OR v_revision.document_action <> 'revision' THEN
     RAISE EXCEPTION 'Revision number/version/root linkage is incorrect';
   END IF;
+
+  -- Another salesperson in the same company may read company records but cannot revise another user's proforma.
+  PERFORM set_config('request.jwt.claim.sub', '66666666-6666-4666-8666-666666666666', true);
+  v_denied := false;
+  BEGIN
+    PERFORM public.bokan_save_proforma('PRIME', v_first.id, v_payload);
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Not authorized to revise this proforma' THEN
+      v_denied := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'Salesperson was allowed to revise another salesperson''s proforma';
+  END IF;
+  PERFORM set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
 
   v_next := public.bokan_save_proforma('PRIME', NULL, v_payload);
   IF v_next.proforma_no <> 'ACME1001' OR v_next.version_no <> 1 THEN
