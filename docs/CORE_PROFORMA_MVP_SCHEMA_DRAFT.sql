@@ -359,6 +359,10 @@ begin
     if not found then
       raise exception 'Existing proforma is unavailable for revision';
     end if;
+    if v_existing.created_by <> (select auth.uid())
+       and v_profile.role not in ('admin','management','sales_manager','accounting') then
+      raise exception 'Not authorized to revise this proforma';
+    end if;
     v_number := v_existing.proforma_no;
     v_prefix := regexp_replace(v_number,'[0-9]{4}$','');
     perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtext(p_company || ':' || v_number));
