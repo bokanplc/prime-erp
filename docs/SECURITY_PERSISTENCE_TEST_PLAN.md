@@ -127,3 +127,7 @@ These tests validate only the first-slice proforma draft in an ephemeral Postgre
 
 
 Additional first-slice role test (2026-10-24): the disposable PostgreSQL suite now verifies that a sales user cannot update its company's issuer TIN, an accounting user can update the permitted issuer field for its own company, and authenticated users cannot update company code or active status. Test-only TIN edits are restored before the suite completes.
+
+
+## Release artifact freshness (2026-10-24)
+The sanitized release candidate is now generated in CI/Pages build rather than committed as a potentially stale HTML copy. Required sequence: source/schema/security tests → build sanitized candidate → test generated candidate. The release output must not be published without running the build command successfully.
