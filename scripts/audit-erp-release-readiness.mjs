@@ -45,7 +45,7 @@ const rawHtmlSinkPatterns = [
   ['leave request names',/\.innerHTML\s*=\s*leaveData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
   ['performance review names',/\.innerHTML\s*=\s*perfData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
   ['disciplinary action names',/\.innerHTML\s*=\s*discData\.map\(row\s*=>\s*`[\s\S]{0,400}\$\{row\.employee_name\}/],
-  ['alert text',/\.innerHTML\s*=\s*alerts\.map\(a\s*=>\s*`[\s\S]{0,300}\$\{a\.text\}/]
+  ['alert text',/\.innerHTML\s*=\s*alerts\.map\(a\s*=>\s*`[\s\S]{0,300}\$\{a\.text\}/],
   ['employee autocomplete values',/\$\{e\.full_name\}/],
   ['CRM reassignment profile names',/\$\{p\.full_name\}/],
   ['CRM contact values',/\$\{c\.contact_person\s*\|\|\s*'—'\}/],
