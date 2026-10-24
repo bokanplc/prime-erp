@@ -93,8 +93,8 @@ BEGIN
   IF v_first.version_no <> 1 OR v_first.root_proforma_id IS NOT NULL THEN
     RAISE EXCEPTION 'Unexpected initial version/root metadata';
   END IF;
-  IF v_first.subtotal_before_vat <> 9000
-     OR v_first.vat_amount <> 1350
+  IF v_first.subtotal_before_vat <> 10000
+     OR v_first.vat_amount <> 1500
      OR v_first.discount_amount <> 1150
      OR v_first.grand_total <> 10350
      OR v_first.withholding_amount <> 310.50
