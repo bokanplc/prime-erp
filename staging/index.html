@@ -6563,7 +6563,9 @@ const DEFAULT_TERMS = {
   transport: ['Transportation is included', 'Transportation will be paid by customer', 'Pickup by customer from warehouse']
 };
 async function loadProformaTermOptions() {
-  const { data } = await sb.from('custom_terms').select('*');
+  const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
+  const { data, error } = await sb.from('custom_terms').select('*').eq('company_code', companyKey);
+  if (error) { console.error('Could not load custom Proforma terms:', error); return; }
   ['validity','payment','delivery','transport'].forEach(category => {
     const custom = (data || []).filter(t => t.category === category).map(t => t.label);
     const options = [...DEFAULT_TERMS[category], ...custom];
@@ -6584,7 +6586,9 @@ async function addCustomTerm(category) {
   const input = document.getElementById(`pf-term-${category}-new`);
   const label = input.value.trim();
   if (!label) return;
-  await sb.from('custom_terms').insert([{ category, label, created_by: currentUser?.id || null }]);
+  const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
+  const { error } = await sb.from('custom_terms').insert([{ company_code: companyKey, category, label, created_by: currentUser?.id || null }]);
+  if (error) { alert('Custom term could not be saved: ' + error.message); return; }
   input.value = '';
   await loadProformaTermOptions();
   // select the one just added
