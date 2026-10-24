@@ -23,7 +23,10 @@ assert.match(bridge, /terms:\s*payload\.terms\|\|\[\]/, 'Commercial terms must b
 assert.match(source, /const items = \[\.\.\.document\.querySelectorAll\('#pf-items > div'\)\]\.map\(row => \(\{[\s\S]{0,500}description:[\s\S]{0,200}spec:[\s\S]{0,200}qty:[\s\S]{0,200}unit_price:/, 'The Proforma UI must preserve description, specification, quantity and VAT-inclusive unit_price fields.');
 assert.match(source, /productionSavedRecord=await bokanProdSaveProforma\([\s\S]{0,350}items,terms\s*\},\s*existing\)/, 'The UI must pass the current item array and terms to the production RPC.');
 assert.match(source, /function restoreProformaFormState\(x\)[\s\S]{0,900}\(x\.items\|\|\[\]\)\.forEach\(i=>addProformaItem\(i\)\)/, 'Saved item rows must be restored into the Proforma editor.');
-assert.match(source, /row\.querySelector\('\.pf-desc'\)\.value=data\.description\|\|''; row\.querySelector\('\.pf-spec'\)\.value=data\.spec\|\|''; row\.querySelector\('\.pf-price'\)\.value=data\.unit_price\|\|''/, 'Restored rows must read the same item fields written by the RPC.');
+assert.match(source, /row\.querySelector\('\.pf-desc'\)\.value=data\.description\|\|''/, 'Restored rows must read the saved item description.');
+assert.match(source, /row\.querySelector\('\.pf-spec'\)\.value=data\.spec\|\|''/, 'Restored rows must read the saved item specification.');
+assert.match(source, /row\.querySelector\('\.pf-price'\)\.value=data\.unit_price\|\|''/, 'Restored rows must read the saved VAT-inclusive unit price.');
+assert.match(source, /row\.querySelector\('\.pf-qty'\)\.value=data\.qty\|\|''/, 'Restored rows must read the saved quantity.');
 
 assert.match(sql, /v_items := p_payload->'items';/, 'The database function must retain the submitted item JSON.');
 assert.match(sql, /item\.value->>'description'[\s\S]*?item\.value->>'qty'[\s\S]*?item\.value->>'unit_price'/, 'Database item validation must use the UI item field names.');
