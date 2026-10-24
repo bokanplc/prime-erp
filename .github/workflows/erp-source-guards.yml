@@ -39,6 +39,8 @@ jobs:
         run: node scripts/test-proforma-ui-contract.mjs
       - name: Test actual Proforma calculation helper
         run: node scripts/test-proforma-math.mjs
+      - name: Test HTML output escaping and safe document URLs
+        run: node scripts/test-html-output-escaping.mjs
       - name: Parse inline JavaScript
         run: node scripts/check-inline-js.mjs
       - name: Audit direct data-access surface
