@@ -10,11 +10,11 @@ This is a source-distribution risk, not evidence that a public breach occurred. 
 
 ## Hosting consequence
 
-Do **not** configure a static host to publish the entire `staging/` directory. It contains the full review source and duplicate HTML, including the seed literals. A future host must publish only an explicitly built and reviewed release artifact, never the review/source directory.
+Do **not** configure a static host to publish the entire `staging/` directory. It contains the full review source and duplicate HTML, including the seed literals. A future host must publish only an explicitly built and reviewed release artifact, never the review/source directory. The candidate output now lives at `dist/release/`, outside `staging/`, so the Pages output directory can be set explicitly to `dist/release`.
 
 ## Safe preparation
 
-A reproducible build script, `scripts/build-release-candidate.mjs`, creates `staging/release/index.html` as a separate candidate, empties ten known fixture collections, removes the preview-admin identity fallback, and replaces the full demo/mock backend (including its embedded preview user, employee/customer records, and fake successful sign-in) with a disabled adapter that rejects writes and sign-in. These changes affect only the generated release copy. The original review source and local-preview fixtures remain intact. The generated config remains `PRODUCTION_MODE: false` with blank Supabase URL and browser key. `scripts/test-release-candidate.mjs` verifies the fixture collections are empty, mock users/records are absent, and the hosted legacy API gate still fails closed.
+A reproducible build script, `scripts/build-release-candidate.mjs`, creates `dist/release/index.html` as a separate candidate, empties ten known fixture collections, removes the preview-admin identity fallback, and replaces the full demo/mock backend (including its embedded preview user, employee/customer records, and fake successful sign-in) with a disabled adapter that rejects writes and sign-in. These changes affect only the generated release copy. The original review source and local-preview fixtures remain intact. The generated config remains `PRODUCTION_MODE: false` with blank Supabase URL and browser key. `scripts/test-release-candidate.mjs` verifies the fixture collections are empty, mock users/records are absent, and the hosted legacy API gate still fails closed.
 
 The release candidate is not yet a working production ERP: the legacy `/api/*` service is still absent, Supabase has no application schema/migrations, and RLS/Auth/Storage and real browser tests remain incomplete. Do not deploy it for business use. It is only a safer artifact for further release preparation.
 
