@@ -1,7 +1,6 @@
 -- BOKAN ERP V6.7 — core Proforma MVP migration
 -- Scope: Supabase Auth profiles + company issuer master + read-only bank accounts + proforma persistence.
--- This is the first enabled backend slice only; remaining modules are not production-ready.
--- Scope: Supabase Auth profiles + company issuer master + read-only bank accounts + proforma persistence.
+-- This is a candidate first backend slice; no production modules are enabled yet.
 -- Deliberately does not create the remaining HR/finance/CRM/logistics tables.
 -- Review and test on a disposable project before any production application.
 
