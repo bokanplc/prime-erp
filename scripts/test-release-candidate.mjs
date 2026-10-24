@@ -32,6 +32,10 @@ assert.match(html,/Server-backed modules are unavailable\. Sign-in requires the 
 assert.match(html,/Production configuration is required; demo data and preview sign-in are disabled in this build\./,'Release candidate must use the disabled, non-demo backend stub.');
 assert.doesNotMatch(html,/DEMO_USER|store\.customers\.push|store\.employees\.push|store\.profiles\.push|preview@primegroup\.local/,'Release candidate must not ship hard-coded mock users, customer/employee records, or preview email.');
 assert.ok(html.includes("const KEY='bokan_sales_hub_v1', RAW=[]"),'Release candidate must empty the separate embedded sales-hub customer list.');
+assert.match(html,/const master=\\{customers:\\[\\], suppliers:\\[\\], products:\\[\\]\\}/,'Release candidate must empty the enterprise master-data fixture.');
+assert.match(html,/const stock=\\[\\]/,'Release candidate must empty the enterprise stock fixture.');
+assert.match(html,/const pay=\\[\\]/,'Release candidate must empty the enterprise payroll fixture.');
+assert.doesNotMatch(html,/Sugar Corporation \\/ Meti Desta|Habesha Construction PLC|name:'Supplier A'|name:'Employee A',dept:|sku:'PLY-G-18'/,'Release candidate must not ship embedded enterprise customer, supplier, employee, or stock examples.');
 assert.ok(!html.includes('preview-admin')&&!html.includes('preview@primegroup.local'),'Release candidate must not ship a preview administrator identity.');
 assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
