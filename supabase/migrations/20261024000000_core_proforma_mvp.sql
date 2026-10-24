@@ -306,9 +306,16 @@ begin
 
   v_vat_rate := coalesce(nullif(p_payload->>'vatPct','')::numeric,15);
   v_discount_percent := coalesce(nullif(p_payload->>'discountPct','')::numeric,0);
-  v_withholding_enabled := coalesce(nullif(p_payload->>'withholdingEnabled','')::boolean,true);
-  v_withholding_rate := coalesce(nullif(p_payload->>'withholdingRate','')::numeric,3);
-  v_withholding_threshold := coalesce(nullif(p_payload->>'withholdingThreshold','')::numeric,10000);
+  -- The business rule is fixed in this release: 3% withholding applies to VAT-inclusive Grand Total above ETB 10,000.
+  -- Do not trust a direct RPC caller to disable withholding or alter the rate/threshold.
+  if (p_payload ? 'withholdingEnabled' and p_payload->'withholdingEnabled' is distinct from 'true'::jsonb)
+     or (p_payload ? 'withholdingRate' and p_payload->'withholdingRate' is distinct from '3'::jsonb)
+     or (p_payload ? 'withholdingThreshold' and p_payload->'withholdingThreshold' is distinct from '10000'::jsonb) then
+    raise exception 'Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered';
+  end if;
+  v_withholding_enabled := true;
+  v_withholding_rate := 3;
+  v_withholding_threshold := 10000;
   v_proforma_date := coalesce(nullif(p_payload->>'date','')::date,current_date);
   v_items := p_payload->'items';
   v_terms := coalesce(p_payload->'terms','[]'::jsonb);
