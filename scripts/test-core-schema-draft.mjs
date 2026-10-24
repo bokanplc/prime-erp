@@ -17,6 +17,8 @@ const checks = [
   [/alter table public\.custom_terms enable row level security/i, 'RLS is enabled on custom Proforma terms'],
   [/alter table public\.proformas enable row level security/i, 'RLS is enabled on proformas'],
   [/create policy proformas_select_member[\s\S]*?p\.company_code = proformas\.company_code/i, 'Proforma reads enforce company scope'],
+  [/create policy custom_terms_select_member[\s\S]*?custom_terms\.company_code/i, 'Custom-term reads enforce company scope'],
+  [/create policy custom_terms_insert_member[\s\S]*?created_by = \(select auth\.uid\(\)\)/i, 'Custom-term writes enforce creator identity and company scope'],
   [/status, created_by, updated_by[\s\S]*?\(select auth\.uid\(\)\), \(select auth\.uid\(\)\)/i, 'Atomic save derives creator and updater from authenticated identity'],
   [/create or replace function public\.bokan_save_proforma[\s\S]*?security invoker/i, 'Public proforma RPC wrapper remains SECURITY INVOKER'],
   [/create or replace function private\.bokan_save_proforma[\s\S]*?security definer[\s\S]*?set search_path = ''/i, 'Privileged implementation is isolated in private schema with a pinned empty search_path'],
