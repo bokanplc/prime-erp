@@ -180,7 +180,7 @@ create or replace function private.bokan_save_proforma(
 )
 returns public.proformas
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
