@@ -31,6 +31,8 @@ const checks = [
   [/Not authorized to revise this proforma/, 'Sales users cannot revise another user\u2019s proforma without a supervisory role'],
   [/proformas_vat_total_consistency_check/i, 'VAT and grand total arithmetic is constrained'],
   [/proformas_withholding_math_check/i, 'Withholding is checked against the configured threshold and rate'],
+  [/Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered/, 'Withholding rate and threshold cannot be altered by direct RPC callers'],
+  [/v_withholding_enabled := true;[\s\S]*?v_withholding_rate := 3;[\s\S]*?v_withholding_threshold := 10000;/, 'Withholding business rule is fixed at 3% above ETB 10,000'],
   [/proformas_net_payable_math_check/i, 'Net payable is checked against gross less withholding'],
   [/Tax, discount, withholding and date fields have invalid JSON types/, 'Financial settings reject string-valued numeric inputs before casting'],
   [/Customer and optional text fields must be JSON strings/, 'Customer/contact text fields reject malformed JSON objects and arrays'],
@@ -75,6 +77,9 @@ if (!/v_subtotal := round\(v_gross \/ \(1 \+ v_vat_rate \/ 100\),2\)/.test(sql))
 if (!/constraint proformas_vat_total_consistency_check check \(abs\(grand_total - subtotal_before_vat - vat_amount \+ discount_amount\) <= 0\.02\)/.test(sql)) {
   failures.push('Grand total must equal subtotal plus VAT less the displayed discount.');
 }
+if (/v_withholding_enabled := coalesce\(nullif\(p_payload->>'withholdingEnabled'/.test(sql)) failures.push('Withholding enabled flag must not be trusted from the client payload.');
+if (/v_withholding_rate := coalesce\(nullif\(p_payload->>'withholdingRate'/.test(sql)) failures.push('Withholding rate must not be trusted from the client payload.');
+if (/v_withholding_threshold := coalesce\(nullif\(p_payload->>'withholdingThreshold'/.test(sql)) failures.push('Withholding threshold must not be trusted from the client payload.');
 if (!/v_withholding_amount := case[\s\S]*?round\(v_grand_total \* v_withholding_rate \/ 100,2\)/.test(sql)) {
   failures.push('Atomic save must calculate withholding from VAT-inclusive grand total.');
 }
