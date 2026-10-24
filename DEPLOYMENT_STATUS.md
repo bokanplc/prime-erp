@@ -369,3 +369,11 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The release-candidate builder now also empties the hard-coded enterprise master-data, stock, and payroll example collections (`master`, `stock`, and `pay`) in the V4.5 enterprise layer. Tests assert the sample customer, supplier, employee and stock identifiers are absent from the release artifact.
 - The table inventory now covers 55 distinct logical database table names, including 14 additional procurement/logistics tables passed through generic CRUD helpers. These remaining tables are still unimplemented in the live database.
 - All checks ran against the repository and disposable CI PostgreSQL only. Supabase production still has zero application tables and migrations; no live schema changes were applied.
+
+
+## Release fixture hardening and latest successful CI (2026-10-24)
+- GitHub Actions run `40084689752` passed both jobs. The source-guard job passed startup guards, schema-draft checks, inline JavaScript parsing, 55-table data-surface audit, pre-rebuild release check, sanitized rebuild, and post-build release tests. The disposable PostgreSQL job passed RLS/grant/financial tests and concurrent proforma numbering.
+- Expanded release sanitization to remove embedded governance approvals/audit actors, reconciliation/close-control examples, sample financial transactions, sample document-sequence counters, and hard-coded sales-representative records. The release builder now fails if it finds a new unreviewed seed-like variable name.
+- The document-sequence widget now displays an em dash when the sanitized catalogue is empty instead of calculating `-Infinity`.
+- Release candidate is regenerated and tests confirm these fixture arrays are empty and their example records absent. The reviewed source and staging entry point remain byte-for-byte identical.
+- These results are repository/CI validation only. No live Supabase schema, Auth configuration, Storage policy, paid plan, or deployment was changed.
