@@ -25,6 +25,18 @@ const expectedTables = [
   'sales_targets','stock_entries','stock_ledger','trip_plans','visit_reports'
 ].sort();
 
+
+const expectedHelperTables = [
+  'bokan_ap_bills','bokan_ar_invoices','bokan_attendance_records',
+  'bokan_delivery_events','bokan_delivery_order_lines','bokan_delivery_orders',
+  'bokan_employees','bokan_factories','bokan_fiscal_periods','bokan_goods_receipts',
+  'bokan_inventory_balances','bokan_inventory_movements','bokan_journal_entries',
+  'bokan_leave_requests','bokan_logistics_exceptions','bokan_payroll_approvals',
+  'bokan_payroll_runs','bokan_purchase_order_lines','bokan_purchase_orders',
+  'bokan_purchase_request_lines','bokan_purchase_requests','bokan_shipment_containers',
+  'bokan_shipments','bokan_stock_reservations','bokan_warehouses'
+].sort();
+
 assert.equal(entry, source, 'Staging entry point drifted from the reviewed source; review and sync both files.');
 
 const tables = [...source.matchAll(/\.from\(\s*['"]([a-z][a-z0-9_]*)['"]\s*\)/g)]
@@ -37,6 +49,18 @@ if (addedTables.length || removedTables.length) {
   console.error('Direct Supabase table surface changed. Review the data contract and update this baseline intentionally.');
   if (addedTables.length) console.error('New table references: ' + addedTables.join(', '));
   if (removedTables.length) console.error('Removed table references: ' + removedTables.join(', '));
+  process.exit(1);
+}
+
+const helperTables = [...new Set([...source.matchAll(/\\b(?:insert|update|q|count)\\s*\\(\\s*['"]([a-z][a-z0-9_]*)['"]/g)]
+  .map(match => match[1])
+  .filter(table => table.startsWith('bokan_')))].sort();
+const addedHelperTables = helperTables.filter(table => !expectedHelperTables.includes(table));
+const removedHelperTables = expectedHelperTables.filter(table => !helperTables.includes(table));
+if (addedHelperTables.length || removedHelperTables.length) {
+  console.error('Generic data-access helper table surface changed. Review and update the database contract intentionally.');
+  if (addedHelperTables.length) console.error('New helper table names: ' + addedHelperTables.join(', '));
+  if (removedHelperTables.length) console.error('Removed helper table names: ' + removedHelperTables.join(', '));
   process.exit(1);
 }
 
@@ -56,6 +80,8 @@ const securityDefinerMentionCount = [...source.matchAll(/security\s+definer/gi)]
 
 console.log('BOKAN ERP direct data-surface inventory');
 console.log('Direct literal table names: ' + actualTables.length);
+console.log('Generic helper table names: ' + helperTables.length);
+console.log('Distinct logical database table names: ' + new Set([...actualTables, ...helperTables]).size);
 console.log('Operation call counts: ' + JSON.stringify(operations));
 console.log('RPCs: ' + (rpcs.join(', ') || '(none detected)'));
 console.log('Storage buckets: ' + (buckets.join(', ') || '(none detected)'));
