@@ -14,7 +14,7 @@ Supabase's current API security guidance explains that database grants and RLS a
 
 ## A. Tables referenced by the application
 
-The source directly references these 41 tables. This is a verified name inventory, not proof that each table should be created independently.
+The source has 41 literal `.from('table')` names plus 14 additional table names passed into generic data-access helpers, for 55 distinct logical database table names observed. This is a verified name inventory, not proof that each table should be created independently.
 
 ### Legacy application model
 - `profiles` — identity-linked profile, role, department, company code, active status, termination status. Auth bridge selects: `id, full_name, role, department, company_code, active, terminated_at`.
@@ -42,6 +42,20 @@ The source directly references these 41 tables. This is a verified name inventor
 - `documents` — repository metadata; current insert includes `category, title, file_path, file_url, uploaded_by` plus category-specific columns. Storage bucket policies and metadata policies must align.
 
 ### Newer modular model
+- `bokan_factories` — procurement/logistics factory or supplier master; generic helper payload mapping remains incomplete.
+- `bokan_warehouses` — warehouse master; generic helper payload mapping remains incomplete.
+- `bokan_purchase_requests` — purchase request header; lifecycle and company fields need mapping.
+- `bokan_purchase_request_lines` — purchase request detail lines; FK and quantity/cost fields need mapping.
+- `bokan_purchase_orders` — purchase order header; approval and legal-entity scope need mapping.
+- `bokan_purchase_order_lines` — purchase order detail lines; FK, quantity and pricing constraints need mapping.
+- `bokan_shipment_containers` — shipment container details; shipment FK and tracking fields need mapping.
+- `bokan_goods_receipts` — receipt/receiving records; PO/shipment linkage and quantity validation need mapping.
+- `bokan_inventory_movements` — stock movement ledger; source linkage, idempotency and reversal design required.
+- `bokan_stock_reservations` — stock allocation/reservation; balance checks and expiry/release lifecycle required.
+- `bokan_delivery_order_lines` — delivery detail lines; order FK and stock allocation rules need mapping.
+- `bokan_delivery_events` — delivery status history; append-only actor/time tracking required.
+- `bokan_logistics_exceptions` — logistics exception records; company scope and resolution lifecycle need mapping.
+- `bokan_inventory_balances` — derived or authoritative stock balances; concurrency and reconciliation strategy required.
 - `bokan_customers` — newer CRM customer master; queried by `customer_name`; includes `assigned_salesperson_id` and `created_by` in current bridge.
 - `bokan_customer_activities` — CRM activity records; current bridge sets `created_by, salesperson_id`.
 - `bokan_customer_assignments` — reassignment audit; current bridge writes `customer_id, previous_salesperson_id, new_salesperson_id, reason, reassigned_by`.
