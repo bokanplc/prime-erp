@@ -53,6 +53,8 @@ DECLARE
   v_next public.proformas;
   v_denied boolean := false;
   v_invalid boolean := false;
+  v_invalid_type boolean := false;
+  v_invalid_settings boolean := false;
 BEGIN
   v_payload := jsonb_build_object(
     'customer', 'Acme Corporation',
@@ -144,6 +146,39 @@ BEGIN
   END;
   IF NOT v_invalid THEN
     RAISE EXCEPTION 'Invalid negative-quantity item was not rejected';
+  END IF;
+
+  -- String values that merely look numeric must not be cast into financial inputs.
+  BEGIN
+    PERFORM public.bokan_save_proforma(
+      'PRIME', NULL,
+      jsonb_set(v_payload, '{items,0,unit_price}', '"NaN"'::jsonb)
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Line items must contain objects with a text description and numeric quantity/unit price' THEN
+      v_invalid_type := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_invalid_type THEN
+    RAISE EXCEPTION 'String-valued NaN unit price was not rejected by JSON type validation';
+  END IF;
+
+  BEGIN
+    PERFORM public.bokan_save_proforma(
+      'PRIME', NULL,
+      jsonb_set(v_payload, '{vatPct}', '"NaN"'::jsonb)
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Tax, discount, withholding and date fields have invalid JSON types' THEN
+      v_invalid_settings := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_invalid_settings THEN
+    RAISE EXCEPTION 'String-valued NaN VAT rate was not rejected by JSON type validation';
   END IF;
 END
 $test$;
