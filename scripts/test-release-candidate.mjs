@@ -45,6 +45,7 @@ assert.match(html,/const seedReps=\[\]/,'Release candidate must empty sample sal
 assert.match(html,/const docs=\[\]/,'Release candidate must not ship sample document sequence numbers.');
 assert.doesNotMatch(html,/Preview Admin|Supplier payment approval|Sales discount exception|doc:'INV-1001',type:'AR Invoice'|name:'Derej'|name:'Yohannes'/,'Release candidate must not ship sample approvals, audit actors, transactions, or salespeople.');
 assert.ok(!html.includes('preview-admin')&&!html.includes('preview@primegroup.local'),'Release candidate must not ship a preview administrator identity.');
+assert.doesNotMatch(html,/Preview Admin|Preview Admin — admin/,'Release candidate must not display a preview administrator label or audit actor.');
 assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
 assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
