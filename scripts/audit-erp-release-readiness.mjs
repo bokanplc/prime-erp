@@ -20,28 +20,22 @@ const referenced = [...new Set([...direct,...helper])].sort();
 const defined = [...new Set([...schema.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?public\.([a-z][a-z0-9_]*)/gi)].map(m=>m[1]))].sort();
 const missing = referenced.filter(table=>!defined.includes(table));
 
-const apiRequired = [
-  '/api/auth/login',
-  '/api/auth/change-password',
-  '/api/auth/logout',
-  '/api/bootstrap',
-  '/api/store/'
+const requiredApiFileGroups = [
+  ['login',['functions/api/auth/login.js']],
+  ['change-password',['functions/api/auth/change-password.js']],
+  ['logout',['functions/api/auth/logout.js']],
+  ['bootstrap',['functions/api/bootstrap.js']],
+  ['store',['functions/api/store/[[path]].js','functions/api/store/[key].js']]
 ];
-const functionFiles = [
-  'functions/api/auth/login.js',
-  'functions/api/auth/change-password.js',
-  'functions/api/auth/logout.js',
-  'functions/api/bootstrap.js',
-  'functions/api/store/[[path]].js',
-  'functions/api/store/[key].js'
-];
-const presentFunctionFiles = functionFiles.filter(path=>existsSync(path));
-const apiBackendPresent = presentFunctionFiles.length >= 5;
+const missingApiGroups = requiredApiFileGroups
+  .filter(([,paths])=>!paths.some(path=>existsSync(path)))
+  .map(([name])=>name);
+const apiBackendPresent = missingApiGroups.length === 0;
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
 const fullDataReady = /FULL_ERP_DATA_READY\s*:\s*true/.test(config);
 const blockers = [];
 if(missing.length) blockers.push('Missing database table definitions ('+missing.length+'/'+referenced.length+'): '+missing.join(', '));
-if(!apiBackendPresent) blockers.push('Legacy authenticated /api backend is not implemented in the expected Cloudflare Pages Functions locations.');
+if(!apiBackendPresent) blockers.push('Legacy authenticated /api backend is missing these Cloudflare Pages Functions groups: '+missingApiGroups.join(', ')+'.');
 if(!/SUPABASE_URL\s*:\s*""/.test(config) || !/SUPABASE_ANON_KEY\s*:\s*""/.test(config)) {
   // A configured browser key is not a release approval; the full readiness gate must still be satisfied.
   console.log('INFO: browser Supabase configuration is non-empty; this is not proof of schema or RLS readiness.');
@@ -53,7 +47,7 @@ console.log('BOKAN ERP full-release readiness audit');
 console.log('Referenced logical database tables: '+referenced.length);
 console.log('Tables defined in current first-slice schema: '+defined.length+' ('+defined.join(', ')+')');
 console.log('Tables still missing schema: '+missing.length);
-console.log('Legacy API backend files found: '+presentFunctionFiles.length+'/'+functionFiles.length);
+console.log('Legacy API endpoint groups missing: '+(missingApiGroups.join(', ')||'(none)'));
 console.log('PRODUCTION_MODE: '+productionMode);
 console.log('FULL_ERP_DATA_READY: '+fullDataReady);
 if(blockers.length) {
