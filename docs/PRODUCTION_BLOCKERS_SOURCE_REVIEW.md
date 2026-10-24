@@ -89,3 +89,7 @@ The production save result is now captured and used as the saved record when the
 
 ## Additional hosted release guard (2026-10-23)
 Source and staging config now require an explicit `FULL_ERP_DATA_READY: true` flag in addition to production mode and Supabase config before hosted authentication can initialize or the fail-closed guard can reveal the app. The committed template and sanitized release candidate must keep this flag false until every module's business data is migrated from localStorage/legacy API paths and tested. This prevents an accidental config toggle from making the full UI appear production-ready while legacy modules are not securely persisted.
+
+
+## Additional release fixture data removed (2026-10-24)
+Static review found that the release sanitizer was not clearing all seed-like variables with names other than exactly `seed`: governance approval/audit arrays, reconciliation and close-control rows, sample finance transactions, sample document sequence numbers, and sales-representative defaults. The release builder now empties these module-specific variables, neutralizes the preview-admin badge label, and checks for unreviewed seed-like binding names. The release tests assert the corresponding example records are absent. This is a release-candidate data hygiene control; the reviewed source retains local-preview examples for development, and production remains disabled.
