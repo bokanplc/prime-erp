@@ -48,6 +48,7 @@ assert.doesNotMatch(html,/Preview Admin|Supplier payment approval|Sales discount
 assert.ok(!html.includes('preview-admin')&&!html.includes('preview@primegroup.local'),'Release candidate must not ship a preview administrator identity.');
 assert.doesNotMatch(html,/Preview Admin|Preview Admin — admin/,'Release candidate must not display a preview administrator label or audit actor.');
 assert.doesNotMatch(html,/getPublicUrl\s*\(/,'Release candidate must not generate public document URLs.');
+assert.match(html,/Proforma deletion is disabled in production until an audited void workflow is implemented/,'Production proforma deletion must remain blocked until an audited void workflow exists.');
 assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
 assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
 assert.doesNotMatch(html,/admin@preview/,'Release candidate must not ship the preview-admin email identity.');
