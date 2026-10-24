@@ -87,9 +87,13 @@ const trackedRawSinks = [
   /v35-rows'\)\.innerHTML=p\.map\(x=>`[^`]*\$\{x\.doc\}/,
   /v35-rows'\)\.innerHTML=p\.map\(x=>`[^`]*\$\{x\.status\}/,
   /innerHTML=inbound\.map\(x=>`[^`]*\$\{x\.purchasing_entity\}/,
-  /innerHTML=deliveries\.map\(x=>`[^`]*\$\{x\.customer_id/
+  /innerHTML=deliveries\.map\(x=>`[^`]*\$\{x\.customer_id/,
+  /bokanCallLog\.(?:setRep|setField|openAccount)\(\$\{x\.id\}/,
+  /onclick="bokanAccessToggle\('\$\{u\.id\}'\)"/
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
 assert.match(source, /data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/, 'Document delete handlers must not interpolate stored values into JavaScript string literals.');
-console.log('PASS: HTML escaping, same-project private signed document URLs, dataset-based document actions, and 64 tracked sink patterns.');
+assert.match(source, /data-call-id="\$\{escapeHtml\(x\.id\)\}" onchange="bokanCallLog\.setRep\(this\.dataset\.callId,this\.value\)"/, 'Call-log record IDs must be passed through escaped data attributes, not interpolated into inline JavaScript.');
+assert.match(source, /data-access-user-id="\$\{esc\(u\.id\)\}" onclick="bokanAccessToggle\(this\.dataset\.accessUserId\)"/, 'Access-registry IDs must be passed through escaped data attributes.');
+console.log('PASS: HTML escaping, same-project private signed document URLs, dataset-based document actions, and 66 tracked sink patterns.');
