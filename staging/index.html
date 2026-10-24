@@ -6963,7 +6963,7 @@ function generateWhtLetter() {
   setDocumentCompany('wht-out', companyKey);
   document.getElementById('wht-out-vendor').textContent = vendor;
   document.getElementById('wht-out-address').textContent = address;
-  document.getElementById('wht-out-items').innerHTML = items.map((i,idx) => `<tr class="border-b border-[#ECEEF1]"><td class="py-1">${idx+1}</td><td>${i.date || ''}</td><td>${i.inv || ''}</td><td>${i.desc || ''}</td><td class="text-right">${i.gross.toLocaleString()}</td><td class="text-right">${i.rate}%</td><td class="text-right">${(i.gross*i.rate/100).toLocaleString()}</td><td>${i.cert || ''}</td></tr>`).join('');
+  document.getElementById('wht-out-items').innerHTML = items.map((i,idx) => `<tr class="border-b border-[#ECEEF1]"><td class="py-1">${idx+1}</td><td>${escapeHtml(i.date || '')}</td><td>${escapeHtml(i.inv || '')}</td><td>${escapeHtml(i.desc || '')}</td><td class="text-right">${escapeHtml(i.gross.toLocaleString())}</td><td class="text-right">${escapeHtml(i.rate)}%</td><td class="text-right">${escapeHtml((i.gross*i.rate/100).toLocaleString())}</td><td>${escapeHtml(i.cert || '')}</td></tr>`).join('');
   document.getElementById('wht-out-total').textContent = 'ETB ' + total.toLocaleString();
   document.getElementById('wht-out-notes').textContent = notes;
   document.getElementById('wht-print').classList.remove('hidden');
@@ -7277,7 +7277,7 @@ async function loadHrReports() {
   document.getElementById('hr-terminated-count').textContent = terminated;
   const byDept = {};
   emp.filter(e => e.status !== 'Terminated').forEach(e => { byDept[e.department] = (byDept[e.department]||0) + 1; });
-  document.getElementById('hr-dept-breakdown').innerHTML = Object.entries(byDept).length ? Object.entries(byDept).map(([d,c]) => `<div class="stat-line"><span class="label">${d}</span><span class="value">${c}</span></div>`).join('') : '<p class="text-[#8D9096]">No active employees logged yet.</p>';
+  document.getElementById('hr-dept-breakdown').innerHTML = Object.entries(byDept).length ? Object.entries(byDept).map(([d,c]) => `<div class="stat-line"><span class="label">${escapeHtml(d)}</span><span class="value">${c}</span></div>`).join('') : '<p class="text-[#8D9096]">No active employees logged yet.</p>';
   const lv = leaveRows || [];
   const pendingCount = lv.filter(r => (r.status||'Pending') === 'Pending').length;
   document.getElementById('hr-pending-leave').innerHTML = ragDot(pendingCount > 5 ? 'r' : pendingCount > 0 ? 'a' : 'g') + pendingCount;
