@@ -386,3 +386,14 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Extended schema-draft regression assertions for the new type guards.
 - Expanded PostgreSQL smoke tests to create a legitimate BlackRock proforma and verify a PRIME authenticated session cannot read it through RLS, and to reject inactive and terminated profiles at the trusted write boundary.
 - CI run for the latest test changes is queued/in progress; record final outcome after it completes. All work remains in the staging branch and draft PR only.
+
+
+## Latest proforma validation and tenant-isolation tests (2026-10-24)
+- GitHub Actions run `40085344403` completed successfully for both jobs. The source-guard job passed schema draft assertions, Proforma UI contract checks, JavaScript parsing, 55-table access-surface audit, and sanitized release-candidate rebuild/retest.
+- The disposable PostgreSQL job passed the schema/RLS/grant/financial suite and concurrent numbering test after adding:
+  - strict JSON-native types for numeric financial settings and line-item quantities/prices;
+  - rejection tests for string-valued `"NaN"` VAT rate and unit price;
+  - a PRIME-vs-BlackRock direct SELECT/RLS isolation test;
+  - rejection of inactive and terminated profiles at the trusted proforma write boundary.
+- The schema remains a draft. These tests use disposable CI PostgreSQL with an Auth shim; they do not establish Supabase-specific JWT/Data API behavior and do not authorize applying the SQL to the real project.
+- Live Supabase was rechecked read-only after these changes: no public application tables, no migrations, and the leaked-password protection warning remains. No live settings were changed.
