@@ -457,3 +457,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Added `scripts/test-erp-release-readiness.mjs`. It runs the readiness audit in a temporary copy with the current disabled config, then simulates enabling production mode and asserts that the audit exits with a stop-ship failure while the 51-table/API gaps remain.
 - Added this regression test to GitHub Actions. The first run exposed a test assertion reading the wrong output stream; fixed it to check stderr, then reran.
 - Latest PR workflow run `40088863876` and push workflow run `40088859385` both completed successfully: source guards, readiness-gate simulation, sanitized release build/test, disposable PostgreSQL RLS/financial tests, and concurrent proforma numbering all passed.
+
+
+## Final readiness-gate regression verification (2026-10-24)
+- The new executable readiness-gate test initially failed because its assertion checked stdout while the intentional stop-ship error is emitted on stderr. Corrected the assertion; the gate behavior itself was not weakened.
+- Verified the test in both PR and push workflows. Run `40088863876` (PR) and `40088859385` (push) both passed both jobs.
+- The simulated production enablement is rejected while 51 table definitions and all five legacy API endpoint groups are missing.
+- The sanitized candidate still builds successfully but remains intentionally non-functional for live business use; this is a security control, not a deployment-ready application.
