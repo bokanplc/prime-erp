@@ -6994,7 +6994,7 @@ async function loadRepoProformas() {
       <div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(p.created_at).toLocaleDateString()}</span><button onclick="deleteProforma('${p.id}')" class="text-red-600 text-xs no-print">Delete</button></div>
     </div>`).join('');
 }
-async function deleteProforma(id) { if (!confirm('Delete this proforma record?')) return; await sb.from('proformas').delete().eq('id', id); loadRepoProformas(); }
+async function deleteProforma(id) { if (_bokanProdConfigured) { alert('Proforma deletion is disabled in production until an audited void workflow is implemented.'); return; } if (!confirm('Delete this proforma record?')) return; await sb.from('proformas').delete().eq('id', id); loadRepoProformas(); }
 async function uploadRepoFile(category, titleInputId, fileInputId, extraCols) {
   // Fail closed in production until private Storage policies and signed-download
   // handling replace the public URL flow below. Local preview remains available.
