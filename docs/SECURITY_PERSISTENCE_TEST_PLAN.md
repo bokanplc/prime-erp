@@ -1,7 +1,7 @@
 # BOKAN ERP V6.7 — Security and Persistence Test Plan
 
 **Status:** planned test cases; execution requires a provisioned test schema and browser environment.  
-**Date:** 2026-10-21
+**Date:** 2026-10-24
 
 ## 1. Gate conditions
 
@@ -49,6 +49,8 @@ Run each scenario with one PRIME user and one BlackRock user, each with separate
 | RBAC-06 | Ordinary user invokes DELETE on issued proforma, posted journal, payroll, receipt, payment, stock ledger, or audit history | Denied; use audited void/reversal |
 | RBAC-07 | User directly invokes each exposed RPC | Only explicitly granted roles and authorized company allowed |
 | RBAC-08 | Company administrator attempts to administer the other company | Denied unless an explicit group-level admin membership is provisioned |
+| RBAC-09 | Authenticated user directly updates own profile role/company/active/termination fields | Denied by table/column grants and RLS; role changes use a controlled admin process |
+| RBAC-10 | Authenticated user directly inserts/updates/deletes company bank-account rows | Denied until an atomic audited maintenance workflow is approved |
 
 ## 5. Financial and business invariants
 
@@ -64,6 +66,9 @@ Run each scenario with one PRIME user and one BlackRock user, each with separate
 | FIN-08 | Journal entry debits differ from credits | Posting rejected |
 | FIN-09 | Posting into closed fiscal period | Rejected |
 | FIN-10 | Stock movement is duplicated or reversed | Idempotency and compensating movement prevent double count |
+| FIN-11 | Authenticated user calls direct INSERT/UPDATE/DELETE on proformas, bypassing the save RPC | Denied by table grants; all creates/revisions use the trusted transaction RPC |
+| FIN-12 | User attempts to call the private proforma implementation through the public Data API | Private schema is not exposed; only the public invoker wrapper is exposed to authenticated users |
+| FIN-13 | Proforma save is retried concurrently for the same company/prefix or same revision | Transaction advisory lock and unique constraint prevent duplicate number/version rows |
 
 ## 6. HR, documents, and audit
 
@@ -98,3 +103,14 @@ Modules remain disabled until their complete create/read/update/approval/post/re
 For each test, record: test ID, environment, branch/commit, role, company, table/RPC/object, action, expected result, observed result, timestamp, pass/fail, evidence reference, and follow-up issue.
 
 **Execution note:** these are planned tests. No real browser, provisioned users, application tables, or RLS policies have been exercised yet.
+
+
+## 8. Release candidate fixture-sanitization tests
+
+| ID | Scenario | Expected result |
+|---|---|---|
+| REL-01 | Release candidate is built from reviewed source | Staging entry and reviewed source match before sanitization |
+| REL-02 | Known embedded module seed collections are present in review source | Release build empties them explicitly; unknown seed-count changes fail the build |
+| REL-03 | Enterprise master-data, stock, and payroll examples exist in review source | Release build replaces those example collections with empty collections |
+| REL-04 | Release artifact contains preview admin, sample customer/supplier/employee/stock data, hard-coded email, or public document URL helper | Build/test fails |
+| REL-05 | Release config is copied from staging config | Production mode remains false and Supabase URL/key placeholders remain blank |
