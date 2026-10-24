@@ -32,8 +32,12 @@ assert.match(sql, /v_items := p_payload->'items';/, 'The database function must 
 assert.match(sql, /item\.value->>'description'[\s\S]*?item\.value->>'qty'[\s\S]*?item\.value->>'unit_price'/, 'Database item validation must use the UI item field names.');
 assert.match(sql, /sum\(\(item\.value->>'qty'\)::numeric \* \(item\.value->>'unit_price'\)::numeric\)/, 'Database totals must use VAT-inclusive unit_price values.');
 assert.match(sql, /v_discounted_gross := round\(v_gross - v_discount_amount,2\)/, 'Database discount calculation must match the UI formula.');
-assert.match(sql, /v_subtotal := round\(v_discounted_gross \/ \(1 \+ v_vat_rate \/ 100\),2\)/, 'VAT must be extracted from VAT-inclusive gross.');
-assert.match(sql, /v_vat_amount := round\(v_discounted_gross - v_subtotal,2\)/, 'VAT amount must be gross minus before-VAT subtotal.');
+assert.match(sql, /v_subtotal := round\(v_gross \/ \(1 \+ v_vat_rate \/ 100\),2\)/, 'VAT-exclusive subtotal must be calculated from the pre-discount VAT-inclusive gross.');
+assert.match(sql, /v_vat_amount := round\(v_gross - v_subtotal,2\)/, 'VAT amount must be gross minus before-VAT subtotal.');
+assert.match(sql, /abs\(grand_total - subtotal_before_vat - vat_amount \+ discount_amount\) <= 0\.02/, 'Displayed subtotal + VAT - discount must equal grand total.');
+assert.match(source, /const subtotalBeforeVAT = Math\.round\(grossMerchandise \/ \(1 \+ vatPct\/100\) \* 100\)\/100/, 'UI subtotal must be computed before the separate discount row.');
+assert.match(source, /const vatAmount = Math\.round\(\(grossMerchandise - subtotalBeforeVAT\)\*100\)\/100/, 'UI VAT must reconcile to the pre-discount inclusive gross.');
+assert.match(source, /const grandTotal = discountedGross/, 'UI grand total must subtract the separately displayed discount.');
 assert.match(sql, /when v_withholding_enabled and v_grand_total > v_withholding_threshold\s+then round\(v_grand_total \* v_withholding_rate \/ 100,2\)/, 'Withholding must apply only above the configured inclusive-total threshold.');
 assert.match(sql, /v_net_payable := round\(v_grand_total - v_withholding_amount,2\)/, 'Net payable must equal grand total less withholding.');
 assert.doesNotMatch(sql, /p_payload->>'(?:grandTotal|subtotalBeforeVAT|vatAmount|netPayable)'/, 'Client-supplied totals must not be trusted.');
