@@ -52,7 +52,7 @@ if (addedTables.length || removedTables.length) {
   process.exit(1);
 }
 
-const helperTables = [...new Set([...source.matchAll(/\\b(?:insert|update|q|count)\\s*\\(\\s*['"]([a-z][a-z0-9_]*)['"]/g)]
+const helperTables = [...new Set([...source.matchAll(/\b(?:insert|update|q|count)\s*\(\s*['"]([a-z][a-z0-9_]*)['"]/g)]
   .map(match => match[1])
   .filter(table => table.startsWith('bokan_')))].sort();
 const addedHelperTables = helperTables.filter(table => !expectedHelperTables.includes(table));
