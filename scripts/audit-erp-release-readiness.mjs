@@ -84,7 +84,9 @@ const rawHtmlSinkPatterns = [
   ['withholding rate',/\$\{i\.rate\}/],
   ['withholding computed tax',/\$\{\(i\.gross\*i\.rate\/100\)\.toLocaleString\(\)\}/],
   ['withholding certificate',/\$\{i\.cert \|\| ''\}/],
-  ['HR department name',/\$\{d\}<\/span><span class="value">\$\{c\}/]
+  ['HR department name',/\$\{d\}<\/span><span class="value">\$\{c\}/],
+  ['stock location grouping',/\.innerHTML\s*=\s*Object\.entries\(byLoc\)[\s\S]{0,500}\$\{loc\}<\/span>/],
+  ['CRM pipeline status',/\.innerHTML\s*=\s*Object\.keys\(pipelineCounts\)[\s\S]{0,300}\$\{s\}<\/span><span class="font-semibold">\$\{c\}/]
 ];
 const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
