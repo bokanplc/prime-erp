@@ -114,3 +114,13 @@ For each test, record: test ID, environment, branch/commit, role, company, table
 | REL-03 | Enterprise master-data, stock, and payroll examples exist in review source | Release build replaces those example collections with empty collections |
 | REL-04 | Release artifact contains preview admin, sample customer/supplier/employee/stock data, hard-coded email, or public document URL helper | Build/test fails |
 | REL-05 | Release config is copied from staging config | Production mode remains false and Supabase URL/key placeholders remain blank |
+
+
+## First-slice proforma test expansion (2026-10-24)
+The disposable PostgreSQL smoke suite now explicitly exercises:
+- PRIME cannot SELECT a BlackRock proforma row under RLS, even when querying the table directly.
+- BlackRock cannot create a PRIME proforma by calling the public RPC directly.
+- Inactive and terminated profiles are rejected by the trusted write function.
+- String-valued `"NaN"` cannot be supplied as an item price or VAT rate; JSON-native types are checked before financial casts.
+- Negative quantities are rejected, while valid VAT-inclusive calculations and concurrent unique numbering still pass.
+These tests validate only the first-slice proforma draft in an ephemeral PostgreSQL service. They do not substitute for a real Supabase Auth/JWT, Data API exposure, or browser test, and they do not authorize applying the draft to the live project.
