@@ -65,8 +65,16 @@ const trackedRawSinks = [
   /\$\{r\.vatPct\}/,
   /\$\{data\.qty \?\? ''\}/,
   /\$\{data\.unit_price \?\? ''\}/
+  /\$\{i\.date \|\| ''\}/
+  /\$\{i\.inv \|\| ''\}/
+  /\$\{i\.desc \|\| ''\}/
+  /\$\{i\.gross\.toLocaleString\(\)\}/
+  /\$\{i\.rate\}/
+  /\$\{\(i\.gross\*i\.rate\/100\)\.toLocaleString\(\)\}/
+  /\$\{i\.cert \|\| ''\}/
+  /\$\{d\}<\/span><span class="value">\$\{c\}/]
 ];
 const remaining = trackedRawSinks.filter(pattern => pattern.test(source));
 assert.equal(remaining.length, 0, 'Tracked unescaped HTML sinks remain: ' + remaining.length);
 assert.match(source, /data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/, 'Document delete handlers must not interpolate stored values into JavaScript string literals.');
-console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 45 tracked sink patterns.');
+console.log('PASS: HTML escaping, HTTPS document URLs, dataset-based document actions, and 53 tracked sink patterns.');
