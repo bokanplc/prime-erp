@@ -242,6 +242,18 @@ begin
     raise exception 'Customer name and TIN are required';
   end if;
 
+  -- Require JSON-native types for numeric/boolean inputs before casting them.
+  -- This prevents values such as the string "NaN" from reaching PostgreSQL numeric
+  -- comparisons, where NaN sorts above ordinary numbers and can evade range checks.
+  if (p_payload ? 'vatPct' and p_payload->'vatPct' <> 'null'::jsonb and jsonb_typeof(p_payload->'vatPct') <> 'number')
+     or (p_payload ? 'discountPct' and p_payload->'discountPct' <> 'null'::jsonb and jsonb_typeof(p_payload->'discountPct') <> 'number')
+     or (p_payload ? 'withholdingRate' and p_payload->'withholdingRate' <> 'null'::jsonb and jsonb_typeof(p_payload->'withholdingRate') <> 'number')
+     or (p_payload ? 'withholdingThreshold' and p_payload->'withholdingThreshold' <> 'null'::jsonb and jsonb_typeof(p_payload->'withholdingThreshold') <> 'number')
+     or (p_payload ? 'withholdingEnabled' and p_payload->'withholdingEnabled' <> 'null'::jsonb and jsonb_typeof(p_payload->'withholdingEnabled') <> 'boolean')
+     or (p_payload ? 'date' and p_payload->'date' <> 'null'::jsonb and jsonb_typeof(p_payload->'date') <> 'string') then
+    raise exception 'Tax, discount, withholding and date fields have invalid JSON types';
+  end if;
+
   v_vat_rate := coalesce(nullif(p_payload->>'vatPct','')::numeric,15);
   v_discount_percent := coalesce(nullif(p_payload->>'discountPct','')::numeric,0);
   v_withholding_enabled := coalesce(nullif(p_payload->>'withholdingEnabled','')::boolean,true);
@@ -266,12 +278,25 @@ begin
   if jsonb_typeof(v_terms) <> 'array' then
     raise exception 'Terms must be an array';
   end if;
+  -- Validate JSON shape separately from numeric comparisons. Do not rely on
+  -- boolean expression evaluation order to protect casts of malformed JSON.
+  if exists (
+    select 1
+      from jsonb_array_elements(v_items) as item(value)
+     where jsonb_typeof(item.value) is distinct from 'object'
+        or jsonb_typeof(item.value->'description') is distinct from 'string'
+        or jsonb_typeof(item.value->'qty') is distinct from 'number'
+        or jsonb_typeof(item.value->'unit_price') is distinct from 'number'
+  ) then
+    raise exception 'Line items must contain objects with a text description and numeric quantity/unit price';
+  end if;
+
   if exists (
     select 1
       from jsonb_array_elements(v_items) as item(value)
      where coalesce(trim(item.value->>'description'),'') = ''
-        or coalesce((item.value->>'qty')::numeric,0) <= 0
-        or coalesce((item.value->>'unit_price')::numeric,-1) < 0
+        or (item.value->>'qty')::numeric <= 0
+        or (item.value->>'unit_price')::numeric < 0
   ) then
     raise exception 'Every line item requires a description, positive quantity, and non-negative VAT-inclusive unit price';
   end if;
