@@ -35,6 +35,6 @@ assert.match(sql, /when v_withholding_enabled and v_grand_total > v_withholding_
 assert.match(sql, /v_net_payable := round\(v_grand_total - v_withholding_amount,2\)/, 'Net payable must equal grand total less withholding.');
 assert.doesNotMatch(sql, /p_payload->>'(?:grandTotal|subtotalBeforeVAT|vatAmount|netPayable)'/, 'Client-supplied totals must not be trusted.');
 assert.match(sql, /create or replace function public\.bokan_save_proforma[\s\S]*?security invoker[\s\S]*?select private\.bokan_save_proforma/, 'Public save endpoint must remain an invoker wrapper around the private transaction.');
-assert.match(sql, /revoke all on public\.proformas from anon, authenticated;[\s\S]*?grant select on public\.proformas to authenticated;/, 'Authenticated users must not have direct proforma write grants.');
+assert.match(sql, /revoke all on public\.companies, public\.profiles, public\.company_bank_accounts, public\.proformas from anon, authenticated;[\s\S]*?grant select on public\.proformas to authenticated;/, 'Authenticated users must not have direct proforma write grants.');
 
 console.log('PASS: Proforma UI payload, saved-row restoration, financial math and trusted RPC contract match.');
