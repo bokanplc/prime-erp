@@ -237,6 +237,17 @@ begin
     raise exception 'Company is inactive or unavailable';
   end if;
 
+  -- Validate text payload types instead of accepting JSON objects/arrays via ->> coercion.
+  if (p_payload ? 'customer' and p_payload->'customer' <> 'null'::jsonb and jsonb_typeof(p_payload->'customer') <> 'string')
+     or (p_payload ? 'tin' and p_payload->'tin' <> 'null'::jsonb and jsonb_typeof(p_payload->'tin') <> 'string')
+     or (p_payload ? 'address' and p_payload->'address' <> 'null'::jsonb and jsonb_typeof(p_payload->'address') <> 'string')
+     or (p_payload ? 'phone' and p_payload->'phone' <> 'null'::jsonb and jsonb_typeof(p_payload->'phone') <> 'string')
+     or (p_payload ? 'contactPerson' and p_payload->'contactPerson' <> 'null'::jsonb and jsonb_typeof(p_payload->'contactPerson') <> 'string')
+     or (p_payload ? 'delivery' and p_payload->'delivery' <> 'null'::jsonb and jsonb_typeof(p_payload->'delivery') <> 'string')
+     or (p_payload ? 'notes' and p_payload->'notes' <> 'null'::jsonb and jsonb_typeof(p_payload->'notes') <> 'string') then
+    raise exception 'Customer and optional text fields must be JSON strings';
+  end if;
+
   v_customer := trim(coalesce(p_payload->>'customer',''));
   if v_customer = '' or trim(coalesce(p_payload->>'tin','')) = '' then
     raise exception 'Customer name and TIN are required';
@@ -277,6 +288,12 @@ begin
   end if;
   if jsonb_typeof(v_terms) <> 'array' then
     raise exception 'Terms must be an array';
+  end if;
+  if exists (
+    select 1 from jsonb_array_elements(v_terms) as term(value)
+    where jsonb_typeof(term.value) is distinct from 'string'
+  ) then
+    raise exception 'Each commercial term must be a string';
   end if;
   -- Validate JSON shape separately from numeric comparisons. Do not rely on
   -- boolean expression evaluation order to protect casts of malformed JSON.
