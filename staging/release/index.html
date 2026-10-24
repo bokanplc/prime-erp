@@ -4782,8 +4782,7 @@ function switchDepartment() {
 
 let expandedGroups = new Set();
 
-function buildTabs() {
-  const roleAllowed = new Set(ROLE_TABS[currentRole] || []);
+function buildTabs() { const productionAllowed = window.BOKAN_PRODUCTION_AUTH?.enabled && window.__BOKAN_PROD_ALLOWED_TABS instanceof Set ? window.__BOKAN_PROD_ALLOWED_TABS : null; const roleAllowed = new Set(productionAllowed || ROLE_TABS[currentRole] || []);
   const allowed = currentDeptTabs ? new Set(currentDeptTabs.filter(t => roleAllowed.has(t))) : roleAllowed;
 
   let firstId = null, firstGroup = null, scanGroup = null;
@@ -5242,8 +5241,8 @@ async function loadWeeklyActions() {
   el.innerHTML = data.map(row => {
     const isToday = row.next_action_date === today;
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${isToday ? 'bg-amber-50' : ''}">
-      <div><span class="font-semibold">${row.next_action_type || 'Follow-up'}</span> — ${row.customers?.customer_name || ''}
-      <span class="text-[#8D9096]">${row.next_action_date}${isToday ? ' (Today)' : ''}</span></div>
+      <div><span class="font-semibold">${escapeHtml(row.next_action_type || 'Follow-up')}</span> — ${escapeHtml(row.customers?.customer_name || '')}
+      <span class="text-[#8D9096]">${escapeHtml(row.next_action_date || '')}${isToday ? ' (Today)' : ''}</span></div>
     </div>`;
   }).join('');
 }
@@ -6537,9 +6536,23 @@ window.saveProformaCompanyContact=async function(){ if(bokanProdEnabled()&&!['ad
 window.saveProformaCompanyBanks=async function(){ const key=document.getElementById('pf-company')?.value||'PRIME'; const banks=[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({id:r.dataset.bankId||null,bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose); if(bokanProdEnabled()){try{await bokanProdSaveBanks(key,banks);renderProductionIssuer(key);alert('Issuer bank accounts updated in production.');}catch(e){alert('Unable to update bank accounts: '+e.message);}}else{const all=getProformaCompanySettings();all[key]={...(all[key]||{}),banks};saveProformaCompanySettings(all);alert('Issuer bank accounts updated.');} };
 window.loadIssuerBankAccounts=async function(key){ if(bokanProdEnabled()){await bokanProdRefreshIssuer(key);renderProductionIssuer(key);} else {const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;wrap.innerHTML='';const banks=getIssuerBanks(key);(banks.length?banks:[{}]).forEach(b=>addProformaBankAccount(b));} };
 
-async function bokanProdNextProformaNumber(companyKey,customer){const db=bokanProdClient();if(!db)return makeProformaNumber(customer);const {data,error}=await db.rpc('bokan_next_proforma_number',{p_company:companyKey,p_customer:customer});if(error)throw error;return data;}
-async function bokanProdSaveProforma(payload,existing){const db=bokanProdClient();if(!db)return null;const isUpdate=!!existing;const version=isUpdate?Number(existing.version||1)+1:1;const rootId=isUpdate?(existing.rootProformaId||existing.id):null;const row={company_code:payload.companyKey,proforma_no:payload.proformaNo,root_proforma_id:rootId,version_no:version,document_action:isUpdate?'update':'new',customer_name:payload.customer,customer_tin:payload.tin,customer_address:payload.address,customer_phone:payload.phone,contact_person:payload.contactPerson,proforma_date:payload.date||new Date().toISOString().slice(0,10),vat_rate:payload.vatPct,subtotal_before_vat:payload.subtotalBeforeVAT,discount_percent:payload.discountPct,discount_amount:payload.discountAmount,vat_amount:payload.vatAmount,withholding_enabled:payload.withholdingEnabled,withholding_rate:payload.withholdingRate,withholding_threshold:payload.withholdingThreshold,withholding_amount:payload.withholdingAmount,grand_total:payload.grandTotal,net_payable:payload.netPayable,company_tin_snapshot:payload.companyTinSnapshot,bank_accounts_snapshot:payload.banks,items:payload.items,notes:payload.notes,terms:payload.terms||[],status:'draft',created_by:isUpdate?(existing.dbRow?.created_by||bokanProdUserId()):bokanProdUserId(),updated_by:bokanProdUserId()};
-  const {data,error}=await db.from('proformas').insert([row]).select('*').single();if(error)throw error;return bokanProdMapProformaRow(data);
+async function bokanProdSaveProforma(payload,existing){
+  const db=bokanProdClient();if(!db)return null;
+  const {data,error}=await db.rpc('bokan_save_proforma',{
+    p_company:payload.companyKey,
+    p_existing_id:existing?.id||null,
+    p_payload:{
+      customer:payload.customer,tin:payload.tin,address:payload.address,phone:payload.phone,
+      contactPerson:payload.contactPerson,date:payload.date,vatPct:payload.vatPct,
+      discountPct:payload.discountPct,delivery:payload.delivery,notes:payload.notes,
+      withholdingEnabled:payload.withholdingEnabled,withholdingRate:payload.withholdingRate,
+      withholdingThreshold:payload.withholdingThreshold,items:payload.items,terms:payload.terms||[]
+    }
+  });
+  if(error)throw error;
+  const row=Array.isArray(data)?data[0]:data;
+  if(!row?.id)throw new Error('Atomic proforma save returned no saved record.');
+  return bokanProdMapProformaRow(row);
 }
 function bokanProductionCacheRecord(r){ if(!r)return; const i=BOKAN_PROD_SAVED_CACHE.findIndex(x=>x.id===r.id); if(i>=0)BOKAN_PROD_SAVED_CACHE[i]=r;else BOKAN_PROD_SAVED_CACHE.push(r); }
 async function bokanProdLoadProformas(){const db=bokanProdClient();if(!db)return[];const {data,error}=await db.from('proformas').select('*').order('updated_at',{ascending:false});if(error)throw error;BOKAN_PROD_SAVED_CACHE=(data||[]).map(bokanProdMapProformaRow);return BOKAN_PROD_SAVED_CACHE;}
@@ -6602,12 +6615,17 @@ async function generateProforma() {
   const withholdingAmount = grandTotal > withholdingThreshold ? grandTotal * withholdingRate/100 : 0;
   const netPayable = grandTotal - withholdingAmount;
 
-  let proformaNo = makeProformaNumber(customer);
+  let proformaNo = makeProformaNumber(customer); let productionSavedRecord=null;
   const action=document.getElementById('pf-document-action')?.value||'new'; const existingId=document.getElementById('pf-existing-proforma')?.value||window.editingProformaId||''; const existing=getSavedProformas().find(r=>r.id===existingId); if(action==='update'&&existing)proformaNo=existing.proformaNo;
   if(bokanProdEnabled()){
-    try { if(action!=='update'||!existing) proformaNo=await bokanProdNextProformaNumber(companyKey,customer); } catch(e){ alert('Unable to obtain a production Proforma number: '+e.message); return; }
     const pfDateForSave=document.getElementById('pf-date-input')?.value||new Date().toISOString().slice(0,10);
-    try { await bokanProdSaveProforma({companyKey,proformaNo,customer,tin,address,phone,contactPerson,pfDate:pfDateForSave,date:pfDateForSave,vatPct,discountPct,discountAmount:grossMerchandise-discountedGross,delivery,notes,withholdingEnabled,withholdingRate,withholdingThreshold,withholdingAmount,grandTotal,netPayable,companyTinSnapshot:company.tin||'',banks,items,terms,existing}); } catch(e){ alert('Production save failed. Nothing was saved: '+e.message); return; }
+    try {
+      productionSavedRecord=await bokanProdSaveProforma({
+        companyKey,customer,tin,address,phone,contactPerson,date:pfDateForSave,vatPct,discountPct,
+        delivery,notes,withholdingEnabled,withholdingRate,withholdingThreshold,items,terms
+      }, existing);
+      proformaNo=productionSavedRecord.proformaNo;
+    } catch(e){ alert('Production save failed. Nothing was saved: '+e.message); return; }
   } else {
     try { const {data:noData}=await sb.rpc('next_proforma_no'); if(noData) proformaNo=noData; } catch(e) {}
     try { await sb.from('proformas').insert([{proforma_no:proformaNo,customer_name:customer,customer_tin:tin,customer_address:address,customer_phone:phone,contact_person:contactPerson,items,vat_mode:'inclusive',vat_percent:vatPct,discount_percent:discountPct,delivery_terms:delivery,terms,notes,subtotal:subtotalBeforeVAT,vat_amount:vatAmount,total:grandTotal,created_by:currentUser?.id||null,company_key:companyKey,company_name:company.name,issuer_tin:company.tin||COMPANY_OPTIONS[companyKey]?.tin,bank_accounts:banks,withholding_amount:withholdingAmount}]); } catch(e) { console.warn('Proforma database save skipped:',e); }
@@ -6632,11 +6650,11 @@ async function generateProforma() {
   const wr=document.getElementById('pf-out-withholding-row'); if(withholdingAmount>0){wr.classList.remove('hidden');document.getElementById('pf-out-withholding').textContent='- ETB '+withholdingAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}else wr.classList.add('hidden'); document.getElementById('pf-out-net').textContent='ETB '+netPayable.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const formattedTerms=terms.map(t=>{const isDelivery=/^(2-3 business days|3-5 business days|5-7 business days|2 weeks)$/.test(t);return isDelivery?`Delivery Time: ${t}`:t;}); document.getElementById('pf-out-terms').innerHTML=formattedTerms.length?formattedTerms.map(t=>`<li>${escapeHtml(t)}</li>`).join(''):'<li>No specific terms selected.</li>'; document.getElementById('pf-out-notes').textContent=notes; document.getElementById('proforma-print').classList.remove('hidden'); syncProformaCompanyTIN();
   window.currentBokanProforma={proformaNo,company,customer,tin,grandTotal,netPayable,withholdingAmount};
-  const formState=captureProformaFormState(); const savedRecord={id:existing?.id||('PF-'+Date.now()),proformaNo,version:(existing?.version||0)+1,customer,companyKey,companyName:company.name,createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),form:formState,summary:{grandTotal,netPayable,withholdingAmount}};persistCurrentProforma(savedRecord);window.editingProformaId=savedRecord.id;window.editingProformaVersion=savedRecord.version;document.getElementById('pf-document-action').value='update';syncProformaVersionControls();
+  const formState=captureProformaFormState(); const savedRecord=productionSavedRecord||{id:existing?.id||('PF-'+Date.now()),proformaNo,version:(existing?.version||0)+1,customer,companyKey,companyName:company.name,createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),form:formState,summary:{grandTotal,netPayable,withholdingAmount}};persistCurrentProforma(savedRecord);window.editingProformaId=savedRecord.id;window.editingProformaVersion=savedRecord.version;document.getElementById('pf-document-action').value='update';syncProformaVersionControls();
   if(activeProformaRequestId) markProformaRequestProcessed(activeProformaRequestId); if(!document.getElementById('tab-repository').classList.contains('hidden')) loadRepoProformas();
 }
 
-function addProformaBankAccount(data={}){const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;const row=document.createElement('div');row.className='pf-bank-row grid grid-cols-1 md:grid-cols-12 gap-2';row.innerHTML=`<input class="pf-bank-name md:col-span-3 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Bank Name"><input class="pf-bank-account md:col-span-4 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Account Number"><input class="pf-bank-purpose md:col-span-4 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Purpose / Branch"><button type="button" class="md:col-span-1 text-red-600 font-bold" onclick="deleteIssuerBankAccountRow(this)">Delete</button>`;row.querySelector('.pf-bank-name').value=data.bank_name||'';row.querySelector('.pf-bank-account').value=data.account_number||'';row.querySelector('.pf-bank-purpose').value=data.purpose||'';wrap.appendChild(row);}
+function addProformaBankAccount(data={}){const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;const row=document.createElement('div');row.className='pf-bank-row grid grid-cols-1 md:grid-cols-12 gap-2';row.innerHTML=`<input class="pf-bank-name md:col-span-3 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Bank Name"><input class="pf-bank-account md:col-span-4 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Account Number"><input class="pf-bank-purpose md:col-span-4 border border-[#D4D7DC] p-2 rounded text-xs" placeholder="Purpose / Branch"><button type="button" class="md:col-span-1 text-red-600 font-bold" onclick="deleteIssuerBankAccountRow(this)">Delete</button>`;row.querySelector('.pf-bank-name').value=data.bank_name||'';row.querySelector('.pf-bank-account').value=data.account_number||'';row.querySelector('.pf-bank-purpose').value=data.purpose||'';if(bokanProdEnabled()){row.querySelectorAll('input').forEach(el=>{el.readOnly=true;el.setAttribute('aria-readonly','true');});const del=row.querySelector('button');if(del){del.disabled=true;del.title='Bank account changes require administrator approval.';}document.querySelectorAll('[onclick="addProformaBankAccount()"]')?.forEach(btn=>{btn.disabled=true;btn.title='Bank account changes require administrator approval.';});}wrap.appendChild(row);}
 function deleteIssuerBankAccountRow(btn){const row=btn.parentElement;const name=row.querySelector('.pf-bank-name')?.value||'this bank account';if(confirm('Permanently remove '+name+' from the selected company bank account list?'))row.remove();}
 function proformaShareText(){ const p=window.currentBokanProforma||{}; return `BOKAN Proforma ${p.proformaNo||''} — ${p.company?.name||''} — Customer: ${p.customer||''} — Amount: ETB ${(p.netPayable||p.grandTotal||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}.` }
 function shareProformaWhatsApp(){ const url='https://wa.me/?text='+encodeURIComponent(proformaShareText()+' Please see the attached proforma.'); window.open(url,'_blank','noopener'); }
@@ -8078,8 +8096,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   const msg=document.getElementById('pg-msg');
   const nativeGet=Storage.prototype.getItem, nativeSet=Storage.prototype.setItem, nativeRemove=Storage.prototype.removeItem;
   let token=sessionStorage.getItem('prime_prod_token')||'';
-  const localPreview=location.protocol==='file:'||['localhost','127.0.0.1','::1'].includes(location.hostname); const DEV_BYPASS=localPreview;
-  let booted=false, syncing=false;
+  const localPreview=location.protocol==='file:'||['localhost','127.0.0.1','::1'].includes(location.hostname); const DEV_BYPASS=localPreview; if(window.BOKAN_PRODUCTION_AUTH?.enabled){gate.style.display='none';top.style.display='none';return;} let booted=false, syncing=false;
   function setMsg(t){msg.textContent=t||'';}
   function authHeaders(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'};}
   async function api(path,opts={}){const r=await fetch(API+path,Object.assign({headers:authHeaders()},opts));let d={};try{d=await r.json()}catch(e){}if(!r.ok)throw new Error(d.detail||('Request failed ('+r.status+')'));return d;}
@@ -8616,7 +8633,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
 (function(){
   'use strict';
   const cfg=window.BOKAN_CONFIG||{};
-  const configured=!!(cfg.PRODUCTION_MODE===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
+  const configured=!!(cfg.PRODUCTION_MODE===true && cfg.FULL_ERP_DATA_READY===true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
   window.BOKAN_PRODUCTION_AUTH={enabled:configured,client:null,profile:null};
   if(!configured){ return; }
   const auth=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -8634,10 +8651,10 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   function roleTabs(role){
     const map={
       admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
-      management:['overview','stockreport','expenseledger','hrreports','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
-      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
-      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
-      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
+      management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
+      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
+      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
+      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
     }; return map[role]||[];
@@ -8885,7 +8902,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   // for database RLS or the authenticated profile gate.
   const localPreview = location.protocol === 'file:' || ['localhost','127.0.0.1','::1'].includes(location.hostname);
   const cfg = window.BOKAN_CONFIG || {};
-  const configured = !!(cfg.PRODUCTION_MODE === true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
+  const configured = !!(cfg.PRODUCTION_MODE === true && cfg.FULL_ERP_DATA_READY === true && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL || '')) && String(cfg.SUPABASE_ANON_KEY || '').length > 20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY || '')));
   if (localPreview || configured) return;
   document.documentElement.style.visibility = 'hidden';
   document.addEventListener('DOMContentLoaded', function(){
