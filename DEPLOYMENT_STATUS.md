@@ -593,3 +593,13 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Added regression checks in source guard, static audit, release build, release-candidate tests, and full-release readiness audit. The release builder now refuses to generate a candidate if production mode/readiness/tabs are enabled prematurely.
 - Added `docs/LOCAL_STORAGE_MODULE_MIGRATION_MAP.md` to map legacy browser storage to server-side data requirements and `docs/PRODUCTION_MODULE_READINESS_MATRIX.md` to track each module's actual backend/test status.
 - This avoids relying on a single boolean flag to expose the entire ERP navigation tree. It does not replace RLS or backend authorization; no modules are approved for production yet.
+
+
+## Module allowlist hardening verified (2026-10-24)
+- Production startup now requires a source-reviewed tab as well as an explicit `ENABLED_PRODUCTION_TABS` config entry. The source-reviewed and config lists are both empty.
+- Production navigation intersects the authenticated role's tab permissions with the reviewed/enabled module list. The core client, Auth bridge and hosted fail-closed guard all use the same reviewed-module check.
+- Release builder assertions and generated-candidate tests enforce the empty lists. The full-release audit reports configured/reviewed tabs and rejects unreviewed tabs; the readiness test also verifies that a config-only `proforma` enablement is rejected by the release builder.
+- Added `docs/LOCAL_STORAGE_MODULE_MIGRATION_MAP.md` and `docs/PRODUCTION_MODULE_READINESS_MATRIX.md` to make the remaining browser-local records and per-module blockers explicit.
+- GitHub Actions run `40108945486` passed both jobs after these changes: all source/release-candidate checks and the disposable PostgreSQL schema/RLS/grants/financial/concurrency suite.
+- Supabase rechecked read-only: no public application tables, no migration history, no performance advisor findings. The existing security warning remains: leaked-password protection is disabled. No Auth setting was changed.
+- No live SQL, RLS, Auth, Storage, paid-plan, or deployment changes were made. Draft PR #1 remains unmerged.
