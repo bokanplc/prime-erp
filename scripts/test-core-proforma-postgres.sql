@@ -32,14 +32,16 @@ INSERT INTO auth.users(id) VALUES
   ('11111111-1111-4111-8111-111111111111'),
   ('22222222-2222-4222-8222-222222222222'),
   ('33333333-3333-4333-8333-333333333333'),
-  ('44444444-4444-4444-8444-444444444444');
+  ('44444444-4444-4444-8444-444444444444'),
+  ('55555555-5555-4555-8555-555555555555');
 
 INSERT INTO public.profiles(id, full_name, role, department, company_code, active, terminated_at)
 VALUES
   ('11111111-1111-4111-8111-111111111111', 'CI PRIME Sales', 'sales', 'Sales', 'PRIME', true, NULL),
   ('22222222-2222-4222-8222-222222222222', 'CI BlackRock Sales', 'sales', 'Sales', 'BLACKROCK', true, NULL),
   ('33333333-3333-4333-8333-333333333333', 'CI Inactive Sales', 'sales', 'Sales', 'PRIME', false, NULL),
-  ('44444444-4444-4444-8444-444444444444', 'CI Terminated Sales', 'sales', 'Sales', 'PRIME', true, now());
+  ('44444444-4444-4444-8444-444444444444', 'CI Terminated Sales', 'sales', 'Sales', 'PRIME', true, now()),
+  ('55555555-5555-4555-8555-555555555555', 'CI PRIME Accounting', 'accounting', 'Accounting', 'PRIME', true, NULL);
 
 INSERT INTO public.company_bank_accounts(company_code, bank_name, account_number, account_purpose, display_order, active)
 VALUES
@@ -241,6 +243,41 @@ END
 $inactive_users$;
 
 RESET ROLE;
+SET ROLE authenticated;
+
+DO $company_settings$
+DECLARE
+  v_rows integer := 0;
+  v_tin text;
+BEGIN
+  -- A sales user can read its company but cannot mutate issuer identity settings.
+  PERFORM set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+  UPDATE public.companies SET tin = 'UNAUTHORIZED-TIN' WHERE code = 'PRIME';
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 0 THEN
+    RAISE EXCEPTION 'Sales role unexpectedly updated issuer TIN';
+  END IF;
+  SELECT tin INTO v_tin FROM public.companies WHERE code = 'PRIME';
+  IF v_tin <> '009588209' THEN
+    RAISE EXCEPTION 'Unauthorized issuer TIN update changed the stored value: %', v_tin;
+  END IF;
+
+  -- Accounting may update the permitted issuer fields for its own company.
+  PERFORM set_config('request.jwt.claim.sub', '55555555-5555-4555-8555-555555555555', true);
+  UPDATE public.companies SET tin = 'CI-TEMP-TIN' WHERE code = 'PRIME';
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 1 THEN
+    RAISE EXCEPTION 'Accounting role could not update its own issuer TIN';
+  END IF;
+  UPDATE public.companies SET tin = '009588209' WHERE code = 'PRIME';
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 1 THEN
+    RAISE EXCEPTION 'Accounting role could not restore the issuer TIN after test';
+  END IF;
+END
+$company_settings$;
+
+RESET ROLE;
 
 DO $privileges$
 BEGIN
@@ -262,6 +299,10 @@ BEGIN
      OR has_column_privilege('authenticated', 'public.profiles', 'company_code', 'UPDATE')
      OR has_column_privilege('authenticated', 'public.profiles', 'active', 'UPDATE') THEN
     RAISE EXCEPTION 'authenticated users must not edit protected profile authorization fields';
+  END IF;
+  IF has_column_privilege('authenticated', 'public.companies', 'code', 'UPDATE')
+     OR has_column_privilege('authenticated', 'public.companies', 'active', 'UPDATE') THEN
+    RAISE EXCEPTION 'Authenticated users must not change company code or active state';
   END IF;
   IF has_table_privilege('authenticated', 'public.company_bank_accounts', 'INSERT')
      OR has_table_privilege('authenticated', 'public.company_bank_accounts', 'UPDATE')
