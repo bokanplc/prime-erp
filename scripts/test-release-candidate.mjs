@@ -36,12 +36,12 @@ assert.match(html,/const master=\{customers:\[\], suppliers:\[\], products:\[\]\
 assert.match(html,/const stock=\[\]/,'Release candidate must empty the enterprise stock fixture.');
 assert.match(html,/const pay=\[\]/,'Release candidate must empty the enterprise payroll fixture.');
 assert.doesNotMatch(html,/Sugar Corporation \/ Meti Desta|Habesha Construction PLC|name:'Supplier A'|name:'Employee A',dept:|sku:'PLY-G-18'/,'Release candidate must not ship embedded enterprise customer, supplier, employee, or stock examples.');
-assert.match(html,/const seedA=\\[\\]/,'Release candidate must empty governance approval fixtures.');
-assert.match(html,/const seedD=\\[\\]/,'Release candidate must empty preview audit fixtures.');
-assert.match(html,/const recSeed=\\[\\]/,'Release candidate must empty reconciliation fixtures.');
-assert.match(html,/const closeSeed=\\[\\]/,'Release candidate must empty close-control fixtures.');
-assert.match(html,/const seedTx=\\[\\]/,'Release candidate must empty sample financial transactions.');
-assert.match(html,/const seedReps=\\[\\]/,'Release candidate must empty sample sales representatives.');
+assert.match(html,/const seedA=\[\]/,'Release candidate must empty governance approval fixtures.');
+assert.match(html,/const seedD=\[\]/,'Release candidate must empty preview audit fixtures.');
+assert.match(html,/const recSeed=\[\]/,'Release candidate must empty reconciliation fixtures.');
+assert.match(html,/const closeSeed=\[\]/,'Release candidate must empty close-control fixtures.');
+assert.match(html,/const seedTx=\[\]/,'Release candidate must empty sample financial transactions.');
+assert.match(html,/const seedReps=\[\]/,'Release candidate must empty sample sales representatives.');
 assert.match(html,/const docs=\\[\\]/,'Release candidate must not ship sample document sequence numbers.');
 assert.doesNotMatch(html,/Preview Admin|Supplier payment approval|Sales discount exception|doc:'INV-1001',type:'AR Invoice'|name:'Derej'|name:'Yohannes'/,'Release candidate must not ship sample approvals, audit actors, transactions, or salespeople.');
 assert.ok(!html.includes('preview-admin')&&!html.includes('preview@primegroup.local'),'Release candidate must not ship a preview administrator identity.');
