@@ -17,7 +17,7 @@ assert.equal(escapeHtml("O'Reilly & Co"), 'O&#039;Reilly &amp; Co');
 assert.equal(safeDocumentHref('javascript:alert(1)'), '#');
 assert.equal(safeDocumentHref('data:text/html,<script>alert(1)</script>'), '#');
 assert.equal(safeDocumentHref('http://example.com/document.pdf'), '#');
-assert.equal(safeDocumentHref('https://files.example.test/document.pdf?x="y'), 'https://files.example.test/document.pdf?x=&quot;y');
+assert.equal(safeDocumentHref('https://files.example.test/document.pdf?x="y'), 'https://files.example.test/document.pdf?x=%22y');
 
 const trackedRawSinks = [
   /\.innerHTML\s*=\s*data\.map\(n\s*=>\s*`[\s\S]{0,500}\$\{n\.message\}/,
