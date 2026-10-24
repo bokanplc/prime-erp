@@ -559,3 +559,10 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - Escaped department landing labels, stock control identifiers (moved edit/delete actions to escaped data attributes), finance close-control fields, posting register fields, and supply-tower inbound/delivery labels before inserting them into HTML.
 - Expanded both the HTML output-escaping regression suite and the full release-readiness stop-ship audit to track these additional sinks.
 - This is continued defense-in-depth on review source; the full module set is still blocked from production until its schema, auth, persistence, and browser tests are complete.
+
+
+## Inline-handler ID hardening (2026-10-24)
+- Moved customer call-log row IDs and access-registry user IDs out of inline JavaScript string/code interpolation and into escaped `data-*` attributes; handlers now read the dataset values.
+- Updated record lookup comparisons to tolerate the string form provided by HTML datasets.
+- Added regression assertions and expanded the release readiness audit to track both old unsafe patterns.
+- Source and staging entry point currently match: yes (800791 characters).
