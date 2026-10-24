@@ -3,7 +3,7 @@
 **Reviewed:** 2026-10-24  
 **Applies to:** BOKAN ERP first-slice schema draft; no live settings or schema changed.
 
-Supabase's current official API security guide explains that table/function grants and RLS are separate controls. Grants determine whether a role can reach an object through the Data API; RLS controls which rows are visible or writable once the object is reachable. New table exposure defaults are changing on **2026-10-30**, according to the official [Supabase changelog](https://supabase.com/changelog?types=breaking-change).
+Supabase's current official API security guide explains that table/function grants and RLS are separate controls. Grants determine whether a role can reach an object through the Data API; RLS controls which rows are visible or writable once the object is reachable. New table exposure defaults are changing on **2026-10-30**, according to the official [Supabase changelog](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically).
 
 ## BOKAN ERP implementation rule
 
