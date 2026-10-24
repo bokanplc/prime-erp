@@ -6401,8 +6401,13 @@ function escapeHtml(v){
 }
 function safeDocumentHref(value){
   try {
-    const parsed = new URL(String(value || ''), location.origin);
-    return parsed.protocol === 'https:' ? escapeHtml(parsed.href) : '#';
+    const configuredUrl = window.BOKAN_CONFIG?.SUPABASE_URL;
+    if (!configuredUrl) return '#';
+    const expectedOrigin = new URL(configuredUrl).origin;
+    const parsed = new URL(String(value || ''), expectedOrigin);
+    if (parsed.protocol !== 'https:' || parsed.origin !== expectedOrigin) return '#';
+    if (!parsed.pathname.startsWith('/storage/v1/object/sign/documents/')) return '#';
+    return escapeHtml(parsed.href);
   } catch (_) { return '#'; }
 }
 function collectProformaRequestForm(){
@@ -7055,7 +7060,7 @@ async function loadRepoFiles(category, targetElId) {
   const { data } = await sb.from('documents').select('*').eq('category', category).order('created_at', { ascending: false });
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No files uploaded yet.</p>'; return; }
   el.innerHTML = data.map(d => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
-      <div><a href="${safeDocumentHref(d.file_url)}" target="_blank" class="text-[#2CA01C] font-semibold underline">${escapeHtml(d.title)}</a></div>
+      <div><a href="${safeDocumentHref(d.file_url)}" target="_blank" rel="noopener noreferrer" class="text-[#2CA01C] font-semibold underline">${escapeHtml(d.title)}</a></div>
       <div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(d.created_at).toLocaleDateString()}</span><button type="button" data-doc-id="${escapeHtml(d.id)}" data-file-path="${escapeHtml(d.file_path)}" data-doc-category="${escapeHtml(category)}" data-target-el="${escapeHtml(targetElId)}" onclick="deleteRepoFile(this.dataset.docId,this.dataset.filePath,this.dataset.docCategory,this.dataset.targetEl)" class="text-red-600 text-xs no-print">Delete</button></div>
     </div>`).join('');
 }
