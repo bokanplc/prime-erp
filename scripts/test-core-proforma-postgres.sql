@@ -108,6 +108,43 @@ BEGIN
       v_first.subtotal_before_vat, v_first.vat_amount, v_first.discount_amount,
       v_first.grand_total, v_first.withholding_amount, v_first.net_payable;
   END IF;
+  -- Direct RPC callers must not be able to disable or dilute the fixed withholding rule.
+  v_denied := false;
+  BEGIN
+    PERFORM public.bokan_save_proforma('PRIME', NULL, jsonb_set(v_payload, '{withholdingEnabled}', 'false'::jsonb));
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered' THEN
+      v_denied := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Direct RPC caller disabled withholding'; END IF;
+
+  v_denied := false;
+  BEGIN
+    PERFORM public.bokan_save_proforma('PRIME', NULL, jsonb_set(v_payload, '{withholdingRate}', '0'::jsonb));
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered' THEN
+      v_denied := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Direct RPC caller changed withholding rate'; END IF;
+
+  v_denied := false;
+  BEGIN
+    PERFORM public.bokan_save_proforma('PRIME', NULL, jsonb_set(v_payload, '{withholdingThreshold}', '100000'::jsonb));
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Withholding is fixed at 3% on VAT-inclusive totals above ETB 10,000 and cannot be disabled or altered' THEN
+      v_denied := true;
+    ELSE
+      RAISE;
+    END IF;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Direct RPC caller changed withholding threshold'; END IF;
+
   IF v_first.company_tin_snapshot <> '009588209'
      OR jsonb_typeof(v_first.bank_accounts_snapshot) <> 'array'
      OR jsonb_array_length(v_first.bank_accounts_snapshot) <> 1
