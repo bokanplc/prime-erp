@@ -95,7 +95,9 @@ const rawHtmlSinkPatterns = [
   ['posting register document fields',/v35-rows'\)\.innerHTML=p\.map\(x=>`[^`]*\$\{x\.doc\}/],
   ['posting register status',/v35-rows'\)\.innerHTML=p\.map\(x=>`[^`]*\$\{x\.status\}/],
   ['supply tower inbound fields',/innerHTML=inbound\.map\(x=>`[^`]*\$\{x\.purchasing_entity\}/],
-  ['supply tower delivery fields',/innerHTML=deliveries\.map\(x=>`[^`]*\$\{x\.customer_id/]
+  ['supply tower delivery fields',/innerHTML=deliveries\.map\(x=>`[^`]*\$\{x\.customer_id/],
+  ['call-log inline IDs',/bokanCallLog\.(?:setRep|setField|openAccount)\(\$\{x\.id\}/],
+  ['access-registry inline IDs',/onclick="bokanAccessToggle\('\$\{u\.id\}'\)"/]
 ];
 const rawHtmlSinks = rawHtmlSinkPatterns.filter(([,pattern])=>pattern.test(source)).map(([name])=>name);
 const productionMode = /PRODUCTION_MODE\s*:\s*true/.test(config);
