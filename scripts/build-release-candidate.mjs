@@ -73,11 +73,18 @@ const fixtureBindings = {
   pay: '[]'
 };
 for (const [name, replacement] of Object.entries(fixtureBindings)) {
+  const moduleMarker = 'id="prime-v45-enterprise-layer"';
+  const moduleAt = releaseHtml.indexOf(moduleMarker);
+  assert.ok(moduleAt >= 0, 'Enterprise fixture module is missing.');
+  const scriptStart = releaseHtml.lastIndexOf('<script', moduleAt);
+  const scriptEnd = releaseHtml.indexOf('</script>', moduleAt);
+  assert.ok(scriptStart >= 0 && scriptEnd > moduleAt, 'Enterprise fixture script boundary is missing.');
+  const script = releaseHtml.slice(scriptStart, scriptEnd);
   const declaration = new RegExp('\\bconst\\s+' + name + '\\s*=', 'g');
-  const matches = [...releaseHtml.matchAll(declaration)];
-  assert.equal(matches.length, 1, 'Expected exactly one embedded fixture binding: ' + name);
-  const eq = releaseHtml.indexOf('=', matches[0].index);
-  let start = eq + 1;
+  const matches = [...script.matchAll(declaration)];
+  assert.equal(matches.length, 1, 'Expected exactly one embedded fixture binding in enterprise module: ' + name);
+  const eq = script.indexOf('=', matches[0].index);
+  let start = scriptStart + eq + 1;
   while (/\s/.test(releaseHtml[start] || '')) start++;
   assert.ok(releaseHtml[start] === '[' || releaseHtml[start] === '{', 'Fixture binding must be a literal: ' + name);
   const end = expressionEnd(releaseHtml, start);
