@@ -1,1 +1,67 @@
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prime ERP | Business Workspace</title>
+<meta name="description" content="Prime ERP business workspace for customers, products and sales documents.">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.top{background:#172033;color:#fff;padding:22px max(22px,calc((100vw - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:21px;font-weight:750;letter-spacing:.2px}.brand small{display:block;font-size:12px;font-weight:500;color:#bdc8d8;margin-top:4px}.wrap{max-width:1120px;margin:30px auto;padding:0 20px}.hero{padding:25px 0 18px}.hero h1{font-size:clamp(28px,4vw,40px);margin:0 0 10px}.muted{color:#687386;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:24px 0}.card{background:white;border:1px solid #e1e6ef;border-radius:14px;padding:22px;box-shadow:0 5px 20px #18243a08}.card h2{font-size:16px;margin:0 0 10px}.metric{font-size:28px;font-weight:750}.pill{display:inline-block;border:1px solid #d6dce6;border-radius:30px;padding:5px 10px;font-size:12px;color:#344054}.auth{max-width:480px}.field{display:block;margin:14px 0 5px;font-size:13px;font-weight:650}input,select{width:100%;padding:12px;border:1px solid #cfd6e2;border-radius:8px;font:inherit;background:white}button{padding:11px 15px;border:0;border-radius:8px;background:#172033;color:#fff;font-weight:650;cursor:pointer}button.secondary{background:#e9edf4;color:#172033}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.notice{margin-top:14px;padding:12px;border-radius:8px;background:#f1f4f8;color:#344054;font-size:14px;line-height:1.5}.list{padding-left:20px;line-height:1.9}.hidden{display:none!important}footer{max-width:1120px;margin:40px auto;padding:0 20px 28px;color:#7a8495;font-size:12px}@media(max-width:600px){.top{align-items:flex-start;flex-direction:column}.wrap{margin-top:18px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">PRIME ERP <small>Multi-company business workspace</small></div><span class="pill" id="connection">Checking service…</span></header>
+<main class="wrap">
+<section class="hero"><h1>Run your business from one workspace.</h1><p class="muted">A clean foundation for customer records, product catalogues, quotations, proformas, sales orders and invoices — with company-level access controls.</p></section>
+<section class="grid">
+<div class="card"><h2>Customer management</h2><p class="muted">A single, organized customer directory for each company.</p></div>
+<div class="card"><h2>Products & pricing</h2><p class="muted">Maintain SKUs, units, selling prices and tax rates.</p></div>
+<div class="card"><h2>Sales documents</h2><p class="muted">Prepare quotations, proformas, sales orders and invoices.</p></div>
+</section>
+<section class="card auth" id="authPanel">
+<h2>Sign in to your workspace</h2><p class="muted">Use your company account. New registrations will need an administrator to assign company access.</p>
+<form id="authForm">
+<label class="field" for="email">Email address</label><input id="email" type="email" autocomplete="username" required>
+<label class="field" for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="8" required>
+<div class="actions"><button type="submit" id="signin">Sign in</button><button type="button" class="secondary" id="signup">Create account</button></div>
+</form><div id="authMessage" class="notice" role="status">Connecting to the application service…</div>
+</section>
+<section class="card hidden" id="workspace">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2 style="margin-bottom:6px">Your workspace</h2><div class="muted" id="userEmail"></div></div><button class="secondary" id="signout">Sign out</button></div>
+<div class="notice" id="membershipMessage"></div>
+<h2 style="margin-top:22px">Available companies</h2><ul id="companies" class="list"></ul>
+<p class="muted">Your administrator must assign your user account to a company before company data becomes available.</p>
+</section>
+<section class="card" style="margin-top:18px"><h2>Foundation status</h2><p class="muted">Database foundation installed: companies, memberships, customers, products, sales documents and line items. Company-level row security is enabled. Finance, inventory, reporting and integrations will be added in subsequent modules.</p></section>
+</main>
+<footer>Prime ERP · Initial foundation build · Do not enter confidential customer data until your administrator has completed access provisioning.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+ const SUPABASE_URL='https://kafiwnuynjemufnankvi.supabase.co';
+ const SUPABASE_KEY='sb_publishable_gNl3CYqNr5gm23BCiMm5yw_B4x8UkKh';
+ const $=id=>document.getElementById(id);
+ const say=(msg)=>{$('authMessage').textContent=msg};
+ if(!window.supabase){$('connection').textContent='Client library unavailable';say('Could not load the authentication client. Refresh this page or check your connection.');return}
+ const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ $('connection').textContent='Service configured';
+ async function showSession(session){
+   if(!session){$('workspace').classList.add('hidden');$('authPanel').classList.remove('hidden');return}
+   $('authPanel').classList.add('hidden');$('workspace').classList.remove('hidden');$('userEmail').textContent=session.user.email||'Signed-in user';
+   const {data: memberships,error}=await client.from('company_memberships').select('company_id,role,is_active').eq('user_id',session.user.id).eq('is_active',true);
+   const list=$('companies');list.replaceChildren();
+   if(error){$('membershipMessage').textContent='Signed in, but company access could not be loaded. Ask your administrator to verify membership and database API permissions.';return}
+   if(!memberships||memberships.length===0){$('membershipMessage').textContent='Your account is signed in but is not assigned to a company yet. An administrator must securely provision your company membership.';return}
+   const ids=memberships.map(m=>m.company_id);
+   const {data:companies, error:companyError}=await client.from('companies').select('id,name,code').in('id',ids);
+   if(companyError){$('membershipMessage').textContent='Membership found; company details could not be loaded. Ask your administrator to check API grants.';return}
+   $('membershipMessage').textContent='Company access loaded for your account.';
+   (companies||[]).forEach(c=>{const li=document.createElement('li');li.textContent=c.name+' ('+c.code+')';list.appendChild(li)});
+ }
+ $('authForm').addEventListener('submit',async e=>{e.preventDefault();$('signin').disabled=true;say('Signing in…');const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('signin').disabled=false;if(error){say(error.message);return}say('Signed in. Loading your workspace…');await showSession(data.session)});
+ $('signup').addEventListener('click',async()=>{if(!$('email').value.trim()||!$('password').value){say('Enter an email address and a password of at least 8 characters first.');return} $('signup').disabled=true;say('Creating account…');const {data,error}=await client.auth.signUp({email:$('email').value.trim(),password:$('password').value});$('signup').disabled=false;if(error){say(error.message);return}say(data.session?'Account created. Loading workspace…':'Account request submitted. Check your email to confirm registration. An administrator must then assign your company access.');if(data.session)await showSession(data.session)});
+ $('signout').addEventListener('click',async()=>{await client.auth.signOut();await showSession(null);say('You have signed out.')});
+ client.auth.getSession().then(({data})=>showSession(data.session));
+ client.auth.onAuthStateChange((_event,session)=>{if(session)showSession(session)});
+})();
+</script>
+</body></html>
