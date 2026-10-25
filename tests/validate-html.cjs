@@ -3,10 +3,13 @@ const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8');
 const failures = [];
 if (!html.includes('<title>BOKAN ERP')) failures.push('BOKAN ERP title is missing');
-for (const id of ['authForm','resetForm','companySelect','customerForm','productForm','salesForm','lineItems','saveSales']) {
+for (const id of ['authForm','resetForm','companySelect','customerForm','productForm','salesForm','lineItems','saveSales','supplierForm','purchaseForm','stockForm','paymentForm']) {
   if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
     failures.push('Required UI element is missing: ' + id);
   }
+}
+for (const id of ['tab-suppliers','tab-purchases','tab-inventory','tab-payments']) {
+  if (!html.includes('id=\"' + id + '\"')) failures.push('New module panel is missing: ' + id);
 }
 if (!html.includes('sb_publishable_')) failures.push('Supabase publishable key is missing');
 if (!html.includes("create_sales_document_with_items") || !html.includes("db.rpc(")) {
@@ -30,4 +33,4 @@ if (failures.length) {
   console.error(failures.map(x => 'FAIL: ' + x).join('\n'));
   process.exit(1);
 }
-console.log('PASS: ' + checked + ' inline script(s) parse; branding, core forms, and public-key safety checks passed.');
+console.log('PASS: ' + checked + ' inline script(s) parse; branding, sales and starter procurement/inventory/payment forms, RPC integration, and public-key safety checks passed.');
