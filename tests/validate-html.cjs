@@ -9,6 +9,12 @@ for (const id of ['authForm','resetForm','companySelect','customerForm','product
   }
 }
 if (!html.includes('sb_publishable_')) failures.push('Supabase publishable key is missing');
+if (!html.includes("create_sales_document_with_items") || !html.includes("db.rpc(")) {
+  failures.push('Atomic sales-document RPC integration is missing');
+}
+if (/db\.from\('sales_documents'\)\.insert\(/.test(html) || /db\.from\('sales_document_items'\)\.insert\(/.test(html)) {
+  failures.push('Legacy two-step sales-document inserts remain in the UI');
+}
 if (/service_role|sb_secret_/i.test(html)) failures.push('A server-side Supabase secret-like key appears in the public HTML');
 const scripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)];
 let checked = 0;
