@@ -11,6 +11,10 @@ BOKAN ERP is a multi-company sales-workflow application for BlackRock Investment
 - Draft quotations, proforma invoices, sales orders, and invoices
 - Sales document line items with quantity, unit, unit price, tax percentage, and automatic totals
 - Atomic database save for a sales document and its line items
+- Supplier directory (starter CRUD)
+- Purchase-document header capture for purchase requests, orders, supplier invoices, and returns
+- Inventory stock-movement ledger (manual movements; no automatic posting yet)
+- Sales payment recording (payment status reconciliation is not automatic yet)
 - Responsive single-page interface
 
 ## Not yet implemented
@@ -45,3 +49,4 @@ This is not yet a complete ERP or accounting package. PDF/print templates, editi
 - [Cloudflare deployment and smoke-test guide](CLOUDFLARE_DEPLOYMENT.md)
 - [Security guidance](SECURITY.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
+- [Supabase schema migrations](supabase/migrations/)
