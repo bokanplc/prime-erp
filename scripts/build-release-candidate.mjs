@@ -13,8 +13,8 @@ const source=readFileSync(sourcePath,'utf8');
 const entry=readFileSync(entryPath,'utf8');
 const config=readFileSync(configPath,'utf8');
 // The published sanitized candidate must never inherit staging's demo-entry flag.
-const releaseConfig=config.replace(/DEMO_REVIEW_MODE\\s*:\\s*true/, 'DEMO_REVIEW_MODE: false');
-assert.match(releaseConfig,/DEMO_REVIEW_MODE\\s*:\\s*false/,'Demo review mode must be disabled in the sanitized release candidate.');
+const releaseConfig=config.replace(/DEMO_REVIEW_MODE\s*:\s*true/, 'DEMO_REVIEW_MODE: false');
+assert.match(releaseConfig,/DEMO_REVIEW_MODE\s*:\s*false/,'Demo review mode must be disabled in the sanitized release candidate.');
 assert.equal(entry,source,'Staging entry point must match reviewed source before sanitization.');
 assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain disabled in the release template.');
 assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
@@ -146,9 +146,9 @@ releaseHtml=releaseHtml.slice(0,mockStart)+mockStub+releaseHtml.slice(configStar
 const publicUrlCall = "const { data: pub } = sb.storage.from('documents').getPublicUrl(path);";
 assert.equal(releaseHtml.split(publicUrlCall).length - 1, 1, 'Expected one legacy public document URL call to neutralize.');
 releaseHtml = releaseHtml.replace(publicUrlCall, 'const pub = { publicUrl: null };');
-assert.match(config,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain disabled.');
-assert.match(config,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
-assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
+assert.match(releaseConfig,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain disabled.');
+assert.match(releaseConfig,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
+assert.match(releaseConfig,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
 assert.notEqual(releaseHtml,source,'Release artifact must be sanitized, not a copy of review source.');
 mkdirSync(dirname(outputPath),{recursive:true});
 mkdirSync(dirname(outputConfigPath),{recursive:true});
