@@ -1,48 +1,38 @@
-# BOKAN ERP V6.7 — Cloudflare Pages Build Settings (Review Only)
+# BOKAN ERP V6.7 — Cloudflare Workers Builds Settings (Review Only)
 
-**Status: configuration guidance only. No Cloudflare project has been created and no deployment has been made.**
+**Status: configuration guidance. The connected Cloudflare project is a Workers service, not a Pages project. No production deployment has been approved.**
 
-## Why the build directory matters
+## Required repository-side behavior
 
-The repository contains the full review source under staging/. That directory contains embedded fixture data for local development/review and must never be the published Pages output.
+The full review source is under `staging/`; do not publish that directory directly. Run the branch-aware build script to generate `dist/release/`.
 
-The release builder sanitizes known fixture collections, removes the preview-admin identity, replaces the mock backend with a deny-by-default stub, removes the public document URL helper, and writes the generated artifact outside the source tree at dist/release/index.html with its config at dist/release/config/config.js.
+- Workers Builds sets `WORKERS_CI_BRANCH`; the builder uses it to recognize `deploy/secure-staging`.
+- `CF_PAGES_BRANCH` is also supported for compatibility if this artifact is later built by Pages.
+- On `deploy/secure-staging`, the build emits the complete V6.7 review interface with clearly labeled sample/demo data, `DEMO_REVIEW_MODE: true`, blank Supabase credentials, and noindex/no-store headers.
+- On other branches, it emits the sanitized, fail-closed candidate with demo mode disabled.
+- `wrangler.jsonc` points Cloudflare Workers Static Assets at `./dist/release`; the Worker name is `prime-erp` to match the connected Cloudflare service.
 
-**Do not publish staging/index.html or the staging/ directory directly.** The build script requires the staging entry point to match the reviewed source and then creates the sanitized output.
+## Cloudflare Workers > Settings > Builds
 
-## Recommended settings after the release gate is approved
-
-| Cloudflare Pages setting | Value |
+| Setting | Value |
 |---|---|
-| Framework preset | None / static HTML |
-| Root directory | Repository root (leave blank/default) |
-| Build command | node scripts/build-release-candidate.mjs |
-| Build output directory | dist/release |
-| Node.js build version | 22 (NODE_VERSION=22 environment variable) |
-| Production branch | Do not select deploy/secure-staging as a live production branch without explicit release approval |
+| Root directory | Repository root (`/`) |
+| Build command | `node scripts/build-release-candidate.mjs` |
+| Preview command | `npx wrangler preview` |
+| Production branch | `main` |
+| Preview builds | Enabled for non-production branches |
 
-Cloudflare Pages runs the build command from the configured root directory and publishes the configured output directory. Official guidance: https://developers.cloudflare.com/pages/configuration/build-configuration/
+The build command must be configured in the Cloudflare dashboard. A Git push alone does not change dashboard build settings. Once saved, the next build should use the latest branch commit. Verify the log reports the configured build command and the expected commit SHA before trusting the preview.
 
-## Important limitations
+Do not change the production branch to `deploy/secure-staging`. Keep the pull request draft and unmerged. The intended review target is a branch preview, not the active production deployment.
 
-These settings do **not** make the ERP a working production system. The sanitized release candidate intentionally has production mode and full ERP readiness disabled, with blank Supabase credentials, so it must fail closed. It is a sanitized review artifact, not a functioning business application.
+## Security and readiness limits
 
-Before any deployment is approved:
-1. Resolve the legacy /api/* backend dependency by migrating affected modules or implementing a separately reviewed authenticated API.
-2. Finish canonical schema design and least-privilege grants/RLS for all enabled modules.
-3. Implement private document storage, upload authorization, and signed downloads.
-4. Replace the Tailwind development CDN with reproducible production CSS and review Content Security Policy.
-5. Run real Supabase Auth/JWT/Data API and browser smoke tests.
-6. Decide how a reviewed build is published as a preview without automatically turning the staging branch into a production branch.
-7. Keep the existing free plan; no paid service or upgrade is assumed.
+This is a UI review surface only. It contains demo/sample data and is not a security boundary for real company data. Do not enter real customer, employee, payroll, accounting, tax, or financial records. Supabase credentials remain blank and the app is not connected to live Supabase.
 
-No user action is needed now. This document corrects the earlier suggestion to publish staging/release: generated output now belongs in dist/release so the source directory is not exposed.
+The ERP remains **STOP-SHIP** for production until all schema, persistence, authentication, company-isolation, RLS/grants, private document storage, and end-to-end workflow gates are completed and independently verified. No live Supabase changes, PR merge, production promotion, paid upgrade, or secret changes are authorized by this configuration work.
 
-
-## Branch-specific review build behavior (2026-10-26)
-
-The existing build command now checks Cloudflare's `CF_PAGES_BRANCH`:
-- On `deploy/secure-staging`, it publishes the full V6.7 review source with explicit `DEMO_REVIEW_MODE: true`, local mock/sample data, blank Supabase credentials, `X-Robots-Tag: noindex, nofollow`, and `Cache-Control: no-store`. It is for UI review only; changes are not persisted and no real Supabase data is connected.
-- On every other branch, it builds the sanitized release candidate and forces `DEMO_REVIEW_MODE: false`; the release candidate remains fail-closed and is not approved for production.
-
-Use the same command and output folder: `node scripts/build-release-candidate.mjs` → `dist/release`. Keep the Cloudflare production branch set to `main`; do not promote the staging preview to production. The review branch is intentionally a demo surface, not an authentication boundary for real data.
+Official references:
+- Workers Builds configuration: https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
+- Workers branch/preview builds: https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/
+- Workers Static Assets: https://developers.cloudflare.com/workers/static-assets/
