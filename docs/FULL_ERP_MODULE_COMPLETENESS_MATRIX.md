@@ -121,3 +121,11 @@ The live identity schema uses companies plus company_memberships (company_id/use
 See docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md and the matching checkpoint appended to DEPLOYMENT_STATUS.md for the complete read-only facts, the 15 migration names, current Vercel/Cloudflare evidence, and safe next work.
 
 Release decision remains STOP-SHIP. No business module is approved for hosted production; the app must remain disabled until canonical models, full access controls, Auth/Data API/browser tests, private Storage, and persistence/recovery gates pass.
+
+## Automated completeness-gate interpretation — 2026-10-26
+
+The CI readiness audit intentionally exits successfully while production is disabled; this means it can report blockers without breaking every staging documentation/source commit. It is not a green release verdict. The latest run's log explicitly reported STOP-SHIP for 50 table definitions missing from the five-table schema draft and for all five legacy /api endpoint groups missing. It also reported zero remaining matches in the tracked raw-HTML-sink patterns, which is useful progress but not a substitute for real authorization/runtime testing.
+
+The workflow has no step that runs a real browser against the connected Supabase project, tests Auth/JWT/Data API against the live project, or validates a complete migrated module set. The PostgreSQL tests run in an ephemeral CI service. Therefore do not interpret the successful jobs as proof that the live Proforma, CRM, HR, inventory, finance, payroll, or document flows are operational.
+
+Recommended gate improvement: keep the current disabled-build tests, and later add a separate, explicitly non-production integration workflow with disposable test users/project credentials, real browser automation, and direct company-crossing / role-denial assertions. Do not use production credentials or business records in CI.
