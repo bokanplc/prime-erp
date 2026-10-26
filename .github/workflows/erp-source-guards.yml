@@ -94,6 +94,14 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: bokan_test
         run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-core-proforma-postgres.sql
+      - name: Test non-DML privilege hardening candidate
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bokan_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-grant-hardening-postgres.sql
       - name: Test concurrent proforma numbering
         env:
           PGHOST: localhost
