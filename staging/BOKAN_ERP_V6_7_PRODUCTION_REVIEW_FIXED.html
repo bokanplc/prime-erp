@@ -6355,7 +6355,8 @@ async function loadUsers() {
 async function updateRole(id, role) {
   const allowedRoles = ['admin','data_entry','accounting','sales','sales_manager','management','hr'];
   if (!allowedRoles.includes(role)) { alert('That role is not allowed.'); return; }
-  if (_bokanProdConfigured && currentRole !== 'admin') { alert('Only an authenticated administrator can request role changes. Database policies must also authorize this action.'); return; }
+  if (_bokanProdConfigured) { alert('Production role changes are disabled until audited Supabase Auth user provisioning and company-membership management are implemented.'); return; }
+  if (currentRole !== 'admin') { alert('Only an administrator can request preview role changes.'); return; }
   try {
     const { error } = await sb.from('profiles').update({ role }).eq('id', id);
     if (error) throw error;
