@@ -40,7 +40,7 @@ assert.match(source, /return \(map\[role\]\|\|\[\]\)\.filter\(tab=>enabled\.has\
 assert.match(source, /if \(_bokanProdConfigured\) window\.sb = sb;/, 'Configured real Supabase client must be exposed to production bridge modules.');
 assert.match(source, /if \(_bokanProdConfigured\) \{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must remain blocked until private storage is implemented.');
 assert.match(source, /Document downloads are temporarily disabled until private storage and authorized downloads are configured/, 'Production document listing/download links must remain blocked until private signed downloads are implemented.');
-assert.match(source, /Only an authenticated administrator can request role changes/, 'Role-change UI must reject non-admin production requests.');
+assert.match(source, /Production role changes are disabled until audited Supabase Auth user provisioning and company-membership management are implemented/, 'Production role changes must remain blocked until trusted provisioning exists.');
 assert.match(source, /Only an authorized administrator or accounting user can request issuer TIN changes/, 'Production issuer TIN edits must be role-restricted.');
 assert.match(source, /Only an authorized administrator or accounting user can request issuer contact changes/, 'Production issuer contact edits must be role-restricted.');
 assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(_bokanProdConfigured\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account replacement must remain blocked until atomic audited writes exist.');
