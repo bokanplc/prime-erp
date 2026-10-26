@@ -4855,13 +4855,13 @@ function visitReportDeadline(visitDateStr) {
 
 // ==================== BOOT / NAVIGATION ====================
 async function boot() {
-  // Preview identity is allowed only for local review. Never let the main UI
-  // bypass authentication on a hosted origin; the production auth bridge
-  // owns hosted session validation and will reveal the app after profile checks.
+  // Preview identity is allowed only on local review or the explicitly configured staging demo.
+  // The sanitized release builder forces DEMO_REVIEW_MODE off; production auth remains fail-closed.
   const localPreview = location.protocol === 'file:' ||
     ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
   const config = window.BOKAN_CONFIG || {};
-  if (!localPreview || config.PRODUCTION_MODE === true) {
+  const demoReview = config.DEMO_REVIEW_MODE === true && config.PRODUCTION_MODE !== true;
+  if ((!localPreview && !demoReview) || config.PRODUCTION_MODE === true) {
     document.getElementById('app-view')?.classList.add('hidden');
     document.getElementById('landing-view')?.classList.add('hidden');
     document.getElementById('login-view')?.classList.remove('hidden');
