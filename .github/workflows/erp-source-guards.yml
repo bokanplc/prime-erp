@@ -9,6 +9,7 @@ on:
       - 'scripts/**'
       - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
       - 'supabase/migrations/**'
+      - 'supabase/candidates/**'
       - '.github/workflows/erp-source-guards.yml'
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - 'scripts/**'
       - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
       - 'supabase/migrations/**'
+      - 'supabase/candidates/**'
       - '.github/workflows/erp-source-guards.yml'
   workflow_dispatch:
 
