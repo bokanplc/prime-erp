@@ -3,7 +3,7 @@ const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8');
 const failures = [];
 if (!html.includes('<title>BOKAN ERP')) failures.push('BOKAN ERP title is missing');
-for (const id of ['authForm','resetForm','companySelect','customerForm','productForm','salesForm','lineItems','saveSales','supplierForm','purchaseForm','buyLineItems','addBuyLine','stockBalances','stockForm','paymentForm','supplierPaymentForm','supplierPaymentList','salesActionDoc','approveSalesBtn','postSalesBtn']) {
+for (const id of ['authForm','resetForm','companySelect','customerForm','productForm','salesForm','lineItems','saveSales','supplierForm','purchaseForm','buyLineItems','addBuyLine','stockBalances','stockForm','paymentForm','supplierPaymentForm','supplierPaymentList','salesActionDoc','approveSalesBtn','postSalesBtn','purchaseActionDoc','approvePurchaseBtn']) {
   if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
     failures.push('Required UI element is missing: ' + id);
   }
