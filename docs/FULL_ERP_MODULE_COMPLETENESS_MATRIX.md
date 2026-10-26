@@ -106,3 +106,18 @@ Do not turn on full ERP mode or deploy this candidate as a functioning productio
 4. Private document storage and signed downloads are implemented.
 5. Real browser/Auth/Data API tests pass for both PRIME and BlackRock.
 6. Business records are reconciled and export/recovery has been rehearsed.
+
+
+## Live Supabase cross-check — 2026-10-26
+
+A current read-only inspection of the connected Supabase project has now found an applied 12-table sales/procurement/inventory foundation and 15 recorded migrations. This differs from the earlier historical statements in this matrix that the live project has no applied tables or migrations; the earlier statement was true at its check date, but is stale now.
+
+Observed live public tables (RLS reported enabled on each): companies (2 rows), company_memberships (2), customers (0), products (0), sales_documents (0), sales_document_items (0), suppliers (0), purchase_documents (0), purchase_document_items (0), stock_movements (0), sales_payments (0), supplier_payments (0).
+
+Important counting distinction: the reported 55 source-referenced logical names and 50 missing table definitions refer to comparison against the current five-table first-slice schema draft. Those counts do not mean that the live project has only five tables or that exactly 50 live tables are missing. Some business areas overlap with the live 12-table foundation, but the full source-to-live contract, exact column compatibility, authorization, and workflow coverage have not yet been proven.
+
+The live identity schema uses companies plus company_memberships (company_id/user_id/role/is_active), while the first-slice Proforma candidate defines companies plus profiles (company_code/role). Do not apply that candidate as-is to live Supabase. First reconcile tenant identity/membership, proforma ownership/numbering, grants/RLS, and live migration SQL.
+
+See docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md and the matching checkpoint appended to DEPLOYMENT_STATUS.md for the complete read-only facts, the 15 migration names, current Vercel/Cloudflare evidence, and safe next work.
+
+Release decision remains STOP-SHIP. No business module is approved for hosted production; the app must remain disabled until canonical models, full access controls, Auth/Data API/browser tests, private Storage, and persistence/recovery gates pass.
