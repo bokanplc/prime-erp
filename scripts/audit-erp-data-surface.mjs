@@ -19,7 +19,7 @@ const expectedTables = [
   'bokan_journal_entries','bokan_leave_requests','bokan_payroll_approvals',
   'bokan_payroll_lines','bokan_payroll_runs','bokan_performance_reviews',
   'bokan_sales_opportunities','bokan_salespeople','bokan_shipments','companies',
-  'company_bank_accounts','custom_terms','customer_billings','customer_logs','customers',
+  'company_bank_accounts','company_memberships','custom_terms','customer_billings','customer_logs','customers',
   'disciplinary_actions','documents','employees','expenses','leave_requests',
   'notifications','per_diem_requests','performance_reviews','profiles','proformas',
   'sales_targets','stock_entries','stock_ledger','trip_plans','visit_reports'
