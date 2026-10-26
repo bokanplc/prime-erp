@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Build a release candidate with known embedded fixture collections emptied. This does not approve deployment. */
+/** Build the branch-appropriate review/release artifact. This does not approve deployment. */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { dirname } from 'node:path';
