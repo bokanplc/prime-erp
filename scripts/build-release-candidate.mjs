@@ -20,7 +20,8 @@ assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain
 assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
 assert.ok(config.includes('ENABLED_PRODUCTION_TABS: []'),'No production tabs may be enabled in the release template.');
 // Cloudflare's staging branch publishes a sample-data-only review build; all other branches use the sanitized candidate.
-if (process.env.CF_PAGES_BRANCH === 'deploy/secure-staging') {
+const deploymentBranch = process.env.WORKERS_CI_BRANCH || process.env.CF_PAGES_BRANCH || '';
+if (deploymentBranch === 'deploy/secure-staging') {
   assert.ok(config.includes('DEMO_REVIEW_MODE: true'),'Staging review build must explicitly enable demo mode.');
   assert.ok(config.includes('SUPABASE_URL: ""') && config.includes('SUPABASE_ANON_KEY: ""'),'Staging review build must not contain Supabase credentials.');
   mkdirSync(dirname(outputPath),{recursive:true});
