@@ -26,6 +26,7 @@ for(const [key,literal] of Object.entries(expected)){
   assert.equal(actual,literal,'Release fixture must be empty for '+key);
 }
 assert.match(config,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain disabled.');
+assert.match(config,/DEMO_REVIEW_MODE\s*:\s*false/,'Sanitized release candidate must disable demo review mode.');
 assert.match(config,/FULL_ERP_DATA_READY\s*:\s*false/,'Full ERP data readiness must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS\s*:\s*\[\]/,'Release candidate must not enable production tabs.');
 assert.match(html,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/,'Release candidate must have no source-approved production tabs.');
