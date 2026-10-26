@@ -43,6 +43,8 @@ jobs:
         run: node scripts/test-core-schema-draft.mjs
       - name: Test live migration source parity
         run: node scripts/test-live-migration-source-parity.mjs
+      - name: Test production auth membership contract
+        run: node scripts/test-production-auth-membership-contract.mjs
       - name: Test Proforma UI and database contract
         run: node scripts/test-proforma-ui-contract.mjs
       - name: Test duplicate Proforma save guard behavior
