@@ -670,3 +670,11 @@ Required next work: reconcile all 15 live migration records with source-controll
 - Production role changes now remain disabled until trusted Auth user provisioning and company-membership management are implemented; this avoids attempting to update the nonexistent `profiles` table.
 - Added `scripts/test-production-auth-membership-contract.mjs` to CI and updated module-readiness docs. Staging entry point is synchronized to the reviewed source.
 - Latest relevant workflow at time of update: `40347597010` passed both source-guard and disposable PostgreSQL jobs, including the migration-parity and grant-hardening candidate tests. The membership-auth test is running in the newer workflow after the auth bridge update; do not treat it as passed until the latest run completes.
+
+
+## Full V6.7 demo review build (2026-10-26)
+- Added explicit `DEMO_REVIEW_MODE: true` to the staging config only. The full reviewed source now permits the hosted preview boot only when this flag is true and production mode is false; the existing local preview path remains available.
+- The Cloudflare build script is branch-aware: `CF_PAGES_BRANCH=deploy/secure-staging` publishes the full staging V6.7 HTML with sample/mock data, blank Supabase credentials, no-index and no-store headers. Other branches use the sanitized release artifact and force demo mode false. This preserves the same configured output path (`dist/release`) and build command.
+- Added tests for the explicit hosted demo gate, staging full-source parity, review config and no-index headers. Updated the release readiness test's expected schema gap from 50 to 51 based on the current audit's 56 logical tables and five definitions in the candidate draft; this is draft coverage, not live table count.
+- Latest checks: see [workflow run 40353021624](https://github.com/bokanplc/prime-erp/actions/runs/40353021624) for the staging review-build test and [workflow run 40353090044](https://github.com/bokanplc/prime-erp/actions/runs/40353090044) for the newline/header correction. Do not treat CI as proof that Cloudflare itself has published a preview; the Cloudflare dashboard/build status still needs confirmation.
+- Production remains disabled; Supabase credentials are blank; no live database/auth/storage changes, merges, or deployments were made by these source commits.
