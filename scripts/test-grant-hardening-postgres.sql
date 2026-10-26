@@ -46,4 +46,3 @@ end
 $assert$;
 
 drop view public.grant_hardening_test_view;
-revoke all privileges on all tables in schema public from authenticated;
