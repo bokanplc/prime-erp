@@ -13,13 +13,17 @@ BOKAN ERP is a multi-company sales-workflow application for BlackRock Investment
 - Atomic database save for a sales document and its line items
 - Supplier directory (starter CRUD)
 - Purchase-document header capture for purchase requests, orders, supplier invoices, and returns
-- Inventory stock-movement ledger (manual movements; no automatic posting yet)
-- Sales payment recording (payment status reconciliation is not automatic yet)
+- Inventory stock-movement ledger and calculated stock balances
+- Sales stock posting workflow: link invoice/order lines to products, approve eligible documents, then atomically issue stock with insufficient-stock and duplicate-posting safeguards
+- Purchase receiving workflow: approved purchase documents can be received in partial batches, with stock movements posted atomically
+- Sales payment recording
+- Supplier payment tracking with invoice balance checks, duplicate payment-reference protection, and partial/paid status updates
+- Supplier payment reconciliation ledger with bank/statement reference matching and reversible reconciliation status
 - Responsive single-page interface
 
 ## Not yet implemented
 
-This is not yet a complete ERP or accounting package. PDF/print templates, editing/deleting records, stock/inventory, purchasing, payments, accounting ledgers, reports, and full administrator-managed user provisioning remain future work.
+This is still a staged ERP implementation rather than a complete accounting package. PDF/print templates, full editing/deleting workflows, general ledger/journals, bank-feed import and automated statement matching, reports, and full administrator-managed user provisioning remain future work. Supplier payment reconciliation is manual: users must compare payment details with a bank statement before marking a record reconciled.
 
 ## Architecture
 
