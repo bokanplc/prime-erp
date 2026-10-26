@@ -11,7 +11,7 @@
 - Required legacy API endpoint groups: login, change-password, logout, bootstrap, store. These are not implemented in the repository's expected Cloudflare Pages Functions paths.
 - Production mode: disabled.
 - Full ERP data readiness: disabled.
-- Supabase production project: no application tables or migrations applied.
+- Supabase production project: 12 public tables and 15 applied migration records (see `docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md`).
 
 The full ERP is **not** ready for deployment as a working application. A green source/test workflow means the reviewed source guards and the first-slice proforma schema tests passed; it does not mean the other ERP modules have database persistence.
 
@@ -129,3 +129,10 @@ The CI readiness audit intentionally exits successfully while production is disa
 The workflow has no step that runs a real browser against the connected Supabase project, tests Auth/JWT/Data API against the live project, or validates a complete migrated module set. The PostgreSQL tests run in an ephemeral CI service. Therefore do not interpret the successful jobs as proof that the live Proforma, CRM, HR, inventory, finance, payroll, or document flows are operational.
 
 Recommended gate improvement: keep the current disabled-build tests, and later add a separate, explicitly non-production integration workflow with disposable test users/project credentials, real browser automation, and direct company-crossing / role-denial assertions. Do not use production credentials or business records in CI.
+
+## Latest migration-source and auth-bridge progress — 2026-10-26
+
+- Synced the 11 applied migration SQL files available on `main` into secure staging. The four missing historical migration bodies are documented; they have not been fabricated.
+- Isolated the incompatible Proforma candidate under `supabase/candidates/` so it cannot be discovered as an executable migration by ordinary Supabase migration tooling.
+- The production authentication bridge now derives company/role from active `company_memberships` and the joined live company record, rather than relying on `profiles`. Only explicitly supported membership roles map to full-ERP roles. Company context selection is limited to returned memberships.
+- Production role changes remain blocked pending trusted user provisioning and membership management. The full app is still not production-ready: no modules are enabled, no Proforma schema has been applied, and the legacy API/localStorage-dependent modules remain unimplemented.
