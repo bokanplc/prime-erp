@@ -12,6 +12,9 @@ const outputHeadersPath='dist/release/_headers';
 const source=readFileSync(sourcePath,'utf8');
 const entry=readFileSync(entryPath,'utf8');
 const config=readFileSync(configPath,'utf8');
+// The published sanitized candidate must never inherit staging's demo-entry flag.
+const releaseConfig=config.replace(/DEMO_REVIEW_MODE\\s*:\\s*true/, 'DEMO_REVIEW_MODE: false');
+assert.match(releaseConfig,/DEMO_REVIEW_MODE\\s*:\\s*false/,'Demo review mode must be disabled in the sanitized release candidate.');
 assert.equal(entry,source,'Staging entry point must match reviewed source before sanitization.');
 assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain disabled in the release template.');
 assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
@@ -150,7 +153,7 @@ assert.notEqual(releaseHtml,source,'Release artifact must be sanitized, not a co
 mkdirSync(dirname(outputPath),{recursive:true});
 mkdirSync(dirname(outputConfigPath),{recursive:true});
 writeFileSync(outputPath,releaseHtml);
-writeFileSync(outputConfigPath,config);
+writeFileSync(outputConfigPath,releaseConfig);
 const securityHeaders = ['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\n');
 writeFileSync(outputHeadersPath,securityHeaders);
 console.log('Built sanitized release candidate: '+outputPath);
