@@ -27,7 +27,7 @@ if (process.env.CF_PAGES_BRANCH === 'deploy/secure-staging') {
   mkdirSync(dirname(outputConfigPath),{recursive:true});
   writeFileSync(outputPath,source);
   writeFileSync(outputConfigPath,config);
-  const reviewHeaders=['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  X-Robots-Tag: noindex, nofollow','  Cache-Control: no-store','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\\n');
+  const reviewHeaders=['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  X-Robots-Tag: noindex, nofollow','  Cache-Control: no-store','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\n');
   writeFileSync(outputHeadersPath,reviewHeaders);
   console.log('Built staging-only BOKAN ERP demo review artifact with sample data and no Supabase credentials.');
   process.exit(0);
