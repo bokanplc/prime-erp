@@ -8874,7 +8874,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   'use strict';
   const cfg=window.BOKAN_CONFIG||{};
   const configured=!!(cfg.PRODUCTION_MODE===true && cfg.FULL_ERP_DATA_READY===true && typeof window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB==='function' && window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB(cfg) && window.supabase && /^https:\/\/.+\.supabase\.co(?:\/.*)?$/.test(String(cfg.SUPABASE_URL||'')) && String(cfg.SUPABASE_ANON_KEY||'').length>20 && !/YOUR_|placeholder/i.test(String(cfg.SUPABASE_ANON_KEY||'')));
-  window.BOKAN_PRODUCTION_AUTH={enabled:configured,client:null,profile:null};
+  window.BOKAN_PRODUCTION_AUTH={enabled:configured,client:null,profile:null,memberships:[]};
   if(!configured){ return; }
   const auth=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   window.BOKAN_PRODUCTION_AUTH.client=auth;
@@ -8899,36 +8899,70 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
       data_entry:['dataentry','repository']
     }; const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
   }
-  function applyProfile(profile,user){
-    window.BOKAN_PRODUCTION_AUTH.profile=profile;
-    window.BOKAN_PRODUCTION_AUTH.user=user;
-    currentUser={id:user.id,email:user.email};
-    currentRole=profile.role;
-    window.currentDeptTabs=null;
-    try{ localStorage.setItem('bokan_active_company_context',profile.company_code||'GROUP'); }catch(e){}
-    if(typeof applyCompanyContext==='function') applyCompanyContext(profile.company_code||'GROUP');
-    const sel=document.getElementById('bokan-context-select');
-    if(sel && profile.role!=='admin'){
-      [...sel.options].forEach(o=>{o.hidden=(o.value!=='GROUP' && o.value!==profile.company_code);});
-      sel.value=profile.company_code||'GROUP';
-      sel.disabled=true;
+  function mapMembershipRole(role){ const map={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'}; return map[role]||null; }
+function applyProfile(profile,user){
+  window.BOKAN_PRODUCTION_AUTH.profile=profile;
+  window.BOKAN_PRODUCTION_AUTH.user=user;
+  window.BOKAN_PRODUCTION_AUTH.memberships=profile.memberships||[];
+  currentUser={id:user.id,email:user.email,company_code:profile.company_code,company_id:profile.company_id};
+  currentRole=profile.role;
+  window.currentDeptTabs=null;
+  try{localStorage.setItem('bokan_active_company_context',profile.company_code);}catch(e){}
+  if(typeof applyCompanyContext==='function') applyCompanyContext(profile.company_code);
+  const sel=document.getElementById('bokan-context-select');
+  const memberships=window.BOKAN_PRODUCTION_AUTH.memberships;
+  const companyCodes=memberships.map(m=>m.company_code);
+  if(sel){
+    [...sel.options].forEach(o=>{o.hidden=!companyCodes.includes(o.value);});
+    sel.value=profile.company_code;
+    sel.disabled=companyCodes.length<=1;
+    if(!sel.dataset.bokanMembershipBound){
+      sel.addEventListener('change',async()=>{
+        const requested=sel.value;
+        try{const next=await fetchProfile(user,requested);applyProfile(next,user);}
+        catch(e){sel.value=window.BOKAN_PRODUCTION_AUTH.profile?.company_code||profile.company_code;setError(e.message||'Company access denied.');}
+      });
+      sel.dataset.bokanMembershipBound='true';
     }
-    const badge=document.getElementById('user-badge'); if(badge) badge.textContent=(profile.full_name||user.email||'User')+' — '+profile.role;
-    const dept=document.getElementById('current-dept-label'); if(dept) dept.textContent=profile.department||'Assigned Workspace';
-    const sw=document.getElementById('switch-dept-btn'); if(sw) sw.classList.toggle('hidden',profile.role==='sales'||profile.role==='hr'||profile.role==='accounting'||profile.role==='data_entry');
-    const allowed=roleTabs(profile.role); window.__BOKAN_PROD_ALLOWED_TABS=new Set(allowed);
-    if(typeof buildTabs==='function') buildTabs();
-    if(typeof loadAllForRole==='function'){try{loadAllForRole()}catch(e){console.warn('role loader',e)}}
   }
-  async function fetchProfile(user){
-    const {data,error}=await auth.from('profiles').select('id,full_name,role,department,company_code,active,terminated_at').eq('id',user.id).maybeSingle();
-    if(error) throw error;
-    if(!data) throw new Error('Your account exists, but no BOKAN profile has been assigned. Contact an administrator.');
-    if(!data.active || data.terminated_at) throw new Error('This BOKAN account is inactive or terminated. Contact an administrator.');
-    if(!['admin','management','sales_manager','sales','accounting','hr','data_entry'].includes(data.role)) throw new Error('Your BOKAN role is not configured. Contact an administrator.');
-    return data;
-  }
-  async function enter(user){
+  const badge=document.getElementById('user-badge');
+  if(badge) badge.textContent=(profile.full_name||user.email||'User')+' — '+profile.role;
+  const dept=document.getElementById('current-dept-label');
+  if(dept) dept.textContent=profile.department||'Assigned Workspace';
+  const sw=document.getElementById('switch-dept-btn');
+  if(sw) sw.classList.toggle('hidden',profile.role==='sales'||profile.role==='hr'||profile.role==='accounting'||profile.role==='data_entry');
+  const allowed=roleTabs(profile.role);
+  window.__BOKAN_PROD_ALLOWED_TABS=new Set(allowed);
+  if(typeof buildTabs==='function') buildTabs();
+  if(typeof loadAllForRole==='function'){try{loadAllForRole()}catch(e){console.warn('role loader',e)}}
+}
+async function fetchProfile(user,requestedCompanyCode){
+  const {data,error}=await auth.from('company_memberships')
+    .select('company_id,role,is_active,companies(id,code,name,is_active)')
+    .eq('user_id',user.id).eq('is_active',true);
+  if(error) throw error;
+  const roleMap={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'};
+  const memberships=(data||[])
+    .filter(m=>m.is_active&&m.companies?.is_active&&roleMap[m.role])
+    .map(m=>({company_id:m.company_id,company_code:m.companies.code,company_name:m.companies.name,role:m.role,app_role:roleMap[m.role]}));
+  if(!memberships.length) throw new Error('Your account has no active, supported company membership. Contact an administrator.');
+  let savedContext='';
+  try{savedContext=localStorage.getItem('bokan_active_company_context')||'';}catch(e){}
+  const preferred=requestedCompanyCode||savedContext;
+  const selected=memberships.find(m=>m.company_code===preferred)||memberships[0];
+  return {
+    id:user.id,
+    full_name:user.user_metadata?.full_name||user.email||'User',
+    role:selected.app_role,
+    department:selected.role,
+    company_code:selected.company_code,
+    company_id:selected.company_id,
+    active:true,
+    terminated_at:null,
+    memberships:memberships.map(m=>({...m,company_code:m.company_code}))
+  };
+}
+async function enter(user){
     setError('');
     try{const profile=await fetchProfile(user); applyProfile(profile,user); hideGate(); if(login) login.classList.add('hidden'); if(landing) landing.classList.add('hidden'); if(app) app.classList.remove('hidden'); if(note) note.classList.add('hidden');}
     catch(e){await auth.signOut(); showGate(); setError(e.message||'Access denied.');}
