@@ -638,3 +638,21 @@ Removed the standalone-specific test step from `.github/workflows/erp-source-gua
 - The candidate migration and SQL draft remain byte-for-byte aligned after normalizing their header comments.
 - The disposable PostgreSQL test now verifies direct RPC callers cannot disable withholding, change the rate to zero, or raise the threshold to ETB 100,000. The latest full workflow run `40109973529` passed both jobs after this fix.
 - This test suite runs only in ephemeral CI PostgreSQL. The connected Supabase project still has no app tables/applied migrations; no live database or Auth setting was changed.
+
+## Verified live-schema and deployment reconciliation — 2026-10-26
+
+This checkpoint supersedes stale earlier entries below/above that report no Supabase tables or migration history. Those checks predate the current live schema and remain historical records, not current facts.
+
+- Current Supabase project kafiwnuynjemufnankvi reports 15 applied migration records and 12 public tables, all with RLS enabled: companies, company_memberships, customers, products, sales_documents, sales_document_items, suppliers, purchase_documents, purchase_document_items, stock_movements, sales_payments, supplier_payments. The inspector reports two companies and two company memberships; zero rows in the ten operational tables. No Edge Functions or development branches were returned.
+- The current staging tree has only the candidate migration 20261024000000_core_proforma_mvp.sql, which defines a different five-table identity/issuer/proforma model. Its companies/profiles shape conflicts with the live companies/company_memberships approach. Do NOT apply it to the live project until a canonical model and migration-history reconciliation is complete.
+- New supporting record: docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md. It captures table rows, applied migration names, live-vs-draft schema risks, current deployments, and safe next steps.
+- Latest staged source CI run 40303637709 is green for source guards and disposable PostgreSQL tests, but the source release audit reports 55 logical table names, with 50 definitions missing from the five-table first-slice draft. That 50-count describes draft coverage, not live table count. The full application remains incomplete and no production tabs are approved.
+- The latest Cloudflare preview for PR #1 at commit 1b434af failed (2026-10-26 09:58 UTC). Detailed cause is not visible in the available GitHub comment; see the dashboard link in docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md. Do not retry as a production deployment.
+- Vercel Hobby project prime-erp has a READY deployment for main commit c715b70f228b75c42c1f21111d38bf034b74acfb ('Build usable sales workspace for customers products and sales drafts'). This is not the secure-staging commit and must not be treated as proof that the full staged V6.7 is deployed. The project env-var list returned empty.
+- Supabase Security Advisor continues to report leaked-password protection disabled. Performance Advisor shows 24 unused-index information findings; do not remove indexes without workload evidence.
+- The current main branch is at 1d835739b99b14e0765dcf1de6b6b001d15e4bdc and main/index.html is 50,370 bytes, so earlier statements that main/index.html is one byte are stale. Main remains untouched in this session.
+- staging/config/config.js remains disabled: production and full-data flags false, production-tab allowlist empty, Supabase URL/key placeholders blank. PR #1 remains draft and unmerged. No live Supabase write, Auth/Storage change, paid upgrade, merge, or deployment was performed in this session.
+
+### Release decision remains STOP-SHIP
+
+Required next work: reconcile all 15 live migration records with source-controlled SQL; align live company/membership identity with proforma and legacy models; map the 55 source data models and localStorage records to canonical tables and trusted writes; migrate or replace the legacy /api endpoints; complete private Storage, full Auth/RLS tests, real-browser persistence/session/cross-company tests, and recovery rehearsal; diagnose Cloudflare preview failure. Keep production disabled until those gates pass.
