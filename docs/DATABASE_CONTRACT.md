@@ -67,11 +67,11 @@ The frontend references the following table names. Some may be legacy/overlappin
 6. **Production mode:** production must fail closed when Supabase URL/key/configuration is missing. A preview/mock backend must never silently accept production work.
 7. **Migrations and recovery:** commit reviewed SQL migration files in this private repository before applying schema changes. On the Free plan, don't assume PITR or automatic backups; make a manual export before risky changes where possible.
 
-## Verified project state (read-only audit)
-- Supabase project ref: `kafiwnuynjemufnankvi`
-- `public` application tables reported: zero
-- Recorded migrations reported: zero
-- No database schema changes were made during this audit.
+## Project state — historical note and current reconciliation
+
+The original read-only audit above recorded zero public application tables and zero migrations at its check date. That state is historical and no longer current. The latest read-only inspection on 2026-10-26 found 12 public application tables (all with RLS enabled), 42 public-table RLS policies, no direct `anon` table grants, 15 recorded migrations, two public views using `security_invoker=true`, and no deployed Edge Functions. See `docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md` and `docs/LIVE_SCHEMA_ACCESS_AUDIT_2026-10-26.md` for the current state.
+
+The current schema remains a partial sales/procurement/inventory foundation. No additional tables should be created from this discovery inventory without resolving the source payloads, company-membership model, canonical legacy/new models, and tested RLS/grant design.
 
 ## Validation checklist
 - [ ] Full source committed to a private staging branch
