@@ -102,3 +102,12 @@ The application source also retains a legacy adapter contract for /api/auth/logi
 ## Current release decision
 
 STOP-SHIP. The 12-table live foundation is meaningful progress, but it is not a complete migration of BOKAN ERP V6.7. Keep production disabled and PR #1 in draft until the complete module, authorization, persistence, browser, build, and recovery gates pass.
+
+## Follow-up: migration source recovery and grant review (2026-10-26)
+
+- Copied the 11 applied migration SQL files available on `main` byte-for-byte into `deploy/secure-staging`. Four applied historical records still have no SQL source anywhere in repository history; their exact bodies were not fabricated.
+- Moved the unapproved, conflicting Proforma schema out of `supabase/migrations/` into `supabase/candidates/core_proforma_mvp.sql`. Disposable PostgreSQL tests still exercise it, but standard migration tooling will no longer discover it as an executable migration.
+- Added `docs/LIVE_MIGRATION_SOURCE_GAP.md` and `scripts/test-live-migration-source-parity.mjs` to document and test the 11/15 source-control state.
+- Read-only privilege inspection found `authenticated` has `TRUNCATE`, `TRIGGER`, and `REFERENCES` on current public tables/views. Both existing views are `security_invoker=true`, and the private membership helper functions are restricted from `anon`/PUBLIC, but the non-DML grants are broader than a browser ERP needs.
+- Added `supabase/candidates/revoke_non_dml_authenticated_privileges.sql`, a narrowly scoped candidate that preserves existing ordinary DML and column-level grants, plus a disposable PostgreSQL test and `docs/LIVE_GRANT_HARDENING_REVIEW.md`.
+- Neither candidate has been applied to the connected Supabase project. The grant hardening is held for proper versioned migration/review because the four missing historical SQL bodies remain a source-of-truth gap.
