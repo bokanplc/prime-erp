@@ -7,7 +7,7 @@ This matrix separates source code presence from real backend readiness. A screen
 
 | Module group | Current source path | Database / trusted operations | Required production proof | Current status |
 |---|---|---|---|---|
-| Authentication and profile | Supabase Auth bridge; `profiles` | Profile schema and RLS exist only in the first-slice SQL draft; real project has no app tables | Real Supabase Auth sign-in/out, inactive/terminated user denial, profile provisioning, session lifecycle, direct Data API checks | Blocked |
+| Authentication and profile | Supabase Auth bridge; live `company_memberships` + `companies` | The bridge now reads active live memberships and maps only supported roles; trusted user provisioning is still missing | Real Supabase Auth sign-in/out, multi-company switching, unsupported-role denial, provisioning, session lifecycle, direct Data API checks | Partially wired; not production-ready |
 | Company issuer details | `companies` and issuer settings bridge | First-slice SQL draft includes company rows and restricted TIN/address/phone updates | Real Supabase policy test for PRIME and BlackRock; issuer edits audited and scoped | Blocked |
 | Bank accounts | `company_bank_accounts` snapshot read | Production replacement is disabled; draft has read-only access | Real bank rows, scoped reads, atomic audited maintenance workflow, snapshot/version tests | Blocked |
 | Proformas | Supabase proforma bridge + `bokan_save_proforma` draft | Disposable PostgreSQL CI tests cover draft RLS/grants, server-side totals, numbering, revisions and some role checks | Apply only after review; real Supabase Auth/JWT and Data API/RLS tests; browser create/reload/revision tests; confirm Ethiopian VAT discount treatment with accountant | Partially tested in disposable PostgreSQL; not production-ready |
@@ -34,3 +34,11 @@ This prevents setting `PRODUCTION_MODE` and `FULL_ERP_DATA_READY` alone from aut
 ## Definition of “ready”
 
 A module can be added to the source-reviewed allowlist only after its schema/payload contract, grants/RLS, trusted write boundaries, real Supabase integration tests, persistence/reload test, cross-company denial tests, and sanitized release-candidate tests pass. Emptying sample data is necessary hygiene, not production readiness.
+
+
+## Live membership integration update — 2026-10-26
+- The full V6.7 Supabase login bridge now reads the actual `company_memberships` relation and joined active company row instead of querying a nonexistent `profiles` table.
+- Role mapping is conservative: owner/admin → admin, manager → management, sales → sales, accountant → accounting, staff → data_entry. Unsupported roles such as viewer/inventory are not elevated into an unrelated full-ERP role and are denied by this bridge.
+- Company switching is limited to active memberships returned by Supabase. The localStorage company context is only a selection hint; it cannot create authorization.
+- Production role changes are now blocked until a trusted Auth user provisioning and membership-management workflow is implemented. The old preview role editor remains preview-only.
+- This source change is not a live database change. The production module allowlists and production configuration remain disabled/blank, and all modules still require real Auth/JWT/browser and data-persistence testing.
