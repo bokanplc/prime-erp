@@ -8898,7 +8898,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
       accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
-    }; if(!_bokanProdConfigured) return (typeof ROLE_TABS!=='undefined' && Array.isArray(ROLE_TABS.admin)) ? [...ROLE_TABS.admin] : (map.admin||[]); const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
+    }; if(window.BOKAN_CONFIG?.DEMO_REVIEW_MODE===true && !_bokanProdConfigured) return (typeof ROLE_TABS!=='undefined' && Array.isArray(ROLE_TABS.admin)) ? [...ROLE_TABS.admin] : (map.admin||[]); const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
   }
   function mapMembershipRole(role){ const map={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'}; return map[role]||null; }
 function applyProfile(profile,user){
@@ -8940,7 +8940,7 @@ function applyProfile(profile,user){
 async function fetchProfile(user,requestedCompanyCode){
   // Explicitly non-production review path: the mock backend is used only while production config is absent/invalid.
   // It grants a clearly labeled demo identity and demo-only company contexts; it never runs with production config.
-  if(!_bokanProdConfigured){
+  if(window.BOKAN_CONFIG?.DEMO_REVIEW_MODE===true && !_bokanProdConfigured){
     const memberships=[
       {company_id:'demo-company-prime',company_code:'PRIME',company_name:'PRIME Investment Group — DEMO',role:'admin',app_role:'admin'},
       {company_id:'demo-company-blackrock',company_code:'BLACKROCK',company_name:'BlackRock Investment PLC — DEMO',role:'admin',app_role:'admin'}
