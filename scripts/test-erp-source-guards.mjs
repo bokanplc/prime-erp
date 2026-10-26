@@ -21,9 +21,10 @@ const bootStart = source.indexOf('async function boot()');
 const bootEnd = source.indexOf('function showLanding', bootStart);
 assert.ok(bootStart >= 0 && bootEnd > bootStart, 'Main boot function must exist.');
 const boot = source.slice(bootStart, bootEnd);
-const guardIndex = boot.indexOf('if (!localPreview || config.PRODUCTION_MODE === true)');
+const guardIndex = boot.indexOf('const demoReview = config.DEMO_REVIEW_MODE === true && config.PRODUCTION_MODE !== true;');
+const hostGuardIndex = boot.indexOf('if ((!localPreview && !demoReview) || config.PRODUCTION_MODE === true)');
 const previewIdentityIndex = boot.indexOf("currentUser = { id: 'preview-admin'");
-assert.ok(guardIndex >= 0, 'Hosted origins and production-configured preview must be blocked from preview boot.');
+assert.ok(guardIndex >= 0 && hostGuardIndex > guardIndex, 'Hosted preview identity must require explicit demo mode and production must remain blocked.');
 assert.ok(previewIdentityIndex > guardIndex, 'Preview identity must only be assigned after the local-preview guard.');
 
 const autoStart = source.indexOf('// Start local preview only on file/localhost');
