@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const sql = fs.readFileSync('docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql', 'utf8');
-const migration = fs.readFileSync('supabase/migrations/20261024000000_core_proforma_mvp.sql', 'utf8');
+const migration = fs.readFileSync('supabase/candidates/core_proforma_mvp.sql', 'utf8');
 const stripLeadingComments = text => text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/^(?:--[^\n]*\n)+/, '').trim();
 assert.equal(stripLeadingComments(migration), stripLeadingComments(sql), 'Candidate migration body must match the SQL draft exercised by schema checks.');
 const checks = [
