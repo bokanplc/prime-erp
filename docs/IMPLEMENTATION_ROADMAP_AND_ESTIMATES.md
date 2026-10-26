@@ -62,7 +62,7 @@ No paid service or upgrade is assumed. Keep schema migration files, scheduled ma
 
 ## Current stop-ship items
 
-- Supabase public schema currently has zero application tables and zero migrations.
+- Live Supabase currently has a 12-table public sales/procurement/inventory foundation, all with RLS enabled, 42 table policies, no direct `anon` table grants, 15 recorded migrations, and no deployed Edge Functions. The full ERP remains incomplete; see `docs/LIVE_SCHEMA_ACCESS_AUDIT_2026-10-26.md` and `docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md`.
 - Leaked-password protection remains disabled according to the Security Advisor; the available project tools do not expose a safe Auth-setting toggle.
 - Legacy `/api/*` endpoints are missing.
 - Canonical legacy/new models and membership-scoped authorization are unresolved.
