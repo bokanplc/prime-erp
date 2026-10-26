@@ -656,3 +656,10 @@ This checkpoint supersedes stale earlier entries below/above that report no Supa
 ### Release decision remains STOP-SHIP
 
 Required next work: reconcile all 15 live migration records with source-controlled SQL; align live company/membership identity with proforma and legacy models; map the 55 source data models and localStorage records to canonical tables and trusted writes; migrate or replace the legacy /api endpoints; complete private Storage, full Auth/RLS tests, real-browser persistence/session/cross-company tests, and recovery rehearsal; diagnose Cloudflare preview failure. Keep production disabled until those gates pass.
+
+## Migration-source reconciliation and grant hardening candidates (2026-10-26)
+- Copied the 11 applied migration SQL files present on `main` into `deploy/secure-staging` byte-for-byte. Four applied migration records remain unrecovered from repository history; do not fabricate their historical SQL.
+- Moved the incompatible Proforma first-slice SQL from `supabase/migrations/` to `supabase/candidates/core_proforma_mvp.sql`, so it remains testable in disposable PostgreSQL but is no longer discoverable as an executable migration.
+- Added `docs/LIVE_MIGRATION_SOURCE_GAP.md` and CI guard `scripts/test-live-migration-source-parity.mjs` to assert the migration directory contains only the 11 tracked applied migrations and that the four gaps remain documented.
+- Read-only live grant audit found authenticated has unnecessary `TRUNCATE`, `TRIGGER`, and `REFERENCES` privileges on public tables/views. Added a narrowly scoped SQL candidate and disposable PostgreSQL test under `supabase/candidates/` and `scripts/test-grant-hardening-postgres.sql`.
+- Both SQL candidates remain unapplied to live Supabase pending the missing migration-history reconciliation. No live schema, user, Auth, Storage, production config, or deployment was changed.
