@@ -20,7 +20,9 @@ Tables observed: `companies`, `company_memberships`, `customers`, `products`, `s
 
 Inspected policies use `private.has_company_membership(...)` and `private.can_manage_company(...)` helpers to scope access by company. Role checks distinguish sales/staff, inventory, accountant, and manager operations. Update policies observed for mutable records include both `USING` and `WITH CHECK`. Sales line-item policies also verify the parent document company and role access.
 
-These catalog observations are not proof of effective security. Remaining tests must use real Auth sessions for PRIME and BlackRock and attempt cross-company reads, inserts, updates, deletes, company reassignment, inactive-membership access, and removed-membership/session cases. Inspect the two public views for invoker/definer behavior and grants, and review function EXECUTE grants and helper functions outside `public`.
+Both public views (`inventory_stock_balances` and `supplier_payment_reconciliation`) were confirmed to set `security_invoker=true`; their definitions join source rows using both company and entity IDs. Two `SECURITY DEFINER` helpers exist in the non-exposed `private` schema: `has_company_membership(uuid)` and `can_manage_company(uuid)`. Their `search_path` is empty, their table references are schema-qualified, and EXECUTE is granted to `authenticated` (and the database owner). No public-schema function is SECURITY DEFINER. This is a positive catalog-level signal, but the helpers still require negative cross-company and inactive-membership tests.
+
+These catalog observations are not proof of effective security. Remaining tests must use real Auth sessions for PRIME and BlackRock and attempt cross-company reads, inserts, updates, deletes, company reassignment, inactive-membership access, and removed-membership/session cases. Review RPC function bodies and effective EXECUTE grants, including whether each function performs its own role/company checks rather than relying only on UI controls.
 
 ## Full V6.7 coverage gap
 
