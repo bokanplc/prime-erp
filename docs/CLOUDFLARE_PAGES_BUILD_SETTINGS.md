@@ -37,3 +37,12 @@ Before any deployment is approved:
 7. Keep the existing free plan; no paid service or upgrade is assumed.
 
 No user action is needed now. This document corrects the earlier suggestion to publish staging/release: generated output now belongs in dist/release so the source directory is not exposed.
+
+
+## Branch-specific review build behavior (2026-10-26)
+
+The existing build command now checks Cloudflare's `CF_PAGES_BRANCH`:
+- On `deploy/secure-staging`, it publishes the full V6.7 review source with explicit `DEMO_REVIEW_MODE: true`, local mock/sample data, blank Supabase credentials, `X-Robots-Tag: noindex, nofollow`, and `Cache-Control: no-store`. It is for UI review only; changes are not persisted and no real Supabase data is connected.
+- On every other branch, it builds the sanitized release candidate and forces `DEMO_REVIEW_MODE: false`; the release candidate remains fail-closed and is not approved for production.
+
+Use the same command and output folder: `node scripts/build-release-candidate.mjs` → `dist/release`. Keep the Cloudflare production branch set to `main`; do not promote the staging preview to production. The review branch is intentionally a demo surface, not an authentication boundary for real data.
