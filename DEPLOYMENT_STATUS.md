@@ -663,3 +663,10 @@ Required next work: reconcile all 15 live migration records with source-controll
 - Added `docs/LIVE_MIGRATION_SOURCE_GAP.md` and CI guard `scripts/test-live-migration-source-parity.mjs` to assert the migration directory contains only the 11 tracked applied migrations and that the four gaps remain documented.
 - Read-only live grant audit found authenticated has unnecessary `TRUNCATE`, `TRIGGER`, and `REFERENCES` privileges on public tables/views. Added a narrowly scoped SQL candidate and disposable PostgreSQL test under `supabase/candidates/` and `scripts/test-grant-hardening-postgres.sql`.
 - Both SQL candidates remain unapplied to live Supabase pending the missing migration-history reconciliation. No live schema, user, Auth, Storage, production config, or deployment was changed.
+
+
+## Live-membership Auth bridge and migration inventory update (2026-10-26)
+- Updated the full V6.7 production Auth bridge to use the existing `company_memberships` + `companies` model. It validates active memberships/companies, maps only supported roles, and constrains company switching to memberships returned by Supabase. LocalStorage is a selection hint only.
+- Production role changes now remain disabled until trusted Auth user provisioning and company-membership management are implemented; this avoids attempting to update the nonexistent `profiles` table.
+- Added `scripts/test-production-auth-membership-contract.mjs` to CI and updated module-readiness docs. Staging entry point is synchronized to the reviewed source.
+- Latest relevant workflow at time of update: `40347597010` passed both source-guard and disposable PostgreSQL jobs, including the migration-parity and grant-hardening candidate tests. The membership-auth test is running in the newer workflow after the auth bridge update; do not treat it as passed until the latest run completes.
