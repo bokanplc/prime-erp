@@ -111,3 +111,8 @@ STOP-SHIP. The 12-table live foundation is meaningful progress, but it is not a 
 - Read-only privilege inspection found `authenticated` has `TRUNCATE`, `TRIGGER`, and `REFERENCES` on current public tables/views. Both existing views are `security_invoker=true`, and the private membership helper functions are restricted from `anon`/PUBLIC, but the non-DML grants are broader than a browser ERP needs.
 - Added `supabase/candidates/revoke_non_dml_authenticated_privileges.sql`, a narrowly scoped candidate that preserves existing ordinary DML and column-level grants, plus a disposable PostgreSQL test and `docs/LIVE_GRANT_HARDENING_REVIEW.md`.
 - Neither candidate has been applied to the connected Supabase project. The grant hardening is held for proper versioned migration/review because the four missing historical SQL bodies remain a source-of-truth gap.
+
+
+## Follow-up: production Auth now matches live company membership
+
+The staged Auth bridge was updated after this reconciliation to read `company_memberships` joined to `companies`, reject inactive memberships/companies, map only supported roles, and limit company switching to memberships returned by Supabase. The localStorage company key is only a preferred selection and cannot grant access. Production role edits remain disabled until trusted provisioning exists. This is source-only work; no live schema/Auth setting or deployment changed.
