@@ -1,13 +1,13 @@
 # BOKAN ERP V6.7 — Full Module Completeness Matrix
 
-**Generated from the staged source and first-slice schema draft on 2026-10-24.**  
+**Re-scanned from the staged source and candidate schema files on 2026-10-27.**  
 **Status: STOP-SHIP. This is a readiness inventory, not production approval.**
 
 ## Current coverage
 
-- Distinct logical table names referenced by the full V6.7 source: **55**
-- Table definitions in the only current schema draft: **5**
-- Table definitions still missing: **50**
+- Distinct logical table names referenced by the full V6.7 source: **57**
+- Table definitions across the legacy first-slice draft plus the new UUID-company Proforma candidate: **6** distinct names
+- Logical names not represented in those schema source files: **51**
 - Required legacy API endpoint groups: login, change-password, logout, bootstrap, store. These are not implemented in the repository's expected Cloudflare Pages Functions paths.
 - Production mode: disabled.
 - Full ERP data readiness: disabled.
@@ -15,19 +15,19 @@
 
 The full ERP is **not** ready for deployment as a working application. A green source/test workflow means the reviewed source guards and the first-slice proforma schema tests passed; it does not mean the other ERP modules have database persistence.
 
-## Schema-covered first slice
+## Schema-covered first slices (not applied to live)
 
-| Table | Scope in current draft |
+| Table | Source file / scope |
 |---|---|
-| `companies` | PRIME and BlackRock issuer master, legal identity and TIN |
-| `profiles` | Supabase Auth-linked user profile, role, company code, active/terminated status |
-| `company_bank_accounts` | Issuer bank accounts; read-only for browser users until atomic audited maintenance exists |
-| `custom_terms` | Company-scoped commercial terms; authenticated company users may add terms, but client updates/deletes are not granted |
-| `proformas` | Proforma header/items/snapshots, versioning, totals, numbering, trusted save RPC |
+| `companies` and `profiles` | Legacy draft only; **incompatible** with the current live UUID `companies` + `company_memberships` identity model. Do not apply that candidate unchanged. |
+| `company_proforma_settings` | New UUID-company candidate; issuer TIN/address/phone maintained through an authorized RPC. |
+| `company_bank_accounts` | New UUID-company candidate; company-ID-scoped read-only browser access; production edits fail closed. |
+| `custom_terms` | New UUID-company candidate; company-ID-scoped reads and validated inserts. |
+| `proformas` | New UUID-company candidate; server-calculated totals, immutable revision rows, issuer/bank snapshots, atomic numbering/save. |
 
-The draft has passed disposable PostgreSQL tests for RLS/grants, tenant read isolation, inactive/terminated profile denial, financial totals, malformed input rejection, and concurrent numbering. It has **not** been applied to the live Supabase project.
+The older five-table draft has historical disposable PostgreSQL tests, and the new UUID-company candidate now has its own static and PostgreSQL 17 test suite wired into CI. The latest new workflow result is not yet verified. Neither candidate has been applied to the connected live Supabase project.
 
-## Referenced tables still missing schema
+## Referenced tables not represented in these candidate schema files
 
 - `bokan_ap_bills`
 - `bokan_ap_payments`
@@ -80,7 +80,7 @@ The draft has passed disposable PostgreSQL tests for RLS/grants, tenant read iso
 - `trip_plans`
 - `visit_reports`
 
-Some duplicate-looking legacy/new models must be reconciled before their tables are created. Do not blindly create all names independently.
+This is a repository schema-source coverage list, not a live-schema inventory. In particular, `company_memberships` and `customers` already exist in the live Supabase schema but their live definitions are not included in these candidate files; they still require field-level reconciliation with the source. Some duplicate-looking legacy/new models must be reconciled before their tables are created. Do not blindly create all names independently.
 
 ## Required backend still missing
 
