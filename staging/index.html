@@ -6592,7 +6592,8 @@ const DEFAULT_TERMS = {
 };
 async function loadProformaTermOptions() {
   const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
-  const { data, error } = await sb.from('custom_terms').select('*').eq('company_code', companyKey);
+  const db = window.BOKAN_PRODUCTION_AUTH?.client || sb;
+  const { data, error } = await db.from('custom_terms').select('*').eq('company_code', companyKey);
   if (error) { console.error('Could not load custom Proforma terms:', error); return; }
   ['validity','payment','delivery','transport'].forEach(category => {
     const custom = (data || []).filter(t => t.category === category).map(t => t.label);
@@ -6615,7 +6616,16 @@ async function addCustomTerm(category) {
   const label = input.value.trim();
   if (!label) return;
   const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
-  const { error } = await sb.from('custom_terms').insert([{ company_code: companyKey, category, label, created_by: currentUser?.id || null }]);
+  const db = window.BOKAN_PRODUCTION_AUTH?.client || sb;
+  let companyId = null;
+  if (bokanProdEnabled()) {
+    const { data: company, error: companyError } = await db.from('companies').select('id').eq('code', companyKey).eq('is_active', true).single();
+    if (companyError || !company?.id) { alert('The selected company could not be verified: ' + (companyError?.message || 'company not found')); return; }
+    companyId = company.id;
+  }
+  const row = { company_code: companyKey, category, label, created_by: currentUser?.id || null };
+  if (companyId) row.company_id = companyId;
+  const { error } = await db.from('custom_terms').insert([row]);
   if (error) { alert('Custom term could not be saved: ' + error.message); return; }
   input.value = '';
   await loadProformaTermOptions();
