@@ -41,7 +41,7 @@ No paid plan or upgrade is assumed for either route.
 
 ## Current safe position
 
-The default branch is unchanged, the PR remains draft-only, production mode and both module allowlists are disabled/empty, and no live deployment has been made. The connected Supabase project still has no application tables or applied migration history; the repository contains a candidate first-slice migration tested only in disposable PostgreSQL. Work that does not depend on owner decisions can continue: source analysis, tests, schema drafts, security guards, and CI.
+The default branch remains untouched, PR #1 remains draft-only, production mode and both module allowlists are disabled/empty, and no live deployment has been made. The current live database has a partial 12-table schema and 15 migration records; the candidate Proforma SQL remains unapplied. The connected Supabase project currently has 12 public application tables and 15 applied migration records. Eleven migration SQL bodies have been recovered into the staging source history; four applied records remain unrecovered. The new UUID-company Proforma candidate is not applied to live Supabase, and its new disposable PostgreSQL job has not yet been verified as passing. Work that does not depend on owner decisions can continue: source analysis, tests, schema candidates, security guards, and CI.
 
 
 ## Existing Supabase security-advisor warning
