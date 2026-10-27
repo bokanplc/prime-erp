@@ -5,7 +5,7 @@
 This is a source-to-live-catalog reconciliation only. It does not change the live database, authentication, data, or deployment settings. It is not permission to enable production mode.
 
 Compared:
-- Full staging source: staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html (blob SHA bf98ae0b540629e88bc9ce27f6ef846bd9f4603e, 805,662 characters).
+- Full staging source: staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html (blob SHA da9e2d29c4f8db02de03a757021a7be99ee3a5bc, 805,660 characters).
 - Connected live Supabase public schema and current public RPC catalog.
 - Older candidate supabase/candidates/core_proforma_mvp.sql, which is design reference only and is not compatible with the current tenant identity model as written.
 
@@ -42,10 +42,10 @@ The source's captured line items use description, spec, qty, and unit_price. Thi
 ## Staging implementation now committed (candidate only)
 
 1. Added `supabase/candidates/live_company_proforma.sql`, an additive candidate using the live UUID-keyed companies and active company-membership model, company-scoped issuer settings and bank accounts, Proforma revision history, RLS, a single atomic save RPC, and an authorized issuer-settings RPC. It remains under `supabase/candidates/` and is **not** an executable migration or applied to live Supabase.
-2. Updated both full source and staging entry to read `companies.id/code/name/is_active`, load issuer fields from `company_proforma_settings`, scope bank accounts by `company_id`, save issuer fields through the settings RPC, and include `company_id` when creating production custom terms.
+2. Updated both full source and staging entry to read `companies.id/code/name/is_active`, load issuer fields from `company_proforma_settings`, scope bank accounts by `company_id`, save issuer fields through the settings RPC, include `company_id` when creating production custom terms, and fail closed on production bank-account edits until an audited write path exists.
 3. Fixed the saved Proforma mapper to restore `vatPct` from `vat_rate`, and added `scripts/test-live-company-proforma-contract.mjs` to the staging GitHub Actions workflow.
 4. The candidate's save function uses active company membership, server-side VAT-inclusive calculations, company-scoped advisory locks, immutable new revision rows, snapshots of active bank accounts, and no direct Proforma DML grants to the browser. The withholding behavior remains fixed at 3% above ETB 10,000 as currently encoded in the UI; this is a business rule that still needs owner/accounting confirmation.
-5. Added disposable PostgreSQL tests at `scripts/test-live-company-proforma-postgres.sql` and `scripts/test-live-company-proforma-concurrency.sh`, and wired them into a separate PostgreSQL 17 GitHub Actions job. Static contract checks were also added to the existing workflow. These checks have been authored and source-verified here, but no GitHub Actions success result is available in the current connector response, so they are **not yet reported as passed**.
+5. Added disposable PostgreSQL tests at `scripts/test-live-company-proforma-postgres.sql` (including active cross-company read isolation, inactive membership, unsupported role, unauthenticated save, issuer settings, immutable revisions, totals, and direct-write grants) and `scripts/test-live-company-proforma-concurrency.sh`, and wired them into a separate PostgreSQL 17 GitHub Actions job. Static contract checks were also added to the existing workflow. These checks have been authored and source-verified here, but no GitHub Actions success result is available in the current connector response, so they are **not yet reported as passed**.
 6. **Still required before any executable migration:** confirm CI actually passes, fix any SQL/runtime failures, populate issuer settings and bank accounts only from owner-verified details, and complete browser end-to-end tests. No live migration has been applied.
 
 ## Release gate
