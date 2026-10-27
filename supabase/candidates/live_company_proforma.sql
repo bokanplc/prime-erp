@@ -165,7 +165,7 @@ begin
      or (p_payload ? 'phone' and p_payload->'phone' <> 'null'::jsonb and jsonb_typeof(p_payload->'phone') is distinct from 'string') then
     raise exception 'Issuer TIN, address and phone must be text';
   end if;
-  insert into public.company_proforma_settings(company_id, issuer_tin, issuer_address, issuer_phone, updated_by, updated_at)
+  insert into public.company_proforma_settings as current_settings(company_id, issuer_tin, issuer_address, issuer_phone, updated_by, updated_at)
   values(
     v_company_id,
     case when p_payload ? 'tin' then nullif(btrim(p_payload->>'tin'), '') else null end,
@@ -174,9 +174,9 @@ begin
     v_uid, now()
   )
   on conflict(company_id) do update set
-    issuer_tin = case when p_payload ? 'tin' then excluded.issuer_tin else public.company_proforma_settings.issuer_tin end,
-    issuer_address = case when p_payload ? 'address' then excluded.issuer_address else public.company_proforma_settings.issuer_address end,
-    issuer_phone = case when p_payload ? 'phone' then excluded.issuer_phone else public.company_proforma_settings.issuer_phone end,
+    issuer_tin = case when p_payload ? 'tin' then excluded.issuer_tin else current_settings.issuer_tin end,
+    issuer_address = case when p_payload ? 'address' then excluded.issuer_address else current_settings.issuer_address end,
+    issuer_phone = case when p_payload ? 'phone' then excluded.issuer_phone else current_settings.issuer_phone end,
     updated_by = excluded.updated_by, updated_at = now();
   return true;
 end;
