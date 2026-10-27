@@ -208,6 +208,9 @@ BEGIN
   IF has_table_privilege('authenticated','public.proformas','INSERT') THEN RAISE EXCEPTION 'Authenticated role has direct Proforma INSERT'; END IF;
   IF has_table_privilege('authenticated','public.proformas','UPDATE') THEN RAISE EXCEPTION 'Authenticated role has direct Proforma UPDATE'; END IF;
   IF has_table_privilege('authenticated','public.proformas','DELETE') THEN RAISE EXCEPTION 'Authenticated role has direct Proforma DELETE'; END IF;
+  IF has_table_privilege('authenticated','public.company_bank_accounts','INSERT') THEN RAISE EXCEPTION 'Authenticated role has direct bank-account INSERT'; END IF;
+  IF has_table_privilege('authenticated','public.company_proforma_settings','UPDATE') THEN RAISE EXCEPTION 'Authenticated role has direct issuer-settings UPDATE'; END IF;
+  IF has_function_privilege('anon','public.bokan_save_proforma(text,uuid,jsonb)','EXECUTE') THEN RAISE EXCEPTION 'Anonymous role can execute Proforma save'; END IF;
 END
 $privileges$;
 
