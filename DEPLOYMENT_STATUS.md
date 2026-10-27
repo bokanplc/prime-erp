@@ -678,3 +678,24 @@ Required next work: reconcile all 15 live migration records with source-controll
 - Added tests for the explicit hosted demo gate, staging full-source parity, review config and no-index headers. Updated the release readiness test's expected schema gap from 50 to 51 based on the current audit's 56 logical tables and five definitions in the candidate draft; this is draft coverage, not live table count.
 - Latest checks: see [workflow run 40353021624](https://github.com/bokanplc/prime-erp/actions/runs/40353021624) for the staging review-build test and [workflow run 40353090044](https://github.com/bokanplc/prime-erp/actions/runs/40353090044) for the newline/header correction. Do not treat CI as proof that Cloudflare itself has published a preview; the Cloudflare dashboard/build status still needs confirmation.
 - Production remains disabled; Supabase credentials are blank; no live database/auth/storage changes, merges, or deployments were made by these source commits.
+
+## Proforma UUID-company migration slice and full-ERP continuation — 2026-10-27
+
+- Reconfirmed the current live Supabase model is the partial 12-table, 15-migration foundation, not the empty-project state recorded in earlier historical notes. The existing identity boundary is UUID-keyed `companies` plus `company_memberships`; keep it canonical.
+- Added `supabase/candidates/live_company_proforma.sql` as a **candidate only**. It adds company-scoped issuer settings, bank accounts, custom terms, Proforma version rows, RLS, a private atomic save implementation exposed through a SECURITY INVOKER RPC, and an authorized issuer-settings RPC. It is not under `supabase/migrations/` and has not been applied to the connected database.
+- Updated the full source and `staging/index.html` together (both currently blob SHA `da9e2d29c4f8db02de03a757021a7be99ee3a5bc`, 805,660 characters). The Proforma issuer bridge now reads the live `companies.id/code/name/is_active` shape, reads issuer fields from `company_proforma_settings`, scopes bank accounts by `company_id`, restores saved VAT percentage, saves issuer contact settings through the RPC, includes `company_id` on production custom terms, and fails closed on production bank-account edits.
+- Added `scripts/test-live-company-proforma-contract.mjs` to source-guard CI; added a separate PostgreSQL 17 CI job with `scripts/test-live-company-proforma-postgres.sql` and `scripts/test-live-company-proforma-concurrency.sh` for auth, issuer settings, totals, immutable revisions, RLS/cross-company isolation, direct-write privileges, and concurrent numbering.
+- Updated the data-surface baseline and release-readiness audit to include the new candidate source. Static source-to-candidate checks performed during this session pass, and the readiness audit still reports 51 logical tables not defined in the combined draft/candidate schema sources. This is a repository coverage count, not a live database table count.
+- **CI status is not yet verified:** the connected GitHub status tools returned no combined status entries or workflow-run records for the newest candidate commits. Do not describe these newly added tests as passing until an actual Actions run is visible.
+- Cloudflare Workers Builds continues to report failed builds for recent staging commits, with no preview URL. Per the owner's instruction, leave Cloudflare troubleshooting for tomorrow. Do not merge PR #1, touch `main`, enable production flags, apply candidate SQL to live Supabase, or promote/deploy.
+
+### Remaining full-migration blockers
+
+1. Run and fix the new disposable PostgreSQL workflow; perform browser-based Proforma save/reopen/revision tests using non-production Auth sessions.
+2. Reconcile the existing live company/customer/sales/purchasing/inventory schema against the full source payloads; do not create parallel legacy and `bokan_*` models by name alone.
+3. Migrate or replace the legacy `/api/auth/*`, `/api/bootstrap`, and `/api/store/*` dependencies and localStorage-backed business modules.
+4. Implement and test canonical CRM, HR/payroll, finance/AR/AP, stock, supply/logistics, notifications and document metadata/storage modules with company-scoped RLS and trusted write boundaries.
+5. Recover/document the four historical migration SQL bodies, then establish a forward-only migration path without fabricating history.
+6. Complete private Storage and signed downloads, full browser/session/RLS tests, a recovery/export rehearsal, and verified hosting preview before any production approval.
+
+Production mode, full-data readiness, source-reviewed module allowlist and config-enabled module list remain disabled/empty. No live Supabase schema/data/Auth/Storage change, PR merge, or production deployment was made in this continuation.
