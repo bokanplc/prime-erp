@@ -55,17 +55,31 @@ INSERT INTO auth.users(id) VALUES
 
 INSERT INTO public.companies(id,code,name,is_active) VALUES
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','PRIME','PRIME Investment Group',true),
- ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','BLACKROCK','BlackRock Investment PLC',true);
+ ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','BLACKROCK','BlackRock Investment PLC',true),
+ ('cccccccc-cccc-4ccc-8ccc-cccccccccccc','INACTIVE','Inactive Test Company',false);
 INSERT INTO public.company_memberships(company_id,user_id,role,is_active) VALUES
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','admin',true),
  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','22222222-2222-4222-8222-222222222222','admin',true),
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','33333333-3333-4333-8333-333333333333','sales',false),
- ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','44444444-4444-4444-8444-444444444444','viewer',true);
+ ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','44444444-4444-4444-8444-444444444444','viewer',true),
+ ('cccccccc-cccc-4ccc-8ccc-cccccccccccc','11111111-1111-4111-8111-111111111111','admin',true);
 
 \i supabase/candidates/live_company_proforma.sql
 
 INSERT INTO public.company_bank_accounts(company_id,company_code,bank_name,account_number,account_purpose,display_order,active)
 VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','PRIME','CI Test Bank','CI-123456','Settlement',1,true);
+
+-- Seed a row under an inactive company as the database owner; active membership alone must not reveal it.
+INSERT INTO public.proformas(
+  company_id,company_code,proforma_no,customer_name,customer_tin,proforma_date,
+  vat_rate,subtotal_before_vat,discount_percent,discount_amount,vat_amount,
+  withholding_enabled,withholding_rate,withholding_threshold,withholding_amount,
+  grand_total,net_payable,bank_accounts_snapshot,items,terms,status,created_by,updated_by
+) VALUES (
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc','INACTIVE','INAC1000','Hidden Test','INAC-TIN',current_date,
+  15,100,0,0,15,true,3,10000,0,115,115,'[]'::jsonb,'[]'::jsonb,'[]'::jsonb,'issued',
+  '11111111-1111-4111-8111-111111111111','11111111-1111-4111-8111-111111111111'
+);
 
 -- Authenticated owner: create, verify server-side math and immutable revision.
 SET ROLE authenticated;
