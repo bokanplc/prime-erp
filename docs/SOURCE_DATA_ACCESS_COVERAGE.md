@@ -1,6 +1,6 @@
 # BOKAN ERP V6.7 — Source Data-Access Coverage
 
-Review date: 2026-10-21  
+Review date: 2026-10-27  
 Source reviewed: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on `deploy/secure-staging`.
 
 This is a lexical inventory of direct Supabase `.from('table').operation(...)` calls. It is useful for review coverage, but it is not a complete parser, proof of reachability, or a substitute for RLS tests. Counts can include calls in different code paths and should not be interpreted as transaction counts.
@@ -29,9 +29,11 @@ This is a lexical inventory of direct Supabase `.from('table').operation(...)` c
 | `bokan_sales_opportunities` | New BOKAN bridge | 0 | 1 | 0 | 0 | 0 | 0 |
 | `bokan_salespeople` | New BOKAN bridge | 0 | 0 | 1 | 0 | 0 | 0 |
 | `bokan_shipments` | New BOKAN bridge | 1 | 0 | 0 | 0 | 0 | 0 |
-| `companies` | Legacy/shared UI | 1 | 0 | 2 | 0 | 0 | 0 |
-| `company_bank_accounts` | Legacy/shared UI | 1 | 1 | 0 | 0 | 1 | 0 |
-| `custom_terms` | Legacy/shared UI | 1 | 1 | 0 | 0 | 0 | 0 |
+| `companies` | Shared/Auth/issuer bridge | 2 | 0 | 0 | 0 | 0 | 0 |
+| `company_bank_accounts` | Proforma issuer bridge | 1 | 0 | 0 | 0 | 0 | 0 |
+| `company_memberships` | Auth bridge | 1 | 0 | 0 | 0 | 0 | 0 |
+| `company_proforma_settings` | Proforma issuer bridge | 1 | 0 | 0 | 0 | 0 | 0 |
+| `custom_terms` | Proforma UI | 1 | 1 | 0 | 0 | 0 | 0 |
 | `customer_billings` | Legacy/shared UI | 1 | 1 | 0 | 0 | 1 | 0 |
 | `customer_logs` | Legacy/shared UI | 8 | 2 | 0 | 0 | 1 | 0 |
 | `customers` | Legacy/shared UI | 10 | 1 | 2 | 0 | 0 | 0 |
@@ -43,7 +45,7 @@ This is a lexical inventory of direct Supabase `.from('table').operation(...)` c
 | `notifications` | Legacy/shared UI | 1 | 1 | 0 | 0 | 0 | 0 |
 | `per_diem_requests` | Legacy/shared UI | 2 | 1 | 2 | 0 | 1 | 0 |
 | `performance_reviews` | Legacy/shared UI | 2 | 1 | 1 | 0 | 1 | 0 |
-| `profiles` | Legacy/shared UI | 8 | 0 | 1 | 0 | 0 | 0 |
+| `profiles` | Legacy/shared UI | 8 | 0 | 0 | 0 | 0 | 0 |
 | `proformas` | Legacy/shared UI | 2 | 2 | 0 | 0 | 1 | 0 |
 | `sales_targets` | Legacy/shared UI | 1 | 1 | 1 | 0 | 1 | 0 |
 | `stock_entries` | Legacy/shared UI | 6 | 1 | 1 | 0 | 1 | 0 |
@@ -53,7 +55,7 @@ This is a lexical inventory of direct Supabase `.from('table').operation(...)` c
 
 ## RPC and Storage surface
 
-- RPCs referenced: `bokan_next_proforma_number`, `next_proforma_no`, `bokan_finance_close_readiness`.
+- RPCs referenced: `bokan_finance_close_readiness`, `bokan_save_company_proforma_settings`, `bokan_save_proforma`, `next_proforma_no`.
 - Storage bucket referenced: `documents`.
 - Document upload code calls `getPublicUrl(path)`; this is a privacy blocker for any confidential document until replaced with a private-access design or explicitly proven safe for public files.
 - The source contains both legacy UI data access and newer BOKAN bridge code. Secure only one side and the other remains a possible access path.
