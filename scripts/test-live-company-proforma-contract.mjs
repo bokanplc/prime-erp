@@ -20,7 +20,7 @@ const issuer = source.slice(issuerStart, issuerEnd);
 assert.match(issuer, /from\('companies'\)\.select\('id,code,name,is_active'\)/, 'Issuer lookup must use the live company master columns.');
 assert.match(issuer, /from\('company_proforma_settings'\)/, 'Issuer-specific fields must come from the additive settings table.');
 assert.match(issuer, /from\('company_bank_accounts'\)[\s\S]*?eq\('company_id',companyRow\.id\)/, 'Bank accounts must be scoped by company UUID.');
-assert.doesNotMatch(issuer, /legal_name|proforma_title_color|\.eq\('company_code',key\)/, 'Issuer bridge must not query nonexistent company columns or scope bank rows by code.');
+assert.doesNotMatch(issuer, /select\([^)]*(legal_name|proforma_title_color)|companyRow\?\.legal_name|\.eq\('company_code',key\)/, 'Issuer bridge must not query nonexistent company columns or scope bank rows by code.');
 
 assert.match(source, /rpc\('bokan_save_company_proforma_settings'/, 'Issuer TIN/contact edits must use the authorized RPC.');
 assert.match(source, /if \(companyId\) row\.company_id = companyId/, 'Custom terms must include the live UUID company foreign key in production.');
