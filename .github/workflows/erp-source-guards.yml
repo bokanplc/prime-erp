@@ -114,3 +114,42 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: bokan_test
         run: bash scripts/test-core-proforma-concurrency.sh
+
+  postgres-live-company-proforma-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: live_company_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d live_company_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Test UUID-company Proforma schema, RLS, save, revisions and calculations
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: live_company_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-live-company-proforma-postgres.sql
+      - name: Test concurrent UUID-company Proforma numbering
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: live_company_test
+        run: bash scripts/test-live-company-proforma-concurrency.sh
