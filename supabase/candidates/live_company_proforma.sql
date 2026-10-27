@@ -116,11 +116,11 @@ alter table public.proformas enable row level security;
 
 drop policy if exists company_proforma_settings_select_member on public.company_proforma_settings;
 create policy company_proforma_settings_select_member on public.company_proforma_settings
-  for select to authenticated using (private.has_company_membership(company_id));
+  for select to authenticated using (private.has_company_membership(company_id) and exists (select 1 from public.companies c where c.id = company_id and c.is_active));
 
 drop policy if exists company_bank_accounts_select_member on public.company_bank_accounts;
 create policy company_bank_accounts_select_member on public.company_bank_accounts
-  for select to authenticated using (active and private.has_company_membership(company_id));
+  for select to authenticated using (active and private.has_company_membership(company_id) and exists (select 1 from public.companies c where c.id = company_id and c.is_active));
 
 drop policy if exists custom_terms_select_member on public.custom_terms;
 create policy custom_terms_select_member on public.custom_terms
@@ -132,6 +132,7 @@ create policy custom_terms_insert_member on public.custom_terms
   with check (
     created_by = (select auth.uid())
     and private.has_company_membership(company_id)
+    and exists (select 1 from public.companies c where c.id = company_id and c.is_active)
   );
 
 drop policy if exists proformas_select_member on public.proformas;
