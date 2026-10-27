@@ -8,6 +8,8 @@ create schema if not exists private;
 revoke all on schema private from public, anon;
 grant usage on schema private to authenticated;
 
+create unique index if not exists companies_id_code_uq on public.companies(id, code);
+
 create table if not exists public.company_proforma_settings (
   company_id uuid primary key references public.companies(id) on delete cascade,
   issuer_tin text,
@@ -158,12 +160,24 @@ begin
   select m.role into v_role from public.company_memberships m
    where m.company_id = v_company_id and m.user_id = v_uid and m.is_active;
   if v_role is null or v_role not in ('owner','admin','manager') then raise exception 'Company administrator permission required'; end if;
-  if p_payload ? 'tin' and p_payload->'tin' <> 'null'::jsonb and jsonb_typeof(p_payload->'tin') is distinct from 'string' then
-    raise exception 'Issuer TIN must be text';
+  if (p_payload ? 'tin' and p_payload->'tin' <> 'null'::jsonb and jsonb_typeof(p_payload->'tin') is distinct from 'string')
+     or (p_payload ? 'address' and p_payload->'address' <> 'null'::jsonb and jsonb_typeof(p_payload->'address') is distinct from 'string')
+     or (p_payload ? 'phone' and p_payload->'phone' <> 'null'::jsonb and jsonb_typeof(p_payload->'phone') is distinct from 'string') then
+    raise exception 'Issuer TIN, address and phone must be text';
   end if;
-  insert into public.company_proforma_settings(company_id, issuer_tin, updated_by, updated_at)
-  values(v_company_id, nullif(btrim(p_payload->>'tin'), ''), v_uid, now())
-  on conflict(company_id) do update set issuer_tin = excluded.issuer_tin, updated_by = excluded.updated_by, updated_at = now();
+  insert into public.company_proforma_settings(company_id, issuer_tin, issuer_address, issuer_phone, updated_by, updated_at)
+  values(
+    v_company_id,
+    case when p_payload ? 'tin' then nullif(btrim(p_payload->>'tin'), '') else null end,
+    case when p_payload ? 'address' then nullif(btrim(p_payload->>'address'), '') else null end,
+    case when p_payload ? 'phone' then nullif(btrim(p_payload->>'phone'), '') else null end,
+    v_uid, now()
+  )
+  on conflict(company_id) do update set
+    issuer_tin = case when p_payload ? 'tin' then excluded.issuer_tin else public.company_proforma_settings.issuer_tin end,
+    issuer_address = case when p_payload ? 'address' then excluded.issuer_address else public.company_proforma_settings.issuer_address end,
+    issuer_phone = case when p_payload ? 'phone' then excluded.issuer_phone else public.company_proforma_settings.issuer_phone end,
+    updated_by = excluded.updated_by, updated_at = now();
   return true;
 end;
 $$;
