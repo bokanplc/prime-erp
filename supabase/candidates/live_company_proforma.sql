@@ -159,7 +159,7 @@ begin
   if v_company_id is null then raise exception 'Company is inactive or unavailable'; end if;
   select m.role into v_role from public.company_memberships m
    where m.company_id = v_company_id and m.user_id = v_uid and m.is_active;
-  if v_role is null or v_role not in ('owner','admin','manager') then raise exception 'Company administrator permission required'; end if;
+  if v_role is null or v_role not in ('owner','admin','manager','accountant') then raise exception 'Company administrator permission required'; end if;
   if (p_payload ? 'tin' and p_payload->'tin' <> 'null'::jsonb and jsonb_typeof(p_payload->'tin') is distinct from 'string')
      or (p_payload ? 'address' and p_payload->'address' <> 'null'::jsonb and jsonb_typeof(p_payload->'address') is distinct from 'string')
      or (p_payload ? 'phone' and p_payload->'phone' <> 'null'::jsonb and jsonb_typeof(p_payload->'phone') is distinct from 'string') then
