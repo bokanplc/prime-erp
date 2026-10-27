@@ -124,7 +124,7 @@ create policy company_bank_accounts_select_member on public.company_bank_account
 
 drop policy if exists custom_terms_select_member on public.custom_terms;
 create policy custom_terms_select_member on public.custom_terms
-  for select to authenticated using (private.has_company_membership(company_id));
+  for select to authenticated using (private.has_company_membership(company_id) and exists (select 1 from public.companies c where c.id = company_id and c.is_active));
 
 drop policy if exists custom_terms_insert_member on public.custom_terms;
 create policy custom_terms_insert_member on public.custom_terms
@@ -137,7 +137,7 @@ create policy custom_terms_insert_member on public.custom_terms
 
 drop policy if exists proformas_select_member on public.proformas;
 create policy proformas_select_member on public.proformas
-  for select to authenticated using (private.has_company_membership(company_id));
+  for select to authenticated using (private.has_company_membership(company_id) and exists (select 1 from public.companies c where c.id = company_id and c.is_active));
 
 revoke all on public.company_proforma_settings, public.company_bank_accounts, public.custom_terms, public.proformas from anon, authenticated;
 grant select on public.company_proforma_settings, public.company_bank_accounts, public.custom_terms, public.proformas to authenticated;
