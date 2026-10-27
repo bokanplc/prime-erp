@@ -6,9 +6,9 @@ Source: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`
 
 **Status:** design inventory only. This document is not executable SQL. No database schema has been applied.
 
-## Confirmed Supabase state
+## Historical Supabase state (2026-10-21; superseded)
 
-Read-only checks on 2026-10-21 found no public application tables and no recorded migrations in project `kafiwnuynjemufnankvi`. The Security Advisor reports one warning: leaked-password protection is disabled. Its remediation is documented at https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
+Read-only checks on 2026-10-21 found no public application tables and no recorded migrations in project `kafiwnuynjemufnankvi`. **This is historical only.** The read-only audit on 2026-10-26 found 12 public application tables, 15 applied migration records, and an existing UUID-keyed `companies` + `company_memberships` identity model. See `docs/LIVE_SCHEMA_RECONCILIATION_2026-10-26.md`, `docs/LIVE_SCHEMA_ACCESS_AUDIT_2026-10-26.md`, and `docs/LIVE_MIGRATION_SOURCE_GAP.md` for current facts. The original `companies`/`profiles` draft below is not compatible with the live model and must not be applied unchanged. The Security Advisor reports one warning: leaked-password protection is disabled. Its remediation is documented at https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
 
 Supabase's current API security guidance explains that database grants and RLS are separate layers and both must be deliberately configured: https://supabase.com/docs/guides/api/securing-your-api.
 
