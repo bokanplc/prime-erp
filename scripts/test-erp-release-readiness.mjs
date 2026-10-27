@@ -11,6 +11,7 @@ const files = [
   'staging/index.html',
   'staging/config/config.js',
   'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql',
+  'supabase/candidates/live_company_proforma.sql',
   'scripts/audit-erp-release-readiness.mjs',
   'scripts/build-release-candidate.mjs',
   'wrangler.jsonc'
