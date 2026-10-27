@@ -23,6 +23,7 @@ assert.match(issuer, /from\('company_bank_accounts'\)[\s\S]*?eq\('company_id',co
 assert.doesNotMatch(issuer, /select\([^)]*(legal_name|proforma_title_color)|companyRow\?\.legal_name|\.eq\('company_code',key\)/, 'Issuer bridge must not query nonexistent company columns or scope bank rows by code.');
 
 assert.match(source, /rpc\('bokan_save_company_proforma_settings'/, 'Issuer TIN/contact edits must use the authorized RPC.');
+assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(bokanProdEnabled\(\)\) throw new Error\('Bank account changes are temporarily disabled/, 'Production bank-account changes must fail closed until an audited RPC exists.');
 assert.match(source, /if \(companyId\) row\.company_id = companyId/, 'Custom terms must include the live UUID company foreign key in production.');
 assert.match(sql, /create table if not exists public\.company_proforma_settings[\s\S]*?company_id uuid primary key references public\.companies\(id\)/, 'Settings table must use the live UUID company key.');
 assert.match(sql, /create table if not exists public\.company_bank_accounts[\s\S]*?company_id uuid not null references public\.companies\(id\)/, 'Bank accounts must reference the live UUID company master.');
