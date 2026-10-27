@@ -10,11 +10,11 @@ changes were made. This is not an approval to enable production mode.
 
 | Frontend RPC | Frontend purpose | Current status |
 |---|---|---|
-| `bokan_save_proforma(p_company, p_existing_id, p_payload)` | Atomic company-scoped Proforma create/update and revision save | **Missing from live catalog.** Production Proforma save cannot be considered verified until the function and its table/tenant/role contract are designed, reviewed, migrated, and tested. |
-| `next_proforma_no()` | Legacy fallback Proforma number allocation | **Missing from live catalog.** Do not rely on the fallback for production numbering; use one concurrency-safe allocator with a unique constraint and atomic save. |
+| `bokan_save_proforma(p_company, p_existing_id, p_payload)` | Atomic company-scoped Proforma create/revision save | **Still missing from live catalog.** A UUID-company-aligned candidate now exists at `supabase/candidates/live_company_proforma.sql`; it has not been applied to live Supabase and still requires disposable PostgreSQL and browser verification. |
+| `next_proforma_no()` | Legacy/demo fallback Proforma number allocation | **Missing from live catalog.** The production save bridge should use only the atomic save RPC, never allocate a number separately from the save transaction. |
 | `bokan_finance_close_readiness(p_period_id)` | Finance period-close readiness check | **Missing from live catalog.** Finance close readiness must remain unavailable/disabled until its canonical schema and trusted function are implemented and tested. |
 
-These names were extracted from literal `.rpc(...)` calls in the full staging HTML. Absence from the current catalog means the call cannot be verified as working against the connected project; it does not prove that every associated UI path is enabled.
+These names were extracted from literal RPC references in the full staging HTML. The staging source now also calls `bokan_save_company_proforma_settings(p_company, p_payload)` for authorized issuer TIN/address/phone changes; this RPC is also absent from the live catalog and exists only in the un-applied candidate SQL. Absence from the current catalog means the call cannot be verified as working against the connected project; it does not prove that every associated UI path is enabled.
 
 ## Current public RPC inventory
 
@@ -35,7 +35,7 @@ The private schema also contains `has_company_membership(uuid)` and `can_manage_
 
 ## Required next steps
 
-1. Design the Proforma tables and atomic save/numbering operation additively against the existing `companies.id` and `company_memberships` model. Do not apply the old `companies/profiles` candidate.
+1. Review and test the new UUID-company candidate and issuer-settings RPC in disposable PostgreSQL; do not apply the old `companies/profiles` candidate or the new candidate to live yet.
 2. Define payload validation, role authorization, tenant isolation, totals/VAT/withholding calculations, version/revision behavior, uniqueness, idempotency, and audit fields before implementing the RPC.
 3. Add the finance close-readiness RPC only after fiscal-period, journal, AR/AP, and company models are canonical and reviewed.
 4. Add forward-only SQL migration files on the staging branch, test against disposable PostgreSQL, run static checks/advisors, then use non-production Auth sessions for positive and negative cross-company tests.
