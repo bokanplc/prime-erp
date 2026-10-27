@@ -1,19 +1,19 @@
 # BOKAN ERP V6.7 — database operation inventory
 
-Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-24.
+Re-scanned from the staged source on 2026-10-27.
 
 **Purpose:** identify implementation scope for the database contract. This is not a schema, migration, or security approval. Counts are regex-based static observations; dynamic calls and related table names inside joins may need manual review.
 
 ## Current source snapshot
 
-- Literal `.from('table')` call sites: 41
-- Distinct direct table names: 41
-- Additional table names passed into generic `insert`/`update`/`q`/`count` helpers: 14
-- Distinct logical database table names observed across direct and helper calls: 55
-- Direct operations: {"insert":36,"select":69,"update":21,"delete":16}
-- Literal `localStorage.getItem/setItem/removeItem` calls: 88; unique literal keys detected: 15.
+- Literal `.from('table')` call sites: 145
+- Distinct direct table names: 43
+- Additional distinct table names passed into generic `insert`/`update`/`q`/`count` helpers: 14 (25 helper names total, 11 overlap with direct tables)
+- Distinct logical database table names observed across direct and helper calls: 57
+- Direct operations: {"insert":36,"select":71,"update":19,"delete":16}
+- Literal `localStorage.getItem/setItem/removeItem` calls: 89; unique literal keys detected: 15.
 - `.select('*')` calls: 46.
-- RPC names detected: `bokan_finance_close_readiness`, `bokan_save_proforma`, `next_proforma_no`.
+- RPC names detected: `bokan_finance_close_readiness`, `bokan_save_company_proforma_settings`, `bokan_save_proforma`, `next_proforma_no`.
 - Storage buckets detected: `documents`.
 - Legacy API base: `/api`; observed suffixes: `/auth/login`, `/auth/change-password`, `/auth/logout`, `/bootstrap`, and `/store/`.
 - The source still includes a mock backend for local preview. The hosted startup path is designed to fail closed; the legacy API-dependent modules remain blocked on a hosted static site until migrated or given a real authenticated API.
@@ -43,8 +43,10 @@ Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FI
 | `bokan_sales_opportunities` | 1 | Sales pipeline |
 | `bokan_salespeople` | 1 | Sales assignment/identity |
 | `bokan_shipments` | 1 | Logistics |
-| `companies` | 3 | Legal entity master data |
-| `company_bank_accounts` | 3 | Bank details; restrict writes |
+| `companies` | 2 | Legal entity master data; use existing UUID/company-membership model |
+| `company_bank_accounts` | 3 | Bank details; UUID-scoped reads; production writes fail closed |
+| `company_memberships` | 1 | Authenticated membership/tenant boundary |
+| `company_proforma_settings` | 1 | Issuer TIN/address/phone settings through authorized RPC |
 | `custom_terms` | 2 | Commercial terms |
 | `customer_billings` | 3 | Customer financial data |
 | `customer_logs` | 11 | CRM and activity history |
@@ -57,7 +59,7 @@ Generated from static inspection of `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FI
 | `notifications` | 2 | Restrict by recipient |
 | `per_diem_requests` | 6 | Employee expense/approval data |
 | `performance_reviews` | 5 | Sensitive HR data |
-| `profiles` | 9 | Identity, role, and company profile |
+| `profiles` | 8 | Legacy identity reads; do not use as the live membership authority |
 | `proformas` | 4 | Commercial data and financial validation |
 | `sales_targets` | 4 | Sales performance data |
 | `stock_entries` | 9 | Inventory movement/source records |
