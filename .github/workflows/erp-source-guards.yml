@@ -41,6 +41,8 @@ jobs:
         run: node scripts/test-production-module-allowlist.mjs
       - name: Test core proforma schema draft
         run: node scripts/test-core-schema-draft.mjs
+      - name: Test live UUID-company Proforma contract
+        run: node scripts/test-live-company-proforma-contract.mjs
       - name: Test live migration source parity
         run: node scripts/test-live-migration-source-parity.mjs
       - name: Test production auth membership contract
