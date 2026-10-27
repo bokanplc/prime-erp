@@ -10,7 +10,7 @@ For one experienced full-stack engineer working full-time, with business decisio
 
 - **Technical proof of a secure hosted login + one end-to-end module:** approximately **5–10 working days** after the architecture decision and test users are available.
 - **A limited pilot (authentication, company separation, proformas, and essential customer/CRM workflows):** approximately **2–4 weeks**.
-- **Broad V6.7 production release across finance, inventory/operations, HR/payroll, documents, approvals, reporting, and legacy module migration:** approximately **6–10+ weeks**, followed by business acceptance and security testing. The source is a large monolithic HTML app and has 41 direct table references, overlapping models, and localStorage-backed modules, so the upper end or longer may be necessary.
+- **Broad V6.7 production release across finance, inventory/operations, HR/payroll, documents, approvals, reporting, and legacy module migration:** approximately **6–10+ weeks**, followed by business acceptance and security testing. The source is a large monolithic HTML app and has 43 distinct direct table names, 57 logical table names including generic helpers, overlapping models, and 89 literal localStorage operations, so the upper end or longer may be necessary.
 
 These ranges assume no major redesign and no new features. They assume the current free-plan constraint remains in place. A developer cannot safely make the final release date certain until a browser runtime test and the full module dependency map are complete.
 
