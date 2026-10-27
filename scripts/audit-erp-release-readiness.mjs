@@ -11,7 +11,8 @@ import assert from 'node:assert/strict';
 const source = readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
 const entry = readFileSync('staging/index.html','utf8');
 const config = readFileSync('staging/config/config.js','utf8');
-const schema = readFileSync('docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql','utf8');
+const schemaDraft = readFileSync('docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql','utf8');
+const liveCompanyProformaCandidate = readFileSync('supabase/candidates/live_company_proforma.sql','utf8');
 assert.equal(entry,source,'Staging entry point must match the reviewed source.');
 
 const direct = [...new Set([...source.matchAll(/\.from\(\s*['"]([a-z][a-z0-9_]*)['"]\s*\)/g)].map(m=>m[1]))];
