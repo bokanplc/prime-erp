@@ -1,6 +1,6 @@
 # BOKAN ERP V6.7 — Production Module Readiness Matrix
 
-**Updated:** 2026-10-24  
+**Updated:** 2026-10-27  
 **Current release decision:** no business module is approved for hosted production.
 
 This matrix separates source code presence from real backend readiness. A screen or a local-preview workflow is not a completed production module.
@@ -8,9 +8,9 @@ This matrix separates source code presence from real backend readiness. A screen
 | Module group | Current source path | Database / trusted operations | Required production proof | Current status |
 |---|---|---|---|---|
 | Authentication and profile | Supabase Auth bridge; live `company_memberships` + `companies` | The bridge now reads active live memberships and maps only supported roles; trusted user provisioning is still missing | Real Supabase Auth sign-in/out, multi-company switching, unsupported-role denial, provisioning, session lifecycle, direct Data API checks | Partially wired; not production-ready |
-| Company issuer details | `companies` and issuer settings bridge | First-slice SQL draft includes company rows and restricted TIN/address/phone updates | Real Supabase policy test for PRIME and BlackRock; issuer edits audited and scoped | Blocked |
-| Bank accounts | `company_bank_accounts` snapshot read | Production replacement is disabled; draft has read-only access | Real bank rows, scoped reads, atomic audited maintenance workflow, snapshot/version tests | Blocked |
-| Proformas | Supabase proforma bridge + `bokan_save_proforma` draft | Disposable PostgreSQL CI tests cover draft RLS/grants, server-side totals, numbering, revisions and some role checks | Apply only after review; real Supabase Auth/JWT and Data API/RLS tests; browser create/reload/revision tests; confirm Ethiopian VAT discount treatment with accountant | Partially tested in disposable PostgreSQL; not production-ready |
+| Company issuer details | Live `companies.id/code/name/is_active` plus candidate `company_proforma_settings` | Candidate adds company-ID settings and an authorized RPC; it is not applied to live | Real Supabase policy test for PRIME and BlackRock; owner-verified issuer details; audit and browser tests | Blocked; candidate under test |
+| Bank accounts | `company_bank_accounts` snapshot read | UUID-company candidate grants scoped reads; production edits fail closed | Owner-verified bank rows, real RLS tests, atomic audited maintenance workflow, snapshot/version tests | Blocked; candidate under test |
+| Proformas | Supabase proforma bridge + UUID-company candidate `bokan_save_proforma` | Added separate PostgreSQL 17 job for active/inactive membership, unauthenticated writes, cross-company isolation, issuer settings, totals, revisions, grants and concurrent numbering; latest run not verified | Confirm CI success; real Supabase Auth/JWT/Data API/RLS tests; browser create/reload/revision tests; confirm Ethiopian VAT discount treatment with accountant | Candidate only; not production-ready |
 | Sales Proforma requests | `prime_proforma_requests` localStorage | No canonical request table or tested server workflow | Company-scoped request persistence, approval/status transitions, audit, reload/cross-device test | Blocked |
 | CRM customers and activity | `bokan_customers`, activity/assignment bridge; legacy localStorage stores | Tables absent; assignment history + customer update is currently multi-step | Canonical customer model, company and salesperson FKs, atomic reassignment, role policies, XSS and cross-tenant tests | Blocked |
 | Sales pipeline and follow-ups | `bokan_sales_hub_v1`, `bokan_sales_crm_v1`, lifecycle localStorage | No canonical persistence proven | Opportunity/order/activity schema, assignment rules, server-side validation, role-scoped tests | Blocked |
