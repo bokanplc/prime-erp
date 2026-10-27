@@ -30,7 +30,7 @@ This is a lexical inventory of direct Supabase `.from('table').operation(...)` c
 | `bokan_salespeople` | New BOKAN bridge | 0 | 0 | 1 | 0 | 0 | 0 |
 | `bokan_shipments` | New BOKAN bridge | 1 | 0 | 0 | 0 | 0 | 0 |
 | `companies` | Shared/Auth/issuer bridge | 2 | 0 | 0 | 0 | 0 | 0 |
-| `company_bank_accounts` | Proforma issuer bridge | 1 | 0 | 0 | 0 | 0 | 0 |
+| `company_bank_accounts` | Proforma issuer bridge (production writes guarded) | 1 | 1 | 0 | 0 | 1 | 0 |
 | `company_memberships` | Auth bridge | 1 | 0 | 0 | 0 | 0 | 0 |
 | `company_proforma_settings` | Proforma issuer bridge | 1 | 0 | 0 | 0 | 0 | 0 |
 | `custom_terms` | Proforma UI | 1 | 1 | 0 | 0 | 0 | 0 |
