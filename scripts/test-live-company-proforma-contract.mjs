@@ -30,6 +30,7 @@ assert.match(sql, /create table if not exists public\.company_bank_accounts[\s\S
 assert.match(sql, /create table if not exists public\.proformas[\s\S]*?company_id uuid not null references public\.companies\(id\)/, 'Proformas must reference the live UUID company master.');
 assert.match(sql, /public\.company_memberships[\s\S]*?m\.company_id = v_company_id and m\.user_id = v_uid and m\.is_active/, 'Write RPCs must require an active company membership.');
 assert.match(sql, /private\.has_company_membership\(company_id\)/, 'Read policies must scope rows to active company membership.');
+assert.match(sql, /private\.has_company_membership\(company_id\) and exists \(select 1 from public\.companies c where c\.id = company_id and c\.is_active\)/, 'Read policies must also reject inactive companies.');
 assert.match(sql, /create or replace function public\.bokan_save_proforma[\s\S]*?security invoker[\s\S]*?select private\.bokan_save_proforma/, 'Public Proforma save must be an invoker wrapper.');
 assert.match(sql, /create or replace function public\.bokan_save_company_proforma_settings[\s\S]*?security invoker[\s\S]*?private\.bokan_save_company_proforma_settings/, 'Issuer settings writes must go through the authorized RPC.');
 assert.match(sql, /grant select on public\.company_proforma_settings, public\.company_bank_accounts, public\.custom_terms, public\.proformas to authenticated/, 'Client access must be limited to reads plus separately scoped custom-term inserts.');
