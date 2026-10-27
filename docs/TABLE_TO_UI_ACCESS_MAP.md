@@ -1,8 +1,8 @@
 # BOKAN ERP V6.7 — Table-to-UI Access Map
 
-**Generated from:** `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-24  
+**Re-scanned from:** `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on 2026-10-27  
 **Method:** static lexical scan; this is an inventory aid, not a semantic authorization audit.  
-**Scope:** 55 distinct logical table names, including direct Supabase `.from(...)` calls and legacy `bokan_*` helper calls.
+**Scope:** 57 distinct logical table names, including direct Supabase `.from(...)` calls and legacy `bokan_*` helper calls.
 
 ## How to read this map
 
@@ -49,8 +49,10 @@
 | `bokan_shipments` | 1 | 3 | select: 1, insert: 1, update: 1, q: 1 | `listInbound`, `createShipment`, `updateShipment` |
 | `bokan_stock_reservations` | 0 | 1 | insert: 1 | `createStockReservation` |
 | `bokan_warehouses` | 0 | 1 | insert: 1 | `createWarehouse` |
-| `companies` | 3 | 0 | select: 1, update: 2 | `bokanProdLoadIssuer`, `bokanProdSaveCompanyTIN`, `renderProductionIssuer` |
+| `companies` | 2 | 0 | select: 2 | `bokanProdLoadIssuer`, `bokanProdSaveCompanyTIN`, `renderProductionIssuer` |
 | `company_bank_accounts` | 3 | 0 | select: 1, delete: 1, insert: 1 | `bokanProdLoadIssuer`, `bokanProdSaveBanks` |
+| `company_memberships` | 1 | 0 | select: 1 | Auth membership bridge |
+| `company_proforma_settings` | 1 | 0 | select: 1 | `bokanProdLoadIssuer` |
 | `custom_terms` | 2 | 0 | select: 1, insert: 1 | `loadProformaTermOptions`, `addCustomTerm` |
 | `customer_billings` | 3 | 0 | insert: 1, delete: 1, select: 1 | `generateCustomerBilling`, `deleteBilling`, `loadBillings` |
 | `customer_logs` | 11 | 0 | select: 8, insert: 2, delete: 1 | `toggleEscalation`, `loadCustomerHistory`, `reassignCurrentCustomer`, `loadReport`, `deleteCustomerLog`, `loadSalesTargets`, `loadSalesFollowup`, `renderDashVisuals` |
@@ -63,7 +65,7 @@
 | `notifications` | 2 | 0 | insert: 1, select: 1 | `pushNotification`, `renderNotifications` |
 | `per_diem_requests` | 6 | 0 | select: 2, update: 2, insert: 1, delete: 1 | `refreshPerDiemTripPlanOptions`, `applyTripPlanToPerDiem`, `deletePerDiem`, `updatePerDiemStatus`, `loadPerDiem` |
 | `performance_reviews` | 5 | 0 | update: 1, insert: 1, delete: 1, select: 2 | `loadLeaveRequests`, `deletePerf`, `loadPerformanceReviews`, `loadHrReports` |
-| `profiles` | 9 | 0 | select: 8, update: 1 | `loadCustomerHistory`, `loadSalesTargets`, `loadUsers`, `updateRole`, `loadSalesFollowup`, `initSalesAssignment`, `renderDashVisuals`, `fetchProfile` |
+| `profiles` | 8 | 0 | select: 8 | Legacy UI; not the live membership authority | `loadCustomerHistory`, `loadSalesTargets`, `loadUsers`, `updateRole`, `loadSalesFollowup`, `initSalesAssignment`, `renderDashVisuals`, `fetchProfile` |
 | `proformas` | 4 | 0 | select: 2, insert: 1, delete: 1 | `bokanProdLoadProformas`, `generateProforma`, `loadRepoProformas`, `deleteProforma` |
 | `sales_targets` | 4 | 0 | update: 1, insert: 1, delete: 1, select: 1 | `updateTargetHierarchyVisibility`, `deleteTarget`, `loadSalesTargets` |
 | `stock_entries` | 9 | 0 | update: 1, insert: 1, select: 6, delete: 1 | `loadAllForRole`, `loadStock`, `loadMyStock`, `deleteStock`, `loadOverview`, `loadBoardReport`, `loadIncomeTax`, `renderDashVisuals` |
