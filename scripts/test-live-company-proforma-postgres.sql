@@ -81,7 +81,12 @@ DECLARE
     'terms',jsonb_build_array('Delivery in 7 days')
   );
   v_visible integer;
+  v_settings_tin text;
+  v_denied boolean := false;
 BEGIN
+  PERFORM public.bokan_save_company_proforma_settings('PRIME',jsonb_build_object('tin','ISSUER-TEST-TIN','address','Test Issuer Address','phone','555-0100'));
+  SELECT issuer_tin INTO v_settings_tin FROM public.company_proforma_settings WHERE company_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  IF v_settings_tin <> 'ISSUER-TEST-TIN' THEN RAISE EXCEPTION 'Issuer settings RPC failed'; END IF;
   v_first := public.bokan_save_proforma('PRIME',NULL,v_payload);
   IF v_first.proforma_no <> 'ACME1000' THEN RAISE EXCEPTION 'Unexpected number: %',v_first.proforma_no; END IF;
   IF v_first.subtotal_before_vat <> 10000 OR v_first.vat_amount <> 1500 OR v_first.grand_total <> 11500 THEN
@@ -91,12 +96,20 @@ BEGIN
     RAISE EXCEPTION 'Incorrect withholding/net totals: withholding %, net %',v_first.withholding_amount,v_first.net_payable;
   END IF;
   IF jsonb_array_length(v_first.bank_accounts_snapshot) <> 1 THEN RAISE EXCEPTION 'Bank account snapshot missing'; END IF;
+  IF v_first.company_tin_snapshot <> 'ISSUER-TEST-TIN' THEN RAISE EXCEPTION 'Issuer TIN snapshot missing'; END IF;
   v_revision := public.bokan_save_proforma('PRIME',v_first.id,v_payload || jsonb_build_object('discountPct',10));
   IF v_revision.id = v_first.id OR v_revision.version_no <> 2 OR v_revision.root_proforma_id <> v_first.id THEN
     RAISE EXCEPTION 'Revision did not preserve immutable lineage';
   END IF;
   SELECT count(*) INTO v_visible FROM public.proformas;
   IF v_visible <> 2 THEN RAISE EXCEPTION 'Expected two visible Proforma versions, got %',v_visible; END IF;
+  BEGIN
+    PERFORM public.bokan_save_company_proforma_settings('BLACKROCK',jsonb_build_object('tin','CROSS-COMPANY')); 
+    RAISE EXCEPTION 'Cross-company settings update unexpectedly succeeded';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'Cross-company settings update unexpectedly succeeded' THEN RAISE; END IF;
+    IF SQLERRM NOT LIKE '%Company administrator permission required%' THEN RAISE; END IF;
+  END;
   BEGIN
     PERFORM public.bokan_save_proforma('BLACKROCK',NULL,v_payload);
     RAISE EXCEPTION 'Cross-company save unexpectedly succeeded';
@@ -112,6 +125,50 @@ BEGIN
   END;
 END
 $test$;
+
+-- Create a BlackRock-only record, then prove the PRIME session cannot read it.
+RESET ROLE;
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+DO $blackrock$
+DECLARE v_row public.proformas;
+BEGIN
+  v_row := public.bokan_save_proforma('BLACKROCK',NULL,jsonb_build_object(
+    'customer','BlackRock Test','tin','BR-TIN','vatPct',15,'discountPct',0,
+    'items',jsonb_build_array(jsonb_build_object('description','Private company item','qty',1,'unit_price',500))
+  ));
+  IF v_row.company_code <> 'BLACKROCK' THEN RAISE EXCEPTION 'BlackRock row has wrong company'; END IF;
+END
+$blackrock$;
+
+RESET ROLE;
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+DO $scope$
+DECLARE v_count integer; v_other integer;
+BEGIN
+  SELECT count(*) INTO v_count FROM public.proformas;
+  SELECT count(*) INTO v_other FROM public.proformas WHERE company_code='BLACKROCK';
+  IF v_count <> 2 OR v_other <> 0 THEN RAISE EXCEPTION 'Cross-company read isolation failed: visible %, other-company %',v_count,v_other; END IF;
+END
+$scope$;
+
+-- An authenticated database role without a real user ID must be denied.
+RESET ROLE;
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','',false);
+DO $unauth$
+DECLARE v_denied boolean := false;
+BEGIN
+  BEGIN
+    PERFORM public.bokan_save_proforma('PRIME',NULL,jsonb_build_object('customer','No User','tin','T','items',jsonb_build_array(jsonb_build_object('description','x','qty',1,'unit_price',1))));
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM NOT LIKE '%Authentication required%' THEN RAISE; END IF;
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Unauthenticated save unexpectedly succeeded'; END IF;
+END
+$unauth$;
 
 -- A non-member cannot read Proformas through RLS or write via the RPC.
 RESET ROLE;
