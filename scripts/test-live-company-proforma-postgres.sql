@@ -159,11 +159,12 @@ RESET ROLE;
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 DO $scope$
-DECLARE v_count integer; v_other integer;
+DECLARE v_count integer; v_other integer; v_inactive integer;
 BEGIN
   SELECT count(*) INTO v_count FROM public.proformas;
   SELECT count(*) INTO v_other FROM public.proformas WHERE company_code='BLACKROCK';
-  IF v_count <> 2 OR v_other <> 0 THEN RAISE EXCEPTION 'Cross-company read isolation failed: visible %, other-company %',v_count,v_other; END IF;
+  SELECT count(*) INTO v_inactive FROM public.proformas WHERE company_code='INACTIVE';
+  IF v_count <> 2 OR v_other <> 0 OR v_inactive <> 0 THEN RAISE EXCEPTION 'Company read isolation failed: visible %, other-company %, inactive-company %',v_count,v_other,v_inactive; END IF;
 END
 $scope$;
 
