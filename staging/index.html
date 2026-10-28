@@ -4563,7 +4563,7 @@ let currentRole = null;
 let currentDeptTabs = null;
 
 const ROLE_TABS = {
-  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
+  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
   data_entry:    ['dataentry','repository'],
   accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
   sales:         ['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest'],
@@ -4573,7 +4573,12 @@ const ROLE_TABS = {
 };
 
 const NAV_TREE = [
-  { id: 'overview',      label: 'Dashboard Summary' },
+  { id: 'overview', label: 'Dashboard Summary' },
+  { type: 'label', text: 'Daily Operations' },
+  { id: 'stockreport', label: 'Stock Reports & Balances', indent: true },
+  { id: 'procurement', label: 'Purchases & Purchase Orders', indent: true },
+  { id: 'dataentry', label: 'Stock Movements & Swaps', indent: true },
+  { id: 'collections', label: 'Customer Collections', indent: true },
 
   { type: 'label', text: 'Enterprise Integration' },
 
@@ -4602,7 +4607,6 @@ const NAV_TREE = [
   { id: 'trialbalance', label: 'Trial Balance & Subledger Control', indent: true },
   { id: 'datacontrol', label: 'Data Integrity & Backup Control', indent: true },
 
-  { id: 'stockreport',   label: 'Stock Report & Balances' },
   { id: 'expenseledger', label: 'Expense Ledger' },
   { type: 'label', text: 'Sales' },
   { id: 'sales',         label: 'Sales CRM', indent: true },
@@ -4620,7 +4624,6 @@ const NAV_TREE = [
   { id: 'hrreports',      label: 'HR Reports', indent: true },
   { id: 'hrattendance',   label: 'Attendance & Workforce', indent: true },
   { id: 'hrproduction',  label: 'HR & Payroll Production Control', indent: true },
-  { id: 'dataentry',     label: 'Data Entry Log' },
   { id: 'proforma',      label: 'Proforma — Admin' },
   { id: 'billing',       label: 'Customer Billing' },
   { id: 'letters',       label: 'Letters' },
@@ -4632,7 +4635,6 @@ const NAV_TREE = [
   { id: 'receivables',    label: 'Accounts Receivable', indent: true },
   { id: 'payables',       label: 'Accounts Payable & Suppliers', indent: true },
   { id: 'bankcash',       label: 'Bank & Cash Management', indent: true },
-  { id: 'procurement',    label: 'Purchasing & Purchase Orders', indent: true },
   { id: 'inventorycontrol', label: 'Inventory Control', indent: true },
   { id: 'fixedassets',    label: 'Fixed Assets', indent: true },
   { id: 'budgetcontrol',  label: 'Budgets & Cost Control', indent: true },
