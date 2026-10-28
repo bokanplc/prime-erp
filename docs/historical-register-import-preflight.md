@@ -30,7 +30,7 @@ The printed/static sales summary says 6,770, which is 900 below the itemized reg
 ## Known opening and ownership facts
 
 - BlackRock opening balance on 2026-07-01: 61 yellow plywood pieces.
-- Prime purchased 1,200 yellow plywood pieces on 2026-07-08 (two 600-piece rows).
+- Prime purchased 1,200 yellow plywood pieces on 2026-07-08 (two 600-piece purchase-register rows). **These are purchases, not a separate opening balance; do not count them twice.**
 - BlackRock's first 120-piece yellow plywood sale on 2026-07-11 was explicitly supplied from Prime stock. Keep that stock in Prime's ledger and record the corresponding quantity BlackRock owes Prime.
 - Later BlackRock manufacturer purchases should first reduce this known intercompany obligation; only excess should be treated as BlackRock-owned stock. Do not apply this assumption to other BlackRock sales without evidence.
 
