@@ -57,6 +57,9 @@ INSERT INTO public.companies(id,code,name,is_active) VALUES
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','PRIME','PRIME Investment Group',true),
  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','BLACKROCK','BlackRock Investment PLC',true),
  ('cccccccc-cccc-4ccc-8ccc-cccccccccccc','INACTIVE','Inactive Test Company',false);
+-- Authenticated RLS policy expressions inspect active company identity.
+GRANT SELECT ON public.companies TO authenticated;
+
 INSERT INTO public.company_memberships(company_id,user_id,role,is_active) VALUES
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','admin',true),
  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','22222222-2222-4222-8222-222222222222','admin',true),
