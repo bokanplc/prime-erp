@@ -159,7 +159,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $$
   select exists (
     select 1
       from public.company_memberships m
@@ -167,7 +167,7 @@ as $
        and m.user_id = p_user_id
        and m.is_active
   );
-$;
+$$;
 revoke all on function private.is_active_company_member(uuid, uuid) from public, anon;
 grant execute on function private.is_active_company_member(uuid, uuid) to authenticated;
 
