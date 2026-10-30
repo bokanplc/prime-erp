@@ -144,7 +144,7 @@ begin
 end $$;
 reset role;
 
--- History must not be mutable by authenticated clients.
+-- History must not be mutable by authenticated clients.\n-- This test runs in an isolated PostgreSQL service, never against live company data.
 set role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
 do $$
