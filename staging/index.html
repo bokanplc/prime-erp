@@ -4566,6 +4566,7 @@ const ROLE_TABS = {
   admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
   data_entry:    ['dataentry','repository'],
   accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
+  inventory:     ['stockreport','dataentry','repository','procurement','inventorycontrol'],
   sales:         ['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest'],
   sales_manager: ['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline'],
   management:    ['overview','stockreport','expenseledger','hrreports','budgetcontrol','reportscenter'],
@@ -8967,7 +8968,7 @@ async function fetchProfile(user,requestedCompanyCode){
     .select('company_id,role,is_active,companies(id,code,name,is_active)')
     .eq('user_id',user.id).eq('is_active',true);
   if(error) throw error;
-  const roleMap={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'};
+  const roleMap={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',inventory:'inventory',staff:'data_entry'};
   const memberships=(data||[])
     .filter(m=>m.is_active&&m.companies?.is_active&&roleMap[m.role])
     .map(m=>({company_id:m.company_id,company_code:m.companies.code,company_name:m.companies.name,role:m.role,app_role:roleMap[m.role]}));
