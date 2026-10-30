@@ -1,4 +1,6 @@
 \set ON_ERROR_STOP on
+\! createdb -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" crm_isolated
+\connect crm_isolated
 create schema if not exists auth;
 create schema if not exists private;
 create table auth.users (id uuid primary key);
