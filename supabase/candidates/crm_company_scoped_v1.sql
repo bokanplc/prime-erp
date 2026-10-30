@@ -148,17 +148,40 @@ alter table public.crm_activities enable row level security;
 alter table public.crm_opportunities enable row level security;
 alter table public.crm_after_sales_tasks enable row level security;
 
+-- Membership existence alone is insufficient: disabled memberships must not
+-- receive new assignments or act on CRM records.
+create or replace function private.is_active_company_member(
+  p_company_id uuid,
+  p_user_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select exists (
+    select 1
+      from public.company_memberships m
+     where m.company_id = p_company_id
+       and m.user_id = p_user_id
+       and m.is_active
+  );
+$;
+revoke all on function private.is_active_company_member(uuid, uuid) from public, anon;
+grant execute on function private.is_active_company_member(uuid, uuid) to authenticated;
+
 create policy crm_assignments_company_read on public.crm_customer_assignments
   for select to authenticated
   using ((select private.has_company_membership(company_id)));
 create policy crm_assignments_manager_insert on public.crm_customer_assignments
   for insert to authenticated
   with check ((select private.can_manage_company(company_id))
-    and assigned_by = (select auth.uid()));
+    and assigned_by = (select auth.uid())\n    and (select private.is_active_company_member(company_id, owner_user_id))\n    and (select private.is_active_company_member(company_id, assigned_by)));
 create policy crm_assignments_manager_update on public.crm_customer_assignments
   for update to authenticated
   using ((select private.can_manage_company(company_id)))
-  with check ((select private.can_manage_company(company_id)));
+  with check ((select private.can_manage_company(company_id))\n    and (select private.is_active_company_member(company_id, owner_user_id))\n    and (select private.is_active_company_member(company_id, assigned_by)));
 
 create policy crm_assignment_events_company_read on public.crm_assignment_events
   for select to authenticated
@@ -166,7 +189,7 @@ create policy crm_assignment_events_company_read on public.crm_assignment_events
 create policy crm_assignment_events_manager_insert on public.crm_assignment_events
   for insert to authenticated
   with check ((select private.can_manage_company(company_id))
-    and actor_user_id = (select auth.uid()));
+    and actor_user_id = (select auth.uid())\n    and (select private.is_active_company_member(company_id, new_owner_user_id))\n    and (select private.is_active_company_member(company_id, actor_user_id)));
 -- No UPDATE or DELETE policy: assignment history is append-only.
 
 create policy crm_activities_company_read on public.crm_activities
@@ -175,7 +198,7 @@ create policy crm_activities_company_read on public.crm_activities
 create policy crm_activities_member_insert on public.crm_activities
   for insert to authenticated
   with check ((select private.has_company_membership(company_id))
-    and actor_user_id = (select auth.uid()));
+    and actor_user_id = (select auth.uid())\n    and (select private.is_active_company_member(company_id, actor_user_id)));
 -- Activity corrections/deletions require a separately reviewed audit workflow.
 
 create policy crm_opportunities_company_read on public.crm_opportunities
@@ -199,7 +222,7 @@ create policy crm_after_sales_company_read on public.crm_after_sales_tasks
 create policy crm_after_sales_member_insert on public.crm_after_sales_tasks
   for insert to authenticated
   with check ((select private.has_company_membership(company_id))
-    and created_by = (select auth.uid()));
+    and created_by = (select auth.uid())\n    and (select private.is_active_company_member(company_id, created_by))\n    and (owner_user_id is null or (select private.is_active_company_member(company_id, owner_user_id))));
 create policy crm_after_sales_owner_update on public.crm_after_sales_tasks
   for update to authenticated
   using ((select private.has_company_membership(company_id))
@@ -246,7 +269,7 @@ begin
     raise exception 'Customer not found in selected company' using errcode = '23503';
   end if;
 
-  select a.owner_user_id into v_old_owner
+  if not (select private.is_active_company_member(p_company_id, p_new_owner_user_id)) then\n    raise exception 'New owner must be an active company member' using errcode = '23503';\n  end if;\n\n  select a.owner_user_id into v_old_owner
     from public.crm_customer_assignments a
    where a.company_id = p_company_id and a.customer_id = p_customer_id
    for update;
