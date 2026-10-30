@@ -60,14 +60,14 @@ insert into public.customers(id,company_id,name) values
  ('40000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','BlackRock Customer'),
  ('40000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000002','Prime Customer');
 
-do $ begin
+do $roles$ begin
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then
     create role authenticated nologin;
   end if;
   if not exists (select 1 from pg_roles where rolname = 'anon') then
     create role anon nologin;
   end if;
-end $;
+end $roles$;
 grant usage on schema public, auth, private to authenticated, anon;
 grant execute on function auth.uid() to authenticated, anon;
 grant execute on function private.has_company_membership(uuid) to authenticated;
