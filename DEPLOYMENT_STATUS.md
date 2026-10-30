@@ -699,3 +699,23 @@ Required next work: reconcile all 15 live migration records with source-controll
 6. Complete private Storage and signed downloads, full browser/session/RLS tests, a recovery/export rehearsal, and verified hosting preview before any production approval.
 
 Production mode, full-data readiness, source-reviewed module allowlist and config-enabled module list remain disabled/empty. No live Supabase schema/data/Auth/Storage change, PR merge, or production deployment was made in this continuation.
+
+
+## Live migration continuation checkpoint — 2026-10-30
+
+Read-only verification against the connected Supabase project `kafiwnuynjemufnankvi` and GitHub staging branch:
+
+- The full reviewed V6.7 source remains on `deploy/secure-staging` at `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html`; `staging/index.html` is the full-size staging entry point. The small sales workspace documented on `main` is not the full V6.7 interface.
+- Supabase currently has 12 public base tables, all 12 with RLS enabled, and 42 public RLS policies. The 12 tables are companies, company_memberships, customers, products, sales_documents, sales_document_items, suppliers, purchase_documents, purchase_document_items, stock_movements, sales_payments, and supplier_payments.
+- The live project reports 15 migration-history records. The tracked `supabase/migrations/` directory on both `main` and `deploy/secure-staging` currently contains 11 SQL files. Four live migration bodies remain unrecovered: `20261025065910_initial_multi_company_sales_foundation`, `20261025072547_revoke_unauthenticated_erp_table_access`, `20261025124247_add_missing_foreign_key_indexes`, and `20261025124312_atomic_sales_document_creation`. Do not fabricate or reapply these historical migrations; recover exact source or document their verified live definitions before establishing a forward-only baseline.
+- Current row counts: companies 2; company_memberships 2; customers 45; products 6; sales_documents 50; sales_document_items 56; suppliers 0; purchase_documents 25; purchase_document_items 25; stock_movements 0; sales_payments 0; supplier_payments 0. Existing imported operational documents therefore remain drafts/unposted and do not establish stock or payment balances.
+- All 12 current application tables have RLS enabled. The Security Advisor still reports leaked-password protection disabled. Performance Advisor reports unused-index information findings; no indexes were removed.
+- No schema, migration, data, Auth, Storage, production configuration, merge, or deployment was changed during this checkpoint. Production remains STOP-SHIP.
+
+### Next safe engineering sequence
+1. Recover/reconcile the four missing historical migration bodies and verify the 15 live migration records against repository history without altering the live schema.
+2. Compare every current live table, function, grant, policy, and constraint with the tracked SQL; retain the existing UUID `companies` + `company_memberships` identity model as canonical.
+3. Complete a field-level payload/relationship map for the full source, then build the next isolated module slice (starting with Proforma/issuer settings) against the live company model and run disposable PostgreSQL tests before any live migration.
+4. Continue module-by-module through CRM, HR/payroll, finance, stock, procurement/logistics, notifications, and private document Storage. Keep all production flags and module allowlists disabled until browser persistence, tenant isolation, role, and recovery tests pass.
+
+This checkpoint supersedes earlier statements in this file that the live project has no application tables or migration history. Those are historical observations only.
