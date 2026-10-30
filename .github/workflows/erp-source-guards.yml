@@ -153,3 +153,11 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: live_company_test
         run: bash scripts/test-live-company-proforma-concurrency.sh
+      - name: Test company-scoped CRM migration, RLS and atomic reassignment
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: live_company_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-crm-company-scoped-postgres.sql
