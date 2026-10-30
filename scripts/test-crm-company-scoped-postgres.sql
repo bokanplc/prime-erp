@@ -33,6 +33,12 @@ as $$
     where m.company_id=p_company_id and m.user_id=(select auth.uid()) and m.is_active
  )
 $$;
+create or replace function private.is_active_company_member(p_company_id uuid, p_user_id uuid)
+returns boolean language sql stable security definer set search_path=''
+as $$ select exists (
+  select 1 from public.company_memberships m
+  where m.company_id=p_company_id and m.user_id=p_user_id and m.is_active
+) $$;
 create or replace function private.can_manage_company(p_company_id uuid)
 returns boolean language sql stable security definer set search_path=''
 as $$
@@ -47,7 +53,8 @@ insert into auth.users(id) values
  ('10000000-0000-0000-0000-000000000001'),
  ('10000000-0000-0000-0000-000000000002'),
  ('10000000-0000-0000-0000-000000000003'),
- ('10000000-0000-0000-0000-000000000004');
+ ('10000000-0000-0000-0000-000000000004'),
+ ('10000000-0000-0000-0000-000000000005');
 insert into public.companies(id,name) values
  ('20000000-0000-0000-0000-000000000001','BlackRock'),
  ('20000000-0000-0000-0000-000000000002','Prime');
@@ -55,7 +62,8 @@ insert into public.company_memberships(id,company_id,user_id,role) values
  ('30000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','manager'),
  ('30000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000002','sales'),
  ('30000000-0000-0000-0000-000000000003','20000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000003','manager'),
- ('30000000-0000-0000-0000-000000000004','20000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000004','sales');
+ ('30000000-0000-0000-0000-000000000004','20000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000004','sales'),
+ ('30000000-0000-0000-0000-000000000005','20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000005','sales',false);
 insert into public.customers(id,company_id,name) values
  ('40000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','BlackRock Customer'),
  ('40000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000002','Prime Customer');
@@ -117,6 +125,25 @@ begin
    null;
  end;
 end $$;
+reset role;
+
+-- Manager cannot assign a customer to an inactive membership.
+set role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+do $inactive$
+begin
+ begin
+   perform public.bokan_reassign_customer_owner(
+    '20000000-0000-0000-0000-000000000001',
+    '40000000-0000-0000-0000-000000000001',
+    '10000000-0000-0000-0000-000000000005',
+    'Inactive owner attempt'
+   );
+   raise exception 'Inactive owner assignment unexpectedly succeeded';
+ exception when foreign_key_violation then
+   null;
+ end;
+end $inactive$;
 reset role;
 
 -- Company A manager cannot assign a company B customer or owner.
