@@ -232,6 +232,9 @@ declare
   v_grand_total numeric(16,2);
   v_withholding_amount numeric(16,2);
   v_net_payable numeric(16,2);
+  v_withholding_enabled boolean := true;
+  v_withholding_rate numeric(6,3) := 3;
+  v_withholding_threshold numeric(16,2) := 10000;
   v_proforma_date date;
 begin
   if v_uid is null then raise exception 'Authentication required'; end if;
@@ -262,14 +265,21 @@ begin
   if v_customer = '' or btrim(coalesce(p_payload->>'tin','')) = '' then raise exception 'Customer name and TIN are required'; end if;
   if (p_payload ? 'vatPct' and jsonb_typeof(p_payload->'vatPct') is distinct from 'number')
      or (p_payload ? 'discountPct' and jsonb_typeof(p_payload->'discountPct') is distinct from 'number')
+     or (p_payload ? 'withholdingEnabled' and jsonb_typeof(p_payload->'withholdingEnabled') is distinct from 'boolean')
+     or (p_payload ? 'withholdingRate' and jsonb_typeof(p_payload->'withholdingRate') is distinct from 'number')
+     or (p_payload ? 'withholdingThreshold' and jsonb_typeof(p_payload->'withholdingThreshold') is distinct from 'number')
      or (p_payload ? 'date' and p_payload->'date' <> 'null'::jsonb and jsonb_typeof(p_payload->'date') is distinct from 'string') then
     raise exception 'Invalid Proforma numeric/date fields';
   end if;
 
   v_vat_rate := coalesce(nullif(p_payload->>'vatPct','')::numeric,15);
   v_discount_percent := coalesce(nullif(p_payload->>'discountPct','')::numeric,0);
-  if v_vat_rate < 0 or v_vat_rate > 100 or v_discount_percent < 0 or v_discount_percent > 100 then
-    raise exception 'VAT and discount rates must be between 0 and 100';
+  v_withholding_enabled := coalesce((p_payload->>'withholdingEnabled')::boolean,true);
+  v_withholding_rate := coalesce(nullif(p_payload->>'withholdingRate','')::numeric,3);
+  v_withholding_threshold := coalesce(nullif(p_payload->>'withholdingThreshold','')::numeric,10000);
+  if v_vat_rate < 0 or v_vat_rate > 100 or v_discount_percent < 0 or v_discount_percent > 100
+     or v_withholding_rate < 0 or v_withholding_rate > 100 or v_withholding_threshold < 0 then
+    raise exception 'VAT, discount and withholding rates must be within valid ranges';
   end if;
   v_proforma_date := coalesce(nullif(p_payload->>'date','')::date,current_date);
   v_items := p_payload->'items';
@@ -298,7 +308,7 @@ begin
   v_subtotal := round(v_gross / (1 + v_vat_rate / 100),2);
   v_vat_amount := round(v_gross - v_subtotal,2);
   v_grand_total := v_discounted_gross;
-  v_withholding_amount := case when v_grand_total > 10000 then round(v_grand_total * 3 / 100,2) else 0 end;
+  v_withholding_amount := case when v_withholding_enabled and v_grand_total > v_withholding_threshold then round(v_grand_total * v_withholding_rate / 100,2) else 0 end;
   v_net_payable := round(v_grand_total - v_withholding_amount,2);
 
   select coalesce(jsonb_agg(jsonb_build_object(
@@ -346,7 +356,7 @@ begin
     v_customer, btrim(p_payload->>'tin'), nullif(btrim(p_payload->>'address'), ''),
     nullif(btrim(p_payload->>'phone'), ''), nullif(btrim(p_payload->>'contactPerson'), ''),
     coalesce(p_payload->>'delivery',''), v_proforma_date, v_vat_rate, v_subtotal,
-    v_discount_percent, v_discount_amount, v_vat_amount, true, 3, 10000,
+    v_discount_percent, v_discount_amount, v_vat_amount, v_withholding_enabled, v_withholding_rate, v_withholding_threshold,
     v_withholding_amount, v_grand_total, v_net_payable,
     (select s.issuer_tin from public.company_proforma_settings s where s.company_id = v_company_id),
     v_banks, v_items, nullif(p_payload->>'notes',''), v_terms, 'issued', v_uid, v_uid
