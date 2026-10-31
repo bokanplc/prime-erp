@@ -25,8 +25,8 @@ const trackedAppliedMigrations = [
   '20261031084536_add_supply_shipment_purchasing_entity.sql',
   '20261031100616_extend_crm_for_v67_sales_workflow.sql',
   '20261031113713_add_company_scoped_general_ledger_foundation.sql',
-  '20261031120000_add_atomic_journal_posting_and_reversals.sql',
-  '20261031121500_fix_reversal_posted_entry_immutability.sql'
+  '20261031114856_add_atomic_journal_posting_and_reversals.sql',
+  '20261031115029_fix_reversal_posted_entry_immutability.sql'
 ];
 const missingAppliedVersions = [
   '20261025065910',
