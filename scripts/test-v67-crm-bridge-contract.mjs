@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 const htmlPath=path.join(process.cwd(),'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html');
 const entryPath=path.join(process.cwd(),'staging/index.html');
 const source=fs.readFileSync(htmlPath,'utf8');
+const assignmentGuard=fs.readFileSync(path.join(process.cwd(),'supabase/migrations/20261031125554_restrict_crm_assignment_to_sales_members.sql'),'utf8');
 const entry=fs.readFileSync(entryPath,'utf8');
 assert.equal(entry,source,'The staging entry must be byte-for-byte synchronized with the full V6.7 source.');
 
@@ -25,6 +26,8 @@ for(const method of ['listMyCustomers','createCustomer','updateCustomer','listAc
   assert.ok(bridge.includes(method),`CRM bridge method ${method} is missing.`);
 }
 assert.ok(bridge.includes("rpc('bokan_reassign_customer_owner'"),'Customer reassignment must use the manager-only RPC.');
+assert.ok(bridge.includes(".in('role',['sales','staff'])"),'The V6.7 reassignment selector must only offer eligible sales/staff members.');
+assert.ok(assignmentGuard.includes("m.role in ('sales','staff')"),'The database must reject customer assignment to non-sales/staff company members.');
 assert.ok(bridge.includes("eq('company_id',company())"),'CRM writes and updates must be scoped to the selected company.');
 assert.ok(bridge.includes('owner_user_id:user.id'),'New opportunities must be owned by the signed-in user.');
 assert.ok(bridge.includes('async function loadCRMControl()'),'CRM coverage dashboard loader must exist.');
