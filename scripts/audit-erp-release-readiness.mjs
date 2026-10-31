@@ -5,22 +5,27 @@
  * but fails if production/full-data mode is enabled while the source still has
  * unimplemented tables or the legacy API contract is missing.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const source = readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
 const entry = readFileSync('staging/index.html','utf8');
 const config = readFileSync('staging/config/config.js','utf8');
-const schemaDraft = readFileSync('docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql','utf8');
-const liveCompanyProformaCandidate = readFileSync('supabase/candidates/live_company_proforma.sql','utf8');
-const supplyLogisticsMigration = readFileSync('supabase/migrations/20261031082508_add_company_scoped_supply_logistics_foundation.sql','utf8');
-const schema = schemaDraft + '\n' + liveCompanyProformaCandidate + '\n' + supplyLogisticsMigration;
+const migrationDir = 'supabase/migrations';
+const migrationSql = readdirSync(migrationDir).filter(name=>name.endsWith('.sql')).map(name=>readFileSync(migrationDir+'/'+name,'utf8'));
+const appliedCandidateSql = [
+  'supabase/candidates/live_company_proforma.sql',
+  'supabase/candidates/crm_company_scoped_v1.sql',
+  'supabase/candidates/crm_privilege_hardening_2026-10-31.sql'
+].map(path=>readFileSync(path,'utf8'));
+const schemaSources = [...migrationSql,...appliedCandidateSql];
+const schema = schemaSources.join('\n');
 assert.equal(entry,source,'Staging entry point must match the reviewed source.');
 
 const direct = [...new Set([...source.matchAll(/\.from\(\s*['"]([a-z][a-z0-9_]*)['"]\s*\)/g)].map(m=>m[1]))];
 const helper = [...new Set([...source.matchAll(/\b(?:insert|update|q|count)\s*\(\s*['"]([a-z][a-z0-9_]*)['"]/g)].map(m=>m[1]).filter(t=>t.startsWith('bokan_')))];
 const referenced = [...new Set([...direct,...helper])].sort();
-const defined = [...new Set([schemaDraft,liveCompanyProformaCandidate,supplyLogisticsMigration].flatMap(schema=>[...schema.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?public\.([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
+const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?public\.([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
 const missing = referenced.filter(table=>!defined.includes(table));
 
 const requiredApiFileGroups = [
