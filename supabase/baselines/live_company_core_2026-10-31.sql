@@ -13,39 +13,6 @@
 
 create schema if not exists private;
 
-create or replace function private.can_manage_company(p_company_id uuid)
-returns boolean
-language sql stable security definer
-set search_path to ''
-as $$
-  select (select auth.uid()) is not null and exists (
-    select 1 from public.company_memberships m
-    where m.company_id = p_company_id
-      and m.user_id = (select auth.uid())
-      and m.is_active = true
-      and m.role in ('owner','admin','manager')
-  );
-$$;
-
-create or replace function private.has_company_membership(p_company_id uuid)
-returns boolean
-language sql stable security definer
-set search_path to ''
-as $$
-  select (select auth.uid()) is not null and exists (
-    select 1 from public.company_memberships m
-    where m.company_id = p_company_id
-      and m.user_id = (select auth.uid())
-      and m.is_active = true
-  );
-$$;
-
-revoke all on function private.can_manage_company(uuid) from public,anon;
-revoke all on function private.has_company_membership(uuid) from public,anon;
-grant usage on schema private to authenticated;
-grant execute on function private.can_manage_company(uuid) to authenticated;
-grant execute on function private.has_company_membership(uuid) to authenticated;
-
 create table public.companies (
   id uuid not null default gen_random_uuid(),
   code text not null,
@@ -81,6 +48,40 @@ create table public.company_memberships (
 );
 create index company_memberships_user_active_idx
   on public.company_memberships using btree (user_id,is_active,company_id);
+
+create or replace function private.can_manage_company(p_company_id uuid)
+returns boolean
+language sql stable security definer
+set search_path to ''
+as $$
+  select (select auth.uid()) is not null and exists (
+    select 1 from public.company_memberships m
+    where m.company_id = p_company_id
+      and m.user_id = (select auth.uid())
+      and m.is_active = true
+      and m.role in ('owner','admin','manager')
+  );
+$$;
+
+create or replace function private.has_company_membership(p_company_id uuid)
+returns boolean
+language sql stable security definer
+set search_path to ''
+as $$
+  select (select auth.uid()) is not null and exists (
+    select 1 from public.company_memberships m
+    where m.company_id = p_company_id
+      and m.user_id = (select auth.uid())
+      and m.is_active = true
+  );
+$$;
+
+revoke all on function private.can_manage_company(uuid) from public,anon;
+revoke all on function private.has_company_membership(uuid) from public,anon;
+grant usage on schema private to authenticated;
+grant execute on function private.can_manage_company(uuid) to authenticated;
+grant execute on function private.has_company_membership(uuid) to authenticated;
+
 
 create table public.customers (
   id uuid not null default gen_random_uuid(),
