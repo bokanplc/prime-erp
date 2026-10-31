@@ -94,3 +94,14 @@
 - The deployed source and staging entry have matching Git blob SHAs and match the current full V6.7 source.
 - Build output: `dist/release/index.html`; 20 known fixture collections emptied; preview-admin identity fallback removed; production mode remains disabled by design.
 - Web-based external inspection could not access the preview URL, so the build is verified but the browser login and interactive workflows have not yet been end-to-end tested.
+
+
+## Security and schema verification
+
+- Verified all 19 newly created public base tables have RLS enabled and between 2 and 4 policies each.
+- Verified all five compatibility views (`employees`, `leave_requests`, `performance_reviews`, `disciplinary_actions`, `customer_logs`) use `security_invoker=true`.
+- Queried all five compatibility views successfully; they are empty and ready for BlackRock records.
+- Supabase security advisors still report three existing public SECURITY DEFINER RPCs: customer reassignment, journal posting and journal reversal. Their function bodies were reviewed; each checks `auth.uid()` and the required company role before changing records. They are intentionally callable by authenticated users for those controlled workflows.
+- Supabase Auth leaked-password protection remains disabled and should be enabled when available.
+- Performance advisors report duplicate permissive SELECT policies on `fiscal_periods` and `ledger_accounts`, plus several unindexed foreign-key columns. These are non-blocking cleanup items; do not remove existing indexes just because the advisor currently labels them unused while the new tables are empty.
+- Current company membership count is one active administrator; no HR or inventory staff memberships have been provisioned yet.
