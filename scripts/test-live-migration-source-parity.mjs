@@ -56,7 +56,7 @@ assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
 const gap = fs.readFileSync(gapPath, 'utf8');
 for (const version of missingAppliedVersions) {
-  assert.ok(gap.includes(version), `Missing historical migration ${version} must be documented as unrecovered, not fabricated.`);
+  assert.ok(gap.includes(version), `Missing applied migration SQL body ${version} must be documented, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
 console.log('PASS: migration source layout matches the 18 tracked live migrations; seven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
