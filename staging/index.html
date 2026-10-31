@@ -9069,7 +9069,7 @@ async function enter(user){
   const company=()=>{const p=auth()?.profile;if(!p?.company_id||!p?.company_code)throw new Error('Select an active company before using Supply & Logistics.');return {id:p.company_id,code:p.company_code};};
   async function requireSession(){const client=db();const {data,error}=await client.auth.getUser();if(error)throw error;if(!data?.user)throw new Error('Please sign in.');return data.user;}
   const makeNumber=(prefix)=>prefix+'-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
-  async function listInbound(){await requireSession();const c=company();const {data,error}=await db().from('supply_shipments').select('id,company_id,shipment_no,factory_name,planned_quantity,eta,status,notes,created_at,updated_at').eq('company_id',c.id).order('eta',{ascending:true,nullsFirst:false});if(error)throw error;return data||[];}
+  async function listInbound(){await requireSession();const c=company();const {data,error}=await db().from('supply_shipments').select('id,company_id,shipment_no,factory_name,purchasing_entity,planned_quantity,eta,status,notes,created_at,updated_at').eq('company_id',c.id).order('eta',{ascending:true,nullsFirst:false});if(error)throw error;return data||[];}
   async function listDeliveries(){await requireSession();const c=company();const {data,error}=await db().from('delivery_orders').select('id,company_id,delivery_no,customer_name,required_quantity,allocated_quantity,delivery_status,promised_delivery_date,notes,created_at,updated_at').eq('company_id',c.id).order('promised_delivery_date',{ascending:true,nullsFirst:false});if(error)throw error;return data||[];}
   async function createShipment(row){await requireSession();const c=company();const payload={...row,company_id:c.id,shipment_no:row.shipment_no||makeNumber('SH')};const {data,error}=await db().from('supply_shipments').insert(payload).select().single();if(error)throw error;return data;}
   async function createDelivery(row){await requireSession();const c=company();const payload={...row,company_id:c.id,delivery_no:row.delivery_no||makeNumber('DO')};const {data,error}=await db().from('delivery_orders').insert(payload).select().single();if(error)throw error;return data;}
@@ -9078,7 +9078,7 @@ async function enter(user){
   function setStatus(message,isError=false){const el=document.getElementById('st-production-status');if(el){el.textContent=message;el.style.color=isError?'#B42318':'#526173';}}
   function renderRows(inbound,deliveries){
     const ir=document.getElementById('st-inbound-rows'),dr=document.getElementById('st-delivery-rows');
-    if(ir)ir.innerHTML=inbound.map(x=>'<tr><td><strong>'+escapeHtml(x.factory_name)+'</strong><div class="text-slate-500">'+escapeHtml(x.shipment_no)+'</div></td><td>'+escapeHtml(company().code)+'</td><td>'+Number(x.planned_quantity).toLocaleString()+'</td><td>'+escapeHtml(x.eta||'—')+'</td><td><span class="slx-tag">'+escapeHtml(x.status)+'</span></td></tr>').join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No inbound shipment plans for this company.</td></tr>';
+    if(ir)ir.innerHTML=inbound.map(x=>'<tr><td><strong>'+escapeHtml(x.factory_name)+'</strong><div class="text-slate-500">'+escapeHtml(x.shipment_no)+'</div></td><td>'+escapeHtml(x.purchasing_entity||company().code)+'</td><td>'+Number(x.planned_quantity).toLocaleString()+'</td><td>'+escapeHtml(x.eta||'—')+'</td><td><span class="slx-tag">'+escapeHtml(x.status)+'</span></td></tr>').join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No inbound shipment plans for this company.</td></tr>';
     if(dr)dr.innerHTML=deliveries.map(x=>'<tr><td><strong>'+escapeHtml(x.customer_name)+'</strong><div class="text-slate-500">'+escapeHtml(x.delivery_no)+'</div></td><td>'+escapeHtml(company().code)+'</td><td>'+Number(x.required_quantity).toLocaleString()+'</td><td>'+Number(x.allocated_quantity).toLocaleString()+'</td><td><span class="slx-tag">'+escapeHtml(x.delivery_status)+'</span></td></tr>').join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No delivery controls for this company.</td></tr>';
     const inboundKpi=document.getElementById('st-inbound'),deliveryKpi=document.getElementById('st-delivery');
     if(inboundKpi)inboundKpi.textContent=inbound.length;
@@ -9095,10 +9095,10 @@ async function enter(user){
     if(!prod())return;
     try{
       const c=company(),factory=document.getElementById('st-factory')?.value.trim(),qty=Number(document.getElementById('st-qty')?.value||0),selected=document.getElementById('st-entity')?.value||'';
-      const selectedCode=/blackrock/i.test(selected)?'BLACKROCK':'PRIME';
-      if(selectedCode!==c.code){alert('The selected legal owner does not match your active company. Switch company context first.');return;}
+      const selectedEntity=/bokan/i.test(selected)?'BOKAN Coordinated':(/blackrock/i.test(selected)?'BLACKROCK':'PRIME');
+      if(selectedEntity!=='BOKAN Coordinated'&&selectedEntity!==c.code){alert('The selected legal owner does not match your active company. Switch company context first, or select BOKAN Coordinated for shared operations.');return;}
       if(!factory||!Number.isFinite(qty)||qty<=0){alert('Enter a factory or supplier and a quantity greater than zero.');return;}
-      await createShipment({factory_name:factory,planned_quantity:qty,eta:document.getElementById('st-eta')?.value||null,status:document.getElementById('st-status')?.value||'Planned'});
+      await createShipment({factory_name:factory,purchasing_entity:selectedEntity,planned_quantity:qty,eta:document.getElementById('st-eta')?.value||null,status:document.getElementById('st-status')?.value||'Planned'});
       const f=document.getElementById('st-factory'),q=document.getElementById('st-qty');if(f)f.value='';if(q)q.value='';
       setStatus('Inbound shipment plan saved to Supabase for '+c.code+'.');await refresh();
     }catch(e){setStatus('Inbound plan was not saved: '+(e.message||e),true);alert(e.message||'Unable to save inbound plan.');}
