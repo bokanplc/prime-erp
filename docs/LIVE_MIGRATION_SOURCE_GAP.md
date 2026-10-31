@@ -55,7 +55,7 @@ The four historical bodies remain intentionally benched per the migration instru
 ## New forward migrations recorded
 
 - 20261031113713 — company-scoped general ledger foundation.
-- 20261031120000 — atomic journal posting and reversal workflow.
-- 20261031121500 — reversal sequencing correction so the reversal link is recorded while the new journal is still draft, before immutable posting.
+- 20261031114856 — atomic journal posting and reversal workflow.
+- 20261031115029 — reversal sequencing correction so the reversal link is recorded while the new journal is still draft, before immutable posting.
 
 The current database ledger includes these migrations. The reversal sequencing correction was tested in a rollback-only authenticated transaction. No business journals or accounts were seeded.
