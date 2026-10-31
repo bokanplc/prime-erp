@@ -7685,11 +7685,48 @@ async function loadSalesFollowup(){
  document.getElementById('fu-table').innerHTML=touchRows.sort((a,b)=>b.age-a.age).map(x=>{const s=x.status, cls=s==='overdue'?'fu-red':s==='due'?'fu-amber':s==='current'?'fu-green':'fu-gray';return `<tr class="border-t border-[#E4E8ED]"><td class="p-2 font-semibold">${esc(x.c.customer_name)}</td><td class="p-2">${esc(names[x.c.assigned_rep]||'Unassigned')}</td><td class="p-2">${x.lastDate||'Never'}</td><td class="p-2 font-bold">${x.age===999?'—':x.age}</td><td class="p-2">${esc(x.last?.activity_type||'—')}</td><td class="p-2">${x.last?.next_action_date||'—'}</td><td class="p-2"><span class="fu-status ${cls}">${s==='never'?'NEVER CONTACTED':s.toUpperCase()}</span></td></tr>`}).join('')||'<tr><td colspan="7" class="p-3 text-[#8D9096]">No customers match the selected control.</td></tr>';
 }
 async function initSalesAssignment(){const wrap=document.getElementById('cust-assignment-wrap'),sel=document.getElementById('cust-assigned-rep');if(!wrap||!sel)return;if(['admin','sales_manager'].includes(currentRole)){wrap.classList.remove('hidden');const {data}=await sb.from('profiles').select('id,full_name');sel.innerHTML=(data||[]).filter(p=>['sales','sales_manager'].includes(store_role_lookup(p.id))).map(p=>`<option value="${p.id}">${esc(p.full_name)}</option>`).join('');}}
-async function renderHRW(){const {data:emps}=await sb.from('employees').select('*').order('full_name');const employees=(emps||[]).filter(e=>String(e.status||'Active').toLowerCase()!=='inactive');const date=document.getElementById('att-date')?.value||day(new Date());const a=getAtt().filter(x=>x.date===date);const map={};a.forEach(x=>map[x.employee]=x);const present=a.filter(x=>['Present','Late','Remote'].includes(x.status)).length,absent=a.filter(x=>x.status==='Absent').length;document.getElementById('hrw-active').textContent=employees.length;document.getElementById('hrw-present').textContent=present;document.getElementById('hrw-absent').textContent=absent;document.getElementById('hrw-rate').textContent=(employees.length?Math.round(present/employees.length*100):0)+'%';const sel=document.getElementById('att-employee');if(sel){const old=sel.value;sel.innerHTML='<option value="">Select employee...</option>'+employees.map(e=>`<option value="${e.id}">${esc(e.full_name||e.name||e.employee_name||'Employee')}</option>`).join('');sel.value=old;}
-document.getElementById('hrw-list').innerHTML=employees.map(e=>{const id=e.id,name=e.full_name||e.name||e.employee_name||'Employee';const r=map[id];return `<div class="flex justify-between items-center border-b border-[#E4E8ED] py-2"><span class="font-semibold">${esc(name)}</span><span class="text-xs ${r?.status==='Absent'?'text-red-600':r?'text-[#2CA01C]':'text-[#8D9096]'}">${esc(r?.status||'Not marked')}</span></div>`}).join('')||'<p class="text-[#8D9096]">No employees found.</p>';
- const dept={};employees.forEach(e=>{const d=e.department||'Unassigned';dept[d]=dept[d]||{total:0,present:0};dept[d].total++;if(map[e.id]&&['Present','Late','Remote'].includes(map[e.id].status))dept[d].present++;});document.getElementById('hrw-dept-chart').innerHTML=Object.entries(dept).map(([d,v])=>`<div><div class="flex justify-between mb-1"><span>${esc(d)}</span><strong>${v.present}/${v.total}</strong></div><div class="dash-bar"><span style="width:${v.total?Math.round(v.present/v.total*100):0}%"></span></div></div>`).join('')||'<span class="text-[#8D9096]">No department data.</span>';
- const ex=getAtt().filter(x=>['Absent','Late'].includes(x.status)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);document.getElementById('hrw-exceptions').innerHTML=ex.map(x=>`<div class="flex justify-between border-b border-[#E4E8ED] py-2"><span>${esc(x.employee_name||x.employee)}</span><span>${esc(x.status)} · ${esc(x.date)}</span></div>`).join('')||'<span class="text-[#8D9096]">No recent exceptions.</span>';}
-function saveAttendance(){document.getElementById('attendance-form')?.addEventListener('submit',e=>{e.preventDefault();const sel=document.getElementById('att-employee'),name=sel.options[sel.selectedIndex]?.text||'';const a=getAtt();const rec={date:document.getElementById('att-date').value,employee:sel.value,employee_name:name,status:document.getElementById('att-status').value,note:document.getElementById('att-note').value,created_at:new Date().toISOString()};const i=a.findIndex(x=>x.date===rec.date&&x.employee===rec.employee);if(i>=0)a[i]=rec;else a.push(rec);saveAtt(a);e.target.reset();document.getElementById('att-date').value=day(new Date());renderHRW();});}
+async function renderHRW(){
+ const {data:emps,error:employeeError}=await sb.from('employees').select('*').order('full_name');
+ if(employeeError)throw employeeError;
+ const employees=(emps||[]).filter(e=>String(e.status||'Active').toLowerCase()!=='inactive');
+ const date=document.getElementById('att-date')?.value||day(new Date());
+ let allAttendance=getAtt();
+ if(window.BOKAN_HR_PRODUCTION?.enabled()){
+   const result=await window.BOKAN_HR_PRODUCTION.listAttendance();
+   if(result.error)throw result.error;
+   allAttendance=(result.data||[]).map(x=>({date:x.attendance_date,employee:x.employee_id,employee_name:x.employee_name,status:x.status,note:x.notes,created_at:x.created_at}));
+ }
+ const a=allAttendance.filter(x=>x.date===date),map={};a.forEach(x=>map[x.employee]=x);
+ const present=a.filter(x=>['Present','Late','Remote'].includes(x.status)).length,absent=a.filter(x=>x.status==='Absent').length;
+ document.getElementById('hrw-active').textContent=employees.length;
+ document.getElementById('hrw-present').textContent=present;
+ document.getElementById('hrw-absent').textContent=absent;
+ document.getElementById('hrw-rate').textContent=(employees.length?Math.round(present/employees.length*100):0)+'%';
+ const sel=document.getElementById('att-employee');
+ if(sel){const old=sel.value;sel.innerHTML='<option value="">Select employee...</option>'+employees.map(e=>`<option value="${e.id}">${esc(e.full_name||e.name||e.employee_name||'Employee')}</option>`).join('');sel.value=old;}
+ document.getElementById('hrw-list').innerHTML=employees.map(e=>{const id=e.id,name=e.full_name||e.name||e.employee_name||'Employee';const r=map[id];return `<div class="flex justify-between items-center border-b border-[#E4E8ED] py-2"><span class="font-semibold">${esc(name)}</span><span class="text-xs ${r?.status==='Absent'?'text-red-600':r?'text-[#2CA01C]':'text-[#8D9096]'}">${esc(r?.status||'Not marked')}</span></div>`;}).join('')||'<p class="text-[#8D9096]">No employees found.</p>';
+ const dept={};employees.forEach(e=>{const d=e.department||'Unassigned';dept[d]=dept[d]||{total:0,present:0};dept[d].total++;if(map[e.id]&&['Present','Late','Remote'].includes(map[e.id].status))dept[d].present++;});
+ document.getElementById('hrw-dept-chart').innerHTML=Object.entries(dept).map(([d,v])=>`<div><div class="flex justify-between mb-1"><span>${esc(d)}</span><strong>${v.present}/${v.total}</strong></div><div class="dash-bar"><span style="width:${v.total?Math.round(v.present/v.total*100):0}%"></span></div></div>`).join('')||'<span class="text-[#8D9096]">No department data.</span>';
+ const ex=allAttendance.filter(x=>['Absent','Late'].includes(x.status)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);
+ document.getElementById('hrw-exceptions').innerHTML=ex.map(x=>`<div class="flex justify-between border-b border-[#E4E8ED] py-2"><span>${esc(x.employee_name||x.employee)}</span><span>${esc(x.status)} · ${esc(x.date)}</span></div>`).join('')||'<span class="text-[#8D9096]">No recent exceptions.</span>';
+}
+async function saveAttendance(){
+ document.getElementById('attendance-form')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const sel=document.getElementById('att-employee'),name=sel.options[sel.selectedIndex]?.text||'';
+  const rec={date:document.getElementById('att-date').value,employee:sel.value,employee_name:name,status:document.getElementById('att-status').value,note:document.getElementById('att-note').value,created_at:new Date().toISOString()};
+  try{
+   if(window.BOKAN_HR_PRODUCTION?.enabled()){
+    const result=await window.BOKAN_HR_PRODUCTION.recordAttendance({employee_id:rec.employee,employee_name:rec.employee_name,attendance_date:rec.date,status:rec.status,notes:rec.note});
+    if(result.error)throw result.error;
+   }else{
+    const a=getAtt(),i=a.findIndex(x=>x.date===rec.date&&x.employee===rec.employee);
+    if(i>=0)a[i]=rec;else a.push(rec);saveAtt(a);
+   }
+   e.target.reset();document.getElementById('att-date').value=day(new Date());await renderHRW();
+  }catch(err){alert('Attendance was not saved: '+(err.message||err));}
+ });
+}
 async function renderDashVisuals(){try{const [cr,lr,pr]=await Promise.all([sb.from('customers').select('id,current_status'),sb.from('customer_logs').select('activity_type,sales_rep,created_at'),sb.from('stock_entries').select('entry_type,total,created_at').gte('created_at',new Date(Date.now()-30*86400000).toISOString())]);const customers=cr.data||[],logs=lr.data||[],stock=pr.data||[];const counts={};customers.forEach(c=>counts[c.current_status||'Unknown']=(counts[c.current_status||'Unknown']||0)+1);const total=Math.max(1,customers.length);let start=0,parts=[];const vals=Object.entries(counts).slice(0,6);const segColors=['#2CA01C','#E68A00','#2867E8','#7C3AED','#D97706','#94A3B8'];vals.forEach(([s,v],i)=>{const deg=v/total*360;parts.push(`${segColors[i%segColors.length]} ${start}deg ${start+deg}deg`);start+=deg});const donut=document.getElementById('dash-pipeline-donut');if(donut)donut.style.background=`conic-gradient(${parts.join(',')}${start<360?',#D1D5DB '+start+'deg 360deg':''})`;document.getElementById('dash-pipeline-legend').innerHTML=vals.map(([s,v],i)=>`<div class="flex justify-between"><span><i class="inline-block w-2 h-2 rounded-full mr-2" style="background:${segColors[i%segColors.length]}"></i>${esc(s)}</span><strong>${v}</strong></div>`).join('');
  const rc={};logs.forEach(l=>rc[l.sales_rep]=(rc[l.sales_rep]||0)+1);const max=Math.max(1,...Object.values(rc));let names={};try{const {data:p}=await sb.from('profiles').select('id,full_name');(p||[]).forEach(x=>names[x.id]=x.full_name)}catch(e){}document.getElementById('dash-rep-chart').innerHTML=Object.entries(rc).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([id,v])=>`<div><div class="flex justify-between mb-1"><span>${esc(names[id]||'Unknown')}</span><strong>${v}</strong></div><div class="dash-bar"><span style="width:${Math.round(v/max*100)}%"></span></div></div>`).join('')||'<span class="text-[#8D9096]">No sales activity yet.</span>';
  const sales=stock.filter(x=>x.entry_type==='sale').reduce((s,x)=>s+Number(x.total||0),0),purch=stock.filter(x=>x.entry_type==='purchase').reduce((s,x)=>s+Number(x.total||0),0);const maxT=Math.max(sales,purch,1);document.getElementById('dash-trend-chart').innerHTML=`<svg viewBox="0 0 640 210" preserveAspectRatio="none"><line x1="40" y1="175" x2="620" y2="175" stroke="#D4DCE5"/><line x1="40" y1="30" x2="40" y2="175" stroke="#D4DCE5"/><polyline fill="none" stroke="#2CA01C" stroke-width="4" points="40,${175-sales/maxT*130} 160,${165-sales/maxT*115} 280,${150-sales/maxT*100} 400,${135-sales/maxT*85} 520,${120-sales/maxT*70} 620,${110-sales/maxT*55}"/><polyline fill="none" stroke="#E68A00" stroke-width="4" points="40,${175-purch/maxT*130} 160,${165-purch/maxT*115} 280,${150-purch/maxT*100} 400,${135-purch/maxT*85} 520,${120-purch/maxT*70} 620,${110-purch/maxT*55}"/><text x="45" y="198" font-size="11">30 days</text><text x="510" y="28" font-size="11">Sales</text><text x="510" y="45" font-size="11">Purchases</text></svg>`;
@@ -8997,13 +9034,14 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
       admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
       management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
       sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
+      inventory:['overview','stockreport','procurement','inventorycontrol','supplytower','reportscenter','dataentry'],
       sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
       accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
     }; if(window.BOKAN_CONFIG?.DEMO_REVIEW_MODE===true && !_bokanProdConfigured) return (typeof ROLE_TABS!=='undefined' && Array.isArray(ROLE_TABS.admin)) ? [...ROLE_TABS.admin] : (map.admin||[]); const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
   }
-  function mapMembershipRole(role){ const map={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'}; return map[role]||null; }
+  function mapMembershipRole(role){ const map={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',inventory:'inventory',hr:'hr',staff:'data_entry'}; return map[role]||null; }
 function applyProfile(profile,user){
   window.BOKAN_PRODUCTION_AUTH.profile=profile;
   window.BOKAN_PRODUCTION_AUTH.user=user;
@@ -9054,7 +9092,7 @@ async function fetchProfile(user,requestedCompanyCode){
     .select('company_id,role,is_active,companies(id,code,name,is_active)')
     .eq('user_id',user.id).eq('is_active',true);
   if(error) throw error;
-  const roleMap={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',inventory:'inventory',staff:'data_entry'};
+  const roleMap={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',inventory:'inventory',hr:'hr',staff:'data_entry'};
   const memberships=(data||[])
     .filter(m=>m.is_active&&m.companies?.is_active&&m.companies?.code==='BLACKROCK'&&roleMap[m.role])
     .map(m=>({company_id:m.company_id,company_code:m.companies.code,company_name:m.companies.name,role:m.role,app_role:roleMap[m.role]}));
@@ -9401,31 +9439,47 @@ async function enter(user){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,250));
 })();</script>\n<script id="bokan-v66-hr-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
-  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';  async function count(table,filter){if(!prod)return 0;let q=window.sb.from(table).select('*',{count:'exact',head:true});if(filter)q=filter(q);const r=await q;return r.error?0:(r.count||0)}
+  const companyId=()=>window.BOKAN_PRODUCTION_AUTH?.profile?.company_id||null;
+  const actorId=()=>window.BOKAN_PRODUCTION_AUTH?.user?.id||null;
+  async function count(table,filter){if(!prod)return 0;let q=window.sb.from(table).select('*',{count:'exact',head:true});if(filter)q=filter(q);const r=await q;if(r.error)throw r.error;return r.count||0;}
+  function scoped(payload){const cid=companyId();if(!cid)throw new Error('Sign in with an authorized BlackRock account first.');return {...payload,company_id:cid,created_by:payload?.created_by||actorId()};}
   async function refresh(){
     const mode=document.getElementById('v66-mode'),status=document.getElementById('v66-status');
-    if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='Review mode: Supabase production configuration is not active. HR and Payroll data remains in the existing review layer.';return}
+    if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='Review mode: Supabase production configuration is not active. HR and Payroll data remains in the existing review layer.';return;}
+    const cid=companyId();if(!cid){if(mode)mode.textContent='Awaiting sign-in';if(status)status.textContent='Sign in with an authorized BlackRock account to load HR and payroll records.';return;}
     if(mode)mode.textContent='Production';
     try{
       const [employees,attendance,leave,payroll,approvals]=await Promise.all([
-        count('bokan_employees',q=>q.eq('company_id',company()).eq('employment_status','active')),
-        count('bokan_attendance_records',q=>q.eq('company_id',company())),
-        count('bokan_leave_requests',q=>q.eq('company_id',company()).in('status',['submitted','approved'])),
-        count('bokan_payroll_runs',q=>q.eq('company_id',company())),
-        count('bokan_payroll_approvals',q=>q.eq('company_id',company()).eq('status','pending'))
+        count('bokan_employees',q=>q.eq('company_id',cid).eq('employment_status','active')),
+        count('bokan_attendance_records',q=>q.eq('company_id',cid)),
+        count('bokan_leave_requests',q=>q.eq('company_id',cid).in('status',['Pending','Approved'])),
+        count('bokan_payroll_runs',q=>q.eq('company_id',cid)),
+        count('bokan_payroll_approvals',q=>q.eq('company_id',cid).eq('status','pending'))
       ]);
       ['v66-employees','v66-attendance','v66-leave','v66-payroll','v66-approvals'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.textContent=[employees,attendance,leave,payroll,approvals][i]});
-      if(status)status.textContent='Supabase HR & Payroll Production layer is connected for the active legal entity. Access, approvals and payroll posting remain subject to RLS and control checks.';
-    }catch(e){if(status)status.textContent='HR production layer could not be read: '+(e.message||e)}
+      if(status)status.textContent='Live BlackRock HR and payroll records are loaded from company-scoped Supabase tables.';
+    }catch(e){if(status)status.textContent='HR production layer could not be read: '+(e.message||e);}
   }
-  async function createEmployee(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_employees').insert(payload).select().single()}
-  async function recordAttendance(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_attendance_records').insert(payload).select().single()}
-  async function submitLeave(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_leave_requests').insert(payload).select().single()}
-  async function createPayroll(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_payroll_runs').insert(payload).select().single()}
-  async function addPayrollLine(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_payroll_lines').insert(payload).select().single()}
-  async function requestPayrollApproval(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_payroll_approvals').insert(payload).select().single()}
-  async function performance(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_performance_reviews').insert(payload).select().single()}
-  window.BOKAN_HR_PRODUCTION={enabled:()=>prod,refresh,createEmployee,recordAttendance,submitLeave,createPayroll,addPayrollLine,requestPayrollApproval,performance};
+  async function listAttendance(date){
+    if(!prod)return {data:[],error:null};
+    const cid=companyId();if(!cid)return {data:[],error:new Error('Sign in with an authorized BlackRock account first.')};
+    let q=window.sb.from('bokan_attendance_records').select('*').eq('company_id',cid).order('attendance_date',{ascending:false});
+    if(date)q=q.eq('attendance_date',date);
+    return q;
+  }
+  async function createEmployee(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_employees').insert(scoped(payload)).select().single();}
+  async function recordAttendance(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const row=scoped({...payload,attendance_date:payload.attendance_date||payload.date,notes:payload.notes||payload.note||null});
+    return window.sb.from('bokan_attendance_records').upsert(row,{onConflict:'company_id,employee_id,attendance_date'}).select().single();
+  }
+  async function submitLeave(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_leave_requests').insert(scoped(payload)).select().single();}
+  async function createPayroll(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_payroll_runs').insert(scoped(payload)).select().single();}
+  async function addPayrollLine(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_payroll_lines').insert(scoped(payload)).select().single();}
+  async function requestPayrollApproval(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_payroll_approvals').insert(scoped(payload)).select().single();}
+  async function performance(payload){if(!prod)throw new Error('Production mode is not configured');return window.sb.from('bokan_performance_reviews').insert(scoped(payload)).select().single();}
+  window.BOKAN_HR_PRODUCTION={enabled:()=>prod,refresh,listAttendance,createEmployee,recordAttendance,submitLeave,createPayroll,addPayrollLine,requestPayrollApproval,performance};
+  document.addEventListener('bokan:company-context-changed',()=>{if(prod)refresh();});
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,300));
 })();</script>
 <script id="bokan-v67-hosted-fail-closed">
