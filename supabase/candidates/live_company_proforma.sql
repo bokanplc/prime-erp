@@ -1,6 +1,7 @@
--- Candidate only: additive Proforma persistence aligned with the existing UUID companies/company_memberships model.
--- This file is intentionally under supabase/candidates, not supabase/migrations.
--- Apply only to a disposable database until the test suite and release review pass.
+-- Applied to Supabase project kafiwnuynjemufnankvi on 2026-10-31 as migration
+-- 20261031080833_add_company_scoped_proforma_foundation.
+-- Retained under candidates while the repository's source-parity guard is updated.
+-- Additive Proforma persistence aligned with the existing UUID companies/company_memberships model.
 
 begin;
 
