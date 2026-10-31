@@ -112,6 +112,55 @@ begin
 end $direct_assignment$;
 reset role;
 
+-- Direct INSERT is forbidden on assignments and events; only the guarded RPC may write them.
+set role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+do $direct_assignment_insert$
+begin
+  begin
+    insert into public.crm_customer_assignments
+      (company_id, customer_id, owner_user_id, assigned_by)
+    values
+      ('20000000-0000-0000-0000-000000000001',
+       '40000000-0000-0000-0000-000000000001',
+       '10000000-0000-0000-0000-000000000002',
+       '10000000-0000-0000-0000-000000000001');
+    raise exception 'Direct assignment INSERT unexpectedly succeeded';
+  exception when insufficient_privilege then
+    null;
+  end;
+  begin
+    insert into public.crm_assignment_events
+      (company_id, customer_id, new_owner_user_id, actor_user_id, reason)
+    values
+      ('20000000-0000-0000-0000-000000000001',
+       '40000000-0000-0000-0000-000000000001',
+       '10000000-0000-0000-0000-000000000002',
+       '10000000-0000-0000-0000-000000000001',
+       'Direct event attempt');
+    raise exception 'Direct assignment-event INSERT unexpectedly succeeded';
+  exception when insufficient_privilege then
+    null;
+  end;
+end $direct_assignment_insert$;
+reset role;
+
+-- Verify anon and authenticated table privileges are least-privilege.
+do $privilege_checks$
+begin
+  if has_table_privilege('anon','public.crm_customer_assignments','SELECT')
+     or has_table_privilege('anon','public.crm_assignment_events','SELECT')
+     or has_table_privilege('anon','public.crm_activities','SELECT') then
+    raise exception 'Anonymous CRM table access must be revoked';
+  end if;
+  if has_table_privilege('authenticated','public.crm_customer_assignments','INSERT')
+     or has_table_privilege('authenticated','public.crm_customer_assignments','UPDATE')
+     or has_table_privilege('authenticated','public.crm_assignment_events','INSERT')
+     or has_table_privilege('authenticated','public.crm_assignment_events','UPDATE') then
+    raise exception 'Assignment and history writes must be RPC-only';
+  end if;
+end $privilege_checks$;
+
 -- Sales owner can create their own task but cannot transfer it to another member.
 set role authenticated;
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000002',false);
