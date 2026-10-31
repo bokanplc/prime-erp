@@ -99,8 +99,8 @@ This is a ledger foundation, not the complete Finance module. Automated posting 
 ## Atomic posting and reversal procedures — 2026-10-31
 
 Forward migrations:
-- `20261031120000_add_atomic_journal_posting_and_reversals`
-- `20261031121500_fix_reversal_posted_entry_immutability`
+- `20261031114856_add_atomic_journal_posting_and_reversals`
+- `20261031115029_fix_reversal_posted_entry_immutability`
 
 The authenticated `post_journal_entry` procedure validates an active owner/admin/manager/accountant membership, paired source identity, balanced positive debit/credit lines, active accounts belonging to the selected company, and an open fiscal period. It inserts the draft header and all lines and posts within one database transaction. The database's unique company/source index supplies duplicate-source protection when callers provide source identity.
 
