@@ -159,9 +159,11 @@ Finance is still a partial backend foundation, not a complete Finance module. Au
 
 ## Latest live migration checkpoint — 2026-10-31 12:50 UTC
 
-- Live Supabase now records **28 applied migrations** and **27 public base tables**. The current source-controlled migration directory tracks **21 available applied SQL bodies**; seven applied bodies remain absent and documented. Four historical bodies remain benched per instruction; three Proforma/CRM foundation bodies require source-control reconciliation.
+- Live Supabase now records **29 applied migrations** and **27 public base tables**. The current source-controlled migration directory tracks **22 available applied SQL bodies**; seven applied bodies remain absent and documented. Four historical bodies remain benched per instruction; three Proforma/CRM foundation bodies require source-control reconciliation.
 - CRM now has canonical company-scoped persistence and the V6.7 Sales customer directory, customer form submission, activity timeline, weekly follow-ups and CRM coverage dashboard are wired to the canonical tables. Opportunities and after-sales task APIs exist but dedicated V6.7 controls remain to be built. No authenticated browser test has been completed; keep CRM production activation disabled.
 - Supply & Logistics now links inbound shipments to same-company purchase orders and delivery orders to same-company approved/posted sales orders or invoices. The links are optional and preserve existing planning rows. UI source selectors and live browser tests remain pending.
 - General Ledger posting and reversal are atomic RPC workflows; direct table writes are restricted to RPCs. No chart of accounts, fiscal periods, or business journals have been seeded.
 - Vercel staging builds for commits made while the project exceeded its 100-deployments-per-day free API limit are failing with a plan/rate-limit status. The earlier build assertion failures were caused by the staging entry/source being temporarily out of sync; they have been synchronized again. A new verified deployment cannot be produced until Vercel's rate limit resets or the team changes plan. No paid upgrade was made.
 - Production remains disabled, the reviewed module allowlist remains empty, and `main` has not been modified or merged.
+
+- The shipment-to-purchase-order guard was tightened to reject draft, cancelled and void purchase orders, matching the source selector's eligible statuses.
