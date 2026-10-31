@@ -88,7 +88,7 @@ A module is not production-ready until all are true:
 
 ## Immediate next engineering tasks
 
-1. Verify the new Supply & Logistics migration against disposable PostgreSQL CI and confirm the latest Vercel preview packages the updated full V6.7 UI.
-2. Complete real authenticated browser read/write/reload and cross-company denial tests for the new Supply & Logistics slice before enabling its production tab.
-3. Reconcile the CRM UI bridge to the existing `crm_*` live schema and test the manager-only reassignment RPC.
-4. Continue the remaining procurement/inventory workflow, then Finance and HR/payroll; keep all production tabs disabled until each acceptance gate passes.
+1. Complete real authenticated browser read/write/reload and cross-company denial tests for the new Supply & Logistics slice before enabling its production tab.
+2. Reconcile the CRM UI bridge to the existing `crm_*` live schema and test the manager-only reassignment RPC.
+3. Finance & HR local-data paths have now been mapped in `docs/FINANCE_HR_DATA_PATH_AUDIT_2026-10-31.md`; next design the Finance chart-of-accounts, journal, subledger and period-control contracts around existing approved sales/purchase source documents.
+4. Build the HR employee/attendance/leave/payroll schema with sensitive-data role separation after the Finance foundation; keep all production tabs disabled until each acceptance gate passes.
