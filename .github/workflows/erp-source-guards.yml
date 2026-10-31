@@ -51,6 +51,8 @@ jobs:
         run: node scripts/test-proforma-ui-contract.mjs
       - name: Test Supply & Logistics UI and database contract
         run: node scripts/test-supply-logistics-contract.mjs
+      - name: Test V6.7 canonical CRM bridge and screen integration
+        run: node scripts/test-v67-crm-bridge-contract.mjs
       - name: Test duplicate Proforma save guard behavior
         run: node scripts/test-proforma-save-guard.mjs
       - name: Test actual Proforma calculation helper
