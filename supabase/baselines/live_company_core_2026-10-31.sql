@@ -235,6 +235,6 @@ create policy sales_documents_delete_manager on public.sales_documents
   for delete to authenticated using (private.can_manage_company(company_id));
 
 revoke all on public.companies,public.company_memberships,public.customers,public.sales_documents from anon;
-grant select,insert,update,delete on public.companies,public.company_memberships to authenticated;
+grant all privileges on public.companies,public.company_memberships,public.sales_documents to authenticated;
 grant select,insert,update on public.customers to authenticated;
-grant select,insert,update,delete on public.sales_documents to authenticated;
+grant all privileges on public.companies,public.company_memberships,public.customers,public.sales_documents to service_role;
