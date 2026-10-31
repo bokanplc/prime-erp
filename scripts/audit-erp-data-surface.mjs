@@ -15,7 +15,7 @@ const entry = readFileSync(entryPath, 'utf8');
 const expectedTables = [
   'bokan_ap_bills','bokan_ap_payments','bokan_ar_invoices','bokan_ar_receipts',
   'bokan_attendance_records','bokan_customer_activities','bokan_customer_assignments',
-  'bokan_customers','bokan_delivery_orders','bokan_employees','bokan_fiscal_periods',
+  'bokan_customers','bokan_employees','bokan_fiscal_periods',
   'bokan_journal_entries','bokan_leave_requests','bokan_payroll_approvals',
   'bokan_payroll_lines','bokan_payroll_runs','bokan_performance_reviews',
   'bokan_sales_opportunities','bokan_salespeople','companies',
