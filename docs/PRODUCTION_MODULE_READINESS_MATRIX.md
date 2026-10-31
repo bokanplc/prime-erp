@@ -48,13 +48,13 @@ A module can be added to the source-reviewed allowlist only after its schema/pay
 
 The company-scoped CRM candidate was hardened without changing the live database. Direct reassignment-table UPDATE is removed; ownership transfers must use the atomic manager-only RPC that writes the assignment and immutable event together. Opportunity and after-sales ownership checks now require active same-company memberships, and UPDATE privileges are column-scoped to prevent rewriting tenant/customer/creator identity. Additional disposable PostgreSQL denial tests were added to the existing CI workflow. See `docs/CRM_SECURITY_HARDENING_2026-10-30.md`.
 
-This does not change the CRM release decision: the candidate is not applied to Supabase, no CRM UI tab is enabled for production, and actual Supabase JWT/Data API and browser persistence tests remain outstanding.
+This does not change the CRM release decision: the backend schema is applied, but the existing V6.7 bridge still references legacy `bokan_*` names; no CRM UI tab is enabled for production, and actual Supabase JWT/Data API and browser persistence tests remain outstanding.
 
 
 ## Live backend migration update — 2026-10-31
 
 - Applied the UUID-company Proforma foundation to live Supabase as migration `20261031080833_add_company_scoped_proforma_foundation`.
 - Applied the company-scoped CRM foundation as migration `20261031081151_add_company_scoped_crm_foundation`.
-- The 9 new Proforma/CRM tables have RLS enabled. The CRM reassignment RPC is restricted to authenticated users and enforces manager/company/active-membership checks.
+- The 9 new Proforma/CRM tables have RLS enabled. Anonymous CRM table grants are revoked; authenticated users can read assignment/history rows but only the guarded manager-only RPC can write them.
 - The full V6.7 review interface is deployed to Vercel from `deploy/secure-staging` in sample-data-only mode. Production mode and module allowlists remain disabled.
 - CRM source bridge table names still need to be aligned with the live `customers` + `crm_*` contract; no production module is enabled yet.
