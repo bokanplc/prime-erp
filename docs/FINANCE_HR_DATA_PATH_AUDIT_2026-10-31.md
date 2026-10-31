@@ -94,3 +94,18 @@ Verification performed in rollback-only transactions using the existing authoriz
 - Test rows were rolled back; live business data remains unchanged.
 
 This is a ledger foundation, not the complete Finance module. Automated posting from approved sales/purchase documents, idempotent source posting, reversal workflow, bank reconciliation, VAT/WHT, budgets, fixed assets, period close, and authenticated browser tests remain outstanding. Keep Finance disabled in the production allowlist.
+
+
+## Atomic posting and reversal procedures — 2026-10-31
+
+Forward migrations:
+- `20261031120000_add_atomic_journal_posting_and_reversals`
+- `20261031121500_fix_reversal_posted_entry_immutability`
+
+The authenticated `post_journal_entry` procedure validates an active owner/admin/manager/accountant membership, paired source identity, balanced positive debit/credit lines, active accounts belonging to the selected company, and an open fiscal period. It inserts the draft header and all lines and posts within one database transaction. The database's unique company/source index supplies duplicate-source protection when callers provide source identity.
+
+The authenticated `reverse_journal_entry` procedure locks the original posted journal, checks that it has not already been reversed, requires an open period on the reversal date, creates a separate reversal journal with debit/credit sides swapped, and records the original journal link before posting. Posted entries remain immutable. The first rollback-only test exposed that writing the reversal link after posting conflicted with the immutable-header trigger; the follow-up migration corrected the order.
+
+Verification: a rollback-only authenticated SQL test created temporary accounts and an open period, called the posting RPC, verified equal posted totals and poster identity, called the reversal RPC, verified the reversal totals and original-entry link, then rolled back all test rows.
+
+Important remaining limitation: the posting RPC currently accepts a balanced source-linked journal but does **not yet independently validate the business approval state of a sales/purchase source document**. Do not wire sales or purchase auto-posting to it until source-specific validation and idempotency semantics are implemented and tested. The Finance UI remains disabled.
