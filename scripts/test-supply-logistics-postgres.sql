@@ -80,6 +80,12 @@ UPDATE public.supply_shipments SET status='Ordered' WHERE shipment_no='SH-PRIME-
 RESET ROLE;
 
 SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+INSERT INTO public.supply_shipments(company_id,shipment_no,factory_name,purchasing_entity,planned_quantity,status)
+VALUES ('01350a71-0a93-44cf-b6c9-9bd547c0077a','SH-BLACKROCK-BOKAN','Shared Coordination Factory','BOKAN Coordinated',15,'Planned');
+RESET ROLE;
+
+SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
 INSERT INTO public.delivery_orders(company_id,delivery_no,customer_name,required_quantity,allocated_quantity,delivery_status)
 VALUES ('e326f16c-7a76-4bf2-8322-fec959266992','DO-PRIME-001','Test Customer',50,20,'Reserved');
