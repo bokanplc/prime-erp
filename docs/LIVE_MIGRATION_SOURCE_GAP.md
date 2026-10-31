@@ -38,7 +38,7 @@ It has been moved to `supabase/candidates/core_proforma_mvp.sql`. Disposable Pos
 
 ## Updated live inventory — 2026-10-31
 
-The connected Supabase migration ledger now reports **25 applied migration records**. The executable source directory contains **18 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
+The connected Supabase migration ledger now reports **26 applied migration records**. The executable source directory contains **19 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
 
 | Applied version | Applied migration | Source status |
 |---|---|---|
@@ -50,7 +50,7 @@ The connected Supabase migration ledger now reports **25 applied migration recor
 | 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
 | 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
 
-The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 18 available executable files and documents all seven gaps. This is not full historical migration parity.
+The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 19 available executable files and documents all seven gaps. This is not full historical migration parity.
 
 ## New forward migrations recorded
 
@@ -59,3 +59,10 @@ The four historical bodies remain intentionally benched per the migration instru
 - 20261031115029 — reversal sequencing correction so the reversal link is recorded while the new journal is still draft, before immutable posting.
 
 The current database ledger includes these migrations. The reversal sequencing correction was tested in a rollback-only authenticated transaction. No business journals or accounts were seeded.
+
+
+## General Ledger access hardening — 2026-10-31
+
+- 20261031122850 — direct table privileges on ledger accounts, fiscal periods, journal entries and journal lines restricted: anonymous access revoked; authenticated users retain read access only. Ledger writes must pass through validated RPC workflows.
+- Live privilege verification confirmed no anon SELECT/INSERT on these four tables and no authenticated INSERT/UPDATE/DELETE; authenticated SELECT remains enabled under company-scoped RLS.
+- The migration source-parity guard now tracks this 19th available applied migration. This does not close the seven historical/source-control gaps listed above.
