@@ -90,3 +90,17 @@ Two additive backend foundations were applied to live Supabase:
 Live verification confirms 21 public application tables have RLS enabled. Direct privilege checks confirm anon has no CRM table access; authenticated assignment/event writes are denied except through the guarded RPC, while allowed opportunity/after-sales update columns are narrowly scoped. The two company Proforma settings rows were initialized for the existing legal entities; the other new Proforma/CRM tables are empty. No customer, opportunity, activity, Proforma, bank-account or other transactional records were imported or altered by these schema additions. The source-level and disposable PostgreSQL checks passed for the current Proforma/CRM candidate revisions. The existing security advisor still reports the leaked-password-protection warning and an intentional authenticated-only SECURITY DEFINER CRM RPC warning; performance advisor reports unindexed foreign keys on the new additive tables. Production mode, module allowlists, and production deployment remain disabled.
 
 The full app preview is not yet a shared live-data ERP: staging uses clearly labeled sample data and browser-local review storage. The next migration work is to connect the V6.7 UI data paths to the live company-scoped contracts and continue the remaining module foundations.
+
+
+## Supply & Logistics migration update — 2026-10-31
+
+A forward-only migration was added to GitHub and applied to the live BOKAN ERP Supabase project:
+
+- Migration: `20261031082508_add_company_scoped_supply_logistics_foundation`
+- New tables: `supply_shipments` and `delivery_orders`
+- Both tables have RLS enabled, company-membership read policies, role-scoped insert/update policies, creator identity checks, company-scoped unique document numbers, quantity/status constraints, updated-at triggers, and supporting indexes.
+- Anonymous table privileges are revoked. Authenticated update privileges are restricted to operational columns.
+- The existing V6.7 Supply & Logistics Control Tower now uses the active authenticated company UUID to persist inbound shipment plans and delivery controls. It rejects a UI-selected company that differs from the authenticated active company and does not fall back to sample/local data when live reads fail.
+- The V6.7 entry and preserved review source are synchronized. The staging config, production mode, and reviewed production-tab allowlist remain disabled.
+
+Scope limitation: this is the first persistence slice only. Sales-demand integration, warehouse reservations, goods receipt/stock posting, shipment containers, supplier/purchase-order linkage and logistics exception workflows are not yet live. The preview remains demo-only and must not be used for real transactions. Disposable PostgreSQL RLS tests and static UI-contract tests have been added to GitHub Actions; results must pass before this slice is considered browser-verified.
