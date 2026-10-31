@@ -136,3 +136,8 @@ Recommended gate improvement: keep the current disabled-build tests, and later a
 - Isolated the incompatible Proforma candidate under `supabase/candidates/` so it cannot be discovered as an executable migration by ordinary Supabase migration tooling.
 - The production authentication bridge now derives company/role from active `company_memberships` and the joined live company record, rather than relying on `profiles`. Only explicitly supported membership roles map to full-ERP roles. Company context selection is limited to returned memberships.
 - Production role changes remain blocked pending trusted user provisioning and membership management. The full app is still not production-ready: no modules are enabled, no Proforma schema has been applied, and the legacy API/localStorage-dependent modules remain unimplemented.
+
+
+## General Ledger foundation progress — 2026-10-31
+
+The connected live Supabase project now has 27 public base tables and 23 recorded migrations. Four new company-scoped accounting tables (`ledger_accounts`, `fiscal_periods`, `journal_entries`, `journal_lines`) were applied under migration `20261031113713_add_company_scoped_general_ledger_foundation`. RLS is enabled on all four. A rollback-only authenticated test posted a balanced two-line journal and verified draft-line deletion recalculates totals. No chart of accounts, fiscal periods, or business journals were seeded. This is only the general-ledger foundation; Finance remains disabled pending source-document automation, reversal, bank/tax/close workflows, and browser authorization tests.
