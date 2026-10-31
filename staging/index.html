@@ -5023,6 +5023,7 @@ function showTab(id) {
   document.querySelectorAll(`[data-tab-id="${id}"]`).forEach(b => b.classList.add('active'));
 
   if (id === 'overview') { loadOverview(); loadBoardReport(); loadIncomeTax(); }
+  if (id === 'crmcontrol' && window.BOKAN_CRM_PRODUCTION?.enabled()) window.BOKAN_CRM_PRODUCTION.loadCRMControl().catch(e=>console.error('CRM control load failed',e));
   if (id === 'stockreport') { loadLedger(); loadStock(); }
   if (id === 'expenseledger') loadExpenses();
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
@@ -5313,6 +5314,13 @@ function downloadExpenseCSV() {
 let currentTimelineCustomerId = null;
 
 async function initSalesPortal() {
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const customers = await window.BOKAN_CRM_PRODUCTION.listMyCustomers();
+    const list = document.getElementById('customer-list');
+    if (list) list.innerHTML = customers.map(c => `<option value="${escapeHtml(c.name)}">`).join('');
+    await renderCustomerDirectory();
+    return;
+  }
   const { data } = await sb.from('customers').select('customer_name');
   if (data) document.getElementById('customer-list').innerHTML = data.map(c => `<option value="${escapeHtml(c.customer_name)}">`).join('');
   renderCustomerDirectory();
@@ -5324,6 +5332,31 @@ async function renderCustomerDirectory() {
   const el = document.getElementById('customer-directory-list');
   if (!el) return;
   const q = (document.getElementById('cust-search')?.value || '').trim().toLowerCase();
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const [customers, logs, reps] = await Promise.all([
+      window.BOKAN_CRM_PRODUCTION.listMyCustomers(),
+      window.BOKAN_CRM_PRODUCTION.listActivities(),
+      window.BOKAN_CRM_PRODUCTION.listCompanyRepresentatives()
+    ]);
+    const today = new Date().toISOString().slice(0,10);
+    const repLabels = Object.fromEntries(reps.map(r => [r.user_id, r.label]));
+    const rows = customers.filter(c => !q || (c.name||'').toLowerCase().includes(q) || (c.contact_person||'').toLowerCase().includes(q));
+    el.innerHTML = rows.length ? rows.map(c => {
+      const latest = logs.filter(a => a.customer_id === c.id).sort((a,b) => new Date(b.activity_at)-new Date(a.activity_at))[0];
+      const overdue = !!(latest?.next_action_date && latest.next_action_date < today);
+      const owner = c.crm_assignment?.owner_user_id;
+      return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${overdue?'bg-red-50':''}">
+        <div>
+          <button type="button" data-customer="${escapeHtml(c.name)}" onclick="selectCustomerFromButton(this)" class="font-semibold text-[#2CA01C] hover:underline text-left">${escapeHtml(c.name)}</button>
+          <span class="text-[#8D9096]"> — ${escapeHtml(c.contact_person||'—')} · ${escapeHtml(c.location||'—')}</span>
+          ${overdue?'<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 ml-1">Overdue follow-up</span>':''}
+          <div class="text-xs text-[#8D9096]">Assigned to: ${escapeHtml(repLabels[owner]||'Unassigned')} · ${escapeHtml(c.current_status||'')}</div>
+        </div>
+      </div>`;
+    }).join('') : '<p class="text-[#8D9096]">No customers match.</p>';
+    computeOverdueFollowups(customers.map(c=>({...c,customer_name:c.name,assigned_rep:c.crm_assignment?.owner_user_id})),logs.map(a=>({...a,created_at:a.activity_at,sales_rep:a.actor_user_id})),repLabels,today);
+    return;
+  }
   const { data: customers } = await sb.from('customers').select('*').order('customer_name');
   const { data: logs } = await sb.from('customer_logs').select('*');
   const { data: profiles } = await sb.from('profiles').select('id, full_name');
@@ -5388,6 +5421,24 @@ function computeOverdueFollowups(customers, logs, nameById, today) {
 async function loadWeeklyActions() {
   const el = document.getElementById('weekly-actions-list');
   if (!el) return;
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const [activities, customers] = await Promise.all([
+      window.BOKAN_CRM_PRODUCTION.listActivities(),
+      window.BOKAN_CRM_PRODUCTION.listMyCustomers()
+    ]);
+    const nameById = Object.fromEntries(customers.map(c=>[c.id,c.name]));
+    const today = new Date().toISOString().slice(0,10);
+    const weekOut = new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10);
+    const upcoming = activities.filter(a=>a.next_action_date && a.next_action_date>=today && a.next_action_date<=weekOut).sort((a,b)=>a.next_action_date.localeCompare(b.next_action_date));
+    el.innerHTML = upcoming.length ? upcoming.map(row=>{
+      const isToday=row.next_action_date===today;
+      return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${isToday?'bg-amber-50':''}">
+        <div><span class="font-semibold">${escapeHtml(row.next_action_type||'Follow-up')}</span> — ${escapeHtml(nameById[row.customer_id]||'')}
+        <span class="text-[#8D9096]">${escapeHtml(row.next_action_date)}${isToday?' (Today)':''}</span></div>
+      </div>`;
+    }).join('') : '<p class="text-[#8D9096]">Nothing scheduled in the next 7 days.</p>';
+    return;
+  }
   const today = new Date().toISOString().slice(0,10);
   const weekOut = new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10);
   const { data } = await sb.from('customer_logs').select('*, customers(customer_name)').not('next_action_date', 'is', null).gte('next_action_date', today).lte('next_action_date', weekOut).order('next_action_date', { ascending: true });
@@ -5418,6 +5469,18 @@ function resetPhoneFields() {
 
 async function loadCustomerIntoForm(customerName) {
   if (!customerName) return;
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const customers=await window.BOKAN_CRM_PRODUCTION.listMyCustomers();
+    const cust=customers.find(c=>c.name===customerName);
+    if(!cust)return;
+    document.getElementById('cust-contact-person').value=cust.contact_person||'';
+    document.getElementById('cust-location').value=cust.location||'';
+    document.getElementById('cust-email').value=cust.email||'';
+    resetPhoneFields();
+    const phones=Array.isArray(cust.phones)&&cust.phones.length?cust.phones:(cust.phone?[cust.phone]:[]);
+    if(phones.length){document.querySelector('.cust-phone-input').value=phones[0];phones.slice(1).forEach(p=>addPhoneField(p));}
+    return;
+  }
   const { data: cust } = await sb.from('customers').select('*').eq('customer_name', customerName).single();
   if (!cust) return;
   document.getElementById('cust-contact-person').value = cust.contact_person || '';
@@ -5467,6 +5530,30 @@ document.getElementById('sales-form').addEventListener('submit', async (e) => {
   if (!activityType) { alert('Select an Activity Type for this interaction.'); return; }
 
   try {
+    if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+      const api=window.BOKAN_CRM_PRODUCTION;
+      const all=await api.listMyCustomers();
+      let existing=all.find(c=>(c.name||'').trim().toLowerCase()===customerName.toLowerCase());
+      let customer;
+      const customerPayload={name:customerName,contact_person:contactPerson,location,phone,phones,email,lead_source:leadSource,current_status:status};
+      if(!existing) customer=await api.createCustomer(customerPayload);
+      else customer=await api.updateCustomer(existing.id,customerPayload);
+      const activity=await api.addActivity({
+        customer_id:customer.id,assigned_user_id:currentUser.id,activity_type:activityType,
+        notes,customer_feedback:feedback,status,deal_value:dealValue,units_sold:unitsSold,
+        product_type:productType,next_action_type:nextActionType||null,next_action_date:nextActionDate,
+        escalated,escalate_reason:escalateReason,escalate_note:escalateNote
+      });
+      if(escalated) await pushNotification('escalation',`Escalated: ${customerName} — ${escalateReason}${escalateNote?' — '+escalateNote:''}`,{customer_id:customer.id});
+      alert('Interaction logged to the selected company CRM.'+(escalated?' Escalation sent to Marketing / Senior Management.':''));
+      ['cust-notes','cust-feedback','cust-activity-type','cust-product-type','cust-next-action-type','cust-next-action-date','cust-escalate-reason','cust-escalate-note'].forEach(id=>{const field=document.getElementById(id);if(field)field.value='';});
+      document.getElementById('escalate-wrap').classList.add('hidden');
+      document.getElementById('deal-value-wrap').classList.add('hidden');
+      await loadCustomerHistory(customer.name);
+      await loadWeeklyActions();
+      await initSalesPortal();
+      return;
+    }
     let { data: existing } = await sb.from('customers').select('id').eq('customer_name', customerName).single();
     let customerId = existing?.id;
     const selectedRep = document.getElementById('cust-assigned-rep')?.value || currentUser.id;
@@ -5507,6 +5594,48 @@ document.getElementById('sales-form').addEventListener('submit', async (e) => {
 
 async function loadCustomerHistory(customerName) {
   if (!customerName) return;
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const api=window.BOKAN_CRM_PRODUCTION;
+    const [customers,activities,reps]=await Promise.all([api.listMyCustomers(),api.listActivities(),api.listCompanyRepresentatives()]);
+    const cust=customers.find(c=>c.name===customerName);
+    if(!cust){document.getElementById('timeline-container')?.classList.add('hidden');return;}
+    currentTimelineCustomerId=cust.id;
+    const logs=activities.filter(a=>a.customer_id===cust.id);
+    const repLabel=Object.fromEntries(reps.map(r=>[r.user_id,r.label]));
+    const owner=cust.crm_assignment?.owner_user_id;
+    const container=document.getElementById('timeline-container');
+    container?.classList.remove('hidden');
+    document.getElementById('timeline-title').innerText=`History: ${customerName}`;
+    const phones=Array.isArray(cust.phones)&&cust.phones.length?cust.phones.join(', '):(cust.phone||'—');
+    document.getElementById('timeline-contact-summary').innerText=`Contact: ${cust.contact_person||'—'} · Location: ${cust.location||'—'} · Phone: ${phones} · Email: ${cust.email||'—'} · Assigned to: ${repLabel[owner]||'Unassigned'}`;
+    const reassignWrap=document.getElementById('timeline-reassign-wrap');
+    const canReassign=['admin','management'].includes(currentRole);
+    if(reassignWrap&&canReassign){
+      reassignWrap.classList.remove('hidden');
+      const sel=document.getElementById('timeline-reassign-select');
+      if(sel){
+        sel.innerHTML=reps.map(r=>`<option value="${r.user_id}" ${r.user_id===owner?'selected':''}>${escapeHtml(r.label)} · ${escapeHtml(r.role)}</option>`).join('');
+        sel.onchange=async()=>{
+          const next=sel.value;if(!next||next===owner){sel.value=owner||'';return;}
+          const reason=prompt('Reason for customer reassignment:');
+          if(!reason){sel.value=owner||'';return;}
+          try{await api.assignCustomer(cust.id,next,reason);await loadCustomerHistory(customerName);await renderCustomerDirectory();}
+          catch(err){alert('Reassignment failed: '+err.message);sel.value=owner||'';}
+        };
+      }
+    }else if(reassignWrap)reassignWrap.classList.add('hidden');
+    const logsEl=document.getElementById('timeline-logs');
+    logsEl.innerHTML=logs.length?logs.map(log=>`
+      <div class="bg-[#F4F5F8] p-3 border-l-4 ${log.escalated?'border-red-500':'border-[#2CA01C]'} rounded">
+        <div class="text-xs text-[#8D9096] mb-1">${new Date(log.activity_at).toLocaleString()} · ${escapeHtml(repLabel[log.actor_user_id]||log.actor_user_id||'User')}</div>
+        <div class="flex items-center gap-1 mb-1"><span class="text-xs px-2 py-0.5 rounded bg-white border border-[#D4D7DC] font-semibold">${escapeHtml(log.activity_type)}</span><span class="font-semibold text-xs text-[#2CA01C]">${escapeHtml(log.status||'')}</span>${log.escalated?'<span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">Escalated</span>':''}</div>
+        <p class="text-xs text-[#393A3D]">${escapeHtml(log.notes||'')}</p>
+        ${log.customer_feedback?`<p class="text-xs text-[#6B6C72] mt-1"><strong>Feedback:</strong> ${escapeHtml(log.customer_feedback)}</p>`:''}
+        ${log.next_action_date?`<p class="text-xs text-[#6B6C72] mt-1"><strong>Next action:</strong> ${escapeHtml(log.next_action_type||'Follow-up')} — ${escapeHtml(log.next_action_date)}</p>`:''}
+        ${log.deal_value?`<p class="text-xs text-[#6B6C72] mt-1"><strong>Deal value:</strong> ${escapeHtml(String(log.deal_value))}</p>`:''}
+      </div>`).join(''):'<p class="text-xs text-slate-500">No activity history yet.</p>';
+    return;
+  }
   const { data: cust } = await sb.from('customers').select('*').eq('customer_name', customerName).single();
   if (!cust) { document.getElementById('timeline-container').classList.add('hidden'); return; }
   currentTimelineCustomerId = cust.id;
@@ -9107,6 +9236,29 @@ async function enter(user){
     await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).order('role');
     if(error)throw error;return (data||[]).map(m=>({...m,label:m.user_id}));
   }
+  async function loadCRMControl(){
+    const [customers,activities,reps]=await Promise.all([listMyCustomers(),listActivities(),listCompanyRepresentatives()]);
+    const today=new Date().toISOString().slice(0,10);
+    const ids=['v45-crmcustomers','v45-activities','v45-calls','v45-touched','v45-overdue'];
+    const values=[
+      customers.length,
+      activities.length,
+      activities.filter(a=>/phone|call/i.test(a.activity_type||'')).length,
+      new Set(activities.map(a=>a.customer_id)).size,
+      activities.filter(a=>a.next_action_date&&a.next_action_date<today).length
+    ];
+    ids.forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=String(values[i]);});
+    const repRows=document.getElementById('v45-reprows');
+    if(repRows){
+      const rows=reps.map(rep=>{
+        const own=activities.filter(a=>(a.assigned_user_id||a.actor_user_id)===rep.user_id);
+        return {rep,count:own.length,calls:own.filter(a=>/phone|call/i.test(a.activity_type||'')).length,
+          touched:new Set(own.map(a=>a.customer_id)).size,
+          overdue:own.filter(a=>a.next_action_date&&a.next_action_date<today).length};
+      });
+      repRows.innerHTML=rows.length?rows.map(x=>`<tr class="border-b"><td class="py-2">${escapeHtml(x.rep.label)}</td><td class="text-center">${x.count}</td><td class="text-center">${x.calls}</td><td class="text-center">${x.touched}</td><td class="text-center">${x.overdue}</td></tr>`).join(''):'<tr><td colspan="5" class="py-3 text-slate-500">No active company representatives found.</td></tr>';
+    }
+  }
   async function deactivateSalesperson(){
     throw new Error('CRM does not deactivate company accounts. Use the controlled company-membership administration workflow.');
   }
@@ -9114,7 +9266,7 @@ async function enter(user){
     enabled, listMyCustomers, createCustomer, updateCustomer, listActivities, addActivity,
     assignCustomer, listOpportunities, createOpportunity, updateOpportunity,
     listAfterSalesTasks, createAfterSalesTask, updateAfterSalesTask,
-    listCompanyRepresentatives, deactivateSalesperson
+    listCompanyRepresentatives, loadCRMControl, deactivateSalesperson
   };
 })();
 </script>
