@@ -4564,7 +4564,7 @@ let currentRole = null;
 let currentDeptTabs = null;
 
 const ROLE_TABS = {
-  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
+  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','supplytower','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
   data_entry:    ['dataentry','repository'],
   accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
   inventory:     ['stockreport','dataentry','repository','procurement','inventorycontrol'],
@@ -8926,6 +8926,7 @@ function applyProfile(profile,user){
   window.currentDeptTabs=null;
   try{localStorage.setItem('bokan_active_company_context',profile.company_code);}catch(e){}
   if(typeof applyCompanyContext==='function') applyCompanyContext(profile.company_code);
+  document.dispatchEvent(new CustomEvent('bokan:company-context-changed',{detail:{company_id:profile.company_id,company_code:profile.company_code}}));
   const sel=document.getElementById('bokan-context-select');
   const memberships=window.BOKAN_PRODUCTION_AUTH.memberships;
   const companyCodes=memberships.map(m=>m.company_code);
@@ -9133,6 +9134,7 @@ async function enter(user){
     window.bokanSupplyTower.exportCSV=function(){return prod()?exportCSV():localExport();};
     if(prod())refresh();
   });
+  document.addEventListener('bokan:company-context-changed',function(){if(prod())refresh();});
 })();
 </script>
 \n<script id="bokan-v65-finance-production">(function(){
