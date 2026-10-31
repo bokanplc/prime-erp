@@ -20,7 +20,8 @@ const trackedAppliedMigrations = [
   '20261026092354_update_purchase_payment_status_for_partial_payments.sql',
   '20261026094634_index_supplier_payment_foreign_keys.sql',
   '20261031082508_add_company_scoped_supply_logistics_foundation.sql',
-  '20261031083706_index_supply_logistics_created_by.sql'
+  '20261031083706_index_supply_logistics_created_by.sql',
+  '20261031084536_add_supply_shipment_purchasing_entity.sql'
 ];
 const missingHistoricalVersions = [
   '20261025065910',
@@ -33,7 +34,7 @@ const executableMigrations = fs.readdirSync(migrationDir).filter(name => name.en
 assert.deepEqual(
   executableMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 13 source-controlled applied migrations; never place the incompatible Proforma candidate here.'
+  'Executable migration directory must contain only the 14 source-controlled applied migrations; never place the incompatible Proforma candidate here.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
@@ -42,4 +43,4 @@ for (const version of missingHistoricalVersions) {
   assert.ok(gap.includes(version), `Missing historical migration ${version} must be documented as unrecovered, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
-console.log('PASS: migration source layout matches the 13 tracked live migrations; four missing historical SQL bodies are documented; the incompatible Proforma candidate is isolated.');
+console.log('PASS: migration source layout matches the 14 tracked live migrations; four missing historical SQL bodies are documented; the incompatible Proforma candidate is isolated.');
