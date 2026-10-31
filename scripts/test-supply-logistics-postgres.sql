@@ -100,12 +100,10 @@ BEGIN
   EXCEPTION WHEN check_violation THEN
     NULL;
   END;
-  BEGIN
-    UPDATE public.delivery_orders SET delivery_status='Delivered' WHERE delivery_no='DO-PRIME-001';
+  UPDATE public.delivery_orders SET delivery_status='Delivered' WHERE delivery_no='DO-PRIME-001';
+  IF FOUND THEN
     RAISE EXCEPTION 'Sales-only member unexpectedly updated delivery controls.';
-  EXCEPTION WHEN insufficient_privilege THEN
-    NULL;
-  END;
+  END IF;
 END
 $$;
 
