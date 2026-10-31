@@ -252,9 +252,9 @@ create or replace function public.bokan_reassign_customer_owner(
 )
 returns public.crm_customer_assignments
 language plpgsql
-security invoker
+security definer
 set search_path = ''
-as $$
+as $
 declare
   v_old_owner uuid;
   v_result public.crm_customer_assignments;
