@@ -53,8 +53,8 @@ INSERT INTO public.company_memberships(company_id,user_id,role,is_active) VALUES
 
 \ir ../supabase/migrations/20261031082508_add_company_scoped_supply_logistics_foundation.sql
 
-SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 INSERT INTO public.supply_shipments(company_id,shipment_no,factory_name,planned_quantity,status)
 VALUES ('e326f16c-7a76-4bf2-8322-fec959266992','SH-PRIME-001','Test Factory',120,'Planned');
 
@@ -79,8 +79,8 @@ $$;
 UPDATE public.supply_shipments SET status='Ordered' WHERE shipment_no='SH-PRIME-001';
 RESET ROLE;
 
-SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
 INSERT INTO public.delivery_orders(company_id,delivery_no,customer_name,required_quantity,allocated_quantity,delivery_status)
 VALUES ('e326f16c-7a76-4bf2-8322-fec959266992','DO-PRIME-001','Test Customer',50,20,'Reserved');
 
