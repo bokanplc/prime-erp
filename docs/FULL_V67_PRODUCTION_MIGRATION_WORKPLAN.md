@@ -10,14 +10,14 @@ Keep production mode and the reviewed-module allowlist disabled until each modul
 
 ## Verified live foundation
 
-The connected Supabase project currently has 23 public base tables, all 23 with RLS enabled, 63 public RLS policies, two operational views, and 20 recorded migrations. The live foundation now includes:
+The connected Supabase project currently has 23 public base tables, all 23 with RLS enabled, 63 public RLS policies, two operational views, and 21 recorded migrations. The live foundation now includes:
 - Multi-company identity and membership, customers and products.
 - Sales documents/items, payments, suppliers, purchase documents/items, stock movements and supplier payments.
 - Company-scoped Proforma settings, bank accounts, custom terms and saved Proformas.
 - Company-scoped CRM assignments, assignment events, activities, opportunities and after-sales tasks.
 - Company-scoped Supply & Logistics inbound shipment plans and delivery controls.
 
-Thirteen timestamped SQL files are tracked under `supabase/migrations`; the three newer applied Proforma/CRM SQL bodies are archived under `supabase/candidates`. Four older historical SQL bodies remain unrecovered by choice and must not block forward migration. The existing company-membership model is the tenant and authorization source of truth. Do not replace it with a second profiles/company-code model.
+Fourteen timestamped SQL files are tracked under `supabase/migrations`; the three newer applied Proforma/CRM SQL bodies are archived under `supabase/candidates`. Four older historical SQL bodies remain unrecovered by choice and must not block forward migration. The existing company-membership model is the tenant and authorization source of truth. Do not replace it with a second profiles/company-code model.
 
 ## Work sequence
 
