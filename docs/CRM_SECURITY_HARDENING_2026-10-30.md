@@ -33,11 +33,11 @@ This checkpoint improves the existing company-scoped CRM candidate. It does not 
 - A sales owner must not transfer their opportunity to another member.
 - Existing tests cover manager-only reassignment, inactive assignee rejection, cross-company reassignment denial, company-level read isolation, and append-only assignment history.
 
-The candidate remains under `supabase/candidates/`. The CI workflow already includes the CRM PostgreSQL smoke test; the new tests are committed for that job. A green isolated PostgreSQL run is necessary but not sufficient: real Supabase JWT/Data API and browser persistence tests are still required.
+The SQL was applied to live Supabase on 2026-10-31 as migration `20261031081151_add_company_scoped_crm_foundation`; the applied SQL body remains in `supabase/candidates/crm_company_scoped_v1.sql` while the repository source-parity guard is reconciled. The isolated PostgreSQL CRM smoke test passed. A green isolated test is necessary but not sufficient: real Supabase JWT/Data API and browser persistence tests are still required.
 
 ## Live rollout status
 
-- No CRM tables have been created in live Supabase.
+- Five company-scoped CRM tables have been created in live Supabase with RLS enabled.
 - No CRM customer records have been imported.
 - No CRM module has been added to the production allowlist.
 - Production mode remains disabled.
@@ -46,8 +46,13 @@ The candidate remains under `supabase/candidates/`. The CI workflow already incl
 ## Remaining work before CRM activation
 
 1. Confirm the disposable PostgreSQL workflow passes with the strengthened candidate.
-2. Create a versioned forward-only migration from the candidate after full review; keep it separate from the unrecovered historical migrations.
+2. Reconcile the applied SQL body with the repository's executable migration source layout.
 3. Test actual Supabase Auth/JWT and PostgREST behavior for BlackRock manager/sales, Prime manager/sales, inactive memberships, and anonymous access.
 4. Wire the V6.7 CRM customer/activity/opportunity/after-sales screens to these exact contracts, including persistence after reload and on a second session.
 5. Add a controlled correction/void path for mistaken activities and reassignment events, without granting ordinary deletion.
 6. Keep the module disabled until the above evidence is recorded.
+
+
+## Applied live foundation — 2026-10-31
+
+The five CRM tables and the manager-only reassignment RPC are now present in the live Supabase project. RLS is enabled on all five tables. The RPC is granted to authenticated users only and checks the active manager membership and target owner's active membership before writing the assignment and immutable event together. The current V6.7 CRM bridge still uses legacy `bokan_*` table names, so the UI has not been switched to this backend and the CRM production tab remains disabled.
