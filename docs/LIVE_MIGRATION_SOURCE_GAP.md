@@ -38,7 +38,7 @@ It has been moved to `supabase/candidates/core_proforma_mvp.sql`. Disposable Pos
 
 ## Updated live inventory — 2026-10-31
 
-The connected Supabase migration ledger now reports **27 applied migration records**. The executable source directory contains **20 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
+The connected Supabase migration ledger now reports **28 applied migration records**. The executable source directory contains **21 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
 
 | Applied version | Applied migration | Source status |
 |---|---|---|
@@ -50,7 +50,7 @@ The connected Supabase migration ledger now reports **27 applied migration recor
 | 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
 | 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
 
-The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 20 available executable files and documents all seven gaps. This is not full historical migration parity.
+The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 21 available executable files and documents all seven gaps. This is not full historical migration parity.
 
 ## New forward migrations recorded
 
@@ -74,3 +74,12 @@ The current database ledger includes these migrations. The reversal sequencing c
 - Live privilege verification: authenticated users have SELECT/INSERT on CRM activities, SELECT/INSERT/UPDATE on opportunities and after-sales tasks, and no UPDATE/DELETE on activities or assignment history. Customers remain company-scoped; authenticated hard-delete is revoked.
 - The full V6.7 CRM bridge and Sales customer workflow now target canonical `customers`, `crm_customer_assignments`, `crm_assignment_events`, `crm_activities`, `crm_opportunities`, and `crm_after_sales_tasks` tables. It uses the selected authenticated company UUID, the manager-only reassignment RPC, and append-only activity history. It no longer writes to legacy `bokan_*` tables.
 - The V6.7 Sales customer directory, customer form submission, activity timeline, weekly follow-up list and CRM coverage dashboard are now wired to the canonical API. Opportunity and after-sales task CRUD endpoints are available in the bridge but still need dedicated screen controls. CRM API/UI wiring is not the same as complete screen acceptance: no live authenticated browser test has been performed, and CRM remains gated from production activation until that test and UI wiring are complete.
+
+
+## Supply & Logistics source-document linkage — 2026-10-31
+
+- 20261031124815 — inbound shipments now optionally link to a purchase order using a composite `(company_id, purchase_document_id)` foreign key. A trigger rejects cross-company, non-purchase-order, cancelled or void sources.
+- Delivery orders now optionally link to an approved/posted sales order or invoice through a composite `(company_id, sales_document_id)` foreign key. The trigger rejects cross-company or ineligible source documents and copies the canonical customer name into the delivery snapshot when available.
+- Both link columns are nullable to preserve existing records and allow planning before source-document association. No business records were imported or altered.
+- The Supply & Logistics bridge exposes eligible purchase-order and delivery-source selectors and includes the source IDs in live reads. The visual selection controls and authenticated browser persistence test remain pending.
+- The migration source-parity guard now tracks 21 available applied SQL bodies. Seven historical/CRM/Proforma applied bodies remain unrecovered; this is still not full historical source parity.
