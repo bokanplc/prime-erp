@@ -7,7 +7,7 @@ const migrationDir = path.join(process.cwd(), 'supabase/migrations');
 const candidatePath = path.join(process.cwd(), 'supabase/candidates/core_proforma_mvp.sql');
 const gapPath = path.join(process.cwd(), 'docs/LIVE_MIGRATION_SOURCE_GAP.md');
 
-const supersededDrafts = [
+const pendingMigrations = [\n  '20261031150000_scope_legacy_hr_tables_to_blackrock.sql'\n];\nconst supersededDrafts = [
   '20261031090000_extend_crm_for_v67_sales_workflow.sql',
   '20261031121500_fix_reversal_posted_entry_immutability.sql',
   '20261031140120_sync_profile_role_on_membership_changes.sql'
@@ -57,10 +57,17 @@ for (const draft of supersededDrafts) {
   assert.ok(draftBody.startsWith('-- SUPERSEDED DRAFT:'), `Superseded draft ${draft} must remain inert and must never be applied.`);
 }
 const executableMigrations = allMigrationFiles.filter(name => !supersededDrafts.includes(name));
+const appliedSourceMigrations = executableMigrations.filter(name => !pendingMigrations.includes(name));
+const pendingSourceMigrations = executableMigrations.filter(name => pendingMigrations.includes(name));
 assert.deepEqual(
-  executableMigrations,
+  appliedSourceMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 26 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
+  'Applied source-controlled migration files must match the 26 tracked live migrations; never place the incompatible Proforma candidate here.'
+);
+assert.deepEqual(
+  pendingSourceMigrations,
+  [...pendingMigrations].sort(),
+  'Only the explicitly listed, tested-forward pending migration may be present without a live ledger record.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
@@ -69,4 +76,4 @@ for (const version of missingAppliedVersions) {
   assert.ok(gap.includes(version), `Missing applied migration SQL body ${version} must be documented, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
-console.log('PASS: migration source layout matches the 26 tracked live migrations; eight applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
+console.log('PASS: migration source layout matches the 26 tracked live migrations, isolates one explicitly pending forward migration, documents eight unrecovered applied SQL bodies, and isolates the incompatible Proforma candidate.');
