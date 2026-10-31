@@ -9018,45 +9018,104 @@ async function enter(user){
 <script id="bokan-v63-crm-production-bridge">
 (function(){
   'use strict';
-  const prod=()=>window.BOKAN_CRM_PRODUCTION_MODE===true && window.supabase;
-  const client=()=>window.supabase?.createClient && window.BOKAN_CONFIG?.SUPABASE_URL ? sb : null;
+  const context=()=>window.BOKAN_PRODUCTION_AUTH;
+  const enabled=()=>!!(context()?.enabled===true && context()?.client && context()?.profile?.company_id);
+  const db=()=>{if(!enabled())throw new Error('CRM production access is not enabled for the selected company.');return context().client;};
+  const company=()=>context().profile.company_id;
   async function requireSession(){
-    if(!prod()) throw new Error('CRM production mode is not enabled.');
-    const {data,error}=await sb.auth.getUser(); if(error) throw error; if(!data?.user) throw new Error('Please sign in.');
+    const client=db();const {data,error}=await client.auth.getUser();
+    if(error)throw error;if(!data?.user)throw new Error('Please sign in.');
     return data.user;
   }
+  const pick=(source,keys)=>Object.fromEntries(keys.filter(k=>source?.[k]!==undefined).map(k=>[k,source[k]]));
+  const customerFields=['code','name','contact_person','email','phone','tax_number','billing_address','notes','location','phones','current_status','lead_source'];
+  const activityFields=['customer_id','assigned_user_id','activity_type','activity_at','notes','customer_feedback','next_action_type','next_action_date','escalated','escalate_reason','escalate_note','status','deal_value','units_sold','product_type'];
+  const opportunityFields=['customer_id','owner_user_id','product_description','estimated_quantity','estimated_value','currency_code','required_date','stage','next_action','next_action_date','competitor','notes'];
+  const taskFields=['customer_id','owner_user_id','task_type','notes','due_date','status','completed_at'];
   async function listMyCustomers(){
-    const u=await requireSession();
-    const {data,error}=await sb.from('bokan_customers').select('*').order('customer_name'); if(error) throw error;
-    return (data||[]);
+    await requireSession();const c=company();
+    const [customers,assignments]=await Promise.all([
+      db().from('customers').select('*').eq('company_id',c).order('name'),
+      db().from('crm_customer_assignments').select('customer_id,owner_user_id,assigned_at').eq('company_id',c)
+    ]);
+    if(customers.error)throw customers.error;if(assignments.error)throw assignments.error;
+    const owners=new Map((assignments.data||[]).map(a=>[a.customer_id,a]));
+    return (customers.data||[]).map(row=>({...row,crm_assignment:owners.get(row.id)||null}));
   }
   async function createCustomer(payload){
-    const u=await requireSession();
-    const row={...payload,created_by:u.id};
-    const {data,error}=await sb.from('bokan_customers').insert([row]).select().single(); if(error) throw error; return data;
+    await requireSession();const row={...pick(payload,customerFields),company_id:company()};
+    if(!String(row.name||'').trim())throw new Error('Customer name is required.');
+    const {data,error}=await db().from('customers').insert(row).select().single();if(error)throw error;return data;
   }
   async function updateCustomer(id,payload){
-    await requireSession(); const {data,error}=await sb.from('bokan_customers').update(payload).eq('id',id).select().single(); if(error) throw error; return data;
+    await requireSession();const patch=pick(payload,customerFields);
+    if(!Object.keys(patch).length)throw new Error('No supported customer fields were supplied.');
+    const {data,error}=await db().from('customers').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).eq('company_id',company()).select().single();
+    if(error)throw error;if(!data)throw new Error('Customer not found in the selected company.');return data;
+  }
+  async function listActivities(customerId){
+    await requireSession();let query=db().from('crm_activities').select('*').eq('company_id',company()).order('activity_at',{ascending:false});
+    if(customerId)query=query.eq('customer_id',customerId);
+    const {data,error}=await query;if(error)throw error;return data||[];
   }
   async function addActivity(payload){
-    const u=await requireSession();
-    const {data,error}=await sb.from('bokan_customer_activities').insert([{...payload,created_by:u.id,salesperson_id:payload.salesperson_id||null}]).select().single(); if(error) throw error; return data;
+    await requireSession();const row={...pick(payload,activityFields),company_id:company()};
+    if(!row.customer_id||!String(row.activity_type||'').trim())throw new Error('Customer and activity type are required.');
+    const {data,error}=await db().from('crm_activities').insert(row).select().single();if(error)throw error;return data;
   }
-  async function assignCustomer(customerId,newSalespersonId,reason){
-    const u=await requireSession();
-    const {data:customer,error:e1}=await sb.from('bokan_customers').select('assigned_salesperson_id').eq('id',customerId).single(); if(e1) throw e1;
-    const {error:e2}=await sb.from('bokan_customer_assignments').insert([{customer_id:customerId,previous_salesperson_id:customer.assigned_salesperson_id,new_salesperson_id:newSalespersonId,reason:reason||null,reassigned_by:u.id}]); if(e2) throw e2;
-    const {error:e3}=await sb.from('bokan_customers').update({assigned_salesperson_id:newSalespersonId}).eq('id',customerId); if(e3) throw e3;
-    return true;
-  }
-  async function deactivateSalesperson(id){
+  async function assignCustomer(customerId,newOwnerUserId,reason){
     await requireSession();
-    const {data,error}=await sb.from('bokan_salespeople').update({active:false,departed_at:new Date().toISOString()}).eq('id',id).select().single(); if(error) throw error; return data;
+    if(!customerId||!newOwnerUserId||!String(reason||'').trim())throw new Error('Customer, new owner and reassignment reason are required.');
+    const {data,error}=await db().rpc('bokan_reassign_customer_owner',{
+      p_company_id:company(),p_customer_id:customerId,p_new_owner_user_id:newOwnerUserId,p_reason:String(reason).trim()
+    });
+    if(error)throw error;return data;
+  }
+  async function listOpportunities(customerId){
+    await requireSession();let query=db().from('crm_opportunities').select('*').eq('company_id',company()).order('updated_at',{ascending:false});
+    if(customerId)query=query.eq('customer_id',customerId);
+    const {data,error}=await query;if(error)throw error;return data||[];
   }
   async function createOpportunity(payload){
-    const u=await requireSession(); const {data,error}=await sb.from('bokan_sales_opportunities').insert([{...payload,created_by:u.id}]).select().single(); if(error) throw error; return data;
+    const user=await requireSession();const row={...pick(payload,opportunityFields),company_id:company(),created_by:user.id};
+    if(!row.customer_id||!String(row.product_description||'').trim())throw new Error('Customer and product description are required.');
+    const {data,error}=await db().from('crm_opportunities').insert(row).select().single();if(error)throw error;return data;
   }
-  window.BOKAN_CRM_PRODUCTION={enabled:()=>prod(),listMyCustomers,createCustomer,updateCustomer,addActivity,assignCustomer,deactivateSalesperson,createOpportunity};
+  async function updateOpportunity(id,payload){
+    await requireSession();const patch=pick(payload,opportunityFields);
+    if(!Object.keys(patch).length)throw new Error('No supported opportunity fields were supplied.');
+    const {data,error}=await db().from('crm_opportunities').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).eq('company_id',company()).select().single();
+    if(error)throw error;if(!data)throw new Error('Opportunity not found in the selected company.');return data;
+  }
+  async function listAfterSalesTasks(customerId){
+    await requireSession();let query=db().from('crm_after_sales_tasks').select('*').eq('company_id',company()).order('due_date',{ascending:true,nullsFirst:false});
+    if(customerId)query=query.eq('customer_id',customerId);
+    const {data,error}=await query;if(error)throw error;return data||[];
+  }
+  async function createAfterSalesTask(payload){
+    const user=await requireSession();const row={...pick(payload,taskFields),company_id:company(),created_by:user.id};
+    if(!row.customer_id||!String(row.task_type||'').trim())throw new Error('Customer and task type are required.');
+    const {data,error}=await db().from('crm_after_sales_tasks').insert(row).select().single();if(error)throw error;return data;
+  }
+  async function updateAfterSalesTask(id,payload){
+    await requireSession();const patch=pick(payload,['owner_user_id','task_type','notes','due_date','status','completed_at']);
+    if(!Object.keys(patch).length)throw new Error('No supported after-sales task fields were supplied.');
+    const {data,error}=await db().from('crm_after_sales_tasks').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).eq('company_id',company()).select().single();
+    if(error)throw error;if(!data)throw new Error('After-sales task not found in the selected company.');return data;
+  }
+  async function listCompanyRepresentatives(){
+    await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).order('role');
+    if(error)throw error;return (data||[]).map(m=>({...m,label:m.user_id}));
+  }
+  async function deactivateSalesperson(){
+    throw new Error('CRM does not deactivate company accounts. Use the controlled company-membership administration workflow.');
+  }
+  window.BOKAN_CRM_PRODUCTION={
+    enabled, listMyCustomers, createCustomer, updateCustomer, listActivities, addActivity,
+    assignCustomer, listOpportunities, createOpportunity, updateOpportunity,
+    listAfterSalesTasks, createAfterSalesTask, updateAfterSalesTask,
+    listCompanyRepresentatives, deactivateSalesperson
+  };
 })();
 </script>
 
