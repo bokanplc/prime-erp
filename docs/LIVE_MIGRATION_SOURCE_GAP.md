@@ -34,3 +34,28 @@ It has been moved to `supabase/candidates/core_proforma_mvp.sql`. Disposable Pos
 ## Automated guard
 
 `scripts/test-live-migration-source-parity.mjs` checks that the 11 tracked applied migrations exist, that the four missing records are documented, and that the incompatible Proforma candidate is not located in `supabase/migrations/`. This guards source layout and inventory accuracy; it does not prove the historical SQL matches the live database.
+
+
+## Updated live inventory — 2026-10-31
+
+The connected Supabase migration ledger now reports **25 applied migration records**. The executable source directory contains **18 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
+
+| Applied version | Applied migration | Source status |
+|---|---|---|
+| 20261025065910 | initial_multi_company_sales_foundation | Historical SQL body unrecovered |
+| 20261025072547 | revoke_unauthenticated_erp_table_access | Historical SQL body unrecovered |
+| 20261025124247 | add_missing_foreign_key_indexes | Historical SQL body unrecovered |
+| 20261025124312 | atomic_sales_document_creation | Historical SQL body unrecovered |
+| 20261031080833 | add_company_scoped_proforma_foundation | Applied SQL body not present in current migration directory |
+| 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
+| 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
+
+The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 18 available executable files and documents all seven gaps. This is not full historical migration parity.
+
+## New forward migrations recorded
+
+- 20261031113713 — company-scoped general ledger foundation.
+- 20261031120000 — atomic journal posting and reversal workflow.
+- 20261031121500 — reversal sequencing correction so the reversal link is recorded while the new journal is still draft, before immutable posting.
+
+The current database ledger includes these migrations. The reversal sequencing correction was tested in a rollback-only authenticated transaction. No business journals or accounts were seeded.
