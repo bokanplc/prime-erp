@@ -75,5 +75,5 @@ Added company/name and company/status/date indexes. Existing rows were not popul
 - No customer or activity records were imported or changed.
 - No demo records were inserted into live Supabase.
 - CRM remains disabled in the production allowlist. The review build remains sample-data-only.
-- The first attempt applied the migration under Supabase-generated version `20261031100616`; the repository contains the matching timestamped SQL source. A preliminary draft file with version `20261031090000` also remains in the branch and should be reconciled in a later source-control cleanup; do not apply it as a second migration.
+- The first attempt applied the migration under Supabase-generated version `20261031100616`; the repository contains the matching timestamped SQL source. A preliminary draft filename `20261031090000` remains only as an inert comment-only breadcrumb; the source-parity guard explicitly excludes it. The executable applied migration is `20261031100616`.
 - The four historical missing SQL bodies remain intentionally unreconstructed.
