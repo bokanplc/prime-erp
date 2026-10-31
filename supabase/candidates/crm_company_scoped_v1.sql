@@ -1,5 +1,6 @@
--- BOKAN ERP V6.7 CRM forward migration candidate.
--- NOT applied to live Supabase. Validate in disposable PostgreSQL first.
+-- Applied to Supabase project kafiwnuynjemufnankvi on 2026-10-31 as migration
+-- 20261031081151_add_company_scoped_crm_foundation.
+-- Retained under candidates while the repository source-parity guard is updated.
 -- Extends the existing public.customers / companies / company_memberships model.
 
 begin;
