@@ -254,7 +254,7 @@ returns public.crm_customer_assignments
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $reassign$
 declare
   v_old_owner uuid;
   v_result public.crm_customer_assignments;
@@ -308,7 +308,7 @@ begin
 
   return v_result;
 end;
-$$;
+$reassign$;
 
 revoke all on function public.bokan_reassign_customer_owner(uuid, uuid, uuid, text) from public, anon;
 grant execute on function public.bokan_reassign_customer_owner(uuid, uuid, uuid, text) to authenticated;
