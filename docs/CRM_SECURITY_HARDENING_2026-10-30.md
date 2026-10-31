@@ -56,3 +56,8 @@ The SQL was applied to live Supabase on 2026-10-31 as migration `20261031081151_
 ## Applied live foundation — 2026-10-31
 
 The five CRM tables and the manager-only reassignment RPC are now present in the live Supabase project. RLS is enabled on all five tables. The RPC is granted to authenticated users only and checks the active manager membership and target owner's active membership before writing the assignment and immutable event together. The current V6.7 CRM bridge still uses legacy `bokan_*` table names, so the UI has not been switched to this backend and the CRM production tab remains disabled.
+
+
+## Least-privilege follow-up — 2026-10-31
+
+Applied live as migration `20261031081422_restrict_crm_assignment_writes_to_rpc` after the expanded PostgreSQL smoke test passed. Default grants were revoked from `PUBLIC`, `anon`, and `authenticated` on all five CRM tables, then only the required authenticated privileges were re-granted. Anonymous CRM table access is now false. Authenticated users can read assignments/events but cannot directly insert or update them; the guarded SECURITY DEFINER RPC is the only assignment/history write path. Activities remain select/insert; opportunity and after-sales updates remain column-scoped. Live privilege checks confirmed tenant/customer/creator identity columns are not updateable.
