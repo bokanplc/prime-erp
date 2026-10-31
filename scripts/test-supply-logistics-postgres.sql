@@ -1,8 +1,13 @@
 \set ON_ERROR_STOP on
-BEGIN;
+\! createdb -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" supply_logistics_isolated
+\connect supply_logistics_isolated
 
-CREATE ROLE anon NOLOGIN;
-CREATE ROLE authenticated NOLOGIN;
+DO $roles$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN EXECUTE 'CREATE ROLE anon NOLOGIN'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN EXECUTE 'CREATE ROLE authenticated NOLOGIN'; END IF;
+END
+$roles$;
 CREATE SCHEMA auth;
 CREATE SCHEMA private;
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
@@ -116,4 +121,4 @@ BEGIN
 END
 $$;
 
-ROLLBACK;
+DROP DATABASE supply_logistics_isolated WITH (FORCE);
