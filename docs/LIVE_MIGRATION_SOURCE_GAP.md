@@ -38,7 +38,7 @@ It has been moved to `supabase/candidates/core_proforma_mvp.sql`. Disposable Pos
 
 ## Updated live inventory — 2026-10-31
 
-The connected Supabase migration ledger now reports **26 applied migration records**. The executable source directory contains **19 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
+The connected Supabase migration ledger now reports **27 applied migration records**. The executable source directory contains **20 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
 
 | Applied version | Applied migration | Source status |
 |---|---|---|
@@ -50,7 +50,7 @@ The connected Supabase migration ledger now reports **26 applied migration recor
 | 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
 | 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
 
-The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 19 available executable files and documents all seven gaps. This is not full historical migration parity.
+The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 20 available executable files and documents all seven gaps. This is not full historical migration parity.
 
 ## New forward migrations recorded
 
@@ -65,4 +65,12 @@ The current database ledger includes these migrations. The reversal sequencing c
 
 - 20261031122850 — direct table privileges on ledger accounts, fiscal periods, journal entries and journal lines restricted: anonymous access revoked; authenticated users retain read access only. Ledger writes must pass through validated RPC workflows.
 - Live privilege verification confirmed no anon SELECT/INSERT on these four tables and no authenticated INSERT/UPDATE/DELETE; authenticated SELECT remains enabled under company-scoped RLS.
-- The migration source-parity guard now tracks this 19th available applied migration. This does not close the seven historical/source-control gaps listed above.
+- The migration source-parity guard now tracks this 20th available applied migration. This does not close the seven historical/source-control gaps listed above.
+
+
+## CRM bridge and permission alignment — 2026-10-31
+
+- 20261031124029 — grants now match the existing CRM row-level workflow policies: authenticated users may update opportunities and after-sales tasks subject to owner/manager checks; customer hard-delete is revoked; activity and assignment histories remain append-only; assignment writes remain RPC-only.
+- Live privilege verification: authenticated users have SELECT/INSERT on CRM activities, SELECT/INSERT/UPDATE on opportunities and after-sales tasks, and no UPDATE/DELETE on activities or assignment history. Customers remain company-scoped; authenticated hard-delete is revoked.
+- The full V6.7 CRM bridge now targets canonical `customers`, `crm_customer_assignments`, `crm_assignment_events`, `crm_activities`, `crm_opportunities`, and `crm_after_sales_tasks` tables. It uses the selected authenticated company UUID, the manager-only reassignment RPC, and append-only activity history. It no longer writes to legacy `bokan_*` tables.
+- CRM API bridge integration is not the same as complete screen acceptance: no live authenticated browser test has been performed, and CRM remains gated from production activation until that test and UI wiring are complete.
