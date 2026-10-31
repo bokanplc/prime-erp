@@ -32,6 +32,8 @@ GRANT USAGE ON SCHEMA auth, private TO authenticated;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 GRANT EXECUTE ON FUNCTION private.has_company_membership(uuid) TO authenticated;
 
+GRANT SELECT ON public.companies, public.company_memberships TO authenticated;
+
 INSERT INTO public.companies(id,code,name,is_active) VALUES
 ('01350a71-0a93-44cf-b6c9-9bd547c0077a','BLACKROCK','BlackRock Investment PLC',true),
 ('e326f16c-7a76-4bf2-8322-fec959266992','PRIME','Prime Investment Group',true);
