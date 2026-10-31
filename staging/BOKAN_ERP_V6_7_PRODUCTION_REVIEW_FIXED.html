@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRIME ERP — Operations Portal</title>
+<title>BOKAN ERP — Operations Portal</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
@@ -54,7 +54,7 @@
     #sidebar.open { transform: translateX(0); }
   }
 
-/* ===== PRIME FORM UX ENHANCEMENT ===== */
+/* ===== BLACKROCK FORM UX ENHANCEMENT ===== */
 .form-launcher{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;margin-top:8px;border:1px solid #d7dbe0;border-radius:10px;background:#fff;box-shadow:0 2px 8px rgba(20,30,40,.05);cursor:pointer;text-align:left;transition:.15s ease}
 .form-launcher:hover{border-color:#2CA01C;box-shadow:0 5px 16px rgba(20,30,40,.09);transform:translateY(-1px)}
 .form-launcher .fl-title{font-size:12px;font-weight:700;color:#293038}.form-launcher .fl-sub{font-size:10px;color:#7b8087;margin-top:2px}.form-launcher .fl-icon{width:30px;height:30px;border-radius:8px;background:#eaf7e8;color:#238016;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex:none}
@@ -845,7 +845,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 <style id="bokan-company-context">
   /* BOKAN master palette: a restrained bridge between enterprise blue and QuickBooks-inspired green. */
   :root{--context-accent:#24364B;--context-soft:#F2F5F8;--context-strong:#182738;--context-secondary:#0875E1}
-  /* PRIME — Workday-inspired: confident enterprise blue, clean neutrals. */
+  /* BLACKROCK — Workday-inspired: confident enterprise blue, clean neutrals. */
   body.context-prime{--context-accent:#0875E1;--context-soft:#EAF4FF;--context-strong:#0759A8;--context-secondary:#5AA7EA}
   /* BlackRock — QuickBooks-inspired: clean business green. */
   body.context-blackrock{--context-accent:#2CA01C;--context-soft:#ECF8E9;--context-strong:#176B0F;--context-secondary:#5EAE50}
@@ -926,7 +926,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 </style></head>
 <body class="bg-[#F4F5F8] min-h-screen">
 <div id="prime-prod-gate"><div class="pg-card">
-  <div class="pg-brand">PRIME ERP · Production</div>
+  <div class="pg-brand">BOKAN ERP · Production</div>
   <h1 id="pg-title">Secure sign in</h1>
   <div class="pg-sub" id="pg-sub">Server-backed enterprise environment. Your session is protected and audited.</div>
   <div id="pg-login">
@@ -950,7 +950,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <div class="bg-white rounded-lg shadow-md border border-[#D4D7DC] w-full max-w-sm p-8">
     <div class="text-center mb-6">
       <div class="w-12 h-12 rounded bg-[#24364B] text-white font-bold text-xl flex items-center justify-center mx-auto mb-2">P</div>
-      <h1 class="text-lg font-bold text-[#393A3D]">PRIME Investment Group Plc</h1>
+      <h1 class="text-lg font-bold text-[#393A3D]">BLACKROCK Investment Group Plc</h1>
       <p class="text-xs text-[#6B6C72]">Operations Portal</p>
     </div>
     <form id="login-form" class="space-y-3">
@@ -968,7 +968,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <div class="max-w-4xl mx-auto px-4 py-16">
     <div class="text-center mb-10">
       <div class="w-12 h-12 rounded bg-[#24364B] text-white font-bold text-xl flex items-center justify-center mx-auto mb-3">P</div>
-      <h1 class="text-lg font-bold text-[#393A3D]">PRIME Investment Group Plc</h1>
+      <h1 class="text-lg font-bold text-[#393A3D]">BLACKROCK Investment Group Plc</h1>
       <p class="text-xs text-[#6B6C72] mt-1">Select your workspace to continue</p>
     </div>
     <div id="landing-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -983,20 +983,16 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <div class="bokan-context-inner">
     <div class="min-w-0">
       <div class="bokan-context-title">BOKAN Operating Platform</div>
-      <div id="bokan-context-name" class="bokan-context-name truncate">All Companies — Group Command Center</div>
+      <div id="bokan-context-name" class="bokan-context-name truncate">BlackRock Investment PLC</div>
     </div>
     <div class="flex items-center gap-2 shrink-0">
       <span id="bokan-context-badge" class="bokan-context-badge"><span class="bokan-context-dot"></span><span id="bokan-context-code">GROUP</span></span>
-      <select id="bokan-context-select" aria-label="Active company context" onchange="setCompanyContext(this.value)">
-        <option value="GROUP">BOKAN / All Companies</option>
-        <option value="PRIME">PRIME Investment Group PLC</option>
-        <option value="BLACKROCK">BlackRock Investment PLC</option>
-      </select>
+      
     </div>
   </div>
 </div>
 <div class="bokan-brand-bridge no-print px-4 py-1.5 text-[10px] font-bold tracking-wide flex items-center justify-center gap-2">
-  <span class="bridge-dot"></span><span>BOKAN</span><span class="opacity-60">•</span><span>ONE OPERATING PLATFORM</span><span class="opacity-60">•</span><span>PRIME + BLACKROCK</span>
+  <span class="bridge-dot"></span><span>BOKAN</span><span class="opacity-60">•</span><span>ONE OPERATING PLATFORM</span><span class="opacity-60">•</span><span>BLACKROCK ONLY</span>
 </div>
 <div id="review-access-note" class="no-print fixed bottom-3 right-3 z-[60] max-w-sm bg-white border border-slate-200 shadow-lg rounded-xl px-4 py-3 text-xs text-slate-600">
   <strong class="text-slate-900">BOKAN Review Build</strong><br>Authentication is intentionally bypassed for this UI review. Production access will be department/role scoped (Admin, HR, Sales, Finance, etc.).
@@ -1006,7 +1002,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <!-- Mobile topbar -->
   <div class="md:hidden fixed top-0 inset-x-0 bg-[#1C252C] text-white z-30 flex items-center justify-between px-4 py-3 no-print">
     <button onclick="toggleSidebar()" class="text-lg leading-none">☰</button>
-    <div class="font-bold text-xs">PRIME GROUP PLC</div>
+    <div class="font-bold text-xs">BOKAN ERP</div>
     <div style="width:22px"></div>
   </div>
   <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden"></div>
@@ -1017,7 +1013,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <div class="w-8 h-8 rounded bg-[#24364B] flex items-center justify-center font-bold text-xs text-white">P</div>
       <div>
         <div class="font-bold text-xs leading-tight tracking-wide">BOKAN PLATFORM</div>
-        <div class="text-[10px] text-[#BABEC5]">PRIME + BLACKROCK</div>
+        <div class="text-[10px] text-[#BABEC5]">BLACKROCK ONLY</div>
       </div>
     </div>
     <nav id="sidebar-nav" class="flex-1 overflow-y-auto p-3 space-y-1"></nav>
@@ -1039,37 +1035,17 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
 
 
-<section id="tab-groupcommand" class="tab-panel hidden">
-  <div class="mb-4"><div class="page-eyebrow">BOKAN Group</div><h2 class="text-2xl font-bold text-[#10284A]">BOKAN Group Command Center</h2><p class="text-sm text-slate-500">Consolidated management view across PRIME Investment Group PLC and BlackRock Investment PLC.</p></div>
-  <div class="bokan-operating-note mb-4"><strong>Operating principle:</strong> one BOKAN operating platform, two independent legal companies, shared commercial and operational capability, separate financial accountability.</div>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-    <div class="prime-control-card p-4"><div class="prime-kpi">Active legal entities</div><div class="prime-kpi-value">2</div><div class="text-[11px] text-slate-500 mt-1">PRIME + BlackRock</div></div>
-    <div class="prime-control-card p-4"><div class="prime-kpi">Shared brand</div><div class="prime-kpi-value">BOKAN</div><div class="text-[11px] text-slate-500 mt-1">Commercial & operating ecosystem</div></div>
-    <div class="prime-control-card p-4"><div class="prime-kpi">Ownership model</div><div class="prime-kpi-value">3D</div><div class="text-[11px] text-slate-500 mt-1">Legal · Commercial · Operational</div></div>
-  </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="prime-control-card p-4"><div class="corp-card-title">Entity roles</div><div class="space-y-2 text-xs"><div class="stat-line"><span class="label">PRIME</span><span class="value">Capital, purchasing, inventory, sales, finance</span></div><div class="stat-line"><span class="label">BlackRock</span><span class="value">Capital, marketing, CRM, sales, finance</span></div><div class="stat-line"><span class="label">BOKAN</span><span class="value">Shared platform & coordination</span></div></div></div>
-    <div class="prime-control-card p-4"><div class="corp-card-title">Management control</div><div class="space-y-2 text-xs"><div class="stat-line"><span class="label">Customer allocation</span><span class="value">Management discretion / capacity / volume / fairness</span></div><div class="stat-line"><span class="label">Intercompany</span><span class="value">Only when a real entity-to-entity transaction exists</span></div><div class="stat-line"><span class="label">Shared warehouse</span><span class="value">Shared operating resource; stock remains owner-specific</span></div></div></div>
-  </div>
-</section>
 
-<section id="tab-companycontext" class="tab-panel hidden">
-  <div class="mb-4"><div class="page-eyebrow">Governance</div><h2 class="text-2xl font-bold text-[#10284A]">Company Context & Ownership</h2><p class="text-sm text-slate-500">The active context is a navigation and control cue; it does not merge the legal entities.</p></div>
-  <div class="bokan-owner-grid mb-4">
-    <div class="bokan-owner-card"><div class="bokan-owner-label">Legal Owner</div><div class="bokan-owner-value">The company legally responsible for the transaction, inventory, AR/AP and profit.</div></div>
-    <div class="bokan-owner-card"><div class="bokan-owner-label">Commercial Owner</div><div class="bokan-owner-value">The team/person responsible for acquiring and managing the customer relationship.</div></div>
-    <div class="bokan-owner-card"><div class="bokan-owner-label">Operational Owner</div><div class="bokan-owner-value">The team/company responsible for fulfillment, warehouse and logistics execution.</div></div>
-  </div>
-  <div class="prime-control-card p-4"><div class="corp-card-title">Example operating flow</div><div class="text-xs text-slate-600 leading-6">BlackRock salesperson acquires customer → management allocates opportunity to PRIME → PRIME owns inventory and legally sells → BlackRock remains commercial relationship owner → BOKAN logistics coordinates delivery. <strong>No intercompany transaction is created merely because BlackRock generated the customer.</strong></div></div>
-</section>
+
+
 
 <section id="tab-opportunityallocation" class="tab-panel hidden">
   <div class="mb-4"><div class="page-eyebrow">Commercial Operations</div><h2 class="text-2xl font-bold text-[#10284A]">Opportunity & Customer Allocation</h2><p class="text-sm text-slate-500">Capture who sourced the relationship, who sells, who owns stock and who fulfills the order.</p></div>
   <div class="prime-control-card p-4 mb-4"><div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-    <div><label class="text-xs font-bold text-slate-600">Lead / opportunity source</label><select id="bokan-lead-source" class="w-full border p-2 rounded text-xs"><option>BlackRock Marketing</option><option>PRIME Sales</option><option>Referral</option><option>Factory / Supplier</option><option>Existing Customer</option><option>Management</option></select></div>
-    <div><label class="text-xs font-bold text-slate-600">Legal selling entity</label><select id="bokan-selling-entity" class="w-full border p-2 rounded text-xs"><option value="PRIME">PRIME Investment Group PLC</option><option value="BLACKROCK">BlackRock Investment PLC</option></select></div>
+    <div><label class="text-xs font-bold text-slate-600">Lead / opportunity source</label><select id="bokan-lead-source" class="w-full border p-2 rounded text-xs"><option>BlackRock Marketing</option><option>BLACKROCK Sales</option><option>Referral</option><option>Factory / Supplier</option><option>Existing Customer</option><option>Management</option></select></div>
+    <div><label class="text-xs font-bold text-slate-600">Legal selling entity</label><input type="hidden" id="bokan-selling-entity" value="BLACKROCK"></div>
     <div><label class="text-xs font-bold text-slate-600">Commercial owner</label><input id="bokan-commercial-owner" class="w-full border p-2 rounded text-xs" placeholder="Salesperson / account manager"></div>
-    <div><label class="text-xs font-bold text-slate-600">Operational / fulfillment owner</label><select id="bokan-ops-owner" class="w-full border p-2 rounded text-xs"><option>BOKAN Logistics</option><option>PRIME Operations</option><option>BlackRock Operations</option></select></div>
+    <div><label class="text-xs font-bold text-slate-600">Operational / fulfillment owner</label><select id="bokan-ops-owner" class="w-full border p-2 rounded text-xs"><option>BOKAN Logistics</option><option>BLACKROCK Operations</option><option>BlackRock Operations</option></select></div>
   </div></div>
   <div class="bokan-operating-note">Allocation rationale should be recorded when management discretion is used: transaction volume, available inventory, capacity, relationship ownership, fairness/rotation, strategic account importance, or other documented reason.</div>
 </section>
@@ -1077,13 +1053,13 @@ body:not(.force-admin) #proforma-admin-queue{ }
 <section id="tab-factoryagency" class="tab-panel hidden">
   <div class="mb-4"><div class="page-eyebrow">Strategic Supply</div><h2 class="text-2xl font-bold text-[#10284A]">Factory & Agency Management</h2><p class="text-sm text-slate-500">Manage manufacturers, sole-agent relationships and entity-specific purchasing without losing the shared BOKAN strategy.</p></div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="prime-control-card p-4"><div class="corp-card-title">Factory master</div><ul class="text-xs text-slate-600 space-y-2 list-disc pl-4"><li>Manufacturer, products and contacts</li><li>Territory and agency type</li><li>Purchasing entity: PRIME / BlackRock / both</li><li>Currency, price and payment terms</li></ul></div>
+    <div class="prime-control-card p-4"><div class="corp-card-title">Factory master</div><ul class="text-xs text-slate-600 space-y-2 list-disc pl-4"><li>Manufacturer, products and contacts</li><li>Territory and agency type</li><li>Purchasing entity: BLACKROCK ONLY</li><li>Currency, price and payment terms</li></ul></div>
     <div class="prime-control-card p-4"><div class="corp-card-title">Agency contract control</div><ul class="text-xs text-slate-600 space-y-2 list-disc pl-4"><li>Exclusivity and contract dates</li><li>Minimum purchase commitments / targets</li><li>Import and shipment requirements</li><li>Supplier performance and strategic BOKAN relationship</li></ul></div>
   </div>
 </section>
 
 <section id="tab-logisticscontrol" class="tab-panel hidden">
-  <div class="mb-4"><div class="page-eyebrow">BOKAN Operations</div><h2 class="text-2xl font-bold text-[#10284A]">BOKAN Logistics & Supply Coordination</h2><p class="text-sm text-slate-500">Coordinate procurement, warehouse, import, delivery and customer communication across both legal entities.</p></div>
+  <div class="mb-4"><div class="page-eyebrow">BOKAN Operations</div><h2 class="text-2xl font-bold text-[#10284A]">BOKAN Logistics & Supply Coordination</h2><p class="text-sm text-slate-500">Coordinate procurement, warehouse, import, delivery and customer communication within BlackRock Investment PLC.</p></div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
     <div class="prime-control-card p-4"><div class="corp-card-title">Supply</div><div class="text-xs text-slate-600">Factory orders, procurement visibility, shipment/container tracking, ETA and backorders.</div></div>
     <div class="prime-control-card p-4"><div class="corp-card-title">Warehouse</div><div class="text-xs text-slate-600">Shared warehouse coordination, stock allocation, dispatch, loading and owner-specific inventory control.</div></div>
@@ -1323,7 +1299,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="bg-white border border-[#C8D3E0] rounded-xl p-5"><div class="text-xs text-slate-500">Last Snapshot</div><div id="v40-snapshot" class="text-sm font-semibold mt-2">Not created</div></div>
   </div>
   <div class="bg-white border border-[#C8D3E0] rounded-xl p-5 mt-4">
-    <h3 class="font-bold mb-2">Development Backup</h3><p class="text-sm text-slate-500 mb-4">Create a JSON snapshot of the PRIME ERP's local development data. This does not replace a production database backup.</p>
+    <h3 class="font-bold mb-2">Development Backup</h3><p class="text-sm text-slate-500 mb-4">Create a JSON snapshot of the BOKAN ERP's local development data. This does not replace a production database backup.</p>
     <button id="v40-backup" class="bg-[#D97706] text-white rounded-lg px-4 py-2 font-semibold">Create Snapshot</button>
     <button id="v40-clear" class="border border-[#C8D3E0] rounded-lg px-4 py-2 ml-2">Refresh Audit</button>
     <pre id="v40-backup-status" class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs overflow-auto"></pre>
@@ -1351,7 +1327,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
               <label class="text-xs text-[#6B6C72]">Purchased By / Funder</label>
               <select id="lg-purchased-by" class="border border-[#D4D7DC] p-1.5 rounded w-full text-xs focus :border-[#2CA01C]">
                 <option value="none">— None —</option>
-                <option value="PRIME">PRIME</option>
+                <option value="BLACKROCK">BLACKROCK</option>
                 <option value="BR">BR</option>
               </select>
             </div>
@@ -1385,7 +1361,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
               <label class="text-xs text-[#6B6C72]">Sold By (Company)</label>
               <select id="lg-sold-by" class="border border-[#D4D7DC] p-1.5 rounded w-full text-xs focus :border-[#2CA01C]">
                 <option value="-">—</option>
-                <option value="PRIME">PRIME</option>
+                <option value="BLACKROCK">BLACKROCK</option>
                 <option value="BR">BR</option>
               </select>
             </div>
@@ -1448,7 +1424,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
               </optgroup>
             </select>
             <select id="exp-paidby" class="border border-[#D4D7DC] p-1.5 rounded text-xs focus :border-[#2CA01C]">
-              <option>PRIME</option>
+              <option>BLACKROCK</option>
               <option>BR</option>
               <option>Other</option>
             </select>
@@ -2049,7 +2025,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
       <div class="bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-6 mb-4">
         <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <h3 class="font-semibold text-[#393A3D]">PRIME Plywood Stock Report Ledger</h3>
+          <h3 class="font-semibold text-[#393A3D]">BLACKROCK Plywood Stock Report Ledger</h3>
           <button onclick="downloadLedgerCSV()" class="text-[#2CA01C] font-semibold underline text-xs no-print">Download CSV</button>
         </div>
         <div class="overflow-x-auto">
@@ -2058,7 +2034,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
               <tr class="text-left bg-[#1C252C] text-white">
                 <th class="py-1.5 px-1.5 whitespace-nowrap">Date</th>
                 <th class="py-1.5 px-1.5 whitespace-nowrap">Opening Stock</th>
-                <th class="py-1.5 px-1.5 whitespace-nowrap">Prime Factory Purch.</th>
+                <th class="py-1.5 px-1.5 whitespace-nowrap">BlackRock Factory Purch.</th>
                 <th class="py-1.5 px-1.5 whitespace-nowrap">BR Factory Purch.</th>
                 <th class="py-1.5 px-1.5 whitespace-nowrap">Shipped Kolfe</th>
                 <th class="py-1.5 px-1.5 whitespace-nowrap">In-Transit / Factory</th>
@@ -2187,7 +2163,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
         <div id="board-report" class="printable-doc bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-6 mb-4">
           <div class="border-b border-[#ECEEF1] pb-4 mb-6">
-            <h1 class="text-lg font-bold text-[#393A3D]">PRIME Investment Group Plc — Management Report</h1>
+            <h1 class="text-lg font-bold text-[#393A3D]">BLACKROCK Investment Group Plc — Management Report</h1>
             <p class="text-xs text-[#6B6C72]" id="board-report-period-label">Period: —</p>
           </div>
 
@@ -2280,8 +2256,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
             <div>
               <label>Company issuing the proforma</label>
               <select id="pfr-company" required>
-                <option value="PRIME">PRIME Investment Group Plc</option>
-                <option value="BLACKROCK">BlackRock Investment Plc</option>
+                <option value="BLACKROCK">BLACKROCK Investment Group Plc</option>
+                
               </select>
             </div>
             <div>
@@ -2416,8 +2392,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
         <div class="text-xs font-bold uppercase tracking-wide text-[#6B6C72] mb-2">Company &amp; Customer</div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
           <select id="pf-company" class="border border-[#D4D7DC] p-2 rounded text-xs" required onchange="syncProformaCompanyTIN(); loadProformaTermOptions()">
-            <option value="PRIME">PRIME Investment Group Plc</option>
-            <option value="BLACKROCK">BlackRock Investment Plc</option>
+            <option value="BLACKROCK">BLACKROCK Investment Group Plc</option>
+            
           </select>
           <div class="space-y-1"><div class="flex gap-2"><input id="pf-company-tin" placeholder="Issuing Company TIN" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyTIN()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save TIN</button></div><div class="flex gap-2"><input id="pf-company-address" placeholder="Issuer Address" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><input id="pf-company-phone" placeholder="Issuer Phone" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyContact()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save</button></div></div>
           <input id="pf-customer" list="customer-list" placeholder="Customer / Company Name" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]" required>
@@ -2501,7 +2477,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <div id="proforma-print" class="printable-doc bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-10 hidden">
         <div class="flex justify-between items-start border-b border-[#ECEEF1] pb-4 mb-6">
           <div>
-            <h1 id="pf-out-company" class="text-xl font-bold text-[#393A3D]">PRIME Investment Group Plc</h1>
+            <h1 id="pf-out-company" class="text-xl font-bold text-[#393A3D]">BLACKROCK Investment Group Plc</h1>
             <p id="pf-out-company-tin" class="text-xs font-semibold text-[#393A3D]"></p>
             <p id="pf-out-company-address" class="text-xs text-[#6B6C72]">Addis Ababa, Ethiopia</p>
             <p id="pf-out-company-phone" class="text-xs text-[#6B6C72]">Tel: 978 23 48 20</p>
@@ -2596,7 +2572,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <div id="billing-print" class="printable-doc bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-8 hidden">
         <div class="flex justify-between items-start border-b border-[#ECEEF1] pb-4 mb-6">
           <div>
-            <h1 class="text-lg font-bold text-[#393A3D]">PRIME Investment Group Plc</h1>
+            <h1 class="text-lg font-bold text-[#393A3D]">BLACKROCK Investment Group Plc</h1>
             <p class="text-xs text-[#6B6C72]">Addis Ababa, Ethiopia</p>
             <p class="text-xs text-[#6B6C72]">Tel: 978 23 48 20</p>
           </div>
@@ -2648,7 +2624,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <div id="wht-form-wrap" class="bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-6 mb-4 no-print hidden">
         <h3 class="font-semibold mb-3 text-[#393A3D]">Withholding Tax Refund Request — Line Items</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <div><label class="text-xs text-[#6B6C72]">Company</label><select id="wht-company" class="border border-[#D4D7DC] p-2 rounded text-xs"><option value="PRIME">PRIME Investment Group Plc</option><option value="BLACKROCK">BlackRock Investment Plc</option></select></div>
+          <div><label class="text-xs text-[#6B6C72]">Company</label><select id="wht-company" class="border border-[#D4D7DC] p-2 rounded text-xs"><option value="BLACKROCK">BLACKROCK Investment Group Plc</option></select></div>
           <input id="wht-vendor" placeholder="Vendor / Factory Name" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]" required>
           <input id="wht-vendor-address" placeholder="Vendor Address" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]">
           <input id="wht-vendor-tin" placeholder="Vendor TIN (optional)" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]">
@@ -2662,7 +2638,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
       <div id="wht-print" class="printable-doc bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-10 hidden">
         <div class="mb-8">
-          <h1 id="wht-out-company" class="text-lg font-bold text-[#393A3D]">PRIME Investment Group Plc</h1>
+          <h1 id="wht-out-company" class="text-lg font-bold text-[#393A3D]">BLACKROCK Investment Group Plc</h1>
           <p id="wht-out-company-address" class="text-xs text-[#6B6C72]">Addis Ababa, Ethiopia</p>
           <p id="wht-out-company-phone" class="text-xs text-[#6B6C72]">Tel: 978 23 48 20</p>
         </div>
@@ -2676,10 +2652,10 @@ body:not(.force-admin) #proforma-admin-queue{ }
         </div>
         <p class="text-xs mb-3">Dear Sir/Madam,</p>
         <p class="text-xs mb-3">
-          This letter is to formally request a refund from your organization in respect of the amounts detailed below. In accordance with the Ethiopian Income Tax Proclamation No. 979/2016 and its withholding tax regulations, PRIME Investment Group Plc, as a withholding agent, is required to withhold the applicable percentage from payments made to suppliers of goods and remit the withheld amount directly to the Ministry of Revenue.
+          This letter is to formally request a refund from your organization in respect of the amounts detailed below. In accordance with the Ethiopian Income Tax Proclamation No. 979/2016 and its withholding tax regulations, BLACKROCK Investment Group Plc, as a withholding agent, is required to withhold the applicable percentage from payments made to suppliers of goods and remit the withheld amount directly to the Ministry of Revenue.
         </p>
         <p class="text-xs mb-3">
-          For the transactions listed below, your organization required full payment of the gross invoice amount without allowing the applicable withholding deduction at source. To remain compliant, PRIME Investment Group Plc has separately remitted the withholding tax due on these transactions to the Ministry of Revenue and holds the corresponding withholding tax certificate(s) as evidence. As a result, your organization has received an amount in excess of what was contractually due, and we kindly request a refund of the amounts shown below.
+          For the transactions listed below, your organization required full payment of the gross invoice amount without allowing the applicable withholding deduction at source. To remain compliant, BLACKROCK Investment Group Plc has separately remitted the withholding tax due on these transactions to the Ministry of Revenue and holds the corresponding withholding tax certificate(s) as evidence. As a result, your organization has received an amount in excess of what was contractually due, and we kindly request a refund of the amounts shown below.
         </p>
         <table class="w-full text-xs border-collapse mb-4">
           <thead><tr class="border-b-2 border-[#393A3D] text-left">
@@ -2726,7 +2702,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
           <p class="text-xs text-[#8D9096] mt-1">Fill in the bracketed [placeholders] in the subject/body before generating.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <div><label class="text-xs text-[#6B6C72]">Company</label><select id="gen-company" class="border border-[#D4D7DC] p-2 rounded text-xs"><option value="PRIME">PRIME Investment Group Plc</option><option value="BLACKROCK">BlackRock Investment Plc</option></select></div>
+          <div><label class="text-xs text-[#6B6C72]">Company</label><select id="gen-company" class="border border-[#D4D7DC] p-2 rounded text-xs"><option value="BLACKROCK">BLACKROCK Investment Group Plc</option></select></div>
           <input id="gen-to" placeholder="To (Name / Organization)" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]" required>
           <input id="gen-address" placeholder="Address (optional)" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]">
         </div>
@@ -2737,7 +2713,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
       <div id="generic-print" class="printable-doc bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-10 hidden">
         <div class="mb-8">
-          <h1 id="gen-out-company" class="text-lg font-bold text-[#393A3D]">PRIME Investment Group Plc</h1>
+          <h1 id="gen-out-company" class="text-lg font-bold text-[#393A3D]">BLACKROCK Investment Group Plc</h1>
           <p id="gen-out-company-address" class="text-xs text-[#6B6C72]">Addis Ababa, Ethiopia</p>
           <p id="gen-out-company-phone" class="text-xs text-[#6B6C72]">Tel: 978 23 48 20</p>
         </div>
@@ -3581,7 +3557,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 </section>
 
 
-<!-- PRIME ERP CONTROL PAGES: kept inside the application content area -->
+<!-- BOKAN ERP CONTROL PAGES: kept inside the application content area -->
 <section id="tab-salesdiscipline" class="tab-panel hidden">
   <div class="page-head mb-5">
     <div class="page-eyebrow">SALES MANAGEMENT</div>
@@ -4113,7 +4089,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 
 <section id="tab-enterprise_release" class="tab-panel hidden">
   <div class="mb-4">
-    <div class="page-eyebrow">PRIME ERP — Enterprise Release</div>
+    <div class="page-eyebrow">BOKAN ERP — Enterprise Release</div>
     <h2 class="text-2xl font-bold text-[#10284A]">Enterprise Release Control Center</h2>
     <p class="text-sm text-slate-500">Final integrated management layer for security, data integrity, workflow, audit, backup, deployment readiness and cross-module health.</p>
   </div>
@@ -4303,7 +4279,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="flex-1 min-w-[240px]"><label>Global Customer Search</label><input id="sh-search" placeholder="Company, phone, contact, product..." oninput="bokanSalesHub.render()"></div>
     <div><label>Workspace</label><select id="sh-scope" onchange="bokanSalesHub.render()"><option value="all">All Accounts</option><option value="mine">My Accounts</option><option value="overdue">Overdue</option><option value="today">Due Today</option><option value="risk">At Risk</option><option value="openorder">Open Orders</option></select></div>
     <div><label>Salesperson</label><select id="sh-rep" onchange="bokanSalesHub.render()"></select></div>
-    <div><label>Selling Entity</label><select id="sh-entity" onchange="bokanSalesHub.render()"><option value="">All</option><option>PRIME Investment Group PLC</option><option>BlackRock Investment PLC</option></select></div>
+    <div><label>Selling Entity</label><select id="sh-entity" onchange="bokanSalesHub.render()"><option value="">All</option><option>BLACKROCK Investment Group PLC</option><option>BlackRock Investment PLC</option></select></div>
     <button type="button" class="bg-[#24364B] text-white rounded px-4 py-2 text-xs font-bold" onclick="bokanSalesHub.exportCSV()">Export CSV</button>
   </div></div>
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-5">
@@ -4311,8 +4287,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">Follow-Up Discipline</h2><div class="space-y-2 text-xs" id="sh-discipline"></div><div class="border-t mt-4 pt-4"><div class="corp-card-title">Customer Health</div><div id="sh-health-bars" class="space-y-2 mt-3"></div></div></div>
   </div>
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-5">
-    <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">Add Customer / Account</h2><form id="sh-customer-form" class="space-y-2"><input id="sh-c-name" required placeholder="Company / Customer Name *"><input id="sh-c-contact" placeholder="Contact Person"><input id="sh-c-phone" placeholder="Phone / WhatsApp"><input id="sh-c-email" type="email" placeholder="Email"><input id="sh-c-location" placeholder="Address / Project Site"><div class="grid grid-cols-2 gap-2"><select id="sh-c-rep"></select><select id="sh-c-entity"><option>PRIME Investment Group PLC</option><option>BlackRock Investment PLC</option></select></div><div class="grid grid-cols-2 gap-2"><select id="sh-c-type"><option>Construction</option><option>Real Estate</option><option>Government</option><option>Trading</option><option>Corporate</option><option>Individual</option><option>Other</option></select><select id="sh-c-priority"><option>Normal</option><option>High</option><option>Strategic</option></select></div><textarea id="sh-c-notes" rows="2" placeholder="Account notes / project details"></textarea><button class="w-full bg-[#2CA01C] text-white rounded py-2 text-xs font-bold">Create Account</button></form></div>
-    <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">Salesperson Master</h2><p class="text-[11px] text-slate-500 mb-3">Add new hires here and make them immediately available for account assignment.</p><form id="sh-rep-form" class="space-y-2"><input id="sh-r-name" required placeholder="Full Name *"><input id="sh-r-phone" placeholder="Phone"><input id="sh-r-email" type="email" placeholder="Email"><div class="grid grid-cols-2 gap-2"><input id="sh-r-territory" placeholder="Territory"><input id="sh-r-target" type="number" placeholder="Monthly Target ETB"></div><div class="grid grid-cols-2 gap-2"><select id="sh-r-entity"><option>PRIME Investment Group PLC</option><option>BlackRock Investment PLC</option><option>BOKAN Shared</option></select><select id="sh-r-status"><option>Active</option><option>Inactive</option></select></div><button class="w-full bg-[#24364B] text-white rounded py-2 text-xs font-bold">Add Salesperson</button></form><div class="mt-4 border-t pt-3"><div class="corp-card-title">Sales Team</div><div id="sh-rep-list" class="space-y-1 mt-2 max-h-40 overflow-auto"></div></div></div>
+    <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">Add Customer / Account</h2><form id="sh-customer-form" class="space-y-2"><input id="sh-c-name" required placeholder="Company / Customer Name *"><input id="sh-c-contact" placeholder="Contact Person"><input id="sh-c-phone" placeholder="Phone / WhatsApp"><input id="sh-c-email" type="email" placeholder="Email"><input id="sh-c-location" placeholder="Address / Project Site"><div class="grid grid-cols-2 gap-2"><select id="sh-c-rep"></select><select id="sh-c-entity"><option>BLACKROCK Investment Group PLC</option><option>BlackRock Investment PLC</option></select></div><div class="grid grid-cols-2 gap-2"><select id="sh-c-type"><option>Construction</option><option>Real Estate</option><option>Government</option><option>Trading</option><option>Corporate</option><option>Individual</option><option>Other</option></select><select id="sh-c-priority"><option>Normal</option><option>High</option><option>Strategic</option></select></div><textarea id="sh-c-notes" rows="2" placeholder="Account notes / project details"></textarea><button class="w-full bg-[#2CA01C] text-white rounded py-2 text-xs font-bold">Create Account</button></form></div>
+    <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">Salesperson Master</h2><p class="text-[11px] text-slate-500 mb-3">Add new hires here and make them immediately available for account assignment.</p><form id="sh-rep-form" class="space-y-2"><input id="sh-r-name" required placeholder="Full Name *"><input id="sh-r-phone" placeholder="Phone"><input id="sh-r-email" type="email" placeholder="Email"><div class="grid grid-cols-2 gap-2"><input id="sh-r-territory" placeholder="Territory"><input id="sh-r-target" type="number" placeholder="Monthly Target ETB"></div><div class="grid grid-cols-2 gap-2"><select id="sh-r-entity"><option>BLACKROCK Investment Group PLC</option><option>BlackRock Investment PLC</option><option>BOKAN Shared</option></select><select id="sh-r-status"><option>Active</option><option>Inactive</option></select></div><button class="w-full bg-[#24364B] text-white rounded py-2 text-xs font-bold">Add Salesperson</button></form><div class="mt-4 border-t pt-3"><div class="corp-card-title">Sales Team</div><div id="sh-rep-list" class="space-y-1 mt-2 max-h-40 overflow-auto"></div></div></div>
     <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">Purchase Requirement / Opportunity</h2><form id="sh-opp-form" class="space-y-2"><select id="sh-o-customer" required></select><input id="sh-o-product" required placeholder="Product / SKU *"><div class="grid grid-cols-2 gap-2"><input id="sh-o-qty" type="number" step="0.01" placeholder="Estimated Qty"><input id="sh-o-value" type="number" step="0.01" placeholder="Estimated Value ETB"></div><div class="grid grid-cols-2 gap-2"><input id="sh-o-date" type="date"><select id="sh-o-stage"><option>Qualified</option><option>Quotation</option><option>Negotiation</option><option>Order Expected</option><option>On Hold</option><option>Won</option><option>Lost</option></select></div><div class="grid grid-cols-2 gap-2"><input id="sh-o-next" type="date"><input id="sh-o-competitor" placeholder="Competitor (optional)"></div><textarea id="sh-o-notes" rows="2" placeholder="Requirement, budget, timing, project"></textarea><button class="w-full bg-[#2CA01C] text-white rounded py-2 text-xs font-bold">Save Opportunity</button></form></div>
   </div>
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-5">
@@ -4320,7 +4296,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-3">After-Sales & Repeat Purchase</h2><div id="sh-after-list" class="space-y-2"></div><button class="mt-3 bg-[#2CA01C] text-white rounded px-3 py-2 text-xs font-bold" onclick="bokanSalesHub.addAfterSales()">+ Schedule After-Sales</button></div>
   </div>
   <div class="bg-white rounded-lg border p-4 mb-5"><div class="flex flex-wrap justify-between items-center gap-2 mb-3"><div><h2 class="font-bold">Customer Activity Timeline</h2><p class="text-[11px] text-slate-500">Permanent history for calls, WhatsApp, meetings, site visits, quotations, orders and service.</p></div><button class="bg-[#2CA01C] text-white rounded px-3 py-2 text-xs font-bold" onclick="bokanSalesHub.openActivity()">+ Add Activity</button></div><div id="sh-selected-account" class="text-xs text-slate-500 mb-3">Select View on an account to inspect its timeline.</div><div id="sh-timeline" class="space-y-2 max-h-72 overflow-auto"></div></div>
-  <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-2">Operating Rules</h2><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-xs"><div class="bg-slate-50 rounded p-3"><strong>Every customer has an owner.</strong><div class="text-slate-500 mt-1">Ownership is visible and reassignable.</div></div><div class="bg-slate-50 rounded p-3"><strong>Every opportunity has a next action.</strong><div class="text-slate-500 mt-1">Open opportunities without dates are flagged.</div></div><div class="bg-slate-50 rounded p-3"><strong>Every order has a status.</strong><div class="text-slate-500 mt-1">Stuck and delayed orders remain visible.</div></div><div class="bg-slate-50 rounded p-3"><strong>Assignment is not intercompany.</strong><div class="text-slate-500 mt-1">Only actual PRIME ↔ BlackRock transactions create intercompany records.</div></div></div></div>
+  <div class="bg-white rounded-lg border p-4"><h2 class="font-bold mb-2">Operating Rules</h2><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-xs"><div class="bg-slate-50 rounded p-3"><strong>Every customer has an owner.</strong><div class="text-slate-500 mt-1">Ownership is visible and reassignable.</div></div><div class="bg-slate-50 rounded p-3"><strong>Every opportunity has a next action.</strong><div class="text-slate-500 mt-1">Open opportunities without dates are flagged.</div></div><div class="bg-slate-50 rounded p-3"><strong>Every order has a status.</strong><div class="text-slate-500 mt-1">Stuck and delayed orders remain visible.</div></div><div class="bg-slate-50 rounded p-3"><strong>Assignment is not intercompany.</strong><div class="text-slate-500 mt-1">Only actual BLACKROCK ↔ BlackRock transactions create intercompany records.</div></div></div></div>
 </section>
 
 <section id="tab-supplytower" class="tab-panel hidden">
@@ -4328,7 +4304,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div><div class="page-eyebrow">BOKAN Supply & Logistics</div><h2 class="text-2xl font-bold text-[#10284A]">Supply & Logistics Control Tower</h2><p class="text-sm text-slate-500">Connect expected sales demand to procurement, inbound shipments, inventory allocation and customer delivery without changing legal ownership.</p></div>
     <div class="flex gap-2"><button class="slx-btn slx-btn-secondary" onclick="bokanSupplyTower.refresh()">Refresh Control Tower</button><button class="slx-btn slx-btn-primary" onclick="bokanSupplyTower.exportCSV()">Export Supply Plan</button></div>
   </div>
-  <div class="slx-banner"><div><strong>Operating principle:</strong> Sales creates demand visibility; the legal inventory owner remains explicit; BOKAN coordinates supply and logistics.</div><span class="slx-pill">PRIME / BLACKROCK / BOKAN</span></div>
+  <div class="slx-banner"><div><strong>Operating principle:</strong> Sales creates demand visibility; the legal inventory owner remains explicit; BOKAN coordinates supply and logistics.</div><span class="slx-pill">BLACKROCK / BLACKROCK / BOKAN</span></div>
   <div id="st-production-status" class="text-xs text-slate-500 mb-3" role="status">Review mode: sample data only. Live Supply & Logistics is not enabled.</div>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <div class="slx-kpi"><div>Demand Value</div><strong id="st-demand">0</strong><span>Open expected sales</span></div>
@@ -4341,8 +4317,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="slx-card"><div class="slx-card-head"><div><h3>Control Rules</h3><p>Operational guardrails.</p></div></div><div class="space-y-2 text-xs"><div class="slx-rule"><b>1</b><span>No stock allocation without a legal inventory owner.</span></div><div class="slx-rule"><b>2</b><span>Expected demand can inform procurement before an order is legally confirmed.</span></div><div class="slx-rule"><b>3</b><span>Partial delivery and backorder status remain visible.</span></div><div class="slx-rule"><b>4</b><span>Intercompany activity is created only for an actual entity-to-entity transaction.</span></div></div></div>
   </div>
   <div class="grid lg:grid-cols-2 gap-4 mb-5">
-    <div class="slx-card"><div class="slx-card-head"><div><h3>Inbound Procurement & Shipments</h3><p>Factory orders, containers and ETA control.</p></div><button class="slx-mini" onclick="showTab('procurement')">Open Procurement</button></div><div class="overflow-x-auto"><table class="slx-table"><thead><tr><th>Factory / Supplier</th><th>Purchasing Entity</th><th>Qty</th><th>ETA</th><th>Status</th></tr></thead><tbody id="st-inbound-rows"></tbody></table></div><div class="slx-form-grid"><input id="st-factory" placeholder="Factory / Supplier"><select id="st-entity"><option>PRIME Investment Group PLC</option><option>BlackRock Investment PLC</option><option>BOKAN Coordinated</option></select><select id="st-purchase-document"><option value="">No purchase order link</option></select><input id="st-qty" type="number" placeholder="Quantity"><input id="st-eta" type="date"><select id="st-status"><option>Planned</option><option>Ordered</option><option>In Production</option><option>Shipped</option><option>At Port</option><option>Received</option></select><button class="slx-btn slx-btn-primary" onclick="bokanSupplyTower.addInbound()">Add Inbound Plan</button></div></div>
-    <div class="slx-card"><div class="slx-card-head"><div><h3>Warehouse Allocation & Delivery</h3><p>Reserve stock, prepare dispatch and monitor delivery exceptions.</p></div><button class="slx-mini" onclick="showTab('inventorycontrol')">Open Inventory</button></div><div class="overflow-x-auto"><table class="slx-table"><thead><tr><th>Customer</th><th>Legal Owner</th><th>Required</th><th>Allocated</th><th>Status</th></tr></thead><tbody id="st-delivery-rows"></tbody></table></div><div class="slx-form-grid"><input id="st-customer" placeholder="Customer / Project"><select id="st-owner"><option>PRIME Investment Group PLC</option><option>BlackRock Investment PLC</option></select><select id="st-sales-document"><option value="">No sales document link</option></select><input id="st-required" type="number" placeholder="Required Qty"><input id="st-allocated" type="number" placeholder="Allocated Qty"><select id="st-delivery-status"><option>Stock Check</option><option>Reserved</option><option>Ready for Delivery</option><option>Dispatched</option><option>Delivered</option><option>Backorder</option></select><button class="slx-btn slx-btn-primary" onclick="bokanSupplyTower.addDelivery()">Add Delivery Control</button></div></div>
+    <div class="slx-card"><div class="slx-card-head"><div><h3>Inbound Procurement & Shipments</h3><p>Factory orders, containers and ETA control.</p></div><button class="slx-mini" onclick="showTab('procurement')">Open Procurement</button></div><div class="overflow-x-auto"><table class="slx-table"><thead><tr><th>Factory / Supplier</th><th>Purchasing Entity</th><th>Qty</th><th>ETA</th><th>Status</th></tr></thead><tbody id="st-inbound-rows"></tbody></table></div><div class="slx-form-grid"><input id="st-factory" placeholder="Factory / Supplier"><select id="st-entity"><option>BLACKROCK Investment Group PLC</option><option>BlackRock Investment PLC</option><option>BOKAN Coordinated</option></select><select id="st-purchase-document"><option value="">No purchase order link</option></select><input id="st-qty" type="number" placeholder="Quantity"><input id="st-eta" type="date"><select id="st-status"><option>Planned</option><option>Ordered</option><option>In Production</option><option>Shipped</option><option>At Port</option><option>Received</option></select><button class="slx-btn slx-btn-primary" onclick="bokanSupplyTower.addInbound()">Add Inbound Plan</button></div></div>
+    <div class="slx-card"><div class="slx-card-head"><div><h3>Warehouse Allocation & Delivery</h3><p>Reserve stock, prepare dispatch and monitor delivery exceptions.</p></div><button class="slx-mini" onclick="showTab('inventorycontrol')">Open Inventory</button></div><div class="overflow-x-auto"><table class="slx-table"><thead><tr><th>Customer</th><th>Legal Owner</th><th>Required</th><th>Allocated</th><th>Status</th></tr></thead><tbody id="st-delivery-rows"></tbody></table></div><div class="slx-form-grid"><input id="st-customer" placeholder="Customer / Project"><select id="st-owner"><option>BLACKROCK Investment Group PLC</option><option>BlackRock Investment PLC</option></select><select id="st-sales-document"><option value="">No sales document link</option></select><input id="st-required" type="number" placeholder="Required Qty"><input id="st-allocated" type="number" placeholder="Allocated Qty"><select id="st-delivery-status"><option>Stock Check</option><option>Reserved</option><option>Ready for Delivery</option><option>Dispatched</option><option>Delivered</option><option>Backorder</option></select><button class="slx-btn slx-btn-primary" onclick="bokanSupplyTower.addDelivery()">Add Delivery Control</button></div></div>
   </div>
   <div class="slx-card"><div class="slx-card-head"><div><h3>Exceptions & Management Attention</h3><p>Issues that require a commercial, procurement, warehouse or logistics decision.</p></div></div><div class="overflow-x-auto"><table class="slx-table"><thead><tr><th>Priority</th><th>Area</th><th>Issue</th><th>Owner</th><th>Action</th></tr></thead><tbody id="st-exception-rows"></tbody></table></div></div>
 </section>
@@ -4363,7 +4339,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   </div>
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
     <div class="bg-white border rounded-xl p-5"><h3 class="font-bold mb-2">Controlled People Flow</h3><ol class="text-sm text-slate-600 space-y-2 list-decimal list-inside"><li>Employee master record → active employment status and company scope.</li><li>Attendance and approved leave → payroll inputs.</li><li>Payroll preparation → deductions, employer costs and net pay review.</li><li>Payroll approval → controlled payroll run and posting reference.</li><li>Payroll posting → dedicated payroll liabilities and expense accounts; no VAT account misuse.</li><li>Departure/deactivation → access removed while historical HR records remain auditable.</li></ol></div>
-    <div class="bg-white border rounded-xl p-5"><h3 class="font-bold mb-2">Control Rules</h3><ul class="text-sm text-slate-600 space-y-2"><li>• Legal employer/company is explicit on employee and payroll records.</li><li>• Only active employees are eligible for new operational activity.</li><li>• Payroll approval is separate from payroll preparation.</li><li>• Payroll payable and payroll deductions use dedicated liability accounts.</li><li>• Historical attendance, leave and payroll records remain immutable/auditable after departure.</li><li>• PRIME and BlackRock payroll records remain entity-scoped.</li></ul></div>
+    <div class="bg-white border rounded-xl p-5"><h3 class="font-bold mb-2">Control Rules</h3><ul class="text-sm text-slate-600 space-y-2"><li>• Legal employer/company is explicit on employee and payroll records.</li><li>• Only active employees are eligible for new operational activity.</li><li>• Payroll approval is separate from payroll preparation.</li><li>• Payroll payable and payroll deductions use dedicated liability accounts.</li><li>• Historical attendance, leave and payroll records remain immutable/auditable after departure.</li><li>• BLACKROCK and BlackRock payroll records remain entity-scoped.</li></ul></div>
   </div>
 </section>
 </main>
@@ -4408,17 +4384,17 @@ function makeMockSupabase() {
     employment_type: 'Full-Time', hire_date: '2025-03-01', status: 'Active', phone: '+251911223344',
     email: 'selam@primegroup.local', emergency_contact: '', driver_license_no: '', education_level: "Bachelor's Degree",
     notes: '', created_at: '2025-03-01T09:00:00Z' });
-  store.stock_ledger.push({ id: genId(), entry_date: '2026-08-19', purchased_by: 'PRIME', factory_qty: 600,
+  store.stock_ledger.push({ id: genId(), entry_date: '2026-08-19', purchased_by: 'BLACKROCK', factory_qty: 600,
     purchase_price: 4500, shipped_kolfe_qty: 600, kolfe_to_mes_qty: 200, sales_kolfe_qty: 50, sales_mes_qty: 80,
-    sold_by: 'PRIME', sale_price: 5200, notes: 'plywood yellow', created_by: 'demo-user', created_at: '2026-08-19T14:48:48Z' });
+    sold_by: 'BLACKROCK', sale_price: 5200, notes: 'plywood yellow', created_by: 'demo-user', created_at: '2026-08-19T14:48:48Z' });
   store.stock_entries.push({ id: genId(), entry_type: 'purchase', item_name: 'Plywood 18mm', quantity: 600,
     unit_price: 4500, total: 2700000, location: 'Kolfe', notes: '', created_by: 'demo-user', created_at: '2026-08-19T14:48:48Z' });
   store.stock_entries.push({ id: genId(), entry_type: 'sale', item_name: 'Plywood 18mm', quantity: 130,
     unit_price: 5200, total: 676000, location: 'Mesalemya', notes: '', created_by: 'demo-user', created_at: '2026-08-24T11:20:00Z' });
   store.expenses.push({ id: genId(), category: 'Direct Cost / COGS — Freight-In / Inbound Transport', amount: 84000,
-    description: 'Inbound freight to Kolfe', location: 'Kolfe', paid_by: 'PRIME', created_by: 'demo-user', created_at: '2026-08-20T09:00:00Z' });
+    description: 'Inbound freight to Kolfe', location: 'Kolfe', paid_by: 'BLACKROCK', created_by: 'demo-user', created_at: '2026-08-20T09:00:00Z' });
   store.expenses.push({ id: genId(), category: 'Administrative / G&A — Office Rent', amount: 45000,
-    description: 'August rent, Head Office', location: 'Head Office / Merkato Africa Building', paid_by: 'PRIME', created_by: 'demo-user', created_at: '2026-08-01T09:00:00Z' });
+    description: 'August rent, Head Office', location: 'Head Office / Merkato Africa Building', paid_by: 'BLACKROCK', created_by: 'demo-user', created_at: '2026-08-01T09:00:00Z' });
   store.customers.push({ id: genId(), customer_name: 'Sugar Corporation / Meti Desta', contact_person: 'Meti Desta',
     location: 'Addis Ababa', phone: '+251911000000', phones: ['+251911000000'], email: '', current_status: 'Meeting Scheduled',
     lead_source: 'Direct Visit', assigned_rep: 'demo-sales' });
@@ -4667,8 +4643,8 @@ const NAV_TREE = [
   { type: 'label', text: 'Executive Control' },
   { id: 'managementqueue', label: 'Management Action Center', indent: true },
   { type: 'label', text: 'BOKAN Operating Model' },
-  { id: 'groupcommand', label: 'BOKAN Group Command Center', indent: true },
-  { id: 'companycontext', label: 'Company Context & Ownership', indent: true },
+  { id:  label: 'BOKAN Group Command Center', indent: true },
+  { id:  label: 'Company Context & Ownership', indent: true },
   { id: 'opportunityallocation', label: 'Opportunity & Customer Allocation', indent: true },
   { id: 'factoryagency', label: 'Factory & Agency Management', indent: true },
   { id: 'logisticscontrol', label: 'BOKAN Logistics & Supply Coordination', indent: true },
@@ -4697,7 +4673,7 @@ const DEPARTMENTS = [
   { id: 'dataentry',  label: 'Data Entry',               desc: 'Log stock movements, expenses & upload documents', tabs: ['dataentry','repository'] },
   { id: 'finance',    label: 'Finance & Accounting',     desc: 'Stock report, expense ledger, billing, letters',   tabs: ['overview','mqreport','stockreport','expenseledger','dataentry','letters','billing','repository','chartaccounts','vatcontrol','financialstatements','periodclose','procurementflow','inventoryalerts','financeproduction'] },
   { id: 'hr',         label: 'Human Resources',          desc: 'Employee records, leave, performance, discipline', tabs: ['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports', 'leave','payrollprep','performance','hrproduction'] },
-  { id: 'management', label: 'Management / Executive',   desc: 'Dashboards, reports & company-wide oversight',     tabs: ['overview','mqreport','stockreport','expenseledger','hrreports','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower'] },
+  { id: 'management', label: 'Management / Executive',   desc: 'Dashboards, reports & company-wide oversight',     tabs: ['overview','mqreport','stockreport','expenseledger','hrreports','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','opportunityallocation','factoryagency','logisticscontrol','supplytower'] },
   { id: 'admin',      label: 'Administration',           desc: 'Full system access & user management',            tabs: NAV_TREE.filter(e => e.id).map(e => e.id) }
 ];
 
@@ -4710,23 +4686,16 @@ const CORPORATE_CONTROL_TABS = [
 ];
 
 const COMPANY_OPTIONS = {
-  PRIME: {
-    key: 'PRIME',
-    name: 'PRIME Investment Group Plc',
-    address: 'Addis Ababa, Ethiopia',
-    phone: '978 23 48 20',
-    tin: '009588209'
-  },
   BLACKROCK: {
     key: 'BLACKROCK',
-    name: 'BlackRock Investment Plc',
+    name: 'BlackRock Investment PLC',
     address: 'Meskel Flower, Addis Ababa, Ethiopia',
     phone: '978 23 48 20',
     tin: '00930533495'
   }
 };
 let activeProformaRequestId = null;
-function syncProformaCompanyTIN(){ const key=document.getElementById('pf-company')?.value||'PRIME'; const c=getCompany(key)||COMPANY_OPTIONS[key]; const el=document.getElementById('pf-company-tin'); if(el) el.value=c?.tin||''; const out=document.getElementById('pf-out-company-tin'); if(out) out.textContent=c?.tin?`TIN: ${c.tin}`:''; loadIssuerBankAccounts(key); }
+function syncProformaCompanyTIN(){ const key=document.getElementById('pf-company')?.value||'BLACKROCK'; const c=getCompany(key)||COMPANY_OPTIONS[key]; const el=document.getElementById('pf-company-tin'); if(el) el.value=c?.tin||''; const out=document.getElementById('pf-out-company-tin'); if(out) out.textContent=c?.tin?`TIN: ${c.tin}`:''; loadIssuerBankAccounts(key); }
 
 // ---- Chart of Accounts ----
 const CHART_OF_ACCOUNTS = {
@@ -4811,7 +4780,7 @@ async function sendTelegramNotification(text) {
 async function pushNotification(type, message, meta) {
   const payload = { type, message, meta: meta || null, read: false, created_by: currentUser?.id || null };
   await sb.from('notifications').insert([payload]);
-  sendTelegramNotification(`[PRIME Portal] ${message}`);
+  sendTelegramNotification(`[BLACKROCK Portal] ${message}`);
   if (typeof renderNotifications === 'function') renderNotifications();
 }
 
@@ -4990,13 +4959,11 @@ function buildTabs() { const productionAllowed = window.BOKAN_PRODUCTION_AUTH?.e
 // Defensive navigation bootstrap: the ERP menu must never be blank because a non-critical module failed.
 window.addEventListener('DOMContentLoaded', function(){ try { if(document.getElementById('sidebar-nav') && !document.getElementById('sidebar-nav').children.length){ buildTabs(); } } catch(e){ console.error('Navigation build failed',e); } });
 const BOKAN_CONTEXTS = {
-  GROUP: { code:'GROUP', name:'BOKAN / All Companies', subtitle:'Group Command Center', cls:'context-group' },
-  PRIME: { code:'PRIME', name:'PRIME Investment Group PLC', subtitle:'PRIME Company Workspace', cls:'context-prime' },
-  BLACKROCK: { code:'BLACKROCK', name:'BlackRock Investment PLC', subtitle:'BlackRock Commercial Workspace', cls:'context-blackrock' }
+  BLACKROCK: { code:'BLACKROCK', name:'BlackRock Investment PLC', subtitle:'Company Workspace', cls:'context-blackrock' }
 };
-let activeCompanyContext = localStorage.getItem('bokan_active_company_context') || 'GROUP';
+let activeCompanyContext = 'BLACKROCK';
 function applyCompanyContext(key){
-  const ctx=BOKAN_CONTEXTS[key]||BOKAN_CONTEXTS.GROUP;
+  const ctx=BOKAN_CONTEXTS.BLACKROCK;
   activeCompanyContext=ctx.code;
   localStorage.setItem('bokan_active_company_context',ctx.code);
   document.body.classList.remove('context-group','context-prime','context-blackrock');
@@ -5006,7 +4973,7 @@ function applyCompanyContext(key){
   const code=document.getElementById('bokan-context-code'); if(code) code.textContent=ctx.code;
   document.querySelectorAll('[data-company-context]').forEach(el=>el.textContent=ctx.name);
 }
-function setCompanyContext(key){ applyCompanyContext(key); if(key==='GROUP' && typeof showTab==='function') showTab('groupcommand'); }
+function setCompanyContext(){ applyCompanyContext('BLACKROCK'); }
 applyCompanyContext(activeCompanyContext);
 
 function showTab(id) {
@@ -5243,7 +5210,7 @@ function editExpense(id) {
   document.getElementById('exp-amount').value = row.amount;
   document.getElementById('exp-location').value = row.location || '';
   document.getElementById('exp-desc').value = row.description || '';
-  document.getElementById('exp-paidby').value = row.paid_by || 'PRIME';
+  document.getElementById('exp-paidby').value = row.paid_by || 'BLACKROCK';
   document.getElementById('expense-submit-btn').textContent = 'Update Expense';
   document.getElementById('expense-cancel-btn').classList.remove('hidden');
   document.getElementById('expense-form').scrollIntoView({ behavior: 'smooth' });
@@ -6220,7 +6187,7 @@ async function loadLedger() {
   const totals = { primePurch:0, brPurch:0, shipped:0, kolfeMes:0, salesKolfe:0, salesMes:0 };
   el.innerHTML = ledgerData.map(row => {
     const openingKolfe = kolfeBal;
-    const primePurch = row.purchased_by === 'PRIME' ? Number(row.factory_qty || 0) : 0;
+    const primePurch = row.purchased_by === 'BLACKROCK' ? Number(row.factory_qty || 0) : 0;
     const brPurch = row.purchased_by === 'BR' ? Number(row.factory_qty || 0) : 0;
     const shipped = Number(row.shipped_kolfe_qty || 0);
     const inTransit = Number(row.factory_qty || 0) - shipped;
@@ -6262,11 +6229,11 @@ async function loadLedger() {
     <td class="py-2 px-2">-</td><td class="py-2 px-2 no-print"></td></tr>` : '';
 }
 function downloadLedgerCSV() {
-  const rows = [['Date','Opening Kolfe','Prime Factory Purch.','BR Factory Purch.','Shipped Kolfe','In-Transit/Factory','Kolfe->Mes.','Sales @ Kolfe','Sold By','Kolfe Bal.','Sales @ Mes.','Mes. Bal.','Sold By']];
+  const rows = [['Date','Opening Kolfe','BlackRock Factory Purch.','BR Factory Purch.','Shipped Kolfe','In-Transit/Factory','Kolfe->Mes.','Sales @ Kolfe','Sold By','Kolfe Bal.','Sales @ Mes.','Mes. Bal.','Sold By']];
   let kolfeBal = 0, mesBal = 0;
   ledgerData.forEach(row => {
     const openingKolfe = kolfeBal;
-    const primePurch = row.purchased_by === 'PRIME' ? Number(row.factory_qty || 0) : 0;
+    const primePurch = row.purchased_by === 'BLACKROCK' ? Number(row.factory_qty || 0) : 0;
     const brPurch = row.purchased_by === 'BR' ? Number(row.factory_qty || 0) : 0;
     const shipped = Number(row.shipped_kolfe_qty || 0);
     const inTransit = Number(row.factory_qty || 0) - shipped;
@@ -6438,7 +6405,7 @@ async function loadBoardReport() {
   const vatWord = netVat > 0 ? `an estimated ETB ${netVat.toLocaleString(undefined,{maximumFractionDigits:0})} VAT payable` : `an estimated ETB ${Math.abs(netVat).toLocaleString(undefined,{maximumFractionDigits:0})} VAT refundable position`;
   const topGroupName = topExpenses[0] ? topExpenses[0][0] : null;
   const stockWord = (kolfeBal < 0 || mesBal < 0) ? ' The stock ledger shows a negative balance in at least one location — this needs review, as it usually signals a missing or out-of-order entry.' : '';
-  document.getElementById('board-report-narrative').textContent = `Over the last ${days} days, PRIME Investment Group Plc generated ETB ${revenue.toLocaleString()} in revenue and ${marginWord}, closing at ETB ${netMargin.toLocaleString()} (${marginPct.toFixed(1)}%) after cost of goods and operating expenses. ` + (topGroupName ? `The largest cost driver was "${topGroupName}". ` : '') + `The business currently carries ${vatWord}, and an estimated corporate income tax exposure of ETB ${citEstimate.toLocaleString(undefined,{maximumFractionDigits:0})} at the standard 30% rate.` + stockWord;
+  document.getElementById('board-report-narrative').textContent = `Over the last ${days} days, BLACKROCK Investment Group Plc generated ETB ${revenue.toLocaleString()} in revenue and ${marginWord}, closing at ETB ${netMargin.toLocaleString()} (${marginPct.toFixed(1)}%) after cost of goods and operating expenses. ` + (topGroupName ? `The largest cost driver was "${topGroupName}". ` : '') + `The business currently carries ${vatWord}, and an estimated corporate income tax exposure of ETB ${citEstimate.toLocaleString(undefined,{maximumFractionDigits:0})} at the standard 30% rate.` + stockWord;
 }
 
 // ==================== TAX WORKING SHEET ====================
@@ -6504,10 +6471,10 @@ async function updateRole(id, role) {
 const BOKAN_COMPANY_SETTINGS_KEY='bokan_proforma_company_settings_v2';
 function getProformaCompanySettings(){try{return JSON.parse(localStorage.getItem(BOKAN_COMPANY_SETTINGS_KEY)||'{}')||{};}catch(e){return {};}}
 function saveProformaCompanySettings(all){localStorage.setItem(BOKAN_COMPANY_SETTINGS_KEY,JSON.stringify(all||{}));}
-function getCompany(key){const base=COMPANY_OPTIONS[key]||COMPANY_OPTIONS.PRIME;const all=getProformaCompanySettings();return {...base,...(all[key]||{}),key};}
-function saveProformaCompanyTIN(){const key=document.getElementById('pf-company')?.value||'PRIME';const tin=(document.getElementById('pf-company-tin')?.value||'').trim();const all=getProformaCompanySettings();all[key]={...(all[key]||{}),tin};saveProformaCompanySettings(all);syncProformaCompanyTIN();}
+function getCompany(key){const base=COMPANY_OPTIONS[key]||COMPANY_OPTIONS.BLACKROCK;const all=getProformaCompanySettings();return {...base,...(all[key]||{}),key};}
+function saveProformaCompanyTIN(){const key=document.getElementById('pf-company')?.value||'BLACKROCK';const tin=(document.getElementById('pf-company-tin')?.value||'').trim();const all=getProformaCompanySettings();all[key]={...(all[key]||{}),tin};saveProformaCompanySettings(all);syncProformaCompanyTIN();}
 function getIssuerBanks(key){const all=getProformaCompanySettings();return Array.isArray(all[key]?.banks)?all[key].banks:[];}
-function saveProformaCompanyBanks(){const key=document.getElementById('pf-company')?.value||'PRIME';const banks=[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose);const all=getProformaCompanySettings();all[key]={...(all[key]||{}),banks};saveProformaCompanySettings(all);alert('Issuer bank accounts updated.');}
+function saveProformaCompanyBanks(){const key=document.getElementById('pf-company')?.value||'BLACKROCK';const banks=[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose);const all=getProformaCompanySettings();all[key]={...(all[key]||{}),banks};saveProformaCompanySettings(all);alert('Issuer bank accounts updated.');}
 function loadIssuerBankAccounts(key){const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;wrap.innerHTML='';const banks=getIssuerBanks(key);(banks.length?banks:[{}]).forEach(b=>addProformaBankAccount(b));}
 
 function setDocumentCompany(prefix, key){
@@ -6599,7 +6566,7 @@ function submitProformaRequest(event){
   rows.unshift(request);
   saveStoredProformaRequests(rows);
   document.getElementById('pf-request-form').reset();
-  document.getElementById('pfr-company').value = 'PRIME';
+  document.getElementById('pfr-company').value = 'BLACKROCK';
   document.getElementById('pfr-vat').value = '15';
   document.getElementById('pfr-discount').value = '0';
   document.getElementById('pfr-items').innerHTML = '';
@@ -6652,7 +6619,7 @@ async function processProformaRequest(id){
   showTab('proforma');
   await loadProformaTermOptions();
   const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
-  set('pf-company', request.company || 'PRIME');
+  set('pf-company', request.company || 'BLACKROCK');
   set('pf-customer', request.customer);
   set('pf-tin', request.tin);
   set('pf-address', request.address);
@@ -6724,7 +6691,7 @@ const DEFAULT_TERMS = {
   transport: ['Transportation is included', 'Transportation will be paid by customer', 'Pickup by customer from warehouse']
 };
 async function loadProformaTermOptions() {
-  const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
+  const companyKey = document.getElementById('pf-company')?.value || 'BLACKROCK';
   const db = window.BOKAN_PRODUCTION_AUTH?.client || sb;
   const { data, error } = await db.from('custom_terms').select('*').eq('company_code', companyKey);
   if (error) { console.error('Could not load custom Proforma terms:', error); return; }
@@ -6748,7 +6715,7 @@ async function addCustomTerm(category) {
   const input = document.getElementById(`pf-term-${category}-new`);
   const label = input.value.trim();
   if (!label) return;
-  const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
+  const companyKey = document.getElementById('pf-company')?.value || 'BLACKROCK';
   const db = window.BOKAN_PRODUCTION_AUTH?.client || sb;
   let companyId = null;
   if (bokanProdEnabled()) {
@@ -6831,7 +6798,7 @@ async function bokanProdLoadIssuer(key){
   return BOKAN_PROD_ISSUER_CACHE[key];
 }
 async function bokanProdRefreshIssuer(key){ try{ const c=await bokanProdLoadIssuer(key); const all=getProformaCompanySettings(); all[key]={...(all[key]||{}),tin:c.tin,banks:c.banks}; saveProformaCompanySettings(all); return c; }catch(e){ console.warn('Issuer master load failed:',e); return getCompanyProductionAware(key); } }
-function getCompanyProductionAware(key){ return BOKAN_PROD_ISSUER_CACHE[key] || (_legacyGetCompany ? _legacyGetCompany(key) : (COMPANY_OPTIONS[key]||COMPANY_OPTIONS.PRIME)); }
+function getCompanyProductionAware(key){ return BOKAN_PROD_ISSUER_CACHE[key] || (_legacyGetCompany ? _legacyGetCompany(key) : (COMPANY_OPTIONS[key]||COMPANY_OPTIONS.BLACKROCK)); }
 async function bokanProdSaveCompanyTIN(key,tin){ const db=bokanProdClient(); if(!db)return false; const {error}=await db.rpc('bokan_save_company_proforma_settings',{p_company:key,p_payload:{tin:tin||null}}); if(error)throw error; await bokanProdRefreshIssuer(key); return true; }
 async function bokanProdSaveCompanyContact(key,address,phone){ const db=bokanProdClient(); if(!db)return false; const {error}=await db.rpc('bokan_save_company_proforma_settings',{p_company:key,p_payload:{address:address||null,phone:phone||null}}); if(error)throw error; await bokanProdRefreshIssuer(key); return true; }
 async function bokanProdSaveBanks(key,banks){ if(bokanProdEnabled()) throw new Error('Bank account changes are temporarily disabled until an atomic, audited database workflow is configured.'); const db=bokanProdClient(); if(!db)return false; const {error:delErr}=await db.from('company_bank_accounts').delete().eq('company_code',key); if(delErr)throw delErr; const rows=banks.filter(b=>b.bank_name||b.account_number||b.purpose).map((b,i)=>({company_code:key,bank_name:b.bank_name||'Unspecified',account_number:b.account_number||'Unspecified',account_purpose:b.purpose||null,display_order:i,active:true})); if(rows.length){const {error}=await db.from('company_bank_accounts').insert(rows);if(error)throw error;} await bokanProdRefreshIssuer(key); return true; }
@@ -6841,10 +6808,10 @@ function renderProductionIssuer(key){ const c=getCompanyProductionAware(key); co
 const _legacyGetCompany=window.getCompany;
 window.getCompany=function(key){ return getCompanyProductionAware(key); };
 const _legacySyncIssuer=window.syncProformaCompanyTIN;
-window.syncProformaCompanyTIN=async function(){ const key=document.getElementById('pf-company')?.value||'PRIME'; if(bokanProdEnabled()){ const c=await bokanProdRefreshIssuer(key); renderProductionIssuer(key); const out=document.getElementById('pf-out-company-tin'); if(out)out.textContent=c?.tin?`TIN: ${c.tin}`:''; } else { _legacySyncIssuer(); } };
-window.saveProformaCompanyTIN=async function(){ if(bokanProdEnabled()&&!['admin','accounting'].includes(currentRole)){alert('Only an authorized administrator or accounting user can request issuer TIN changes. Database policies must also authorize this action.');return;} const key=document.getElementById('pf-company')?.value||'PRIME'; const tin=(document.getElementById('pf-company-tin')?.value||'').trim(); if(bokanProdEnabled()){ try{await bokanProdSaveCompanyTIN(key,tin);renderProductionIssuer(key);alert('Issuer TIN updated in production.');}catch(e){alert('Unable to update issuer TIN: '+e.message);} } else { const all=getProformaCompanySettings();all[key]={...(all[key]||{}),tin};saveProformaCompanySettings(all);_legacySyncIssuer(); } };
-window.saveProformaCompanyContact=async function(){ if(bokanProdEnabled()&&!['admin','accounting'].includes(currentRole)){alert('Only an authorized administrator or accounting user can request issuer contact changes. Database policies must also authorize this action.');return;} const key=document.getElementById('pf-company')?.value||'PRIME'; const address=(document.getElementById('pf-company-address')?.value||'').trim(); const phone=(document.getElementById('pf-company-phone')?.value||'').trim(); if(bokanProdEnabled()){try{await bokanProdSaveCompanyContact(key,address,phone);renderProductionIssuer(key);alert('Issuer address and phone updated in production.');}catch(e){alert('Unable to update issuer contact details: '+e.message);}}else{const all=getProformaCompanySettings();all[key]={...(all[key]||{}),address,phone};saveProformaCompanySettings(all);renderProductionIssuer(key);alert('Issuer contact details updated.');} };
-window.saveProformaCompanyBanks=async function(){ const key=document.getElementById('pf-company')?.value||'PRIME'; const banks=[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({id:r.dataset.bankId||null,bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose); if(bokanProdEnabled()){try{await bokanProdSaveBanks(key,banks);renderProductionIssuer(key);alert('Issuer bank accounts updated in production.');}catch(e){alert('Unable to update bank accounts: '+e.message);}}else{const all=getProformaCompanySettings();all[key]={...(all[key]||{}),banks};saveProformaCompanySettings(all);alert('Issuer bank accounts updated.');} };
+window.syncProformaCompanyTIN=async function(){ const key=document.getElementById('pf-company')?.value||'BLACKROCK'; if(bokanProdEnabled()){ const c=await bokanProdRefreshIssuer(key); renderProductionIssuer(key); const out=document.getElementById('pf-out-company-tin'); if(out)out.textContent=c?.tin?`TIN: ${c.tin}`:''; } else { _legacySyncIssuer(); } };
+window.saveProformaCompanyTIN=async function(){ if(bokanProdEnabled()&&!['admin','accounting'].includes(currentRole)){alert('Only an authorized administrator or accounting user can request issuer TIN changes. Database policies must also authorize this action.');return;} const key=document.getElementById('pf-company')?.value||'BLACKROCK'; const tin=(document.getElementById('pf-company-tin')?.value||'').trim(); if(bokanProdEnabled()){ try{await bokanProdSaveCompanyTIN(key,tin);renderProductionIssuer(key);alert('Issuer TIN updated in production.');}catch(e){alert('Unable to update issuer TIN: '+e.message);} } else { const all=getProformaCompanySettings();all[key]={...(all[key]||{}),tin};saveProformaCompanySettings(all);_legacySyncIssuer(); } };
+window.saveProformaCompanyContact=async function(){ if(bokanProdEnabled()&&!['admin','accounting'].includes(currentRole)){alert('Only an authorized administrator or accounting user can request issuer contact changes. Database policies must also authorize this action.');return;} const key=document.getElementById('pf-company')?.value||'BLACKROCK'; const address=(document.getElementById('pf-company-address')?.value||'').trim(); const phone=(document.getElementById('pf-company-phone')?.value||'').trim(); if(bokanProdEnabled()){try{await bokanProdSaveCompanyContact(key,address,phone);renderProductionIssuer(key);alert('Issuer address and phone updated in production.');}catch(e){alert('Unable to update issuer contact details: '+e.message);}}else{const all=getProformaCompanySettings();all[key]={...(all[key]||{}),address,phone};saveProformaCompanySettings(all);renderProductionIssuer(key);alert('Issuer contact details updated.');} };
+window.saveProformaCompanyBanks=async function(){ const key=document.getElementById('pf-company')?.value||'BLACKROCK'; const banks=[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({id:r.dataset.bankId||null,bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose); if(bokanProdEnabled()){try{await bokanProdSaveBanks(key,banks);renderProductionIssuer(key);alert('Issuer bank accounts updated in production.');}catch(e){alert('Unable to update bank accounts: '+e.message);}}else{const all=getProformaCompanySettings();all[key]={...(all[key]||{}),banks};saveProformaCompanySettings(all);alert('Issuer bank accounts updated.');} };
 window.loadIssuerBankAccounts=async function(key){ if(bokanProdEnabled()){await bokanProdRefreshIssuer(key);renderProductionIssuer(key);} else {const wrap=document.getElementById('pf-bank-accounts');if(!wrap)return;wrap.innerHTML='';const banks=getIssuerBanks(key);(banks.length?banks:[{}]).forEach(b=>addProformaBankAccount(b));} };
 
 async function bokanProdSaveProforma(payload,existing){
@@ -6875,7 +6842,7 @@ window.loadSavedProforma=async function(id){if(!bokanProdEnabled()){return (func
 window.persistCurrentProforma=function(record){if(bokanProdEnabled()){bokanProductionCacheRecord(record);window.loadSavedProformas();}else{const rows=getSavedProformas();const idx=rows.findIndex(r=>r.id===record.id);if(idx>=0)rows[idx]=record;else rows.push(record);localStorage.setItem(BOKAN_PROFORMA_LOCAL_KEY,JSON.stringify(rows));window.loadSavedProformas();}};
 
 // After the normal page initializes, hydrate the selected issuer and production saved list.
-document.addEventListener('DOMContentLoaded',function(){if(!bokanProdEnabled())return;const ps=document.getElementById('pf-production-status');if(ps)ps.classList.remove('hidden');const key=document.getElementById('pf-company')?.value||'PRIME';bokanProdRefreshIssuer(key).then(()=>renderProductionIssuer(key)).catch(()=>{});bokanProdLoadProformas().then(()=>window.loadSavedProformas()).catch(()=>{});});
+document.addEventListener('DOMContentLoaded',function(){if(!bokanProdEnabled())return;const ps=document.getElementById('pf-production-status');if(ps)ps.classList.remove('hidden');const key=document.getElementById('pf-company')?.value||'BLACKROCK';bokanProdRefreshIssuer(key).then(()=>renderProductionIssuer(key)).catch(()=>{});bokanProdLoadProformas().then(()=>window.loadSavedProformas()).catch(()=>{});});
 
 function calculateBokanProformaTotals(items, vatPct, discountPct, withholdingEnabled=true, withholdingRate=3, withholdingThreshold=10000) {
   const grossMerchandise = Math.round(items.reduce((sum,i)=>sum+i.qty*i.unit_price,0)*100)/100;
@@ -6892,7 +6859,7 @@ function calculateBokanProformaTotals(items, vatPct, discountPct, withholdingEna
 }
 
 async function generateProformaInternal() {
-  const companyKey = document.getElementById('pf-company')?.value || 'PRIME';
+  const companyKey = document.getElementById('pf-company')?.value || 'BLACKROCK';
   const company = getCompany(companyKey) || COMPANY_OPTIONS[companyKey];
   const customer = document.getElementById('pf-customer').value.trim();
   const tin = document.getElementById('pf-tin').value.trim();
@@ -7015,8 +6982,8 @@ function saveSavedProformas(rows){localStorage.setItem(BOKAN_PROFORMA_LOCAL_KEY,
 function makeProformaNumber(customer){const word=(customer||'CUSTOMER').trim().split(/\s+/)[0].replace(/[^A-Za-z]/g,'').toUpperCase()||'CUST';const prefix=word.slice(0,5);const rows=getSavedProformas();let n;do{n=Math.floor(1000+Math.random()*9000);}while(rows.some(r=>r.proformaNo===prefix+n));return prefix+n;}
 function syncProformaVersionControls(){const action=document.getElementById('pf-document-action')?.value||'new';const sel=document.getElementById('pf-existing-proforma');if(!sel)return;sel.classList.toggle('hidden',action!=='update');if(action==='update')loadSavedProformas(true);}
 function loadSavedProformas(keepSelect=false){const rows=getSavedProformas().sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt));const list=document.getElementById('pf-saved-list');if(list)list.innerHTML=rows.length?rows.map(r=>`<div class="border border-[#ECEEF1] rounded p-2 flex flex-wrap items-center justify-between gap-2"><div><strong>${escapeHtml(r.proformaNo)}</strong> · v${escapeHtml(r.version||1)} · ${escapeHtml(r.customer||'')} · ${escapeHtml(r.companyName||'')}</div><div class="flex gap-1"><button type="button" class="border px-2 py-1 rounded" onclick="loadSavedProforma('${r.id}')">Edit</button><button type="button" class="border px-2 py-1 rounded" onclick="printSavedProforma('${r.id}')">Reprint</button></div></div>`).join(''):'<div class="text-[#8D9096]">No saved proformas yet.</div>';const sel=document.getElementById('pf-existing-proforma');if(sel){const current=sel.value;sel.innerHTML='<option value="">Select existing proforma</option>'+rows.map(r=>`<option value="${r.id}">${escapeHtml(r.proformaNo)} v${escapeHtml(r.version||1)} — ${escapeHtml(r.customer||'')}</option>`).join('');if(keepSelect&&current)sel.value=current;}}
-function captureProformaFormState(){return{companyKey:document.getElementById('pf-company')?.value||'PRIME',customer:document.getElementById('pf-customer')?.value.trim()||'',contactPerson:document.getElementById('pf-contact-person')?.value.trim()||'',tin:document.getElementById('pf-tin')?.value.trim()||'',address:document.getElementById('pf-address')?.value.trim()||'',phone:document.getElementById('pf-phone')?.value.trim()||'',date:document.getElementById('pf-date-input')?.value||'',items:[...document.querySelectorAll('#pf-items > div')].map(row=>({description:row.querySelector('.pf-desc')?.value.trim()||'',spec:row.querySelector('.pf-spec')?.value.trim()||'',qty:parseFloat(row.querySelector('.pf-qty')?.value)||0,unit_price:parseFloat(row.querySelector('.pf-price')?.value)||0})).filter(i=>i.description&&i.qty>0),discount:parseFloat(document.getElementById('pf-discount')?.value)||0,delivery:document.getElementById('pf-delivery')?.value.trim()||'',notes:document.getElementById('pf-notes')?.value.trim()||'',withholdingEnabled:true,withholdingRate:parseFloat(document.getElementById('pf-withholding-rate')?.value)||3,withholdingThreshold:10000,banks:[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose),terms:collectSelectedTerms()};}
-function restoreProformaFormState(x){if(!x)return;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};set('pf-company',x.companyKey||'PRIME');syncProformaCompanyTIN();set('pf-customer',x.customer);set('pf-contact-person',x.contactPerson);set('pf-tin',x.tin);set('pf-address',x.address);set('pf-phone',x.phone);set('pf-date-input',x.date||'');set('pf-discount',x.discount||0);set('pf-delivery',x.delivery);set('pf-notes',x.notes);document.getElementById('pf-items').innerHTML='';(x.items||[]).forEach(i=>addProformaItem(i));if(!x.items?.length)addProformaItem();set('pf-withholding-rate',x.withholdingRate||3);const bw=document.getElementById('pf-bank-accounts');bw.innerHTML='';(x.banks||[]).forEach(b=>addProformaBankAccount(b));if(!x.banks?.length)addProformaBankAccount();const savedDelivery=x.delivery||'';if(savedDelivery){const deliveryRadio=[...document.querySelectorAll('input[name="pf-term-delivery"]')].find(r=>r.value===savedDelivery);if(deliveryRadio)deliveryRadio.checked=true;}}
+function captureProformaFormState(){return{companyKey:document.getElementById('pf-company')?.value||'BLACKROCK',customer:document.getElementById('pf-customer')?.value.trim()||'',contactPerson:document.getElementById('pf-contact-person')?.value.trim()||'',tin:document.getElementById('pf-tin')?.value.trim()||'',address:document.getElementById('pf-address')?.value.trim()||'',phone:document.getElementById('pf-phone')?.value.trim()||'',date:document.getElementById('pf-date-input')?.value||'',items:[...document.querySelectorAll('#pf-items > div')].map(row=>({description:row.querySelector('.pf-desc')?.value.trim()||'',spec:row.querySelector('.pf-spec')?.value.trim()||'',qty:parseFloat(row.querySelector('.pf-qty')?.value)||0,unit_price:parseFloat(row.querySelector('.pf-price')?.value)||0})).filter(i=>i.description&&i.qty>0),discount:parseFloat(document.getElementById('pf-discount')?.value)||0,delivery:document.getElementById('pf-delivery')?.value.trim()||'',notes:document.getElementById('pf-notes')?.value.trim()||'',withholdingEnabled:true,withholdingRate:parseFloat(document.getElementById('pf-withholding-rate')?.value)||3,withholdingThreshold:10000,banks:[...document.querySelectorAll('#pf-bank-accounts .pf-bank-row')].map(r=>({bank_name:r.querySelector('.pf-bank-name')?.value.trim()||'',account_number:r.querySelector('.pf-bank-account')?.value.trim()||'',purpose:r.querySelector('.pf-bank-purpose')?.value.trim()||''})).filter(x=>x.bank_name||x.account_number||x.purpose),terms:collectSelectedTerms()};}
+function restoreProformaFormState(x){if(!x)return;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};set('pf-company',x.companyKey||'BLACKROCK');syncProformaCompanyTIN();set('pf-customer',x.customer);set('pf-contact-person',x.contactPerson);set('pf-tin',x.tin);set('pf-address',x.address);set('pf-phone',x.phone);set('pf-date-input',x.date||'');set('pf-discount',x.discount||0);set('pf-delivery',x.delivery);set('pf-notes',x.notes);document.getElementById('pf-items').innerHTML='';(x.items||[]).forEach(i=>addProformaItem(i));if(!x.items?.length)addProformaItem();set('pf-withholding-rate',x.withholdingRate||3);const bw=document.getElementById('pf-bank-accounts');bw.innerHTML='';(x.banks||[]).forEach(b=>addProformaBankAccount(b));if(!x.banks?.length)addProformaBankAccount();const savedDelivery=x.delivery||'';if(savedDelivery){const deliveryRadio=[...document.querySelectorAll('input[name="pf-term-delivery"]')].find(r=>r.value===savedDelivery);if(deliveryRadio)deliveryRadio.checked=true;}}
 function loadSavedProforma(id){const r=getSavedProformas().find(x=>x.id===id);if(!r)return;restoreProformaFormState(r.form);document.getElementById('pf-document-action').value='update';syncProformaVersionControls();document.getElementById('pf-existing-proforma').value=id;window.editingProformaId=id;window.editingProformaVersion=r.version||1;alert('Loaded '+r.proformaNo+' version '+(r.version||1)+' for editing. Generate & Save Proforma will create the next version.');}
 function printSavedProforma(id){loadSavedProforma(id);setTimeout(()=>window.print(),150);}
 function persistCurrentProforma(record){const rows=getSavedProformas();const idx=rows.findIndex(r=>r.id===record.id);if(idx>=0)rows[idx]=record;else rows.push(record);saveSavedProformas(rows);loadSavedProformas();}
@@ -7135,7 +7102,7 @@ function addWhtItem() {
   document.getElementById('wht-items').appendChild(row);
 }
 function generateWhtLetter() {
-  const companyKey = document.getElementById('wht-company')?.value || 'PRIME';
+  const companyKey = document.getElementById('wht-company')?.value || 'BLACKROCK';
   const vendor = document.getElementById('wht-vendor').value.trim();
   const address = document.getElementById('wht-vendor-address').value.trim();
   const notes = document.getElementById('wht-notes').value.trim();
@@ -7158,7 +7125,7 @@ const LETTER_TEMPLATES = {
   increment: { subject: 'Salary Increment / Promotion — [Employee Name]', body: `Dear [Employee Name],\n\nEffective [Effective Date], your position will change from [Current Position] to [New Position], and your monthly gross salary will be adjusted to ETB [New Amount].\n\nCongratulations on this achievement.` },
   employment_verification: { subject: 'Employment Verification Letter — [Employee Name]', body: `To Whom It May Concern,\n\nThis letter confirms that [Employee Name] has been employed with [Company Name] since [Hire Date], currently serving as [Position].` },
   bank_reference: { subject: 'Bank Reference / Account Reference Letter', body: `To Whom It May Concern,\n\nThis letter is to introduce [Company Name] as [a customer of / seeking to open an account with] your institution.` },
-  vendor_intro: { subject: 'Introduction — PRIME Investment Group Plc', body: `Dear [Vendor Contact Name],\n\nWe are writing to introduce [Company Name] as a potential business partner for [product/service].` },
+  vendor_intro: { subject: 'Introduction — BLACKROCK Investment Group Plc', body: `Dear [Vendor Contact Name],\n\nWe are writing to introduce [Company Name] as a potential business partner for [product/service].` },
   contract_renewal: { subject: 'Notice of Contract Renewal — [Contract/Agreement Name]', body: `Dear [Recipient Name],\n\nOur agreement dated [Original Date] is due for renewal on [Renewal Date]. Please confirm your agreement to proceed.` },
   collection: { subject: 'Payment Reminder — Invoice/Reference No. [No.]', body: `Dear [Customer Name],\n\nPayment for Invoice/Reference No. [No.], dated [Invoice Date], in the amount of ETB [Amount], remains outstanding.\n\nPlease settle this balance at your earliest convenience.` }
 };
@@ -7171,7 +7138,7 @@ function applyLetterTemplate() {
   document.getElementById('gen-body').value = tpl.body;
 }
 function generateGenericLetter() {
-  const companyKey = document.getElementById('gen-company')?.value || 'PRIME';
+  const companyKey = document.getElementById('gen-company')?.value || 'BLACKROCK';
   const to = document.getElementById('gen-to').value.trim();
   const address = document.getElementById('gen-address').value.trim();
   const subject = document.getElementById('gen-subject').value.trim();
@@ -8459,8 +8426,8 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
     const b=await api('/bootstrap');
     Object.keys(b.stores||{}).forEach(k=>nativeSet.call(localStorage,k,JSON.stringify(b.stores[k])));
     booted=true;
-    Storage.prototype.setItem=function(k,v){nativeSet.call(this,k,v);if(this===localStorage&&booted&&!syncing){syncing=true;api('/store/'+encodeURIComponent(k),{method:'PUT',body:JSON.stringify({value:(()=>{try{return JSON.parse(v)}catch(e){return v}})()})}).catch(e=>console.warn('PRIME sync failed:',e.message)).finally(()=>syncing=false)}};
-    Storage.prototype.removeItem=function(k){nativeRemove.call(this,k);if(this===localStorage&&booted&&!syncing){syncing=true;api('/store/'+encodeURIComponent(k),{method:'PUT',body:JSON.stringify({value:null})}).catch(e=>console.warn('PRIME delete sync failed:',e.message)).finally(()=>syncing=false)}};
+    Storage.prototype.setItem=function(k,v){nativeSet.call(this,k,v);if(this===localStorage&&booted&&!syncing){syncing=true;api('/store/'+encodeURIComponent(k),{method:'PUT',body:JSON.stringify({value:(()=>{try{return JSON.parse(v)}catch(e){return v}})()})}).catch(e=>console.warn('BLACKROCK sync failed:',e.message)).finally(()=>syncing=false)}};
+    Storage.prototype.removeItem=function(k){nativeRemove.call(this,k);if(this===localStorage&&booted&&!syncing){syncing=true;api('/store/'+encodeURIComponent(k),{method:'PUT',body:JSON.stringify({value:null})}).catch(e=>console.warn('BLACKROCK delete sync failed:',e.message)).finally(()=>syncing=false)}};
     refreshAll();
     document.getElementById('pg-user-pill').textContent=b.user.username+' · '+b.user.role;
     top.style.display='flex';
@@ -8483,7 +8450,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   async function logout(){try{await api('/auth/logout',{method:'POST'})}catch(e){}sessionStorage.removeItem('prime_prod_token');location.reload();}
   document.getElementById('pg-login-btn').addEventListener('click',login);document.getElementById('pg-pass').addEventListener('keydown',e=>{if(e.key==='Enter')login()});document.getElementById('pg-change-btn').addEventListener('click',changePassword);document.getElementById('pg-logout').addEventListener('click',logout);document.getElementById('pg-change-top').addEventListener('click',()=>showChange(false));
   (async function(){
-    if(DEV_BYPASS){ try{await loadServerState(); return;}catch(e){console.warn('PRIME local preview API unavailable:',e.message); if(localPreview){gate.style.display='none';top.style.display='none';return;} gate.style.display='flex';top.style.display='none';setMsg('Server-backed modules are unavailable. Sign-in requires the configured application API.');return;} }
+    if(DEV_BYPASS){ try{await loadServerState(); return;}catch(e){console.warn('BLACKROCK local preview API unavailable:',e.message); if(localPreview){gate.style.display='none';top.style.display='none';return;} gate.style.display='flex';top.style.display='none';setMsg('Server-backed modules are unavailable. Sign-in requires the configured application API.');return;} }
     if(token){try{if(await loadServerState())return}catch(e){sessionStorage.removeItem('prime_prod_token');token='';}}
     gate.style.display='flex';
   })();
@@ -8526,11 +8493,11 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
 (function(){
 const KEY='bokan_sales_hub_v1', RAW=[{"id": 1, "page": "page1", "pageLabel": "Page 1", "name": "Ewket Hailu Building", "phone": "0910257960", "contact": "—", "rep": "Derej", "today": "", "tomorrow": "", "notes": "Proforma Already Given"}, {"id": 2, "page": "page1", "pageLabel": "Page 1", "name": "Yencomad Construction", "phone": "0911212797, 0911212796", "contact": "—", "rep": "Derej", "today": "", "tomorrow": "", "notes": "Proforma Already Given"}, {"id": 3, "page": "page1", "pageLabel": "Page 1", "name": "Yonihab Construction", "phone": "0115620087", "contact": "Aschalew", "rep": "Derej", "today": "", "tomorrow": "", "notes": "I will order near future"}, {"id": 4, "page": "page1", "pageLabel": "Page 1", "name": "Like Building Construction", "phone": "0913754647", "contact": "—", "rep": "Derej", "today": "", "tomorrow": "", "notes": "Proforma Already Given"}, {"id": 5, "page": "page1", "pageLabel": "Page 1", "name": "Century Addis Construction", "phone": "0912661987, (0911197815)", "contact": "Simret", "rep": "Derej", "today": "", "tomorrow": "", "notes": "Proforma Already Given"}, {"id": 6, "page": "page1", "pageLabel": "Page 1", "name": "Noah Real Estate", "phone": "0920659977", "contact": "—", "rep": "Derej", "today": "", "tomorrow": "", "notes": "Proforma Already Given"}, {"id": 7, "page": "page2", "pageLabel": "Page 2", "name": "Century Real Estate", "phone": "0912661987", "contact": "Yohannes", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 8, "page": "page2", "pageLabel": "Page 2", "name": "Afro Sweden Real Estate", "phone": "0974594570", "contact": "Adane", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 9, "page": "page2", "pageLabel": "Page 2", "name": "DH Geda Trading", "phone": "0944120319", "contact": "Chere", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 10, "page": "page2", "pageLabel": "Page 2", "name": "Dugda Construction", "phone": "0935988635", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 11, "page": "page2", "pageLabel": "Page 2", "name": "Ato Abinet Construction", "phone": "0911399898", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 12, "page": "page2", "pageLabel": "Page 2", "name": "Huda Construction", "phone": "0911759148", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 13, "page": "page2", "pageLabel": "Page 2", "name": "Midrok Investment", "phone": "—", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Strategic Investment account"}, {"id": 14, "page": "page2", "pageLabel": "Page 2", "name": "Transport Logistic", "phone": "0920276648", "contact": "Hekan", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Logistics sector follow-up"}, {"id": 15, "page": "page2", "pageLabel": "Page 2", "name": "AA Construction", "phone": "0963630536", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Active site visit"}, {"id": 16, "page": "page2", "pageLabel": "Page 2", "name": "Kolfe Sub City", "phone": "0919218025", "contact": "Bikila", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Government sub-city project"}, {"id": 17, "page": "page2", "pageLabel": "Page 2", "name": "Oromia Construction / Water", "phone": "—", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Water sector project"}, {"id": 18, "page": "page2", "pageLabel": "Page 2", "name": "Maraki Construction", "phone": "0911171228", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 19, "page": "page2", "pageLabel": "Page 2", "name": "Palm Real Estate", "phone": "093045566", "contact": "Testaye", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate development"}, {"id": 20, "page": "page2", "pageLabel": "Page 2", "name": "New Life", "phone": "0945298176", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 21, "page": "page2", "pageLabel": "Page 2", "name": "Gemshu B.G.C.", "phone": "0921332421", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Building general contractor"}, {"id": 22, "page": "page2", "pageLabel": "Page 2", "name": "Muker G.C.", "phone": "0984676482 / 0946326667", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "General contractor"}, {"id": 23, "page": "page2", "pageLabel": "Page 2", "name": "Addis Ketema Sub City", "phone": "091189618 / 0346326667", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Sub city administrative office"}, {"id": 24, "page": "page2", "pageLabel": "Page 2", "name": "Private Construction", "phone": "0934767992", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Private project"}, {"id": 25, "page": "page2", "pageLabel": "Page 2", "name": "Fanuel Construction", "phone": "0937362870", "contact": "Kalkidan", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Follow-up tracking"}, {"id": 26, "page": "page2", "pageLabel": "Page 2", "name": "Jambo Real Estate", "phone": "0911759148", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Real estate portfolio"}, {"id": 27, "page": "page2", "pageLabel": "Page 2", "name": "Midroc Share Company", "phone": "0946326667", "contact": "Alemayehu", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Major enterprise corporate account"}, {"id": 28, "page": "page2", "pageLabel": "Page 2", "name": "Merkato Share Co.", "phone": "0113720076", "contact": "Mgr", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Commercial hub account"}, {"id": 29, "page": "page2", "pageLabel": "Page 2", "name": "Mesay Oli G.C.", "phone": "—", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "General contractor"}, {"id": 30, "page": "page3", "pageLabel": "Page 3", "name": "Alemgent Real Estate", "phone": "0911126076", "contact": "Sert Adera", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate development"}, {"id": 31, "page": "page3", "pageLabel": "Page 3", "name": "Ato Amart – Luel", "phone": "0911998378 / 0911243678", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Private enterprise"}, {"id": 32, "page": "page3", "pageLabel": "Page 3", "name": "Ato Alemu", "phone": "0992243418", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Australia Morah Zorpus project"}, {"id": 33, "page": "page3", "pageLabel": "Page 3", "name": "HS Construction", "phone": "0911234826", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Construction project"}, {"id": 34, "page": "page3", "pageLabel": "Page 3", "name": "Ato Befikadu – Mamusi", "phone": "0911467156", "contact": "Sira Kezkake", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Mamusi project tracking"}, {"id": 35, "page": "page3", "pageLabel": "Page 3", "name": "TW Construction", "phone": "0911882305", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Construction materials supply"}, {"id": 36, "page": "page3", "pageLabel": "Page 3", "name": "Ato Debela", "phone": "0911264003", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Private client account"}, {"id": 37, "page": "page3", "pageLabel": "Page 3", "name": "Justic Construction", "phone": "0941929292", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "General contractor follow-up"}, {"id": 38, "page": "page3", "pageLabel": "Page 3", "name": "Gemshu Construction", "phone": "0921332424 / 0922968841", "contact": "Telstehal, Zeitu, Desta", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Multiple contacts assigned"}, {"id": 39, "page": "page3", "pageLabel": "Page 3", "name": "Sugar Corporation", "phone": "0920574319 / 0975761056", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "State enterprise project"}, {"id": 40, "page": "page3", "pageLabel": "Page 3", "name": "Hayat Real Estate", "phone": "0944042600", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate development"}, {"id": 41, "page": "page3", "pageLabel": "Page 3", "name": "Taza Real Estate", "phone": "0910204986", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate follow-up"}, {"id": 42, "page": "page3", "pageLabel": "Page 3", "name": "NB Real Estate", "phone": "0942011773 / 0920276648", "contact": "Eng. Berege, Helen", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Engineering team contact"}, {"id": 43, "page": "page3", "pageLabel": "Page 3", "name": "Ovid Real Estate", "phone": "0913766783", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate development"}, {"id": 44, "page": "page3", "pageLabel": "Page 3", "name": "Gion Homes Real Estate", "phone": "0943143044", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Residential real estate"}, {"id": 45, "page": "page3", "pageLabel": "Page 3", "name": "Tazma Real Estate", "phone": "0913754647", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate project"}, {"id": 46, "page": "page3", "pageLabel": "Page 3", "name": "Like Building", "phone": "—", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Building materials supply"}, {"id": 47, "page": "page3", "pageLabel": "Page 3", "name": "Ministry of Agriculture", "phone": "0911955040", "contact": "Teganye", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Government institutional account"}, {"id": 48, "page": "page3", "pageLabel": "Page 3", "name": "Zugala Real Estate", "phone": "0963169710", "contact": "—", "rep": "Yohannes (Y)", "today": "", "tomorrow": "", "notes": "Real estate development"}, {"id": 49, "page": "page3", "pageLabel": "Page 3", "name": "Temer Real Estate", "phone": "0911574298", "contact": "—", "rep": "Fikadu (F)", "today": "", "tomorrow": "", "notes": "Real estate follow-up"}, {"id": 50, "page": "page3", "pageLabel": "Page 3", "name": "Enjafro Construction", "phone": "—", "contact": "—", "rep": "—", "today": "", "tomorrow": "", "notes": "Construction sector"}], orderStages=['Customer Order','Confirmed','Stock Check','Stock Reserved','Waiting Payment','Ready Delivery','Dispatched','Delivered','Customer Confirmation','After-Sales','Cancelled'];
 let selectedId=null;
-const seedReps=[{id:'REP-001',name:'Derej',phone:'',email:'',territory:'',target:0,entity:'PRIME Investment Group PLC',status:'Active'},{id:'REP-002',name:'Yohannes',phone:'',email:'',territory:'',target:0,entity:'PRIME Investment Group PLC',status:'Active'},{id:'REP-003',name:'Fikadu',phone:'',email:'',territory:'',target:0,entity:'PRIME Investment Group PLC',status:'Active'}];
+const seedReps=[{id:'REP-001',name:'Derej',phone:'',email:'',territory:'',target:0,entity:'BLACKROCK Investment Group PLC',status:'Active'},{id:'REP-002',name:'Yohannes',phone:'',email:'',territory:'',target:0,entity:'BLACKROCK Investment Group PLC',status:'Active'},{id:'REP-003',name:'Fikadu',phone:'',email:'',territory:'',target:0,entity:'BLACKROCK Investment Group PLC',status:'Active'}];
 const acts=['Phone Call','WhatsApp / Message','In-Person Meeting','Site Visit','Sample Delivered','Quotation Sent','Proforma Sent','Price Discussion','Negotiation','Check Payment','Check Order','Check Production','Check Shipment','Check Delivery','Customer Service','Create Sales Order','Follow-up','Other'];
 const nexts=['Phone Call Follow-up','WhatsApp','Meeting','Site Visit','Send Quotation','Send Proforma','Send Sample','Negotiate Price','Check Payment','Check Order','Check Production','Check Shipment','Check Delivery','Customer Service','Create Sales Order','Follow up later','No further action','Lost Opportunity'];
 const today=()=>new Date().toISOString().slice(0,10), addDays=n=>new Date(Date.now()+n*86400000).toISOString().slice(0,10), norm=s=>String(s||'').trim().toLowerCase(), esc=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function load(){try{let d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.accounts)&&Array.isArray(d.reps))return d}catch(e){};const accounts=RAW.map(x=>({id:'SRC-'+x.id,name:x.name,contact:x.contact==='—'?'':x.contact,phone:x.phone==='—'?'':x.phone,email:'',location:'',type:/government|ministry|sub city|corporation/i.test(x.name)?'Government':/real estate/i.test(x.name)?'Real Estate':/construction|building|gc/i.test(x.name)?'Construction':'Corporate',source:x.pageLabel,owner:(x.rep||'').replace(/\s*\([^)]*\)/,'')||'Unassigned',backup:'',entity:'PRIME Investment Group PLC',status:/proforma/i.test(x.notes)?'Quotation':/order/i.test(x.notes)?'Order Expected':'Qualified',priority:/strategic|major enterprise/i.test(x.notes)?'Strategic':'Normal',nextAction:'',notes:x.notes||'',createdAt:new Date().toISOString()}));const activities=RAW.filter(x=>x.notes).map(x=>({id:'ACT-'+x.id,accountId:'SRC-'+x.id,date:today(),type:/proforma/i.test(x.notes)?'Proforma Sent':'Follow-up',notes:x.notes,result:'Imported from BOKAN Customer Call Log',nextAction:/order/i.test(x.notes)?'Check Order':'Phone Call Follow-up',nextDate:addDays(7),rep:(x.rep||'').replace(/\s*\([^)]*\)/,'')||'Unassigned',createdAt:new Date().toISOString()}));accounts.forEach(a=>{const z=activities.find(v=>v.accountId===a.id);if(z)a.nextAction=z.nextDate});return{accounts,reps:seedReps,activities,opportunities:[],orders:[],afterSales:[],reassignments:[]}}
+function load(){try{let d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.accounts)&&Array.isArray(d.reps))return d}catch(e){};const accounts=RAW.map(x=>({id:'SRC-'+x.id,name:x.name,contact:x.contact==='—'?'':x.contact,phone:x.phone==='—'?'':x.phone,email:'',location:'',type:/government|ministry|sub city|corporation/i.test(x.name)?'Government':/real estate/i.test(x.name)?'Real Estate':/construction|building|gc/i.test(x.name)?'Construction':'Corporate',source:x.pageLabel,owner:(x.rep||'').replace(/\s*\([^)]*\)/,'')||'Unassigned',backup:'',entity:'BLACKROCK Investment Group PLC',status:/proforma/i.test(x.notes)?'Quotation':/order/i.test(x.notes)?'Order Expected':'Qualified',priority:/strategic|major enterprise/i.test(x.notes)?'Strategic':'Normal',nextAction:'',notes:x.notes||'',createdAt:new Date().toISOString()}));const activities=RAW.filter(x=>x.notes).map(x=>({id:'ACT-'+x.id,accountId:'SRC-'+x.id,date:today(),type:/proforma/i.test(x.notes)?'Proforma Sent':'Follow-up',notes:x.notes,result:'Imported from BOKAN Customer Call Log',nextAction:/order/i.test(x.notes)?'Check Order':'Phone Call Follow-up',nextDate:addDays(7),rep:(x.rep||'').replace(/\s*\([^)]*\)/,'')||'Unassigned',createdAt:new Date().toISOString()}));accounts.forEach(a=>{const z=activities.find(v=>v.accountId===a.id);if(z)a.nextAction=z.nextDate});return{accounts,reps:seedReps,activities,opportunities:[],orders:[],afterSales:[],reassignments:[]}}
 let state=load();function save(){localStorage.setItem(KEY,JSON.stringify(state))}function acct(id){return state.accounts.find(a=>a.id===id)}function health(a){const logs=state.activities.filter(x=>x.accountId===a.id).sort((x,y)=>String(y.date).localeCompare(String(x.date)));const stale=!logs.length||(Date.now()-new Date(logs[0].date||logs[0].createdAt).getTime()>14*86400000);if((a.nextAction&&a.nextAction<today())||stale||/lost|on hold/i.test(a.status))return'Red';if(/strategic|high/i.test(a.priority)||!a.nextAction)return'Yellow';return'Green'}
 function due(a){if(!a.nextAction)return'<span class="text-amber-600 font-bold">NO NEXT ACTION</span>';const d=Math.round((new Date(a.nextAction)-new Date(today()))/86400000);if(d<0)return'<span class="text-red-600 font-bold">OVERDUE '+Math.abs(d)+'d</span>';if(d===0)return'<span class="text-amber-600 font-bold">TODAY</span>';if(d===1)return'<span class="text-amber-600">TOMORROW</span>';return'<span class="text-slate-500">'+esc(a.nextAction)+'</span>'}
 function setSel(id,items,selected,head){const e=document.getElementById(id);if(!e)return;e.innerHTML=(head?'<option value="">'+head+'</option>':'')+items.map(x=>`<option value="${esc(x.value||x)}" ${String(x.value||x)===String(selected||'')?'selected':''}>${esc(x.label||x)}</option>`).join('')}
@@ -8573,7 +8540,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   function syncCallIntoSales(call,sales){
     let a=sales.accounts.find(x=>norm(x.name)===norm(call.name));
     if(!a){
-      a={id:'SRC-CALL-'+call.id,name:call.name,contact:call.contact==='—'?'':(call.contact||''),phone:call.phone==='—'?'':(call.phone||''),email:'',location:'',type:/government|ministry|sub city|corporation/i.test(call.name)?'Government':/real estate/i.test(call.name)?'Real Estate':/construction|building|gc/i.test(call.name)?'Construction':'Corporate',source:call.pageLabel||'Customer Call Log',owner:repName(call.rep),backup:'',entity:'PRIME Investment Group PLC',status:/proforma/i.test(call.notes||'')?'Quotation':/order/i.test(call.notes||'')?'Order Expected':'Qualified',priority:/strategic|major enterprise/i.test(call.notes||'')?'Strategic':'Normal',nextAction:call.today||call.tomorrow||'',notes:call.notes||'',createdAt:new Date().toISOString()};
+      a={id:'SRC-CALL-'+call.id,name:call.name,contact:call.contact==='—'?'':(call.contact||''),phone:call.phone==='—'?'':(call.phone||''),email:'',location:'',type:/government|ministry|sub city|corporation/i.test(call.name)?'Government':/real estate/i.test(call.name)?'Real Estate':/construction|building|gc/i.test(call.name)?'Construction':'Corporate',source:call.pageLabel||'Customer Call Log',owner:repName(call.rep),backup:'',entity:'BLACKROCK Investment Group PLC',status:/proforma/i.test(call.notes||'')?'Quotation':/order/i.test(call.notes||'')?'Order Expected':'Qualified',priority:/strategic|major enterprise/i.test(call.notes||'')?'Strategic':'Normal',nextAction:call.today||call.tomorrow||'',notes:call.notes||'',createdAt:new Date().toISOString()};
       sales.accounts.push(a);
     } else {
       if(call.rep && repName(call.rep)!=='Unassigned') a.owner=repName(call.rep);
@@ -8639,7 +8606,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   function exportExcel(){
     const calls=callState();
     const sales=salesState();
-    const rows=calls.map(c=>{const a=sales?.accounts?.find(x=>norm(x.name)===norm(c.name));return {Customer:c.name,Phone:c.phone||'',Contact:c.contact||'',Salesperson:(a?.owner||c.rep||'Unassigned'),Entity:a?.entity||'PRIME Investment Group PLC',Status:a?.status||'',Priority:a?.priority||'',NextFollowUp:a?.nextAction||c.today||c.tomorrow||'',Notes:a?.notes||c.notes||''}});
+    const rows=calls.map(c=>{const a=sales?.accounts?.find(x=>norm(x.name)===norm(c.name));return {Customer:c.name,Phone:c.phone||'',Contact:c.contact||'',Salesperson:(a?.owner||c.rep||'Unassigned'),Entity:a?.entity||'BLACKROCK Investment Group PLC',Status:a?.status||'',Priority:a?.priority||'',NextFollowUp:a?.nextAction||c.today||c.tomorrow||'',Notes:a?.notes||c.notes||''}});
     const escHtml=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const table='<table border="1"><tr>'+Object.keys(rows[0]||{Customer:'',Salesperson:'',NextFollowUp:'',Notes:''}).map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+Object.values(r).map(v=>'<td>'+escHtml(v)+'</td>').join('')+'</tr>').join('')+'</table>';
     const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'</body></html>';
@@ -8845,7 +8812,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     {id:'U-005',name:'Operations Manager',department:'Operations',role:'Operations Manager',entity:'GROUP',status:'Active',email:'operations.manager@bokan.local'}
   ];
   const rules=[
-    ['Administrator','Full enterprise access across BOKAN, PRIME and BlackRock.'],
+    ['Administrator','Full enterprise access across BOKAN, BLACKROCK and BlackRock.'],
     ['Sales Manager','Sales CRM, customer accounts, follow-ups, pipeline and sales reporting.'],
     ['Finance Manager','Finance, accounting, AR/AP, banking, tax, close and finance approvals.'],
     ['HR Manager','Employee records, attendance, leave, payroll and HR reporting.'],
@@ -8885,7 +8852,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     const name=prompt('Employee name:'); if(!name)return;
     const department=prompt('Department (Sales, HR, Finance, Operations, Administration):','Sales')||'Sales';
     const role=prompt('Role:','Sales Representative')||'Sales Representative';
-    const entity=prompt('Entity scope (GROUP, PRIME, BLACKROCK):','GROUP')||'GROUP';
+    const entity=prompt('Entity scope (GROUP, BLACKROCK, BLACKROCK):','GROUP')||'GROUP';
     const users=accessUsers(); const id='U-'+String(Date.now()).slice(-6); users.push({id,name,department,role,entity,status:'Active',created_at:new Date().toISOString()});write(KEY,users);log('CREATE',name,'New employee access profile');render();
   };
   window.bokanAccessReconcileCustomers=function(){
@@ -8981,7 +8948,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
 <script id="bokan-supply-tower-v1">
 (function(){
 const KEY='bokan_supply_tower_v1';
-const seed={inbound:[{factory:'Factory / Supplier Planning',entity:'PRIME Investment Group PLC',qty:0,eta:'',status:'Planned'}],deliveries:[]};
+const seed={inbound:[{factory:'Factory / Supplier Planning',entity:'BLACKROCK Investment Group PLC',qty:0,eta:'',status:'Planned'}],deliveries:[]};
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');return x&&Array.isArray(x.inbound)&&Array.isArray(x.deliveries)?x:seed}catch(e){return seed}}
 function save(x){localStorage.setItem(KEY,JSON.stringify(x))}
@@ -9037,7 +9004,7 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   function roleTabs(role){
     const map={
       admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
-      management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
+      management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
       sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
       sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
       accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
@@ -9087,11 +9054,8 @@ async function fetchProfile(user,requestedCompanyCode){
   // Explicitly non-production review path: the mock backend is used only while production config is absent/invalid.
   // It grants a clearly labeled demo identity and demo-only company contexts; it never runs with production config.
   if(window.BOKAN_CONFIG?.DEMO_REVIEW_MODE===true && !_bokanProdConfigured){
-    const memberships=[
-      {company_id:'demo-company-prime',company_code:'PRIME',company_name:'PRIME Investment Group — DEMO',role:'admin',app_role:'admin'},
-      {company_id:'demo-company-blackrock',company_code:'BLACKROCK',company_name:'BlackRock Investment PLC — DEMO',role:'admin',app_role:'admin'}
-    ];
-    const preferred=requestedCompanyCode||'PRIME';
+    const memberships=[{company_id:'demo-company-blackrock',company_code:'BLACKROCK',company_name:'BlackRock Investment PLC — DEMO',role:'admin',app_role:'admin'}];
+    const preferred='BLACKROCK';
     const selected=memberships.find(m=>m.company_code===preferred)||memberships[0];
     return {id:user.id,full_name:'Demo Review User',role:'admin',department:'Review',company_code:selected.company_code,company_id:selected.company_id,active:true,terminated_at:null,memberships};
   }
@@ -9309,7 +9273,7 @@ async function enter(user){
     if(!prod())return;
     try{
       const c=company(),factory=document.getElementById('st-factory')?.value.trim(),qty=Number(document.getElementById('st-qty')?.value||0),selected=document.getElementById('st-entity')?.value||'',purchaseDocumentId=document.getElementById('st-purchase-document')?.value||null;
-      const selectedEntity=/bokan/i.test(selected)?'BOKAN Coordinated':(/blackrock/i.test(selected)?'BLACKROCK':'PRIME');
+      const selectedEntity=/bokan/i.test(selected)?'BOKAN Coordinated':(/blackrock/i.test(selected)?'BLACKROCK':'BLACKROCK');
       if(selectedEntity!=='BOKAN Coordinated'&&selectedEntity!==c.code){alert('The selected legal owner does not match your active company. Switch company context first, or select BOKAN Coordinated for shared operations.');return;}
       if(!factory||!Number.isFinite(qty)||qty<=0){alert('Enter a factory or supplier and a quantity greater than zero.');return;}
       await createShipment({factory_name:factory,purchasing_entity:selectedEntity,purchase_document_id:purchaseDocumentId,planned_quantity:qty,eta:document.getElementById('st-eta')?.value||null,status:document.getElementById('st-status')?.value||'Planned'});
@@ -9321,7 +9285,7 @@ async function enter(user){
     if(!prod())return;
     try{
       const c=company(),customer=document.getElementById('st-customer')?.value.trim(),required=Number(document.getElementById('st-required')?.value||0),allocated=Number(document.getElementById('st-allocated')?.value||0),selected=document.getElementById('st-owner')?.value||'',salesDocumentId=document.getElementById('st-sales-document')?.value||null;
-      const selectedCode=/blackrock/i.test(selected)?'BLACKROCK':'PRIME';
+      const selectedCode=/blackrock/i.test(selected)?'BLACKROCK':'BLACKROCK';
       if(selectedCode!==c.code){alert('The selected legal owner does not match your active company. Switch company context first.');return;}
       if(!customer||!Number.isFinite(required)||required<=0||!Number.isFinite(allocated)||allocated<0||allocated>required){alert('Enter a customer/project, required quantity greater than zero, and allocated quantity between zero and required quantity.');return;}
       await createDelivery({customer_name:customer,sales_document_id:salesDocumentId,required_quantity:required,allocated_quantity:allocated,delivery_status:document.getElementById('st-delivery-status')?.value||'Stock Check'});
@@ -9353,7 +9317,7 @@ async function enter(user){
 </script>
 \n<script id="bokan-v65-finance-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
-  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'PRIME';
+  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';
   async function count(table,filter){ if(!prod) return 0; let q=window.sb.from(table).select('*',{count:'exact',head:true}); if(filter) q=filter(q); const r=await q; return r.error?0:(r.count||0); }
   async function refresh(){
     const mode=document.getElementById('v65-mode'),status=document.getElementById('v65-status');
@@ -9381,7 +9345,7 @@ async function enter(user){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,250));
 })();</script>\n<script id="bokan-v66-hr-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
-  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'PRIME';  async function count(table,filter){if(!prod)return 0;let q=window.sb.from(table).select('*',{count:'exact',head:true});if(filter)q=filter(q);const r=await q;return r.error?0:(r.count||0)}
+  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';  async function count(table,filter){if(!prod)return 0;let q=window.sb.from(table).select('*',{count:'exact',head:true});if(filter)q=filter(q);const r=await q;return r.error?0:(r.count||0)}
   async function refresh(){
     const mode=document.getElementById('v66-mode'),status=document.getElementById('v66-status');
     if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='Review mode: Supabase production configuration is not active. HR and Payroll data remains in the existing review layer.';return}
