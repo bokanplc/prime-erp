@@ -180,12 +180,7 @@ create policy crm_assignments_manager_insert on public.crm_customer_assignments
     and assigned_by = (select auth.uid())
     and (select private.is_active_company_member(company_id, owner_user_id))
     and (select private.is_active_company_member(company_id, assigned_by)));
-create policy crm_assignments_manager_update on public.crm_customer_assignments
-  for update to authenticated
-  using ((select private.can_manage_company(company_id)))
-  with check ((select private.can_manage_company(company_id))
-    and (select private.is_active_company_member(company_id, owner_user_id))
-    and (select private.is_active_company_member(company_id, assigned_by)));
+-- Assignment changes must use the atomic reassignment RPC; direct UPDATE is intentionally absent.
 
 create policy crm_assignment_events_company_read on public.crm_assignment_events
   for select to authenticated
@@ -221,7 +216,8 @@ create policy crm_opportunities_owner_update on public.crm_opportunities
   using ((select private.has_company_membership(company_id))
     and (owner_user_id = (select auth.uid()) or (select private.can_manage_company(company_id))))
   with check ((select private.has_company_membership(company_id))
-    and (owner_user_id = (select auth.uid()) or (select private.can_manage_company(company_id))));
+    and (owner_user_id = (select auth.uid()) or (select private.can_manage_company(company_id)))
+    and (select private.is_active_company_member(company_id, owner_user_id)));
 
 create policy crm_after_sales_company_read on public.crm_after_sales_tasks
   for select to authenticated
@@ -236,13 +232,17 @@ create policy crm_after_sales_owner_update on public.crm_after_sales_tasks
   for update to authenticated
   using ((select private.has_company_membership(company_id))
     and (owner_user_id = (select auth.uid()) or (select private.can_manage_company(company_id))))
-  with check ((select private.has_company_membership(company_id)));
+  with check ((select private.has_company_membership(company_id))
+    and (owner_user_id = (select auth.uid()) or (select private.can_manage_company(company_id)))
+    and (owner_user_id is null or (select private.is_active_company_member(company_id, owner_user_id))));
 
-grant select, insert, update on public.crm_customer_assignments to authenticated;
+grant select, insert on public.crm_customer_assignments to authenticated;
 grant select, insert on public.crm_assignment_events to authenticated;
 grant select, insert on public.crm_activities to authenticated;
-grant select, insert, update on public.crm_opportunities to authenticated;
-grant select, insert, update on public.crm_after_sales_tasks to authenticated;
+grant select, insert on public.crm_opportunities to authenticated;
+grant update (product_description, estimated_quantity, estimated_value, currency_code, required_date, stage, next_action, next_action_date, competitor, notes, owner_user_id) on public.crm_opportunities to authenticated;
+grant select, insert on public.crm_after_sales_tasks to authenticated;
+grant update (task_type, notes, due_date, status, completed_at, owner_user_id) on public.crm_after_sales_tasks to authenticated;
 
 create or replace function public.bokan_reassign_customer_owner(
   p_company_id uuid,
