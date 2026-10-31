@@ -97,6 +97,63 @@ select public.bokan_reassign_customer_owner(
 );
 reset role;
 
+-- Direct reassignment-table UPDATE is forbidden; callers must use the atomic RPC.
+set role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+do $direct_assignment$
+begin
+  begin
+    update public.crm_customer_assignments
+       set owner_user_id='10000000-0000-0000-0000-000000000003';
+    raise exception 'Direct assignment UPDATE unexpectedly succeeded';
+  exception when insufficient_privilege then
+    null;
+  end;
+end $direct_assignment$;
+reset role;
+
+-- Sales owner can create their own task but cannot transfer it to another member.
+set role authenticated;
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000002',false);
+insert into public.crm_after_sales_tasks
+  (company_id, customer_id, owner_user_id, task_type, created_by)
+values
+  ('20000000-0000-0000-0000-000000000001',
+   '40000000-0000-0000-0000-000000000001',
+   '10000000-0000-0000-0000-000000000002',
+   'Customer follow-up', '10000000-0000-0000-0000-000000000002');
+do $task_transfer$
+begin
+  begin
+    update public.crm_after_sales_tasks
+       set owner_user_id='10000000-0000-0000-0000-000000000001';
+    raise exception 'Sales user unexpectedly transferred an after-sales task';
+  exception when insufficient_privilege then
+    null;
+  end;
+end $task_transfer$;
+
+-- Sales owner cannot transfer their opportunity to a different user.
+insert into public.crm_opportunities
+  (company_id, customer_id, owner_user_id, product_description, created_by)
+values
+  ('20000000-0000-0000-0000-000000000001',
+   '40000000-0000-0000-0000-000000000001',
+   '10000000-0000-0000-0000-000000000002',
+   'Plywood supply requirement',
+   '10000000-0000-0000-0000-000000000002');
+do $opportunity_transfer$
+begin
+  begin
+    update public.crm_opportunities
+       set owner_user_id='10000000-0000-0000-0000-000000000001';
+    raise exception 'Sales user unexpectedly transferred an opportunity';
+  exception when insufficient_privilege then
+    null;
+  end;
+end $opportunity_transfer$;
+reset role;
+
 -- Verify assignment and event were committed together.
 do $$
 begin
