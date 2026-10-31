@@ -38,7 +38,7 @@ It has been moved to `supabase/candidates/core_proforma_mvp.sql`. Disposable Pos
 
 ## Updated live inventory — 2026-10-31
 
-The connected Supabase migration ledger now reports **30 applied migration records**. The executable source directory contains **23 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
+The connected Supabase migration ledger now reports **34 applied migration records**. The executable source directory contains **26 tracked applied migration SQL files**. Eight applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
 
 | Applied version | Applied migration | Source status |
 |---|---|---|
@@ -48,9 +48,9 @@ The connected Supabase migration ledger now reports **30 applied migration recor
 | 20261025124312 | atomic_sales_document_creation | Historical SQL body unrecovered |
 | 20261031080833 | add_company_scoped_proforma_foundation | Applied SQL body not present in current migration directory |
 | 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
-| 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
+| 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |\n| 20261031134421 | sync_profile_role_on_membership_changes | Original applied SQL body not recovered; a later equivalent draft is retained as an inert, superseded file |
 
-The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 23 available executable files and documents all seven gaps. This is not full historical migration parity.
+The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies and the profile-role trigger migration also remain a source-control reconciliation task. Do not fabricate or backdate any of these eight bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 26 available executable files and documents all eight gaps. This is not full historical migration parity.
 
 ## New forward migrations recorded
 
@@ -89,3 +89,12 @@ The current database ledger includes these migrations. The reversal sequencing c
 
 
 - 20261031125554 — customer reassignment now validates that the selected owner is an active `sales` or `staff` member of the same company. The V6.7 reassignment selector applies the same role filter; managers still perform the reassignment through the authorized RPC with a required reason.
+
+
+## BlackRock-only decommission and persistence — 2026-10-31
+
+- 20261031132355 — decommissioned the Prime company and its company-owned records while explicitly refusing to proceed if the active BlackRock company record is missing. Live verification now shows only the BlackRock company record, one active administrator membership, and zero Prime-scoped rows in the checked membership, customer, product, sales-document, purchase-document and journal-entry tables.
+- 20261031133249 — added BlackRock-scoped HR, attendance, leave, performance, disciplinary and payroll persistence with RLS and role checks.
+- 20261031134003 — added BlackRock-scoped sales operations, billings, expenses, notifications, sales targets, field operations, stock registers and document metadata with RLS and role checks.
+- 20261031134421 — the live ledger records a profile-role synchronization trigger migration. Its original SQL body is not present in the repository. A later equivalent SQL draft (`20261031140120`) was found, but is explicitly marked superseded/inert rather than misrepresented as the original applied migration or allowed to run a second time.
+- The migration source-parity test now accounts for 34 live ledger records, 26 tracked applied SQL files and eight unrecovered original migration bodies. This remains a documented source-history gap, not a claim of perfect historical parity.
