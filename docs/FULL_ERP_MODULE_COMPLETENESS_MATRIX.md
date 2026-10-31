@@ -155,3 +155,13 @@ The ledger now has authenticated atomic posting and reversal procedures. A rollb
 The migration source gap is now explicitly counted as seven applied SQL bodies absent from the current repository: the four historical bodies listed above plus the three Proforma/CRM foundation and CRM hardening bodies. The four historical gaps remain benched as requested. The source parity test verifies the 18 available source-controlled applied migrations and documents all seven absent bodies; it does not claim full historical parity.
 
 Finance is still a partial backend foundation, not a complete Finance module. Automated source-document approval checks, integration with AR/AP and inventory, period-close controls, tax/bank/fixed-asset/budget workflows, complete UI bridge and authenticated browser testing remain outstanding. Keep production disabled.
+
+
+## Latest live migration checkpoint — 2026-10-31 12:50 UTC
+
+- Live Supabase now records **28 applied migrations** and **27 public base tables**. The current source-controlled migration directory tracks **21 available applied SQL bodies**; seven applied bodies remain absent and documented. Four historical bodies remain benched per instruction; three Proforma/CRM foundation bodies require source-control reconciliation.
+- CRM now has canonical company-scoped persistence and the V6.7 Sales customer directory, customer form submission, activity timeline, weekly follow-ups and CRM coverage dashboard are wired to the canonical tables. Opportunities and after-sales task APIs exist but dedicated V6.7 controls remain to be built. No authenticated browser test has been completed; keep CRM production activation disabled.
+- Supply & Logistics now links inbound shipments to same-company purchase orders and delivery orders to same-company approved/posted sales orders or invoices. The links are optional and preserve existing planning rows. UI source selectors and live browser tests remain pending.
+- General Ledger posting and reversal are atomic RPC workflows; direct table writes are restricted to RPCs. No chart of accounts, fiscal periods, or business journals have been seeded.
+- Vercel staging builds for commits made while the project exceeded its 100-deployments-per-day free API limit are failing with a plan/rate-limit status. The earlier build assertion failures were caused by the staging entry/source being temporarily out of sync; they have been synchronized again. A new verified deployment cannot be produced until Vercel's rate limit resets or the team changes plan. No paid upgrade was made.
+- Production remains disabled, the reviewed module allowlist remains empty, and `main` has not been modified or merged.
