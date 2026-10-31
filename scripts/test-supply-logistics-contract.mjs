@@ -8,6 +8,7 @@ const config=fs.readFileSync('staging/config/config.js','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261031082508_add_company_scoped_supply_logistics_foundation.sql','utf8');
 const purchasingEntityMigration=fs.readFileSync('supabase/migrations/20261031084536_add_supply_shipment_purchasing_entity.sql','utf8');
 const sourceDocumentMigration=fs.readFileSync('supabase/migrations/20261031124815_link_supply_logistics_to_purchase_sales_documents.sql','utf8');
+const purchaseOrderEligibilityMigration=fs.readFileSync('supabase/migrations/20261031125430_require_submitted_purchase_order_for_shipment_link.sql','utf8');
 assert.equal(entry,source,'The staging entry must match the reviewed full V6.7 source.');
 const start=source.indexOf('<script id="bokan-v64-supply-production-bridge">');
 const end=source.indexOf('</script>',start);
@@ -55,6 +56,7 @@ assert.match(sourceDocumentMigration,/foreign key \(company_id,sales_document_id
 assert.match(sourceDocumentMigration,/v_type <> 'purchase_order'/,'Shipment links must be restricted to purchase orders.');
 assert.match(sourceDocumentMigration,/v_status not in \('approved','posted','partially_paid','paid'\)/,'Delivery links must require an approved or posted sales source.');
 assert.match(sourceDocumentMigration,/new.customer_name := v_customer_name/,'Delivery customer label must be derived from its linked sales document when available.');
+assert.match(purchaseOrderEligibilityMigration,/v_status not in \('submitted','approved','partially_received','received','partially_paid','paid'\)/,'Shipment source links must reject draft, cancelled and void purchase orders.');
 assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review mode.');
 assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
