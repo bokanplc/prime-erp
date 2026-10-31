@@ -6,6 +6,7 @@ const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.htm
 const entry=fs.readFileSync('staging/index.html','utf8');
 const config=fs.readFileSync('staging/config/config.js','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261031082508_add_company_scoped_supply_logistics_foundation.sql','utf8');
+const purchasingEntityMigration=fs.readFileSync('supabase/migrations/20261031084536_add_supply_shipment_purchasing_entity.sql','utf8');
 assert.equal(entry,source,'The staging entry must match the reviewed full V6.7 source.');
 const start=source.indexOf('<script id="bokan-v64-supply-production-bridge">');
 const end=source.indexOf('</script>',start);
@@ -17,6 +18,8 @@ assert.match(bridge,/auth\(\)\?\.profile\?\.company_id/,'Company scope must come
 assert.match(bridge,/eq\('company_id',c\.id\)/,'Every live list query must be filtered by active company UUID.');
 assert.match(bridge,/selectedCode!==c\.code/,'UI company selection must not override the authenticated company context.');
 assert.match(bridge,/planned_quantity:qty/,'Inbound quantity must be persisted.');
+assert.match(bridge,/purchasing_entity:selectedEntity/,'The selected purchasing/coordinating entity must be preserved separately from the legal-owner company scope.');
+assert.match(bridge,/selectedEntity!=='BOKAN Coordinated'&&selectedEntity!==c\.code/,'BOKAN coordination must not be silently treated as PRIME legal ownership.');
 assert.match(bridge,/required_quantity:required,allocated_quantity:allocated/,'Delivery quantities must be persisted and validated.');
 assert.match(bridge,/if\(demand\)demand\.textContent='—'/,'Unmigrated sales-demand totals must not be inferred from local demo data.');
 assert.match(bridge,/No sample fallback was loaded/,'A live data failure must not silently fall back to local sample data.');
@@ -35,6 +38,8 @@ assert.match(migration,/grant update \(eta, status, notes\)/,'Shipment updates m
 assert.match(migration,/grant update \(required_quantity, allocated_quantity, delivery_status, promised_delivery_date, notes\)/,'Delivery updates must be column-scoped.');
 assert.match(migration,/revoke all on table public\.supply_shipments from anon, authenticated/,'Anonymous access must be revoked.');
 assert.match(migration,/allocated_quantity <= required_quantity/,'Delivery allocation cannot exceed required quantity.');
+assert.match(purchasingEntityMigration,/add column purchasing_entity text not null default 'PRIME'/,'Inbound plans must retain the selected purchasing entity.');
+assert.match(purchasingEntityMigration,/BOKAN Coordinated/,'The shared BOKAN coordinating option must be represented without changing the legal-owner tenant.');
 assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review mode.');
 assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
