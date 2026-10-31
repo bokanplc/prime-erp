@@ -141,3 +141,17 @@ Recommended gate improvement: keep the current disabled-build tests, and later a
 ## General Ledger foundation progress — 2026-10-31
 
 The connected live Supabase project now has 27 public base tables and 23 recorded migrations. Four new company-scoped accounting tables (`ledger_accounts`, `fiscal_periods`, `journal_entries`, `journal_lines`) were applied under migration `20261031113713_add_company_scoped_general_ledger_foundation`. RLS is enabled on all four. A rollback-only authenticated test posted a balanced two-line journal and verified draft-line deletion recalculates totals. No chart of accounts, fiscal periods, or business journals were seeded. This is only the general-ledger foundation; Finance remains disabled pending source-document automation, reversal, bank/tax/close workflows, and browser authorization tests.
+
+
+## Verified live update — 2026-10-31 (continued)
+
+The connected Supabase project reports **25 applied migration records and 27 public base tables**. Four additional general-ledger tables are present: `ledger_accounts`, `fiscal_periods`, `journal_entries`, and `journal_lines`. The following forward migrations are recorded and source-controlled on `deploy/secure-staging`:
+- `20261031113713_add_company_scoped_general_ledger_foundation`
+- `20261031120000_add_atomic_journal_posting_and_reversals`
+- `20261031121500_fix_reversal_posted_entry_immutability`
+
+The ledger now has authenticated atomic posting and reversal procedures. A rollback-only test exercised both. The first reversal attempt exposed and corrected a trigger-ordering conflict. No production module has been activated and no live business transactions have been created.
+
+The migration source gap is now explicitly counted as seven applied SQL bodies absent from the current repository: the four historical bodies listed above plus the three Proforma/CRM foundation and CRM hardening bodies. The four historical gaps remain benched as requested. The source parity test verifies the 18 available source-controlled applied migrations and documents all seven absent bodies; it does not claim full historical parity.
+
+Finance is still a partial backend foundation, not a complete Finance module. Automated source-document approval checks, integration with AR/AP and inventory, period-close controls, tax/bank/fixed-asset/budget workflows, complete UI bridge and authenticated browser testing remain outstanding. Keep production disabled.
