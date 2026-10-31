@@ -6,7 +6,7 @@
 
 Migrate the existing full BOKAN ERP V6.7 application as one integrated ERP for BlackRock Investment PLC and Prime Investment Group. Proforma is one workflow inside the ERP, not a standalone application or separate release. Withholding is not a required Proforma feature and must not block the full ERP migration.
 
-Keep production mode, reviewed-module allowlist, and live schema changes disabled until each module passes its acceptance gates. Do not merge the staging branch into main or deploy a production release as a shortcut.
+Keep production mode and the reviewed-module allowlist disabled until each module passes its acceptance gates. Forward-only live schema migrations may be applied when source-controlled, tested, company-scoped and explicitly verified. Do not merge the staging branch into main or deploy a production release as a shortcut.
 
 ## Verified live foundation
 
@@ -24,8 +24,8 @@ The migration history contains 15 records. Four historical SQL bodies are not cu
 ## Work sequence
 
 ### 0. Preserve and reconcile the foundation
-- Recover the exact four missing historical migration SQL files from repository history, backups, or Supabase migration artifacts.
-- If exact originals cannot be recovered, create a clearly labeled live-schema baseline from catalog inspection; never invent historical migration bodies.
+- Accept the four historical SQL bodies as an existing source-control gap; do not spend migration time attempting recovery or inventing historical migration bodies.
+- Preserve a clearly labeled current-schema baseline later if it becomes necessary for reproducible environment setup.
 - Compare constraints, indexes, triggers, views, functions, grants, and RLS against the live catalog before any forward migration.
 - Preserve existing operational records and verify company isolation for both legal entities.
 
@@ -45,7 +45,8 @@ The migration history contains 15 records. Four historical SQL bodies are not cu
 
 ### 3. Procurement, receiving, inventory, and logistics
 - Extend existing suppliers, purchase documents/items, stock movements, and supplier payments rather than creating competing purchasing models.
-- Map purchase request/order, shipment, goods receipt, warehouse, reservation, delivery and exception payloads.
+- First Supply & Logistics slice is now applied: company-scoped `supply_shipments` and `delivery_orders` persist inbound shipment plans and customer delivery controls with RLS, company membership checks, role-scoped writes, quantity constraints and indexes.
+- The V6.7 Supply & Logistics Control Tower bridge now reads/writes those two live tables using the authenticated active company UUID; production-mode errors do not fall back to local sample data. Sales-demand forecasting, warehouse reservations, goods receipt/stock posting integration, shipment containers and logistics exceptions remain separate work.
 - Make receiving and stock posting atomic, idempotent, reversible through controlled reversal records, and protected against negative/duplicate movement.
 - Verify product, supplier, warehouse, and company ownership at the database boundary.
 
@@ -81,14 +82,15 @@ A module is not production-ready until all are true:
 ## Current stop-ship findings
 
 - The full application still has multiple browser-local modules.
-- The CRM bridge references customer activity, assignment, salesperson, and opportunity tables absent from the live 12-table foundation. Its current reassignment sequence is multi-step and is not atomic.
-- Procurement/logistics, finance, HR/payroll, documents, and notifications require canonical schema and trusted operations.
-- The four missing historical migration bodies remain a migration-source gap.
+- The current CRM browser bridge still references `bokan_*` tables while the live database uses the company-scoped `crm_*` contracts; this UI mismatch must be reconciled before CRM activation.
+- Supply & Logistics now has a first live persistence slice, but the full procurement/receiving/reservation/delivery-exception lifecycle is not yet migrated.
+- Finance, HR/payroll, documents, notifications and the remaining operational modules require canonical schema and trusted operations.
+- The four missing historical migration bodies remain a documented source-control gap and are explicitly not a blocker for forward migration.
 - No business module is currently approved for hosted production; the production allowlist remains empty.
 
 ## Immediate next engineering tasks
 
-1. Finish the migration-source recovery and live catalog parity audit.
-2. Produce exact field-level contracts for CRM and procurement from all V6.7 reads/writes.
-3. Design disposable PostgreSQL migrations and negative security tests for the canonical CRM model.
-4. Only after those pass, prepare a forward-only Supabase migration for review; do not apply it automatically.
+1. Verify the new Supply & Logistics migration against disposable PostgreSQL CI and confirm the latest Vercel preview packages the updated full V6.7 UI.
+2. Complete real authenticated browser read/write/reload and cross-company denial tests for the new Supply & Logistics slice before enabling its production tab.
+3. Reconcile the CRM UI bridge to the existing `crm_*` live schema and test the manager-only reassignment RPC.
+4. Continue the remaining procurement/inventory workflow, then Finance and HR/payroll; keep all production tabs disabled until each acceptance gate passes.
