@@ -22,6 +22,8 @@ assert.match(bridge,/if\(demand\)demand\.textContent='—'/,'Unmigrated sales-de
 assert.match(bridge,/No sample fallback was loaded/,'A live data failure must not silently fall back to local sample data.');
 assert.doesNotMatch(bridge,/bokan_shipments|bokan_delivery_orders|bokan_inventory_balances/,'The bridge must not call nonexistent bokan_* logistics tables.');
 assert.match(source,/id="st-production-status"/,'The UI must disclose live-mode status and partial coverage.');
+assert.match(source,/admin:\s*\[[^\]]*'supplytower'/,'Company administrators must have the Supply & Logistics tab in their workspace.');
+assert.match(source,/bokan:company-context-changed/,'The live Supply & Logistics list must refresh when the authenticated company changes.');
 
 assert.match(migration,/create table public\.supply_shipments/,'The migration must create inbound shipment records.');
 assert.match(migration,/create table public\.delivery_orders/,'The migration must create delivery-control records.');
