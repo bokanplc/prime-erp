@@ -5115,7 +5115,7 @@ async function loadStock() {
       </div>
       <div class="flex gap-3 no-print">
         <button data-stock-id="${escapeHtml(row.id)}" onclick="editStock(this.dataset.stockId)" class="text-[#2CA01C] text-xs font-semibold">Edit</button>
-        <button data-stock-id="${escapeHtml(row.id)}" onclick="deleteStock(this.dataset.stockId)" class="text-red-600 text-xs">Delete</button>
+        <button data-stock-id="${escapeHtml(row.id)}" onclick="deleteStock(this.dataset.stockId)" class="text-red-600 text-xs ${window.BOKAN_CRM_PRODUCTION?.enabled()?'hidden':''}">Delete</button>
       </div>
     </div>`;
   const grouped = document.getElementById('stock-group-toggle')?.checked;
@@ -5317,7 +5317,7 @@ async function renderCustomerDirectory() {
   }
   const { data: customers } = await sb.from('customers').select('*').order('customer_name');
   const { data: logs } = await sb.from('customer_logs').select('*');
-  const { data: profiles } = await sb.from('profiles').select('id, full_name');
+  const { data: profiles } = await sb.from('profiles').select('id, full_name, role');
   const nameById = {}; (profiles || []).forEach(p => { nameById[p.id] = p.full_name; });
   const today = new Date().toISOString().slice(0,10);
 
@@ -5399,12 +5399,14 @@ async function loadWeeklyActions() {
   }
   const today = new Date().toISOString().slice(0,10);
   const weekOut = new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10);
-  const { data } = await sb.from('customer_logs').select('*, customers(customer_name)').not('next_action_date', 'is', null).gte('next_action_date', today).lte('next_action_date', weekOut).order('next_action_date', { ascending: true });
+  const { data } = await sb.from('customer_logs').select('customer_id,next_action_type,next_action_date').not('next_action_date', 'is', null).gte('next_action_date', today).lte('next_action_date', weekOut).order('next_action_date', { ascending: true });
+  const { data: upcomingCustomers } = await sb.from('customers').select('id,customer_name');
+  const upcomingNames = Object.fromEntries((upcomingCustomers||[]).map(c=>[c.id,c.customer_name]));
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">Nothing scheduled in the next 7 days.</p>'; return; }
   el.innerHTML = data.map(row => {
     const isToday = row.next_action_date === today;
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 ${isToday ? 'bg-amber-50' : ''}">
-      <div><span class="font-semibold">${escapeHtml(row.next_action_type || 'Follow-up')}</span> — ${escapeHtml(row.customers?.customer_name || '')}
+      <div><span class="font-semibold">${escapeHtml(row.next_action_type || 'Follow-up')}</span> — ${escapeHtml(upcomingNames[row.customer_id] || '')}
       <span class="text-[#8D9096]">${escapeHtml(row.next_action_date || '')}${isToday ? ' (Today)' : ''}</span></div>
     </div>`;
   }).join('');
@@ -5610,7 +5612,7 @@ async function loadCustomerHistory(customerName) {
   if (currentRole === 'admin' || currentRole === 'sales_manager') {
     reassignWrap.classList.remove('hidden');
     const sel = document.getElementById('timeline-reassign-select');
-    sel.innerHTML = (profiles || []).filter(p => ['sales','sales_manager','admin'].includes(store_role_lookup(p.id))).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${escapeHtml(p.full_name)}</option>`).join('')
+    sel.innerHTML = (profiles || []).filter(p => ['sales','manager','admin'].includes(p.role)).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${escapeHtml(p.full_name)}</option>`).join('')
       || (profiles || []).map(p => `<option value="${p.id}" ${p.id === cust.assigned_rep ? 'selected' : ''}>${escapeHtml(p.full_name)}</option>`).join('');
   } else {
     reassignWrap.classList.add('hidden');
@@ -5637,7 +5639,7 @@ async function loadCustomerHistory(customerName) {
   }
 }
 // Small helper since our mock profiles table doesn't carry a role column consistently for seed users.
-function store_role_lookup() { return null; }
+function store_role_lookup(userId) { return window.BOKAN_PROFILE_ROLE_CACHE?.[userId] || null; }
 
 async function reassignCurrentCustomer() {
   if (!currentTimelineCustomerId) return;
@@ -5645,12 +5647,22 @@ async function reassignCurrentCustomer() {
   const { data: cust } = await sb.from('customers').select('*').eq('id', currentTimelineCustomerId).single();
   if (!cust) return;
   const oldRepId = cust.assigned_rep;
-  await sb.from('customers').update({ assigned_rep: newRep }).eq('id', currentTimelineCustomerId);
-  await sb.from('customer_logs').insert([{
-    customer_id: currentTimelineCustomerId, sales_rep: currentUser.id, status: cust.current_status,
-    activity_type: 'Reassignment', notes: `Customer reassigned by ${currentRole}.`, customer_feedback: null,
-    next_action_type: null, next_action_date: null
-  }]);
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const assignment = await window.BOKAN_CRM_PRODUCTION.assignCustomer(currentTimelineCustomerId, newRep, `Reassigned by ${currentRole}`);
+    if (assignment.error) throw assignment.error;
+    const activity = await window.BOKAN_CRM_PRODUCTION.addActivity({
+      customer_id: currentTimelineCustomerId, activity_type: 'Reassignment', status: cust.current_status,
+      notes: `Customer reassigned by ${currentRole}.`, customer_feedback: null, next_action_type: null, next_action_date: null
+    });
+    if (activity.error) throw activity.error;
+  } else {
+    await sb.from('customers').update({ assigned_rep: newRep }).eq('id', currentTimelineCustomerId);
+    await sb.from('customer_logs').insert([{
+      customer_id: currentTimelineCustomerId, sales_rep: currentUser.id, status: cust.current_status,
+      activity_type: 'Reassignment', notes: `Customer reassigned by ${currentRole}.`, customer_feedback: null,
+      next_action_type: null, next_action_date: null
+    }]);
+  }
   await pushNotification('reassignment', `${cust.customer_name} reassigned.`, { customer_id: cust.id, from: oldRepId, to: newRep });
   alert('Customer reassigned — full history preserved.');
   loadCustomerHistory(cust.customer_name);
@@ -5659,21 +5671,23 @@ async function reassignCurrentCustomer() {
 
 async function loadReport() {
   const filter = document.getElementById('report-status-filter')?.value;
-  let q = sb.from('customer_logs').select('*, customers(customer_name)').order('created_at', { ascending: false }).limit(150);
+  let q = sb.from('customer_logs').select('*').order('created_at', { ascending: false }).limit(150);
   if (filter) q = q.eq('status', filter);
   const { data } = await q;
+  const { data: customerRows } = await sb.from('customers').select('id,customer_name');
+  const customerNameById = Object.fromEntries((customerRows||[]).map(c=>[c.id,c.customer_name]));
   const el = document.getElementById('report-list');
   if (!data || !data.length) { el.innerHTML = '<tr><td class="text-xs text-[#8D9096] py-2">No activity yet.</td></tr>'; return; }
   el.innerHTML = data.map(row => `
     <tr class="border-b border-[#ECEEF1] align-top">
       <td class="py-2 pr-3 text-xs text-[#8D9096] whitespace-nowrap">${new Date(row.created_at).toLocaleDateString()}</td>
-      <td class="py-2 pr-3 font-semibold">${escapeHtml(row.customers?.customer_name || '')}</td>
+      <td class="py-2 pr-3 font-semibold">${escapeHtml(customerNameById[row.customer_id] || '')}</td>
       <td class="py-2 pr-3"><span class="text-xs bg-[#F4F5F8] rounded px-2 py-0.5">${escapeHtml(row.activity_type || row.status)}</span></td>
       <td class="py-2 text-[#6B6C72]">${escapeHtml(row.notes || '')}${row.escalated ? ' <span class="text-red-600 font-semibold">⚑ Escalated</span>' : ''}</td>
       <td class="py-2 pr-3 no-print"><button onclick="deleteCustomerLog('${row.id}')" class="text-red-600 text-xs">Delete</button></td>
     </tr>`).join('');
 }
-async function deleteCustomerLog(id) { if (!confirm('Delete this interaction log entry?')) return; await sb.from('customer_logs').delete().eq('id', id); loadReport(); }
+async function deleteCustomerLog(id) { if(window.BOKAN_CRM_PRODUCTION?.enabled()){alert('CRM activity history is retained for audit and cannot be deleted.');return;} if (!confirm('Delete this interaction log entry?')) return; await sb.from('customer_logs').delete().eq('id', id); loadReport(); }
 
 // ==================== SALES TARGETS & COMMISSION ====================
 let salesTargetsData = [];
@@ -7670,7 +7684,7 @@ const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const day=d=>new Date(d).toISOString().slice(0,10);
 function daysBetween(a,b){return Math.max(0,Math.floor((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000));}
 async function loadSalesFollowup(){
- const [cr,lr,pr]=await Promise.all([sb.from('customers').select('*').order('customer_name'),sb.from('customer_logs').select('*').order('created_at',{ascending:false}),sb.from('profiles').select('id,full_name')]);
+ const [cr,lr,pr]=await Promise.all([sb.from('customers').select('*').order('customer_name'),sb.from('customer_logs').select('*').order('created_at',{ascending:false}),sb.from('profiles').select('id,full_name,role')]);
  const customers=cr.data||[], logs=lr.data||[], profiles=pr.data||[], names={};profiles.forEach(p=>names[p.id]=p.full_name);
  const rep=document.getElementById('fu-rep'); if(rep){const old=rep.value;rep.innerHTML='<option value="">All Representatives</option>'+profiles.filter(p=>['sales','sales_manager','admin'].includes(store_role_lookup(p.id))).map(p=>`<option value="${p.id}">${esc(p.full_name)}</option>`).join('');rep.value=old;}
  const from=document.getElementById('fu-from')?.value, to=document.getElementById('fu-to')?.value, filterRep=rep?.value||'', filterStatus=document.getElementById('fu-status')?.value||'';
@@ -7684,7 +7698,7 @@ async function loadSalesFollowup(){
  const end=to?new Date(to+'T00:00:00'):new Date(), start=from?new Date(from+'T00:00:00'):new Date(end.getTime()-6*86400000);const ds=[];for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1))ds.push(day(d));const maxDay=Math.max(1,...ds.map(d=>dayCounts[d]||0));document.getElementById('fu-day-chart').innerHTML=ds.slice(-14).map(d=>`<div class="flex-1 h-full flex flex-col justify-end items-center gap-1"><div class="text-[9px]">${dayCounts[d]||0}</div><div class="w-full rounded-t bg-[#2CA01C]" style="height:${Math.max(4,Math.round((dayCounts[d]||0)/maxDay*100))}%"></div><div class="text-[8px] text-[#6B6C72] rotate-45 mt-1">${d.slice(5)}</div></div>`).join('');
  document.getElementById('fu-table').innerHTML=touchRows.sort((a,b)=>b.age-a.age).map(x=>{const s=x.status, cls=s==='overdue'?'fu-red':s==='due'?'fu-amber':s==='current'?'fu-green':'fu-gray';return `<tr class="border-t border-[#E4E8ED]"><td class="p-2 font-semibold">${esc(x.c.customer_name)}</td><td class="p-2">${esc(names[x.c.assigned_rep]||'Unassigned')}</td><td class="p-2">${x.lastDate||'Never'}</td><td class="p-2 font-bold">${x.age===999?'—':x.age}</td><td class="p-2">${esc(x.last?.activity_type||'—')}</td><td class="p-2">${x.last?.next_action_date||'—'}</td><td class="p-2"><span class="fu-status ${cls}">${s==='never'?'NEVER CONTACTED':s.toUpperCase()}</span></td></tr>`}).join('')||'<tr><td colspan="7" class="p-3 text-[#8D9096]">No customers match the selected control.</td></tr>';
 }
-async function initSalesAssignment(){const wrap=document.getElementById('cust-assignment-wrap'),sel=document.getElementById('cust-assigned-rep');if(!wrap||!sel)return;if(['admin','sales_manager'].includes(currentRole)){wrap.classList.remove('hidden');const {data}=await sb.from('profiles').select('id,full_name');sel.innerHTML=(data||[]).filter(p=>['sales','sales_manager'].includes(store_role_lookup(p.id))).map(p=>`<option value="${p.id}">${esc(p.full_name)}</option>`).join('');}}
+async function initSalesAssignment(){const wrap=document.getElementById('cust-assignment-wrap'),sel=document.getElementById('cust-assigned-rep');if(!wrap||!sel)return;if(['admin','sales_manager'].includes(currentRole)){wrap.classList.remove('hidden');const {data}=await sb.from('profiles').select('id,full_name');sel.innerHTML=(data||[]).filter(p=>['sales','manager'].includes(p.role)).map(p=>`<option value="${p.id}">${esc(p.full_name)}</option>`).join('');}}
 async function renderHRW(){
  const {data:emps,error:employeeError}=await sb.from('employees').select('*').order('full_name');
  if(employeeError)throw employeeError;
@@ -7730,7 +7744,7 @@ async function saveAttendance(){
 async function renderDashVisuals(){try{const [cr,lr,pr]=await Promise.all([sb.from('customers').select('id,current_status'),sb.from('customer_logs').select('activity_type,sales_rep,created_at'),sb.from('stock_entries').select('entry_type,total,created_at').gte('created_at',new Date(Date.now()-30*86400000).toISOString())]);const customers=cr.data||[],logs=lr.data||[],stock=pr.data||[];const counts={};customers.forEach(c=>counts[c.current_status||'Unknown']=(counts[c.current_status||'Unknown']||0)+1);const total=Math.max(1,customers.length);let start=0,parts=[];const vals=Object.entries(counts).slice(0,6);const segColors=['#2CA01C','#E68A00','#2867E8','#7C3AED','#D97706','#94A3B8'];vals.forEach(([s,v],i)=>{const deg=v/total*360;parts.push(`${segColors[i%segColors.length]} ${start}deg ${start+deg}deg`);start+=deg});const donut=document.getElementById('dash-pipeline-donut');if(donut)donut.style.background=`conic-gradient(${parts.join(',')}${start<360?',#D1D5DB '+start+'deg 360deg':''})`;document.getElementById('dash-pipeline-legend').innerHTML=vals.map(([s,v],i)=>`<div class="flex justify-between"><span><i class="inline-block w-2 h-2 rounded-full mr-2" style="background:${segColors[i%segColors.length]}"></i>${esc(s)}</span><strong>${v}</strong></div>`).join('');
  const rc={};logs.forEach(l=>rc[l.sales_rep]=(rc[l.sales_rep]||0)+1);const max=Math.max(1,...Object.values(rc));let names={};try{const {data:p}=await sb.from('profiles').select('id,full_name');(p||[]).forEach(x=>names[x.id]=x.full_name)}catch(e){}document.getElementById('dash-rep-chart').innerHTML=Object.entries(rc).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([id,v])=>`<div><div class="flex justify-between mb-1"><span>${esc(names[id]||'Unknown')}</span><strong>${v}</strong></div><div class="dash-bar"><span style="width:${Math.round(v/max*100)}%"></span></div></div>`).join('')||'<span class="text-[#8D9096]">No sales activity yet.</span>';
  const sales=stock.filter(x=>x.entry_type==='sale').reduce((s,x)=>s+Number(x.total||0),0),purch=stock.filter(x=>x.entry_type==='purchase').reduce((s,x)=>s+Number(x.total||0),0);const maxT=Math.max(sales,purch,1);document.getElementById('dash-trend-chart').innerHTML=`<svg viewBox="0 0 640 210" preserveAspectRatio="none"><line x1="40" y1="175" x2="620" y2="175" stroke="#D4DCE5"/><line x1="40" y1="30" x2="40" y2="175" stroke="#D4DCE5"/><polyline fill="none" stroke="#2CA01C" stroke-width="4" points="40,${175-sales/maxT*130} 160,${165-sales/maxT*115} 280,${150-sales/maxT*100} 400,${135-sales/maxT*85} 520,${120-sales/maxT*70} 620,${110-sales/maxT*55}"/><polyline fill="none" stroke="#E68A00" stroke-width="4" points="40,${175-purch/maxT*130} 160,${165-purch/maxT*115} 280,${150-purch/maxT*100} 400,${135-purch/maxT*85} 520,${120-purch/maxT*70} 620,${110-purch/maxT*55}"/><text x="45" y="198" font-size="11">30 days</text><text x="510" y="28" font-size="11">Sales</text><text x="510" y="45" font-size="11">Purchases</text></svg>`;
- const action=[];const today=day(new Date());const {data:cl}=await sb.from('customer_logs').select('next_action_date,customers(customer_name)').not('next_action_date','is',null);const over=(cl||[]).filter(x=>x.next_action_date<today).length;const week=(cl||[]).filter(x=>x.next_action_date>=today&&x.next_action_date<=day(new Date(Date.now()+7*86400000))).length;if(over)action.push(`<div class="p-3 rounded border-l-4 border-red-500 bg-red-50"><strong>${over}</strong> customer follow-ups are overdue.</div>`);if(week)action.push(`<div class="p-3 rounded border-l-4 border-[#E68A00] bg-[#FFF8EA]"><strong>${week}</strong> follow-ups are due within 7 days.</div>`);if(!action.length)action.push('<div class="p-3 rounded border bg-[#F7F9FB]">No customer follow-up exceptions detected.</div>');document.getElementById('dash-action-queue').innerHTML=action.join('');}catch(e){console.warn('Dashboard visuals:',e)}}
+ const action=[];const today=day(new Date());const {data:cl}=await sb.from('customer_logs').select('next_action_date').not('next_action_date','is',null);const over=(cl||[]).filter(x=>x.next_action_date<today).length;const week=(cl||[]).filter(x=>x.next_action_date>=today&&x.next_action_date<=day(new Date(Date.now()+7*86400000))).length;if(over)action.push(`<div class="p-3 rounded border-l-4 border-red-500 bg-red-50"><strong>${over}</strong> customer follow-ups are overdue.</div>`);if(week)action.push(`<div class="p-3 rounded border-l-4 border-[#E68A00] bg-[#FFF8EA]"><strong>${week}</strong> follow-ups are due within 7 days.</div>`);if(!action.length)action.push('<div class="p-3 rounded border bg-[#F7F9FB]">No customer follow-up exceptions detected.</div>');document.getElementById('dash-action-queue').innerHTML=action.join('');}catch(e){console.warn('Dashboard visuals:',e)}}
 ['fu-from','fu-to','fu-rep','fu-status'].forEach(id=>document.getElementById(id)?.addEventListener('change',loadSalesFollowup));document.getElementById('att-date')?.addEventListener('change',renderHRW);saveAttendance();
 window.blackrockV24Refresh=()=>{loadSalesFollowup();renderHRW();renderDashVisuals()};
 const oldShow=window.showTab;if(typeof oldShow==='function'){window.showTab=function(id){oldShow(id);if(id==='salesfollowup')loadSalesFollowup();if(id==='hrattendance')renderHRW();if(id==='overview')renderDashVisuals();};}
