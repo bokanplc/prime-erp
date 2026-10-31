@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+const entry=fs.readFileSync('staging/index.html','utf8');
+const config=fs.readFileSync('staging/config/config.js','utf8');
+const migration=fs.readFileSync('supabase/migrations/20261031082508_add_company_scoped_supply_logistics_foundation.sql','utf8');
+assert.equal(entry,source,'The staging entry must match the reviewed full V6.7 source.');
+const start=source.indexOf('<script id="bokan-v64-supply-production-bridge">');
+const end=source.indexOf('</script>',start);
+assert.ok(start>=0&&end>start,'The Supply & Logistics production bridge must exist.');
+const bridge=source.slice(start,end);
+assert.match(bridge,/from\('supply_shipments'\)/,'Inbound shipment reads/writes must use the live supply_shipments table.');
+assert.match(bridge,/from\('delivery_orders'\)/,'Delivery reads/writes must use the live delivery_orders table.');
+assert.match(bridge,/auth\(\)\?\.profile\?\.company_id/,'Company scope must come from the authenticated company membership profile.');
+assert.match(bridge,/eq\('company_id',c\.id\)/,'Every live list query must be filtered by active company UUID.');
+assert.match(bridge,/selectedCode!==c\.code/,'UI company selection must not override the authenticated company context.');
+assert.match(bridge,/planned_quantity:qty/,'Inbound quantity must be persisted.');
+assert.match(bridge,/required_quantity:required,allocated_quantity:allocated/,'Delivery quantities must be persisted and validated.');
+assert.match(bridge,/if\(demand\)demand\.textContent='—'/,'Unmigrated sales-demand totals must not be inferred from local demo data.');
+assert.match(bridge,/No sample fallback was loaded/,'A live data failure must not silently fall back to local sample data.');
+assert.doesNotMatch(bridge,/bokan_shipments|bokan_delivery_orders|bokan_inventory_balances/,'The bridge must not call nonexistent bokan_* logistics tables.');
+assert.match(source,/id="st-production-status"/,'The UI must disclose live-mode status and partial coverage.');
+
+assert.match(migration,/create table public\.supply_shipments/,'The migration must create inbound shipment records.');
+assert.match(migration,/create table public\.delivery_orders/,'The migration must create delivery-control records.');
+assert.equal((migration.match(/enable row level security/gi)||[]).length,2,'Both new tables must have RLS enabled.');
+assert.equal((migration.match(/create policy/gi)||[]).length,6,'Each table must have company read, authorized insert and authorized update policies.');
+assert.match(migration,/private\.has_company_membership\(company_id\)/,'Reads must require active company membership.');
+assert.match(migration,/created_by = \(select auth\.uid\(\)\)/,'Inserts must bind the creator to the authenticated user.');
+assert.match(migration,/grant update \(eta, status, notes\)/,'Shipment updates must be column-scoped.');
+assert.match(migration,/grant update \(required_quantity, allocated_quantity, delivery_status, promised_delivery_date, notes\)/,'Delivery updates must be column-scoped.');
+assert.match(migration,/revoke all on table public\.supply_shipments from anon, authenticated/,'Anonymous access must be revoked.');
+assert.match(migration,/allocated_quantity <= required_quantity/,'Delivery allocation cannot exceed required quantity.');
+assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review mode.');
+assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
+assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
+assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/,'The reviewed production allowlist must remain empty.');
+console.log('PASS: Supply & Logistics UI, company-scoped schema, grants, RLS and fail-closed review configuration are aligned (static checks only).');
