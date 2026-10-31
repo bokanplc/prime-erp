@@ -75,3 +75,17 @@ This remains candidate-only. It has not been applied to live Supabase, and the C
 ### Deployment status qualification
 
 The Vercel commit status on the latest CRM test commit reported success, but this is not proof that the complete V6.7 application is deployed or production-ready. A separate Vercel deployment-list request returned a 403 for the BOKAN team scope, so current deployment state could not be independently verified in this pass.
+
+
+## Migration progress update — 2026-10-31
+
+The full V6.7 review artifact is now built and deployed on Vercel from `deploy/secure-staging` using the branch-specific review build. The build log confirms the full staging application was packaged in sample-data-only mode; no production secrets or Supabase credentials are included in the review artifact.
+
+Two additive backend foundations were applied to live Supabase:
+
+- `20261031080833_add_company_scoped_proforma_foundation`: company Proforma settings, bank-account snapshots, custom terms, Proforma records, and authenticated-only atomic save/settings RPCs.
+- `20261031081151_add_company_scoped_crm_foundation`: CRM assignments, immutable assignment events, activities, opportunities, after-sales tasks, company-scoped RLS, and a guarded manager-only reassignment RPC.
+
+Live verification confirms 21 public application tables have RLS enabled. The new Proforma/CRM tables are empty; no business records were imported or altered by these schema additions. The source-level and disposable PostgreSQL checks passed for the current Proforma/CRM candidate revisions. The existing security advisor still reports the leaked-password-protection warning and an intentional authenticated-only SECURITY DEFINER CRM RPC warning; performance advisor reports unindexed foreign keys on the new additive tables. Production mode, module allowlists, and production deployment remain disabled.
+
+The full app preview is not yet a shared live-data ERP: staging uses clearly labeled sample data and browser-local review storage. The next migration work is to connect the V6.7 UI data paths to the live company-scoped contracts and continue the remaining module foundations.
