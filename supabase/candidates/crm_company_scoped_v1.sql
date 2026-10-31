@@ -1,5 +1,6 @@
 -- Applied to Supabase project kafiwnuynjemufnankvi on 2026-10-31 as migration
--- 20261031081151_add_company_scoped_crm_foundation.
+-- 20261031081151_add_company_scoped_crm_foundation; privilege follow-up:
+-- 20261031081422_restrict_crm_assignment_writes_to_rpc.
 -- Retained under candidates while the repository source-parity guard is updated.
 -- Extends the existing public.customers / companies / company_memberships model.
 
