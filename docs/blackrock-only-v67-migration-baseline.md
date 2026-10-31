@@ -61,3 +61,25 @@
 - The V6.7 production configuration remains deliberately disabled. No service-role key is present in browser code.
 - The Supabase security advisor still reports three authenticated-callable SECURITY DEFINER functions for review and leaked-password protection disabled.
 - Full browser/functional tests and a production build remain outstanding. Do not promote until these are complete.
+
+
+## Additional migration work completed on 2026-10-31
+
+- Applied migration `20261031133249_add_blackrock_hr_payroll_persistence`: company-scoped employee, attendance, leave, performance, disciplinary, payroll-run, payroll-line and payroll-approval tables; compatibility views for the legacy HR screens; profile records; HR role support; and RLS policies.
+- Applied migration `20261031134003_add_blackrock_sales_operations_persistence`: company-scoped customer billing, expenses, notifications, sales targets, trip plans, per-diem requests, visit reports, stock entries, stock ledger and document metadata; plus the CRM customer-log compatibility view and profile/assignment synchronization.
+- Applied migration `20261031140120_sync_profile_role_on_membership_changes` so the profile role stays synchronized when a BlackRock membership role changes.
+- Updated the V6.7 finance production bridge to use the existing canonical Supabase ledger, sales, purchasing, payment and fiscal-period tables, and to scope by the authenticated user's BlackRock company UUID rather than a company-code string.
+- Updated HR attendance to read/write the company-scoped Supabase attendance table when production mode is enabled.
+- Updated CRM follow-up and customer reassignment to use profile roles and the CRM assignment RPC; production CRM activity history is treated as an audit trail and cannot be deleted from the UI.
+- Latest verified Supabase migration count: 34.
+- Latest verified public base-table count: 46. All 42 literal `.from('table')` references in the full V6.7 source now resolve to an existing public table or one of the compatibility views. This is a schema-reference check, not proof that every UI workflow has passed end-to-end testing.
+- Latest source and staging entry blob SHAs match. The full source is 830,670 characters / 9,520 lines and contains no remaining case-insensitive `Prime` identifier.
+- Supabase now contains exactly one active company: BlackRock Investment PLC.
+
+## Remaining work before production
+
+- The V22 corporate finance modules still keep several module datasets in browser localStorage. They must be migrated to durable, company-scoped server persistence and connected to the canonical posting workflows before those tabs are production-enabled.
+- Review and test all HR, payroll, sales, stock, billing, expenses, documents, notifications, trip and per-diem forms against their new tables and RLS policies.
+- Review the three previously identified SECURITY DEFINER warnings and enable leaked-password protection.
+- Vercel's latest check still fails with the provider's Hobby/build-rate limit. Do not upgrade or pay; wait for the free build allowance to reset or evaluate a free deployment path after the code is ready.
+- `BOKAN_REVIEWED_PRODUCTION_TABS` and `ENABLED_PRODUCTION_TABS` remain empty/disabled. `main` and production remain untouched. No production release has been promoted.
