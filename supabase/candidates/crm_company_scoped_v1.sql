@@ -269,11 +269,14 @@ begin
     raise exception 'Reassignment reason is required' using errcode = '22023';
   end if;
 
-  -- Serialize concurrent reassignment attempts for this customer.
+  -- Serialize concurrent reassignment attempts without requiring UPDATE rights on customers.
+  -- The advisory lock is scoped to this company/customer pair; the following lookup remains read-only.
+  perform pg_advisory_xact_lock(
+    hashtextextended(p_company_id::text || ':' || p_customer_id::text, 0)
+  );
   perform 1
     from public.customers c
-   where c.company_id = p_company_id and c.id = p_customer_id
-   for update;
+   where c.company_id = p_company_id and c.id = p_customer_id;
   if not found then
     raise exception 'Customer not found in selected company' using errcode = '23503';
   end if;
