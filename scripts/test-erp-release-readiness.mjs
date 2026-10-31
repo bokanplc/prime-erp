@@ -12,6 +12,7 @@ const files = [
   'staging/config/config.js',
   'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql',
   'supabase/candidates/live_company_proforma.sql',
+  'supabase/baselines/live_company_core_2026-10-31.sql',
   'scripts/audit-erp-release-readiness.mjs',
   'scripts/build-release-candidate.mjs',
   'wrangler.jsonc'
@@ -46,7 +47,7 @@ try {
   assert.match(pagesReviewBuild,/demo review artifact/,'Pages branch selector remains supported for compatibility.');
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
-  assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 4/,'Readiness audit must report only the four referenced base tables whose source-controlled DDL remains unrecovered; source-controlled views count as schema definitions.');
+  assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 0/,'The live core baseline and source-controlled views must cover every referenced table definition; missing original migration bodies remain documented separately.');
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/PASS: production remains disabled/,'Disabled candidate should be reported safely.');
 
