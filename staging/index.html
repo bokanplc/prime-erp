@@ -4329,6 +4329,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="flex gap-2"><button class="slx-btn slx-btn-secondary" onclick="bokanSupplyTower.refresh()">Refresh Control Tower</button><button class="slx-btn slx-btn-primary" onclick="bokanSupplyTower.exportCSV()">Export Supply Plan</button></div>
   </div>
   <div class="slx-banner"><div><strong>Operating principle:</strong> Sales creates demand visibility; the legal inventory owner remains explicit; BOKAN coordinates supply and logistics.</div><span class="slx-pill">PRIME / BLACKROCK / BOKAN</span></div>
+  <div id="st-production-status" class="text-xs text-slate-500 mb-3" role="status">Review mode: sample data only. Live Supply & Logistics is not enabled.</div>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <div class="slx-kpi"><div>Demand Value</div><strong id="st-demand">0</strong><span>Open expected sales</span></div>
     <div class="slx-kpi"><div>Inbound Value</div><strong id="st-inbound">0</strong><span>Purchase / shipment plan</span></div>
@@ -9061,80 +9062,76 @@ async function enter(user){
 <script id="bokan-v64-supply-production-bridge">
 (function(){
   'use strict';
-  const prod=()=>window.BOKAN_CRM_PRODUCTION_MODE===true && !!window.BOKAN_CONFIG?.SUPABASE_URL && !!window.BOKAN_CONFIG?.SUPABASE_ANON_KEY && window.BOKAN_CONFIG.SUPABASE_ANON_KEY.length>20 && window.supabase?.createClient;
-  let client=null;
-  function db(){
-    if(!prod()) throw new Error('Supply & Logistics production mode is not configured.');
-    if(!client) client=window.supabase.createClient(window.BOKAN_CONFIG.SUPABASE_URL,window.BOKAN_CONFIG.SUPABASE_ANON_KEY);
-    return client;
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const prod=()=>!!(auth()?.enabled===true && auth()?.client && auth()?.profile?.company_id && window.BOKAN_CRM_PRODUCTION_MODE===true);
+  const db=()=>{if(!prod())throw new Error('Supply & Logistics production access is not enabled.');return auth().client;};
+  const company=()=>{const p=auth()?.profile;if(!p?.company_id||!p?.company_code)throw new Error('Select an active company before using Supply & Logistics.');return {id:p.company_id,code:p.company_code};};
+  async function requireSession(){const client=db();const {data,error}=await client.auth.getUser();if(error)throw error;if(!data?.user)throw new Error('Please sign in.');return data.user;}
+  const makeNumber=(prefix)=>prefix+'-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,7).toUpperCase();
+  async function listInbound(){await requireSession();const c=company();const {data,error}=await db().from('supply_shipments').select('id,company_id,shipment_no,factory_name,planned_quantity,eta,status,notes,created_at,updated_at').eq('company_id',c.id).order('eta',{ascending:true,nullsFirst:false});if(error)throw error;return data||[];}
+  async function listDeliveries(){await requireSession();const c=company();const {data,error}=await db().from('delivery_orders').select('id,company_id,delivery_no,customer_name,required_quantity,allocated_quantity,delivery_status,promised_delivery_date,notes,created_at,updated_at').eq('company_id',c.id).order('promised_delivery_date',{ascending:true,nullsFirst:false});if(error)throw error;return data||[];}
+  async function createShipment(row){await requireSession();const c=company();const payload={...row,company_id:c.id,shipment_no:row.shipment_no||makeNumber('SH')};const {data,error}=await db().from('supply_shipments').insert(payload).select().single();if(error)throw error;return data;}
+  async function createDelivery(row){await requireSession();const c=company();const payload={...row,company_id:c.id,delivery_no:row.delivery_no||makeNumber('DO')};const {data,error}=await db().from('delivery_orders').insert(payload).select().single();if(error)throw error;return data;}
+  async function updateShipment(id,patch){await requireSession();const c=company();const {data,error}=await db().from('supply_shipments').update(patch).eq('id',id).eq('company_id',c.id).select().single();if(error)throw error;return data;}
+  async function updateDelivery(id,patch){await requireSession();const c=company();const {data,error}=await db().from('delivery_orders').update(patch).eq('id',id).eq('company_id',c.id).select().single();if(error)throw error;return data;}
+  function setStatus(message,isError=false){const el=document.getElementById('st-production-status');if(el){el.textContent=message;el.style.color=isError?'#B42318':'#526173';}}
+  function renderRows(inbound,deliveries){
+    const ir=document.getElementById('st-inbound-rows'),dr=document.getElementById('st-delivery-rows');
+    if(ir)ir.innerHTML=inbound.map(x=>'<tr><td><strong>'+escapeHtml(x.factory_name)+'</strong><div class="text-slate-500">'+escapeHtml(x.shipment_no)+'</div></td><td>'+escapeHtml(company().code)+'</td><td>'+Number(x.planned_quantity).toLocaleString()+'</td><td>'+escapeHtml(x.eta||'—')+'</td><td><span class="slx-tag">'+escapeHtml(x.status)+'</span></td></tr>').join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No inbound shipment plans for this company.</td></tr>';
+    if(dr)dr.innerHTML=deliveries.map(x=>'<tr><td><strong>'+escapeHtml(x.customer_name)+'</strong><div class="text-slate-500">'+escapeHtml(x.delivery_no)+'</div></td><td>'+escapeHtml(company().code)+'</td><td>'+Number(x.required_quantity).toLocaleString()+'</td><td>'+Number(x.allocated_quantity).toLocaleString()+'</td><td><span class="slx-tag">'+escapeHtml(x.delivery_status)+'</span></td></tr>').join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No delivery controls for this company.</td></tr>';
+    const inboundKpi=document.getElementById('st-inbound'),deliveryKpi=document.getElementById('st-delivery');
+    if(inboundKpi)inboundKpi.textContent=inbound.length;
+    if(deliveryKpi)deliveryKpi.textContent=deliveries.length;
+    const demand=document.getElementById('st-demand'),risk=document.getElementById('st-risk');
+    if(demand)demand.textContent='—';if(risk)risk.textContent='—';
+    const demandRows=document.getElementById('st-demand-rows');
+    if(demandRows)demandRows.innerHTML='<tr><td colspan="6" class="text-center text-slate-500 py-5">Sales demand integration is a separate migration step; no local demo demand is shown in production mode.</td></tr>';
+    const exceptionRows=document.getElementById('st-exception-rows');
+    if(exceptionRows)exceptionRows.innerHTML='<tr><td colspan="5" class="text-center text-slate-500 py-5">Production exception workflow is not enabled yet.</td></tr>';
   }
-  async function user(){const {data,error}=await db().auth.getUser();if(error)throw error;if(!data?.user)throw new Error('Please sign in.');return data.user}
-  const q=async(table,query)=>{const {data,error}=await query;if(error)throw error;return data||[]};
-  async function list(table,order='created_at'){await user();return q(table,db().from(table).select('*').order(order,{ascending:false}))}
-  async function insert(table,row){const u=await user();const payload={...row,created_by:u.id};const {data,error}=await db().from(table).insert(payload).select().single();if(error)throw error;return data}
-  async function update(table,id,row){await user();const {data,error}=await db().from(table).update(row).eq('id',id).select().single();if(error)throw error;return data}
-  async function createFactory(row){return insert('bokan_factories',row)}
-  async function createWarehouse(row){return insert('bokan_warehouses',row)}
-  async function createPurchaseRequest(row){return insert('bokan_purchase_requests',row)}
-  async function createPurchaseRequestLine(row){return insert('bokan_purchase_request_lines',row)}
-  async function createPurchaseOrder(row){return insert('bokan_purchase_orders',row)}
-  async function createPurchaseOrderLine(row){return insert('bokan_purchase_order_lines',row)}
-  async function createShipment(row){return insert('bokan_shipments',row)}
-  async function createContainer(row){return insert('bokan_shipment_containers',row)}
-  async function createGoodsReceipt(row){return insert('bokan_goods_receipts',row)}
-  async function createInventoryMovement(row){return insert('bokan_inventory_movements',row)}
-  async function createStockReservation(row){return insert('bokan_stock_reservations',row)}
-  async function createDeliveryOrder(row){return insert('bokan_delivery_orders',row)}
-  async function createDeliveryLine(row){return insert('bokan_delivery_order_lines',row)}
-  async function addDeliveryEvent(row){return insert('bokan_delivery_events',row)}
-  async function createException(row){return insert('bokan_logistics_exceptions',row)}
-  async function updateShipment(id,row){return update('bokan_shipments',id,row)}
-  async function updateDelivery(id,row){return update('bokan_delivery_orders',id,row)}
-  async function updateInventoryBalance(id,row){return update('bokan_inventory_balances',id,row)}
-  async function listInbound(){await user();return q('bokan_shipments',db().from('bokan_shipments').select('id,shipment_no,purchasing_entity,legal_owner_company_code,carrier,eta,status,factory_id,notes').order('eta',{ascending:true,nullsFirst:false}))}
-  async function listDeliveries(){await user();return q('bokan_delivery_orders',db().from('bokan_delivery_orders').select('id,delivery_no,legal_owner_company_code,operational_owner_entity,warehouse_id,promised_delivery_date,delivery_status,customer_id,notes').order('promised_delivery_date',{ascending:true,nullsFirst:false}))}
-  async function createInboundFromTower(row){
-    const now=Date.now().toString().slice(-8);
-    return createShipment({shipment_no:'BOKAN-SH-'+now,purchasing_entity:row.entity_code,legal_owner_company_code:row.entity_code,carrier:row.factory_name,eta:row.eta||null,status:row.status||'Planned',notes:row.notes||null});
+  async function refresh(){if(!prod())return;try{const [inbound,deliveries]=await Promise.all([listInbound(),listDeliveries()]);renderRows(inbound,deliveries);setStatus('Live Supabase records · '+company().code+' · '+inbound.length+' inbound plans · '+deliveries.length+' delivery controls. Sales-demand and exception workflows remain separate migration items.');}catch(e){setStatus('Live Supply & Logistics data could not be loaded: '+(e.message||e),true);const ir=document.getElementById('st-inbound-rows'),dr=document.getElementById('st-delivery-rows');if(ir)ir.innerHTML='<tr><td colspan="5" class="text-center text-red-700 py-5">Live data unavailable. No sample fallback was loaded.</td></tr>';if(dr)dr.innerHTML='<tr><td colspan="5" class="text-center text-red-700 py-5">Live data unavailable. No sample fallback was loaded.</td></tr>';}}
+  async function addInbound(){
+    if(!prod())return;
+    try{
+      const c=company(),factory=document.getElementById('st-factory')?.value.trim(),qty=Number(document.getElementById('st-qty')?.value||0),selected=document.getElementById('st-entity')?.value||'';
+      const selectedCode=/blackrock/i.test(selected)?'BLACKROCK':'PRIME';
+      if(selectedCode!==c.code){alert('The selected legal owner does not match your active company. Switch company context first.');return;}
+      if(!factory||!Number.isFinite(qty)||qty<=0){alert('Enter a factory or supplier and a quantity greater than zero.');return;}
+      await createShipment({factory_name:factory,planned_quantity:qty,eta:document.getElementById('st-eta')?.value||null,status:document.getElementById('st-status')?.value||'Planned'});
+      const f=document.getElementById('st-factory'),q=document.getElementById('st-qty');if(f)f.value='';if(q)q.value='';
+      setStatus('Inbound shipment plan saved to Supabase for '+c.code+'.');await refresh();
+    }catch(e){setStatus('Inbound plan was not saved: '+(e.message||e),true);alert(e.message||'Unable to save inbound plan.');}
   }
-  async function createDeliveryFromTower(row){
-    const now=Date.now().toString().slice(-8);
-    return createDeliveryOrder({delivery_no:'BOKAN-DO-'+now,customer_id:row.customer_id||null,legal_owner_company_code:row.legal_owner_company_code,operational_owner_entity:row.operational_owner_entity||'SHARED',requested_date:row.requested_date||null,promised_delivery_date:row.promised_delivery_date||null,delivery_status:row.status||'Stock Check',notes:row.notes||null});
+  async function addDelivery(){
+    if(!prod())return;
+    try{
+      const c=company(),customer=document.getElementById('st-customer')?.value.trim(),required=Number(document.getElementById('st-required')?.value||0),allocated=Number(document.getElementById('st-allocated')?.value||0),selected=document.getElementById('st-owner')?.value||'';
+      const selectedCode=/blackrock/i.test(selected)?'BLACKROCK':'PRIME';
+      if(selectedCode!==c.code){alert('The selected legal owner does not match your active company. Switch company context first.');return;}
+      if(!customer||!Number.isFinite(required)||required<=0||!Number.isFinite(allocated)||allocated<0||allocated>required){alert('Enter a customer/project, required quantity greater than zero, and allocated quantity between zero and required quantity.');return;}
+      await createDelivery({customer_name:customer,required_quantity:required,allocated_quantity:allocated,delivery_status:document.getElementById('st-delivery-status')?.value||'Stock Check'});
+      ['st-customer','st-required','st-allocated'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+      setStatus('Delivery control saved to Supabase for '+c.code+'.');await refresh();
+    }catch(e){setStatus('Delivery control was not saved: '+(e.message||e),true);alert(e.message||'Unable to save delivery control.');}
   }
-  window.BOKAN_SUPPLY_PRODUCTION={
-    enabled:prod,list,insert,update,createFactory,createWarehouse,createPurchaseRequest,createPurchaseRequestLine,createPurchaseOrder,createPurchaseOrderLine,createShipment,createContainer,createGoodsReceipt,createInventoryMovement,createStockReservation,createDeliveryOrder,createDeliveryLine,addDeliveryEvent,createException,updateShipment,updateDelivery,updateInventoryBalance,listInbound,listDeliveries,createInboundFromTower,createDeliveryFromTower
-  };
+  async function exportCSV(){
+    if(!prod())return;
+    try{
+      const [inbound,deliveries]=await Promise.all([listInbound(),listDeliveries()]);
+      const rows=[['Type','Reference','Company','Name','Quantity','Allocated','Date','Status'],...inbound.map(x=>['Inbound',x.shipment_no,company().code,x.factory_name,x.planned_quantity,'',x.eta||'',x.status]),...deliveries.map(x=>['Delivery',x.delivery_no,company().code,x.customer_name,x.required_quantity,x.allocated_quantity,x.promised_delivery_date||'',x.delivery_status])];
+      const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='BOKAN-Supply-Logistics-'+company().code+'.csv';a.click();URL.revokeObjectURL(url);
+    }catch(e){setStatus('Export failed: '+(e.message||e),true);}
+  }
+  window.BOKAN_SUPPLY_PRODUCTION={enabled:prod,listInbound,listDeliveries,createShipment,createDelivery,updateShipment,updateDelivery,refresh};
   document.addEventListener('DOMContentLoaded',function(){
-    if(!window.bokanSupplyTower) return;
-    const localAddInbound=window.bokanSupplyTower.addInbound;
-    const localAddDelivery=window.bokanSupplyTower.addDelivery;
-    const localRefresh=window.bokanSupplyTower.refresh;
-    window.bokanSupplyTower.addInbound=async function(){
-      if(!prod()){return localAddInbound()}
-      try{
-        const f=document.getElementById('st-factory')?.value.trim(); if(!f)return alert('Enter a factory or supplier.');
-        await createInboundFromTower({factory_name:f,entity_code:document.getElementById('st-entity')?.value.includes('BlackRock')?'BLACKROCK':'PRIME',eta:document.getElementById('st-eta')?.value,status:document.getElementById('st-status')?.value});
-        alert('Inbound shipment plan saved to Supabase.'); await window.bokanSupplyTower.refresh();
-      }catch(e){console.error(e);alert(e.message||'Unable to save inbound plan.')}
-    };
-    window.bokanSupplyTower.addDelivery=async function(){
-      if(!prod()){return localAddDelivery()}
-      try{
-        const c=document.getElementById('st-customer')?.value.trim(); if(!c)return alert('Enter a customer or project.');
-        const owner=document.getElementById('st-owner')?.value.includes('BlackRock')?'BLACKROCK':'PRIME';
-        await createDeliveryFromTower({legal_owner_company_code:owner,operational_owner_entity:'SHARED',status:document.getElementById('st-delivery-status')?.value,notes:c+' | Required '+(document.getElementById('st-required')?.value||0)+' | Allocated '+(document.getElementById('st-allocated')?.value||0)});
-        alert('Delivery control saved to Supabase.'); await window.bokanSupplyTower.refresh();
-      }catch(e){console.error(e);alert(e.message||'Unable to save delivery control.')}
-    };
-    window.bokanSupplyTower.refresh=async function(){
-      if(!prod()){return localRefresh()}
-      try{
-        const [inbound,deliveries]=await Promise.all([listInbound(),listDeliveries()]);
-        const ir=document.getElementById('st-inbound-rows'),dr=document.getElementById('st-delivery-rows');
-        if(ir) ir.innerHTML=inbound.map(x=>`<tr><td><strong>${escapeHtml(x.carrier||'Factory / Supplier')}</strong></td><td>${escapeHtml(x.purchasing_entity)}</td><td>—</td><td>${escapeHtml(x.eta||'—')}</td><td><span class="slx-tag">${escapeHtml(x.status)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No production inbound plans.</td></tr>';
-        if(dr) dr.innerHTML=deliveries.map(x=>`<tr><td><strong>${escapeHtml(x.customer_id||'Customer / Project')}</strong></td><td>${escapeHtml(x.legal_owner_company_code)}</td><td>—</td><td>—</td><td><span class="slx-tag">${escapeHtml(x.delivery_status)}</span></td></tr>`).join('')||'<tr><td colspan="5" class="text-center text-slate-500 py-5">No production delivery controls.</td></tr>';
-      }catch(e){console.error('V6.4 supply refresh',e);localRefresh()}
-    };
+    if(!window.bokanSupplyTower)return;
+    const localAddInbound=window.bokanSupplyTower.addInbound,localAddDelivery=window.bokanSupplyTower.addDelivery,localRefresh=window.bokanSupplyTower.refresh,localExport=window.bokanSupplyTower.exportCSV;
+    window.bokanSupplyTower.addInbound=function(){return prod()?addInbound():localAddInbound();};
+    window.bokanSupplyTower.addDelivery=function(){return prod()?addDelivery():localAddDelivery();};
+    window.bokanSupplyTower.refresh=function(){return prod()?refresh():localRefresh();};
+    window.bokanSupplyTower.exportCSV=function(){return prod()?exportCSV():localExport();};
+    if(prod())refresh();
   });
 })();
 </script>
