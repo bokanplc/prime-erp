@@ -30,7 +30,8 @@ const trackedAppliedMigrations = [
   '20261031113713_add_company_scoped_general_ledger_foundation.sql',
   '20261031114856_add_atomic_journal_posting_and_reversals.sql',
   '20261031115029_fix_reversal_posted_entry_immutability.sql',
-  '20261031122850_harden_general_ledger_table_privileges.sql'
+  '20261031122850_harden_general_ledger_table_privileges.sql',
+  '20261031124029_align_crm_table_privileges_with_workflow_policies.sql'
 ];
 const missingAppliedVersions = [
   '20261025065910',
@@ -51,7 +52,7 @@ const executableMigrations = allMigrationFiles.filter(name => !supersededDrafts.
 assert.deepEqual(
   executableMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 19 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
+  'Executable migration directory must contain only the 20 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
@@ -60,4 +61,4 @@ for (const version of missingAppliedVersions) {
   assert.ok(gap.includes(version), `Missing applied migration SQL body ${version} must be documented, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
-console.log('PASS: migration source layout matches the 19 tracked live migrations; seven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
+console.log('PASS: migration source layout matches the 20 tracked live migrations; seven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
