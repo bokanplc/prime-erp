@@ -48,7 +48,7 @@ assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(bokan
 assert.match(source, /if\(bokanProdEnabled\(\)\)\{row\.querySelectorAll\('input'\)\.forEach\(el=>\{el\.readOnly=true/, 'Production proforma bank details must be read-only to prevent edited bank-account snapshots.');
 assert.match(source, /https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
 assert.match(source, /escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CRM follow-up activity type must be HTML-escaped before rendering.');
-assert.match(source, /escapeHtml\(row\.customers\?\.customer_name \|\| ''\)/, 'CRM customer name must be HTML-escaped before rendering.');
+assert.match(source, /escapeHtml\(nameById\[row\.customer_id\]\|\|''\)/, 'CRM customer name must be HTML-escaped before rendering.');
 assert.match(source, /escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-up date must be HTML-escaped before rendering.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /async function deleteProforma\(id\) \{ if \(_bokanProdConfigured\) \{ alert\('Proforma deletion is disabled in production until an audited void workflow is implemented\.'\); return; \}/, 'Production proforma deletion must remain blocked until an audited void workflow exists.');
