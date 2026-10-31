@@ -5023,6 +5023,7 @@ function showTab(id) {
   document.querySelectorAll(`[data-tab-id="${id}"]`).forEach(b => b.classList.add('active'));
 
   if (id === 'overview') { loadOverview(); loadBoardReport(); loadIncomeTax(); }
+  if (id === 'crmcontrol' && window.BOKAN_CRM_PRODUCTION?.enabled()) window.BOKAN_CRM_PRODUCTION.loadCRMControl().catch(e=>console.error('CRM control load failed',e));
   if (id === 'stockreport') { loadLedger(); loadStock(); }
   if (id === 'expenseledger') loadExpenses();
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
@@ -9235,6 +9236,29 @@ async function enter(user){
     await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).order('role');
     if(error)throw error;return (data||[]).map(m=>({...m,label:m.user_id}));
   }
+  async function loadCRMControl(){
+    const [customers,activities,reps]=await Promise.all([listMyCustomers(),listActivities(),listCompanyRepresentatives()]);
+    const today=new Date().toISOString().slice(0,10);
+    const ids=['v45-crmcustomers','v45-activities','v45-calls','v45-touched','v45-overdue'];
+    const values=[
+      customers.length,
+      activities.length,
+      activities.filter(a=>/phone|call/i.test(a.activity_type||'')).length,
+      new Set(activities.map(a=>a.customer_id)).size,
+      activities.filter(a=>a.next_action_date&&a.next_action_date<today).length
+    ];
+    ids.forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=String(values[i]);});
+    const repRows=document.getElementById('v45-reprows');
+    if(repRows){
+      const rows=reps.map(rep=>{
+        const own=activities.filter(a=>(a.assigned_user_id||a.actor_user_id)===rep.user_id);
+        return {rep,count:own.length,calls:own.filter(a=>/phone|call/i.test(a.activity_type||'')).length,
+          touched:new Set(own.map(a=>a.customer_id)).size,
+          overdue:own.filter(a=>a.next_action_date&&a.next_action_date<today).length};
+      });
+      repRows.innerHTML=rows.length?rows.map(x=>`<tr class="border-b"><td class="py-2">${escapeHtml(x.rep.label)}</td><td class="text-center">${x.count}</td><td class="text-center">${x.calls}</td><td class="text-center">${x.touched}</td><td class="text-center">${x.overdue}</td></tr>`).join(''):'<tr><td colspan="5" class="py-3 text-slate-500">No active company representatives found.</td></tr>';
+    }
+  }
   async function deactivateSalesperson(){
     throw new Error('CRM does not deactivate company accounts. Use the controlled company-membership administration workflow.');
   }
@@ -9242,7 +9266,7 @@ async function enter(user){
     enabled, listMyCustomers, createCustomer, updateCustomer, listActivities, addActivity,
     assignCustomer, listOpportunities, createOpportunity, updateOpportunity,
     listAfterSalesTasks, createAfterSalesTask, updateAfterSalesTask,
-    listCompanyRepresentatives, deactivateSalesperson
+    listCompanyRepresentatives, loadCRMControl, deactivateSalesperson
   };
 })();
 </script>
