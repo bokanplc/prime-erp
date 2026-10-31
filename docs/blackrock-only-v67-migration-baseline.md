@@ -53,7 +53,7 @@
 - The Prime membership was removed by the company cascade. The Supabase Auth user was deliberately not deleted because the login may also be the BlackRock administrator.
 - Added the applied SQL migration to this branch at `supabase/migrations/20261031132355_decommission_prime_company_and_data.sql`.
 - No production deployment was promoted and `main` remains untouched.
-- Vercel currently reports a build-rate-limit failure for the new branch commit (the provider's Hobby/build limit), so a fresh Vercel build could not be used to validate the code yet. No paid upgrade was made.
+- An earlier Vercel build attempt hit the Hobby/build limit; that was superseded by a successful READY preview build on the same working branch. No paid upgrade was made.
 
 ## Remaining production blockers
 
@@ -81,5 +81,16 @@
 - The V22 corporate finance modules still keep several module datasets in browser localStorage. They must be migrated to durable, company-scoped server persistence and connected to the canonical posting workflows before those tabs are production-enabled.
 - Review and test all HR, payroll, sales, stock, billing, expenses, documents, notifications, trip and per-diem forms against their new tables and RLS policies.
 - Review the three previously identified SECURITY DEFINER warnings and enable leaked-password protection.
-- Vercel's latest check still fails with the provider's Hobby/build-rate limit. Do not upgrade or pay; wait for the free build allowance to reset or evaluate a free deployment path after the code is ready.
+- Latest Vercel preview deployment is READY for commit `d2697c14` on `feature/blackrock-only-v67`. Its build log confirms a sanitized release candidate, 20 fixture collections emptied, preview-admin fallback removed, and production mode deliberately disabled. No production release has been promoted.
 - `BOKAN_REVIEWED_PRODUCTION_TABS` and `ENABLED_PRODUCTION_TABS` remain empty/disabled. `main` and production remain untouched. No production release has been promoted.
+
+
+## Vercel preview verification
+
+- Deployment: `dpl_FU8AX5vqZPJNEGB4QWhaA5Rzibg`
+- Preview URL: `https://prime-ndvhjb38d-bokanplc-3642.vercel.app`
+- Git branch/commit: `feature/blackrock-only-v67` / `d2697c14b4878f88f76c4f80539c2797ecfa6982`
+- Vercel state: `READY`; target remains preview (not production).
+- The deployed source and staging entry have matching Git blob SHAs and match the current full V6.7 source.
+- Build output: `dist/release/index.html`; 20 known fixture collections emptied; preview-admin identity fallback removed; production mode remains disabled by design.
+- Web-based external inspection could not access the preview URL, so the build is verified but the browser login and interactive workflows have not yet been end-to-end tested.
