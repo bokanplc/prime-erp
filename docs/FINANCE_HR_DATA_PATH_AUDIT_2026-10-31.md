@@ -69,3 +69,28 @@ Build one company-scoped employee master and keep highly sensitive compensation/
 ## Activation decision
 
 Finance and HR production bridges are **not approved**. Keep the production allowlist empty. First finish the Supply & Logistics browser-authenticated test; then reconcile the CRM UI bridge to the live `crm_*` contracts. Finance schema design should follow the source-document accounting direction above; HR follows with its stricter sensitive-data/RLS model. The full V6.7 screens remain available in demo review mode only.
+
+
+## General Ledger foundation applied — 2026-10-31
+
+Live Supabase migration: `20261031113713_add_company_scoped_general_ledger_foundation`.
+
+Four company-scoped tables are now present:
+- `ledger_accounts` — account code/name, account type, normal balance, parent hierarchy and active/system flags.
+- `fiscal_periods` — named date ranges with open/closed/locked states.
+- `journal_entries` — draft/posted journal headers, currency, source identity, totals and posting audit fields.
+- `journal_lines` — company-matched account and journal references, line numbers, debit/credit amounts.
+
+Security and posting controls:
+- RLS is enabled on all four tables. Reads are restricted to active company members; finance writes are restricted to active owner/admin/manager/accountant memberships.
+- Composite company foreign keys prevent a journal line from referencing an account or journal belonging to another company.
+- Draft lines must have exactly one positive side (debit or credit); account and period codes are constrained.
+- Posting validates an open fiscal period, at least two lines, equal positive debit/credit totals, active accounts, and authorized posting identity. Posted headers and lines are immutable through ordinary authenticated access. No business journal was created by the migration.
+- No chart-of-accounts seed data, fiscal period, or journal entries were added to either company; finance configuration still requires review before operational use.
+
+Verification performed in rollback-only transactions using the existing authorized admin membership:
+- A balanced two-line journal posted successfully and recorded equal totals plus poster/timestamp.
+- A draft-line deletion refreshed the draft header totals to zero.
+- Test rows were rolled back; live business data remains unchanged.
+
+This is a ledger foundation, not the complete Finance module. Automated posting from approved sales/purchase documents, idempotent source posting, reversal workflow, bank reconciliation, VAT/WHT, budgets, fixed assets, period close, and authenticated browser tests remain outstanding. Keep Finance disabled in the production allowlist.
