@@ -36,13 +36,13 @@ if (deploymentBranch === 'deploy/secure-staging') {
 
 assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([])'),'No module is source-approved for production in the release candidate.');
 const replacements={
-  prime_v40_transactions:'[]',
+  blackrock_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
-  prime_v30_controls:'{ controls: [], exceptions: [], source: [], due: [] }',
-  prime_v32_trace:'[]',
-  prime_v33_reconciliation:'{ reconciliations: [], exceptions: [] }',
-  prime_v34_close_control:'{ areas: [], statements: [], prerequisite: [] }',
-  prime_v35_postings:'{ postings: [] }',
+  blackrock_v30_controls:'{ controls: [], exceptions: [], source: [], due: [] }',
+  blackrock_v32_trace:'[]',
+  blackrock_v33_reconciliation:'{ reconciliations: [], exceptions: [] }',
+  blackrock_v34_close_control:'{ areas: [], statements: [], prerequisite: [] }',
+  blackrock_v35_postings:'{ postings: [] }',
   bokan_access_registry_v2:'[]',
   bokan_supply_tower_v1:'{ inbound: [], deliveries: [] }'
 };
@@ -91,9 +91,9 @@ const salesHubEnd = expressionEnd(releaseHtml, salesHubStart);
 releaseHtml = releaseHtml.slice(0, salesHubStart) + '[]' + releaseHtml.slice(salesHubEnd);
 
 const fixtureBindings = [
-  { module: 'prime-v45-enterprise-layer', values: { master: '{customers:[], suppliers:[], products:[]}', stock: '[]', pay: '[]' } },
-  { module: 'prime-v41-governance-reporting', values: { seedA: '[]', seedD: '[]' } },
-  { module: 'prime-v50-integrated-controls', values: { recSeed: '[]', closeSeed: '[]', seedTx: '[]', docs: '[]' } },
+  { module: 'blackrock-v45-enterprise-layer', values: { master: '{customers:[], suppliers:[], products:[]}', stock: '[]', pay: '[]' } },
+  { module: 'blackrock-v41-governance-reporting', values: { seedA: '[]', seedD: '[]' } },
+  { module: 'blackrock-v50-integrated-controls', values: { recSeed: '[]', closeSeed: '[]', seedTx: '[]', docs: '[]' } },
   { module: 'bokan-sales-hub-v1', values: { seedReps: '[]' } }
 ];
 let sanitizedFixtureBindingCount = 0;

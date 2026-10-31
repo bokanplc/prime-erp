@@ -13,23 +13,21 @@ const source = readFileSync(sourcePath, 'utf8');
 const entry = readFileSync(entryPath, 'utf8');
 
 const expectedTables = [
-  'bokan_ap_bills','bokan_ap_payments','bokan_ar_invoices','bokan_ar_receipts',
-  'bokan_attendance_records','bokan_customer_activities','bokan_customer_assignments',
-  'bokan_customers','bokan_employees','bokan_fiscal_periods',
-  'bokan_journal_entries','bokan_leave_requests','bokan_payroll_approvals',
-  'bokan_payroll_lines','bokan_payroll_runs','bokan_performance_reviews',
-  'bokan_sales_opportunities','bokan_salespeople','companies',
-  'company_bank_accounts','company_memberships','company_proforma_settings','custom_terms','customer_billings','customer_logs','customers','delivery_orders',
-  'disciplinary_actions','documents','employees','expenses','leave_requests',
-  'notifications','per_diem_requests','performance_reviews','profiles','proformas',
-  'sales_targets','stock_entries','stock_ledger','supply_shipments','trip_plans','visit_reports'
+  'bokan_attendance_records','bokan_employees','bokan_leave_requests',
+  'bokan_payroll_approvals','bokan_payroll_lines','bokan_payroll_runs',
+  'bokan_performance_reviews','companies','company_bank_accounts','company_memberships',
+  'company_proforma_settings','crm_activities','crm_after_sales_tasks','crm_customer_assignments',
+  'crm_opportunities','custom_terms','customer_billings','customer_logs','customers',
+  'delivery_orders','disciplinary_actions','documents','employees','expenses','fiscal_periods',
+  'journal_entries','leave_requests','notifications','per_diem_requests','performance_reviews',
+  'profiles','proformas','purchase_documents','sales_documents','sales_payments','sales_targets',
+  'stock_entries','stock_ledger','supplier_payments','supply_shipments','trip_plans','visit_reports'
 ].sort();
 
 
 const expectedHelperTables = [
-  'bokan_ap_bills','bokan_ar_invoices','bokan_attendance_records',
-  'bokan_employees','bokan_fiscal_periods','bokan_journal_entries',
-  'bokan_leave_requests','bokan_payroll_approvals','bokan_payroll_runs'
+  'bokan_attendance_records','bokan_employees','bokan_leave_requests',
+  'bokan_payroll_approvals','bokan_payroll_runs'
 ].sort();
 
 assert.equal(entry, source, 'Staging entry point drifted from the reviewed source; review and sync both files.');

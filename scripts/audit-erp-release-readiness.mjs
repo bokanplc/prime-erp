@@ -18,14 +18,15 @@ const appliedCandidateSql = [
   'supabase/candidates/crm_company_scoped_v1.sql',
   'supabase/candidates/crm_privilege_hardening_2026-10-31.sql'
 ].map(path=>readFileSync(path,'utf8'));
-const schemaSources = [...migrationSql,...appliedCandidateSql];
+const baselineSql = ['supabase/baselines/live_company_core_2026-10-31.sql'].map(path=>readFileSync(path,'utf8'));
+const schemaSources = [...migrationSql,...appliedCandidateSql,...baselineSql];
 const schema = schemaSources.join('\n');
 assert.equal(entry,source,'Staging entry point must match the reviewed source.');
 
 const direct = [...new Set([...source.matchAll(/\.from\(\s*['"]([a-z][a-z0-9_]*)['"]\s*\)/g)].map(m=>m[1]))];
 const helper = [...new Set([...source.matchAll(/\b(?:insert|update|q|count)\s*\(\s*['"]([a-z][a-z0-9_]*)['"]/g)].map(m=>m[1]).filter(t=>t.startsWith('bokan_')))];
 const referenced = [...new Set([...direct,...helper])].sort();
-const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?public\.([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
+const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+(?:or\s+replace\s+)?(?:table\s+(?:if\s+not\s+exists\s+)?|view\s+)(?:public\.)?([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
 const missing = referenced.filter(table=>!defined.includes(table));
 
 const requiredApiFileGroups = [
