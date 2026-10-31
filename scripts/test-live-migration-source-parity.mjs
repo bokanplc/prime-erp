@@ -7,7 +7,10 @@ const migrationDir = path.join(process.cwd(), 'supabase/migrations');
 const candidatePath = path.join(process.cwd(), 'supabase/candidates/core_proforma_mvp.sql');
 const gapPath = path.join(process.cwd(), 'docs/LIVE_MIGRATION_SOURCE_GAP.md');
 
-const supersededDraft = '20261031090000_extend_crm_for_v67_sales_workflow.sql';
+const supersededDrafts = [
+  '20261031090000_extend_crm_for_v67_sales_workflow.sql',
+  '20261031121500_fix_reversal_posted_entry_immutability.sql'
+];
 const trackedAppliedMigrations = [
   '20261025154749_add_purchasing_inventory_and_sales_payments_foundation.sql',
   '20261025155146_index_new_erp_foreign_keys.sql',
@@ -39,13 +42,15 @@ const missingAppliedVersions = [
 ];
 
 const allMigrationFiles = fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort();
-const draftBody = fs.existsSync(path.join(migrationDir, supersededDraft)) ? fs.readFileSync(path.join(migrationDir, supersededDraft), 'utf8') : '';
-assert.ok(draftBody.startsWith('-- SUPERSEDED DRAFT: this file is intentionally inert.'), 'Superseded CRM draft must remain inert and must never be applied.');
-const executableMigrations = allMigrationFiles.filter(name => name !== supersededDraft);
+for (const draft of supersededDrafts) {
+  const draftBody = fs.existsSync(path.join(migrationDir, draft)) ? fs.readFileSync(path.join(migrationDir, draft), 'utf8') : '';
+  assert.ok(draftBody.startsWith('-- SUPERSEDED DRAFT:'), `Superseded draft ${draft} must remain inert and must never be applied.`);
+}
+const executableMigrations = allMigrationFiles.filter(name => !supersededDrafts.includes(name));
 assert.deepEqual(
   executableMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 18 source-controlled applied migrations (plus the explicitly inert superseded draft); never place the incompatible Proforma candidate here.'
+  'Executable migration directory must contain only the 18 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
