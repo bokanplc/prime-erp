@@ -121,4 +121,5 @@ BEGIN
 END
 $$;
 
-\connect live_company_test\nDROP DATABASE supply_logistics_isolated WITH (FORCE);
+\connect live_company_test
+DROP DATABASE supply_logistics_isolated WITH (FORCE);
