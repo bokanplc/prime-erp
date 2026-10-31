@@ -18,23 +18,18 @@ const expectedTables = [
   'bokan_customers','bokan_delivery_orders','bokan_employees','bokan_fiscal_periods',
   'bokan_journal_entries','bokan_leave_requests','bokan_payroll_approvals',
   'bokan_payroll_lines','bokan_payroll_runs','bokan_performance_reviews',
-  'bokan_sales_opportunities','bokan_salespeople','bokan_shipments','companies',
-  'company_bank_accounts','company_memberships','company_proforma_settings','custom_terms','customer_billings','customer_logs','customers',
+  'bokan_sales_opportunities','bokan_salespeople','companies',
+  'company_bank_accounts','company_memberships','company_proforma_settings','custom_terms','customer_billings','customer_logs','customers','delivery_orders',
   'disciplinary_actions','documents','employees','expenses','leave_requests',
   'notifications','per_diem_requests','performance_reviews','profiles','proformas',
-  'sales_targets','stock_entries','stock_ledger','trip_plans','visit_reports'
+  'sales_targets','stock_entries','stock_ledger','supply_shipments','trip_plans','visit_reports'
 ].sort();
 
 
 const expectedHelperTables = [
   'bokan_ap_bills','bokan_ar_invoices','bokan_attendance_records',
-  'bokan_delivery_events','bokan_delivery_order_lines','bokan_delivery_orders',
-  'bokan_employees','bokan_factories','bokan_fiscal_periods','bokan_goods_receipts',
-  'bokan_inventory_balances','bokan_inventory_movements','bokan_journal_entries',
-  'bokan_leave_requests','bokan_logistics_exceptions','bokan_payroll_approvals',
-  'bokan_payroll_runs','bokan_purchase_order_lines','bokan_purchase_orders',
-  'bokan_purchase_request_lines','bokan_purchase_requests','bokan_shipment_containers',
-  'bokan_shipments','bokan_stock_reservations','bokan_warehouses'
+  'bokan_employees','bokan_fiscal_periods','bokan_journal_entries',
+  'bokan_leave_requests','bokan_payroll_approvals','bokan_payroll_runs'
 ].sort();
 
 assert.equal(entry, source, 'Staging entry point drifted from the reviewed source; review and sync both files.');
