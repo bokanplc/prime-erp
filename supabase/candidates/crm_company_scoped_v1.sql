@@ -285,10 +285,10 @@ begin
     raise exception 'New owner must be an active company member' using errcode = '23503';
   end if;
 
+  -- The advisory lock above serializes this read/update pair without granting table UPDATE.
   select a.owner_user_id into v_old_owner
     from public.crm_customer_assignments a
-   where a.company_id = p_company_id and a.customer_id = p_customer_id
-   for update;
+   where a.company_id = p_company_id and a.customer_id = p_customer_id;
 
   insert into public.crm_customer_assignments
     (company_id, customer_id, owner_user_id, assigned_by, assigned_at, updated_at)
