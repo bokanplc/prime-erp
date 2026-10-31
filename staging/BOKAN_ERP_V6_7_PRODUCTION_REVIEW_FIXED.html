@@ -9308,31 +9308,96 @@ async function enter(user){
 </script>
 \n<script id="bokan-v65-finance-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
-  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';
-  async function count(table,filter){ if(!prod) return 0; let q=window.sb.from(table).select('*',{count:'exact',head:true}); if(filter) q=filter(q); const r=await q; return r.error?0:(r.count||0); }
+  const companyId=()=>window.BOKAN_PRODUCTION_AUTH?.profile?.company_id||null;
+  const actorId=()=>window.BOKAN_PRODUCTION_AUTH?.user?.id||null;
+  async function count(table,filter){
+    if(!prod)return 0;
+    let q=window.sb.from(table).select('*',{count:'exact',head:true});
+    if(filter)q=filter(q);
+    const r=await q;
+    if(r.error)throw r.error;
+    return r.count||0;
+  }
   async function refresh(){
     const mode=document.getElementById('v65-mode'),status=document.getElementById('v65-status');
-    if(!prod){ if(mode)mode.textContent='Review'; if(status)status.textContent='Review mode: Supabase production configuration is not active. Finance data remains in the existing review layer.'; return; }
+    if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='Review mode: Supabase production configuration is not active. Finance data remains in the existing review layer.';return;}
+    const cid=companyId();
+    if(!cid){if(mode)mode.textContent='Awaiting sign-in';if(status)status.textContent='Sign in with an authorized BlackRock account to load finance records.';return;}
     if(mode)mode.textContent='Production';
     try{
       const [gl,ar,ap,periods]=await Promise.all([
-        count('bokan_journal_entries',q=>q.eq('company_id',company())),
-        count('bokan_ar_invoices',q=>q.eq('company_id',company()).neq('status','paid').neq('status','void')),
-        count('bokan_ap_bills',q=>q.eq('company_id',company()).neq('status','paid').neq('status','void')),
-        count('bokan_fiscal_periods',q=>q.eq('company_id',company()).eq('status','open'))
+        count('journal_entries',q=>q.eq('company_id',cid)),
+        count('sales_documents',q=>q.eq('company_id',cid).eq('document_type','invoice').neq('status','paid').neq('status','void')),
+        count('purchase_documents',q=>q.eq('company_id',cid).eq('document_type','supplier_invoice').neq('status','paid').neq('status','void')),
+        count('fiscal_periods',q=>q.eq('company_id',cid).eq('status','open'))
       ]);
       ['v65-gl','v65-ar','v65-ap','v65-periods'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.textContent=[gl,ar,ap,periods][i]});
-      if(status)status.textContent='Supabase Finance Production layer is connected for the active legal entity. Posting remains subject to RLS, period controls and balanced-entry validation.';
+      if(status)status.textContent='Live BlackRock finance records are loaded from the canonical ledger, sales, purchasing and fiscal-period tables.';
     }catch(e){if(status)status.textContent='Finance production layer could not be read: '+(e.message||e);}
   }
-  async function createJournal(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_journal_entries').insert(payload).select().single()}
-  async function createAR(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ar_invoices').insert(payload).select().single()}
-  async function recordReceipt(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ar_receipts').insert(payload).select().single()}
-  async function createAP(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ap_bills').insert(payload).select().single()}
-  async function recordPayment(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ap_payments').insert(payload).select().single()}
-  async function listPeriods(){if(!prod) return {data:[],error:null}; return window.sb.from('bokan_fiscal_periods').select('*').eq('company_id',company()).order('period_start',{ascending:false})}
-  async function closeReadiness(periodId){if(!prod) return {data:null,error:null}; return window.sb.rpc('bokan_finance_close_readiness',{p_period_id:periodId})}
+  async function createJournal(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const cid=companyId();if(!cid)throw new Error('Sign in to a BlackRock account first.');
+    return window.sb.rpc('post_journal_entry',{
+      p_company_id:cid,
+      p_journal_number:payload.journal_number||payload.document_number,
+      p_journal_date:payload.journal_date||payload.date,
+      p_memo:payload.memo||payload.description||'',
+      p_currency_code:payload.currency_code||'ETB',
+      p_lines:Array.isArray(payload.lines)?payload.lines:[],
+      p_source_type:payload.source_type||null,
+      p_source_id:payload.source_id||null
+    });
+  }
+  async function createAR(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const cid=companyId();if(!cid)throw new Error('Sign in to a BlackRock account first.');
+    const row={company_id:cid,customer_id:payload.customer_id||null,document_type:'invoice',document_number:payload.document_number||payload.invoice_number,status:payload.status||'draft',document_date:payload.document_date||payload.invoice_date||new Date().toISOString().slice(0,10),due_date:payload.due_date||null,currency_code:payload.currency_code||'ETB',subtotal:Number(payload.subtotal??payload.amount??0),tax_total:Number(payload.tax_total??payload.tax_amount??0),discount_total:Number(payload.discount_total||0),grand_total:Number(payload.grand_total??payload.total??payload.amount??0),notes:payload.notes||null,created_by:actorId()};
+    return window.sb.from('sales_documents').insert(row).select().single();
+  }
+  async function recordReceipt(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const cid=companyId();if(!cid)throw new Error('Sign in to a BlackRock account first.');
+    const row={company_id:cid,sales_document_id:payload.sales_document_id||payload.invoice_id,payment_date:payload.payment_date||new Date().toISOString().slice(0,10),amount:Number(payload.amount||0),currency_code:payload.currency_code||'ETB',payment_method:payload.payment_method||'cash',reference_number:payload.reference_number||null,notes:payload.notes||null,recorded_by:actorId()};
+    return window.sb.from('sales_payments').insert(row).select().single();
+  }
+  async function createAP(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const cid=companyId();if(!cid)throw new Error('Sign in to a BlackRock account first.');
+    const row={company_id:cid,supplier_id:payload.supplier_id||null,document_type:'supplier_invoice',document_number:payload.document_number||payload.invoice_number,status:payload.status||'draft',document_date:payload.document_date||payload.invoice_date||new Date().toISOString().slice(0,10),due_date:payload.due_date||null,currency_code:payload.currency_code||'ETB',subtotal:Number(payload.subtotal??payload.amount??0),tax_total:Number(payload.tax_total??payload.tax_amount??0),discount_total:Number(payload.discount_total||0),grand_total:Number(payload.grand_total??payload.total??payload.amount??0),notes:payload.notes||null,created_by:actorId()};
+    return window.sb.from('purchase_documents').insert(row).select().single();
+  }
+  async function recordPayment(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const cid=companyId();if(!cid)throw new Error('Sign in to a BlackRock account first.');
+    const row={company_id:cid,purchase_document_id:payload.purchase_document_id||payload.bill_id,supplier_id:payload.supplier_id,payment_date:payload.payment_date||new Date().toISOString().slice(0,10),amount:Number(payload.amount||0),currency_code:payload.currency_code||'ETB',payment_method:payload.payment_method||'cash',reference_number:payload.reference_number||null,notes:payload.notes||null,reconciliation_status:'unreconciled',recorded_by:actorId()};
+    return window.sb.from('supplier_payments').insert(row).select().single();
+  }
+  async function listPeriods(){
+    if(!prod)return {data:[],error:null};
+    const cid=companyId();if(!cid)return {data:[],error:new Error('Sign in to a BlackRock account first.')};
+    return window.sb.from('fiscal_periods').select('*').eq('company_id',cid).order('start_date',{ascending:false});
+  }
+  async function closeReadiness(periodId){
+    if(!prod)return {data:null,error:null};
+    const cid=companyId();if(!cid)return {data:null,error:new Error('Sign in to a BlackRock account first.')};
+    const [period,journals,ar,ap,payments]=await Promise.all([
+      window.sb.from('fiscal_periods').select('*').eq('id',periodId).eq('company_id',cid).single(),
+      window.sb.from('journal_entries').select('id,status,total_debit,total_credit').eq('company_id',cid).eq('status','draft'),
+      window.sb.from('sales_documents').select('id,status').eq('company_id',cid).eq('document_type','invoice').neq('status','paid').neq('status','void'),
+      window.sb.from('purchase_documents').select('id,status').eq('company_id',cid).eq('document_type','supplier_invoice').neq('status','paid').neq('status','void'),
+      window.sb.from('supplier_payments').select('id,reconciliation_status').eq('company_id',cid).neq('reconciliation_status','reconciled')
+    ]);
+    for(const r of [period,journals,ar,ap,payments])if(r.error)return {data:null,error:r.error};
+    const blockers=[];
+    if((journals.data||[]).length)blockers.push({type:'draft_journals',count:journals.data.length});
+    if((ar.data||[]).length)blockers.push({type:'open_receivables',count:ar.data.length});
+    if((ap.data||[]).length)blockers.push({type:'open_payables',count:ap.data.length});
+    if((payments.data||[]).length)blockers.push({type:'unreconciled_supplier_payments',count:payments.data.length});
+    return {data:{period:period.data,ready:blockers.length===0,blockers},error:null};
+  }
   window.BOKAN_FINANCE_PRODUCTION={enabled:()=>prod,refresh,createJournal,createAR,recordReceipt,createAP,recordPayment,listPeriods,closeReadiness};
+  document.addEventListener('bokan:company-context-changed',()=>{if(prod)refresh();});
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,250));
 })();</script>\n<script id="bokan-v66-hr-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
