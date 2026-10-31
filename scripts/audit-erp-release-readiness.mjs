@@ -18,7 +18,8 @@ const appliedCandidateSql = [
   'supabase/candidates/crm_company_scoped_v1.sql',
   'supabase/candidates/crm_privilege_hardening_2026-10-31.sql'
 ].map(path=>readFileSync(path,'utf8'));
-const baselineSql = ['supabase/baselines/live_company_core_2026-10-31.sql'].map(path=>readFileSync(path,'utf8'));\nconst schemaSources = [...migrationSql,...appliedCandidateSql,...baselineSql];
+const baselineSql = ['supabase/baselines/live_company_core_2026-10-31.sql'].map(path=>readFileSync(path,'utf8'));
+const schemaSources = [...migrationSql,...appliedCandidateSql,...baselineSql];
 const schema = schemaSources.join('\n');
 assert.equal(entry,source,'Staging entry point must match the reviewed source.');
 
