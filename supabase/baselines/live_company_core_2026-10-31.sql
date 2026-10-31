@@ -40,6 +40,12 @@ as $$
   );
 $$;
 
+revoke all on function private.can_manage_company(uuid) from public,anon;
+revoke all on function private.has_company_membership(uuid) from public,anon;
+grant usage on schema private to authenticated;
+grant execute on function private.can_manage_company(uuid) to authenticated;
+grant execute on function private.has_company_membership(uuid) to authenticated;
+
 create table public.companies (
   id uuid not null default gen_random_uuid(),
   code text not null,
