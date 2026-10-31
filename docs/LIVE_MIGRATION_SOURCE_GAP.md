@@ -38,7 +38,7 @@ It has been moved to `supabase/candidates/core_proforma_mvp.sql`. Disposable Pos
 
 ## Updated live inventory — 2026-10-31
 
-The connected Supabase migration ledger now reports **29 applied migration records**. The executable source directory contains **22 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
+The connected Supabase migration ledger now reports **30 applied migration records**. The executable source directory contains **23 tracked applied migration SQL files**. Seven applied migration bodies remain absent from the repository and are deliberately not reconstructed as if they were exact originals:
 
 | Applied version | Applied migration | Source status |
 |---|---|---|
@@ -50,7 +50,7 @@ The connected Supabase migration ledger now reports **29 applied migration recor
 | 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
 | 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
 
-The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 22 available executable files and documents all seven gaps. This is not full historical migration parity.
+The four historical bodies remain intentionally benched per the migration instruction. The three newer CRM/Proforma bodies also remain a source-control reconciliation task. Do not fabricate or backdate any of these seven bodies. Current forward migrations are source-controlled; the source-parity guard explicitly checks the 23 available executable files and documents all seven gaps. This is not full historical migration parity.
 
 ## New forward migrations recorded
 
@@ -82,7 +82,10 @@ The current database ledger includes these migrations. The reversal sequencing c
 - Delivery orders now optionally link to an approved/posted sales order or invoice through a composite `(company_id, sales_document_id)` foreign key. The trigger rejects cross-company or ineligible source documents and copies the canonical customer name into the delivery snapshot when available.
 - Both link columns are nullable to preserve existing records and allow planning before source-document association. No business records were imported or altered.
 - The Supply & Logistics bridge exposes eligible purchase-order and delivery-source selectors and includes the source IDs in live reads. The V6.7 inbound and delivery forms now expose eligible source-document selectors; authenticated browser persistence and cross-company denial tests remain pending.
-- The migration source-parity guard now tracks 22 available applied SQL bodies. Seven historical/CRM/Proforma applied bodies remain unrecovered; this is still not full historical source parity.
+- The migration source-parity guard now tracks 23 available applied SQL bodies. Seven historical/CRM/Proforma applied bodies remain unrecovered; this is still not full historical source parity.
 
 
 - 20261031125430 — tightened the shipment-to-purchase-order trigger so draft purchase orders cannot be attached to inbound shipment plans. Only submitted/approved/active receiving or payment statuses are eligible, matching the V6.7 source selector.
+
+
+- 20261031125554 — customer reassignment now validates that the selected owner is an active `sales` or `staff` member of the same company. The V6.7 reassignment selector applies the same role filter; managers still perform the reassignment through the authorized RPC with a required reason.
