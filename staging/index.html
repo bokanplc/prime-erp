@@ -9233,7 +9233,7 @@ async function enter(user){
     if(error)throw error;if(!data)throw new Error('After-sales task not found in the selected company.');return data;
   }
   async function listCompanyRepresentatives(){
-    await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).order('role');
+    await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).in('role',['sales','staff']).order('role');
     if(error)throw error;return (data||[]).map(m=>({...m,label:m.user_id}));
   }
   async function loadCRMControl(){
