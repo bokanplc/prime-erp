@@ -147,8 +147,8 @@ The connected live Supabase project now has 27 public base tables and 23 recorde
 
 The connected Supabase project reports **25 applied migration records and 27 public base tables**. Four additional general-ledger tables are present: `ledger_accounts`, `fiscal_periods`, `journal_entries`, and `journal_lines`. The following forward migrations are recorded and source-controlled on `deploy/secure-staging`:
 - `20261031113713_add_company_scoped_general_ledger_foundation`
-- `20261031120000_add_atomic_journal_posting_and_reversals`
-- `20261031121500_fix_reversal_posted_entry_immutability`
+- `20261031114856_add_atomic_journal_posting_and_reversals`
+- `20261031115029_fix_reversal_posted_entry_immutability`
 
 The ledger now has authenticated atomic posting and reversal procedures. A rollback-only test exercised both. The first reversal attempt exposed and corrected a trigger-ordering conflict. No production module has been activated and no live business transactions have been created.
 
