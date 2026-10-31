@@ -27,5 +27,11 @@ for(const method of ['listMyCustomers','createCustomer','updateCustomer','listAc
 assert.ok(bridge.includes("rpc('bokan_reassign_customer_owner'"),'Customer reassignment must use the manager-only RPC.');
 assert.ok(bridge.includes("eq('company_id',company())"),'CRM writes and updates must be scoped to the selected company.');
 assert.ok(bridge.includes('owner_user_id:user.id'),'New opportunities must be owned by the signed-in user.');
+assert.ok(bridge.includes('async function loadCRMControl()'),'CRM coverage dashboard loader must exist.');
+for(const fn of ['async function initSalesPortal()','async function renderCustomerDirectory()','async function loadCustomerHistory(customerName)','async function loadCustomerIntoForm(customerName)','async function loadWeeklyActions()']){
+  const i=source.indexOf(fn);assert.ok(i>=0,`Missing V6.7 CRM screen function: ${fn}`);
+  assert.ok(source.slice(i,i+5000).includes('BOKAN_CRM_PRODUCTION'),`Screen is not wired to canonical CRM API: ${fn}`);
+}
+assert.ok(source.includes("id === 'crmcontrol' && window.BOKAN_CRM_PRODUCTION?.enabled()"),'CRM dashboard must load live data.');
 assert.ok(!bridge.includes('.delete('),'CRM bridge must not hard-delete customer or history records.');
 console.log('PASS: V6.7 CRM bridge uses canonical company-scoped tables, guarded reassignment, append-only activity history, and synchronized full-app staging entry.');
