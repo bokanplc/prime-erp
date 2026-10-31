@@ -40,3 +40,24 @@
 - Do not delete the BlackRock company, its records, or its membership.
 - Do not delete the Supabase Auth user merely because a Prime membership is removed; the same login may be the BlackRock administrator.
 - Prime data removal is authorized by the project owner, but must be performed as a controlled, dependency-aware database change and verified afterward.
+
+
+## Work completed on 2026-10-31
+
+- Created working branch `feature/blackrock-only-v67` from `deploy/secure-staging`; `main` and production were not changed.
+- Reworked the full V6.7 source and staging entry as a BlackRock-only application. The source and entry files now have matching Git blob SHAs; the application retains its full V6.7 module body and is approximately 823 KB / 9,396 lines.
+- Removed Prime company names, Prime identifiers, company-selection UI, group/company-context pages, and Prime demo membership from the application source and build sanitizer. Production profile resolution now accepts only active BLACKROCK memberships.
+- Applied Supabase migration `20261031132355_decommission_prime_company_and_data`.
+- Verified that the only remaining company row is active `BLACKROCK — BlackRock Investment PLC`, with one active membership, 22 customers, 3 products, 25 sales documents, and 15 purchase documents.
+- Verified zero residual Prime-linked rows across all 26 company-scoped tables checked, including company memberships, customers, products, sales and purchase documents/items, CRM, logistics, finance, and company settings.
+- The Prime membership was removed by the company cascade. The Supabase Auth user was deliberately not deleted because the login may also be the BlackRock administrator.
+- Added the applied SQL migration to this branch at `supabase/migrations/20261031132355_decommission_prime_company_and_data.sql`.
+- No production deployment was promoted and `main` remains untouched.
+- Vercel currently reports a build-rate-limit failure for the new branch commit (the provider's Hobby/build limit), so a fresh Vercel build could not be used to validate the code yet. No paid upgrade was made.
+
+## Remaining production blockers
+
+- The source scan still identifies 29 Supabase table references absent from the current 27-table public schema. These must be reconciled module by module; finance should use the existing canonical ledger/sales/purchasing tables where appropriate, and HR/payroll plus other missing operational entities need reviewed schema and RLS.
+- The V6.7 production configuration remains deliberately disabled. No service-role key is present in browser code.
+- The Supabase security advisor still reports three authenticated-callable SECURITY DEFINER functions for review and leaked-password protection disabled.
+- Full browser/functional tests and a production build remain outstanding. Do not promote until these are complete.
