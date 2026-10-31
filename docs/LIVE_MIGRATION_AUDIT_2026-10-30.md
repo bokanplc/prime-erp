@@ -113,10 +113,13 @@ A second small forward migration, `20261031083706_index_supply_logistics_created
 Latest live catalog verification:
 - 23 public base tables; all 23 have RLS enabled.
 - 63 public RLS policies.
-- 20 recorded migrations.
+- 21 recorded migrations.
 - `supply_shipments` and `delivery_orders` each have three RLS policies and currently contain zero rows; no sample or business transactions were inserted during migration.
 - The new Supply & Logistics tables have no anonymous privileges and only scoped authenticated reads/inserts plus limited-column updates.
 
 GitHub Actions run #932 passed all three jobs, including the disposable PostgreSQL company-isolation/role tests and the source/release guards. Follow-up CI runs are checking the subsequent migration-source bookkeeping. Vercel continues to deploy only the staging branch; production has not been promoted.
 
 The Supabase security advisor still reports the previously documented intentional authenticated-only CRM SECURITY DEFINER reassignment RPC warning and the leaked-password-protection setting warning. The performance advisor still reports 21 unindexed foreign keys elsewhere in the older Proforma/CRM schema; none are in the new Supply & Logistics slice. These are recorded follow-up items, not reasons to disable the safe, currently empty Supply & Logistics tables.
+
+
+A final Supply & Logistics UI contract refinement was applied: `supply_shipments.purchasing_entity` now preserves the V6.7 PRIME / BLACKROCK / BOKAN Coordinated selection separately from `company_id`, which remains the authenticated legal-owner tenant. This prevents the shared BOKAN coordination option from being incorrectly recorded as PRIME. Migration `20261031084536_add_supply_shipment_purchasing_entity` is applied and source-controlled. The inbound UI rejects a PRIME/BLACKROCK selection that conflicts with the active company, while allowing BOKAN Coordinated under the active legal-owner company.
