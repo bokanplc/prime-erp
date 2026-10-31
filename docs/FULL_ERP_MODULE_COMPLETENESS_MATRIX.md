@@ -159,7 +159,7 @@ Finance is still a partial backend foundation, not a complete Finance module. Au
 
 ## Latest live migration checkpoint — 2026-10-31 12:50 UTC
 
-- Live Supabase now records **29 applied migrations** and **27 public base tables**. The current source-controlled migration directory tracks **22 available applied SQL bodies**; seven applied bodies remain absent and documented. Four historical bodies remain benched per instruction; three Proforma/CRM foundation bodies require source-control reconciliation.
+- Live Supabase now records **30 applied migrations** and **27 public base tables**. The current source-controlled migration directory tracks **23 available applied SQL bodies**; seven applied bodies remain absent and documented. Four historical bodies remain benched per instruction; three Proforma/CRM foundation bodies require source-control reconciliation.
 - CRM now has canonical company-scoped persistence and the V6.7 Sales customer directory, customer form submission, activity timeline, weekly follow-ups and CRM coverage dashboard are wired to the canonical tables. Opportunities and after-sales task APIs exist but dedicated V6.7 controls remain to be built. No authenticated browser test has been completed; keep CRM production activation disabled.
 - Supply & Logistics now links inbound shipments to same-company purchase orders and delivery orders to same-company approved/posted sales orders or invoices. The links are optional and preserve existing planning rows. UI source selectors and live browser tests remain pending.
 - General Ledger posting and reversal are atomic RPC workflows; direct table writes are restricted to RPCs. No chart of accounts, fiscal periods, or business journals have been seeded.
@@ -167,3 +167,4 @@ Finance is still a partial backend foundation, not a complete Finance module. Au
 - Production remains disabled, the reviewed module allowlist remains empty, and `main` has not been modified or merged.
 
 - The shipment-to-purchase-order guard was tightened to reject draft, cancelled and void purchase orders, matching the source selector's eligible statuses.
+- CRM customer reassignment is now restricted server-side to active same-company sales/staff members, with manager-only RPC access and a required reason.
