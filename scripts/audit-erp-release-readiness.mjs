@@ -3,7 +3,7 @@
  * Full-ERP readiness gate.
  * This report intentionally exits successfully while the app is kept disabled,
  * but fails if production/full-data mode is enabled while the source still has
- * unimplemented tables or the legacy API contract is missing.
+ * unimplemented table contracts, missing source-controlled DDL, or the legacy API contract is missing.
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
@@ -116,7 +116,7 @@ const reviewedTabsMatch = source.match(/window\.BOKAN_REVIEWED_PRODUCTION_TABS\s
 const reviewedTabs = reviewedTabsMatch ? [...reviewedTabsMatch[1].matchAll(/['\"]([^'\"]+)['\"]/g)].map(m=>m[1]) : [];
 const unreviewedEnabledTabs = enabledTabs.filter(tab=>!reviewedTabs.includes(tab));
 const blockers = [];
-if(missing.length) blockers.push('Missing database table definitions ('+missing.length+'/'+referenced.length+'): '+missing.join(', '));
+if(missing.length) blockers.push('Missing source-controlled DDL for referenced table names ('+missing.length+'/'+referenced.length+'): '+missing.join(', '));
 if(!apiBackendPresent) blockers.push('Legacy authenticated /api backend is missing these Cloudflare Pages Functions groups: '+missingApiGroups.join(', ')+'.');
 if(rawHtmlSinks.length) blockers.push('Known unescaped data-driven HTML sinks remain: '+rawHtmlSinks.join(', ')+'.');
 if(!/SUPABASE_URL\s*:\s*""/.test(config) || !/SUPABASE_ANON_KEY\s*:\s*""/.test(config)) {
@@ -131,8 +131,8 @@ if((productionMode || fullDataReady) && enabledTabs.length===0) blockers.push('P
 
 console.log('BOKAN ERP full-release readiness audit');
 console.log('Referenced logical database tables: '+referenced.length);
-console.log('Tables defined in current first-slice schema: '+defined.length+' ('+defined.join(', ')+')');
-console.log('Tables still missing schema: '+missing.length);
+console.log('Applied schema tables with source-controlled CREATE TABLE definitions: '+defined.length+' ('+defined.join(', ')+')');
+console.log('Referenced tables lacking source-controlled DDL: '+missing.length);
 console.log('Legacy API endpoint groups missing: '+(missingApiGroups.join(', ')||'(none)'));
 console.log('Known raw HTML sink patterns remaining: '+rawHtmlSinks.length+(rawHtmlSinks.length?' ('+rawHtmlSinks.join(', ')+')':''));
 console.log('PRODUCTION_MODE: '+productionMode);
