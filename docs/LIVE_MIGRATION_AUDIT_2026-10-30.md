@@ -51,3 +51,27 @@ This is a read-only reconciliation of the connected GitHub, Supabase, and Vercel
 ## Verification notes
 
 All counts above came from connected service reads on 2026-10-30. RLS being enabled and policies existing do not, by themselves, prove the policies are correct. No database changes, Auth changes, Storage changes, paid-plan upgrades, merges, or deployments were made during this audit.
+
+
+## Follow-up findings and work — 2026-10-30
+
+### Migration source-control gap confirmed
+
+The 15 live migration records are not all recoverable from Git. The repository contains 11 matching executable SQL migration files. These four historical SQL bodies are absent from all searched Git history and must not be reconstructed as if they were exact originals:
+
+- `20261025065910_initial_multi_company_sales_foundation`
+- `20261025072547_revoke_unauthenticated_erp_table_access`
+- `20261025124247_add_missing_foreign_key_indexes`
+- `20261025124312_atomic_sales_document_creation`
+
+The existing `docs/LIVE_MIGRATION_SOURCE_GAP.md` documents this. The correct recovery path is an authoritative backup/export or a clearly labeled current-schema baseline snapshot, never a fabricated backdated migration.
+
+### CRM candidate hardening
+
+The staged CRM candidate now denies direct assignment updates and requires active same-company owners for opportunity and after-sales task ownership. Update privileges are column-scoped so ordinary CRM users cannot rewrite tenant/customer/creator identity fields. Additional disposable PostgreSQL assertions cover direct assignment writes and sales-user ownership transfers. See `docs/CRM_SECURITY_HARDENING_2026-10-30.md`.
+
+This remains candidate-only. It has not been applied to live Supabase, and the CRM module remains disabled pending CI, real Supabase JWT/Data API tests, and browser persistence tests.
+
+### Deployment status qualification
+
+The Vercel commit status on the latest CRM test commit reported success, but this is not proof that the complete V6.7 application is deployed or production-ready. A separate Vercel deployment-list request returned a 403 for the BOKAN team scope, so current deployment state could not be independently verified in this pass.
