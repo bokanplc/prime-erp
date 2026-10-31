@@ -104,3 +104,19 @@ A forward-only migration was added to GitHub and applied to the live BOKAN ERP S
 - The V6.7 entry and preserved review source are synchronized. The staging config, production mode, and reviewed production-tab allowlist remain disabled.
 
 Scope limitation: this is the first persistence slice only. Sales-demand integration, warehouse reservations, goods receipt/stock posting, shipment containers, supplier/purchase-order linkage and logistics exception workflows are not yet live. The preview remains demo-only and must not be used for real transactions. Disposable PostgreSQL RLS tests and static UI-contract tests have been added to GitHub Actions; results must pass before this slice is considered browser-verified.
+
+
+## Supply & Logistics follow-up — 2026-10-31
+
+A second small forward migration, `20261031083706_index_supply_logistics_created_by`, added indexes to both new tables' creator foreign keys after the Supabase performance advisor identified those two gaps. The follow-up advisor run no longer reports either Supply & Logistics table as having an unindexed foreign key.
+
+Latest live catalog verification:
+- 23 public base tables; all 23 have RLS enabled.
+- 63 public RLS policies.
+- 20 recorded migrations.
+- `supply_shipments` and `delivery_orders` each have three RLS policies and currently contain zero rows; no sample or business transactions were inserted during migration.
+- The new Supply & Logistics tables have no anonymous privileges and only scoped authenticated reads/inserts plus limited-column updates.
+
+GitHub Actions run #932 passed all three jobs, including the disposable PostgreSQL company-isolation/role tests and the source/release guards. Follow-up CI runs are checking the subsequent migration-source bookkeeping. Vercel continues to deploy only the staging branch; production has not been promoted.
+
+The Supabase security advisor still reports the previously documented intentional authenticated-only CRM SECURITY DEFINER reassignment RPC warning and the leaked-password-protection setting warning. The performance advisor still reports 21 unindexed foreign keys elsewhere in the older Proforma/CRM schema; none are in the new Supply & Logistics slice. These are recorded follow-up items, not reasons to disable the safe, currently empty Supply & Logistics tables.
