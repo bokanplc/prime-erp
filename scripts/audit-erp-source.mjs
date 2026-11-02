@@ -100,6 +100,25 @@ if (/blackrock_v22_corporate/.test(config)) {
   failures.push('Browser-local V22 corporate storage must never be configured as a production persistence backend.');
 }
 
+// Broader V6.7 business-store inventory: warn while any of these legacy
+// browser stores remain in the full application source. The production
+// allowlist stays empty until each domain is migrated and browser-tested.
+const legacyBusinessStores = [
+  'blackrock_customers', 'blackrock_customer_logs', 'blackrock_proforma_requests',
+  'blackrock_v27_ops', 'blackrock_v28_control', 'blackrock_v29_control',
+  'blackrock_v30_controls', 'blackrock_v32_trace', 'blackrock_v33_reconciliation',
+  'blackrock_v34_close_control', 'blackrock_v35_postings', 'blackrock_v40_transactions',
+  'blackrock_v41_approvals', 'blackrock_v45_pay', 'blackrock_v51_exceptions',
+  'blackrock_v52_period_control', 'blackrock_v53_quality_issues',
+  'bokan_customer_call_log_v2', 'bokan_sales_crm_v1', 'bokan_sales_hub_v1',
+  'bokan_sales_lifecycle_v1', 'bokan_supply_tower_v1', 'bokan_access_registry_v2'
+];
+const legacyStoresFound = legacyBusinessStores.filter(key => source.includes(key));
+if (legacyStoresFound.length) {
+  warnings.push(`Legacy browser business stores remain in source (${legacyStoresFound.length}): ${legacyStoresFound.join(', ')}. Verify each is unreachable in hosted production and migrate before enabling its module.`);
+}
+warnPattern(/const seed=\\[\\s*\\{doc:'INV-1001'.{0,500}doc:'PAY-2002'/s, 'Hard-coded V40 sample AR/AP transactions remain in the application source; do not expose these as BlackRock financial records.');
+
 // Basic coverage markers: these do not validate the implementation itself.
 const requiredMarkers = [
   ['production guard', /_bokanProdConfigured/],
