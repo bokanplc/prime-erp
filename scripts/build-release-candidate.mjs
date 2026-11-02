@@ -31,11 +31,11 @@ if (productionRequested) {
   const supabaseAnonKey = process.env.BOKAN_SUPABASE_ANON_KEY || '';
   const fullDataReady = process.env.BOKAN_FULL_ERP_DATA_READY === 'true';
   const requestedTabs = [...new Set((process.env.BOKAN_ENABLED_PRODUCTION_TABS || '').split(',').map(v => v.trim()).filter(Boolean))];
-  const reviewedMatch = source.match(/window\\.BOKAN_REVIEWED_PRODUCTION_TABS\\s*=\\s*Object\\.freeze\\((\\[[\\s\\S]*?\\])\\)/);
+  const reviewedMatch = source.match(/window\.BOKAN_REVIEWED_PRODUCTION_TABS\s*=\s*Object\.freeze\((\[[\s\S]*?\])\)/);
   assert.ok(reviewedMatch, 'A source-reviewed production tab allowlist is required.');
   const reviewedTabs = JSON.parse(reviewedMatch[1]);
   assert.ok(fullDataReady, 'Production build requires BOKAN_FULL_ERP_DATA_READY=true after end-to-end acceptance.');
-  assert.match(supabaseUrl, /^https:\\/\\/.+\\.supabase\\.co(?:\\/.*)?$/, 'Production Supabase URL is missing or invalid.');
+  assert.match(supabaseUrl, /^https:\/\/.+\.supabase\.co(?:\/.*)?$/, 'Production Supabase URL is missing or invalid.');
   assert.ok(supabaseAnonKey.length > 20 && !/YOUR_|placeholder/i.test(supabaseAnonKey), 'Production Supabase publishable/anon key is missing or invalid.');
   assert.ok(requestedTabs.length > 0, 'Production build requires an explicit reviewed module allowlist.');
   assert.ok(requestedTabs.every(tab => reviewedTabs.includes(tab)), 'Production build requested a module that has not been source-reviewed.');
