@@ -9240,8 +9240,26 @@ async function enter(user){
     if(error)throw error;if(!data)throw new Error('After-sales task not found in the selected company.');return data;
   }
   async function listCompanyRepresentatives(){
-    await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).in('role',['sales','staff']).order('role');
-    if(error)throw error;return (data||[]).map(m=>({...m,label:m.user_id}));
+    await requireSession();
+    const companyId=company();
+    const {data:members,error:memberError}=await db().from('company_memberships')
+      .select('user_id,role,is_active').eq('company_id',companyId).eq('is_active',true)
+      .in('role',['sales','staff']).order('role');
+    if(memberError)throw memberError;
+    const activeMembers=members||[];
+    if(!activeMembers.length)return [];
+    // Profiles are visible only to authenticated members of this same company.
+    // Keep the lookup company-scoped and never expose another company's directory.
+    const userIds=activeMembers.map(m=>m.user_id);
+    const {data:profiles,error:profileError}=await db().from('profiles')
+      .select('id,full_name,email').eq('company_id',companyId).in('id',userIds);
+    if(profileError)throw profileError;
+    const profileById=new Map((profiles||[]).map(p=>[p.id,p]));
+    return activeMembers.map(m=>{
+      const profile=profileById.get(m.user_id);
+      const label=String(profile?.full_name||'').trim()||profile?.email||'Sales team member';
+      return {...m,label};
+    });
   }
   async function loadCRMControl(){
     const [customers,activities,reps]=await Promise.all([listMyCustomers(),listActivities(),listCompanyRepresentatives()]);
