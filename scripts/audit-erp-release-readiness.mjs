@@ -29,20 +29,16 @@ const referenced = [...new Set([...direct,...helper])].sort();
 const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+(?:or\s+replace\s+)?(?:table\s+(?:if\s+not\s+exists\s+)?|view\s+)(?:public\.)?([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
 const missing = referenced.filter(table=>!defined.includes(table));
 
-// The full V6.7 source still contains a legacy authenticated API adapter.
-// This project targets Vercel, so check for Vercel API routes (not Cloudflare
-// Pages Functions) before allowing the adapter to be used in production.
-const requiredApiFileGroups = [
-  ['login',['api/auth/login.js']],
-  ['change-password',['api/auth/change-password.js']],
-  ['logout',['api/auth/logout.js']],
-  ['bootstrap',['api/bootstrap.js']],
-  ['store',['api/store/[key].js','api/store/[...path].js']]
-];
+// The V6.7 source has a Supabase-native production auth path. When it is
+// configured and enabled, the legacy /api adapter exits before registering
+// handlers. Do not require obsolete Vercel routes for this architecture.
+const supabaseAuthPresent = source.includes('id="bokan-v61-production-auth"')
+  && source.includes("auth.auth.signInWithPassword")
+  && source.includes("auth.from('company_memberships')");
 const legacyApiPaths = [...source.matchAll(/api\(\s*['"`](\/[^'"`]+)['"`]/g)].map(m=>m[1]);
-const missingApiGroups = legacyApiPaths.length
-  ? requiredApiFileGroups.filter(([,paths])=>!paths.some(path=>existsSync(path))).map(([name])=>name)
-  : [];
+const missingApiGroups = supabaseAuthPresent ? [] : (legacyApiPaths.length
+  ? ['Supabase production authentication path missing; legacy API adapter has no Vercel backend']
+  : []);
 const apiBackendPresent = missingApiGroups.length === 0;
 const rawHtmlSinkPatterns = [
   ['notification messages',/\.innerHTML\s*=\s*data\.map\(n\s*=>\s*`[\s\S]{0,500}\$\{n\.message\}/],
@@ -138,7 +134,8 @@ console.log('BOKAN ERP full-release readiness audit');
 console.log('Referenced logical database tables: '+referenced.length);
 console.log('Applied schema tables with source-controlled CREATE TABLE definitions: '+defined.length+' ('+defined.join(', ')+')');
 console.log('Referenced tables lacking source-controlled DDL: '+missing.length);
-console.log('Missing Vercel API route groups: '+(missingApiGroups.join(', ')||'(none)'));
+console.log('Supabase-native production authentication: '+(supabaseAuthPresent?'present':'missing'));
+console.log('Missing backend dependencies: '+(missingApiGroups.join(', ')||'(none)'));
 console.log('Known raw HTML sink patterns remaining: '+rawHtmlSinks.length+(rawHtmlSinks.length?' ('+rawHtmlSinks.join(', ')+')':''));
 console.log('PRODUCTION_MODE: '+productionMode);
 console.log('FULL_ERP_DATA_READY: '+fullDataReady);
