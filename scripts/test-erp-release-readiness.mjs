@@ -39,12 +39,15 @@ try {
   const reviewHtml=readFileSync(join(root,'dist/release/index.html'),'utf8');
   const reviewConfig=readFileSync(join(root,'dist/release/config/config.js'),'utf8');
   const reviewHeaders=readFileSync(join(root,'dist/release/_headers'),'utf8');
-  assert.equal(reviewHtml,readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8'),'Staging review build must retain the complete V6.7 review source.');
+  const fullReviewSource=readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8');
+  const reviewBanner='PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS';
+  assert.ok(reviewHtml.includes(reviewBanner),'Staging review build must display a prominent preview-only warning.');
+  assert.equal(reviewHtml.replace(/<div role="status" aria-live="polite"[^>]*>PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS<\\/div>/,'<body>'),fullReviewSource,'Staging review build must otherwise retain the complete V6.7 review source.');
   assert.match(reviewConfig,/DEMO_REVIEW_MODE:\s*true/,'Staging preview must enable demo mode.');
   assert.match(reviewHeaders,/X-Robots-Tag: noindex, nofollow/,'Staging preview must discourage search indexing.');
-  assert.match(reviewBuild,/demo review artifact/,'Staging branch should produce the review artifact.');
+  assert.match(reviewBuild,/full V6\.7 preview-only interface/,'Staging branch should produce the full V6.7 preview artifact.');
   const pagesReviewBuild=execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',env:{...process.env,CF_PAGES_BRANCH:'deploy/secure-staging'}});
-  assert.match(pagesReviewBuild,/demo review artifact/,'Pages branch selector remains supported for compatibility.');
+  assert.match(pagesReviewBuild,/full V6\.7 preview-only interface/,'Pages branch selector remains supported for compatibility.');
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
   assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 0/,'The live core baseline and source-controlled views must cover every referenced table definition; missing original migration bodies remain documented separately.');
