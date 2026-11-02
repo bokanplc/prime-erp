@@ -85,6 +85,21 @@ warnPattern(/\.from\(['"]profiles['"]\)\.update\(\s*\{\s*role\s*\}/, 'Client cod
 warnPattern(/\.rpc\(['"]next_proforma_no['"]/, 'Legacy preview numbering RPC remains in the non-production path; confirm this path stays local-preview-only.');
 
 
+// V22 corporate-finance persistence stop-ship gate.
+// These collections are still browser-local in the reviewed V6.7 source. Keep
+// them unavailable in production until a durable, authenticated Supabase
+// adapter and end-to-end workflow tests replace the localStorage handlers.
+const v22StorageKey = /localStorage\\.(?:getItem|setItem|removeItem)\\(\\s*['"`]blackrock_v22_corporate['"`]/;
+if (v22StorageKey.test(source)) {
+  warnPattern(v22StorageKey, 'V22 corporate finance still uses browser-local persistence; keep GL, AR, AP, bank reconciliation, purchasing, inventory, fixed assets, budgets, payroll and audit screens out of the production allowlist.');
+}
+if (/ENABLED_PRODUCTION_TABS\\s*:\\s*\\[[^\\]]*['"`](?:gl|ar|ap|bc|po|ic|fa|budget|payroll|audit)['"`]/s.test(config)) {
+  failures.push('A V22 corporate-finance tab is enabled before its durable persistence migration and workflow tests are complete.');
+}
+if (/blackrock_v22_corporate/.test(config)) {
+  failures.push('Browser-local V22 corporate storage must never be configured as a production persistence backend.');
+}
+
 // Basic coverage markers: these do not validate the implementation itself.
 const requiredMarkers = [
   ['production guard', /_bokanProdConfigured/],
