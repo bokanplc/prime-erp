@@ -5643,26 +5643,35 @@ function store_role_lookup(userId) { return window.BOKAN_PROFILE_ROLE_CACHE?.[us
 
 async function reassignCurrentCustomer() {
   if (!currentTimelineCustomerId) return;
-  const newRep = document.getElementById('timeline-reassign-select').value;
+  const select=document.getElementById('timeline-reassign-select');
+  const newRep=select?.value;
+  if(!newRep)return;
+  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
+    const api=window.BOKAN_CRM_PRODUCTION;
+    const customers=await api.listMyCustomers();
+    const cust=customers.find(c=>c.id===currentTimelineCustomerId);
+    if(!cust)throw new Error('Customer not found in the selected company.');
+    const oldRepId=cust.crm_assignment?.owner_user_id||null;
+    await api.assignCustomer(currentTimelineCustomerId,newRep,`Reassigned by ${currentRole}`);
+    await api.addActivity({
+      customer_id:currentTimelineCustomerId,activity_type:'Reassignment',status:cust.current_status||null,
+      notes:`Customer reassigned by ${currentRole}.`,customer_feedback:'',next_action_type:null,next_action_date:null
+    });
+    const customerLabel=cust.name||'Customer';
+    alert('Customer reassigned — full history preserved.');
+    await loadCustomerHistory(customerLabel);
+    await renderCustomerDirectory();
+    return;
+  }
   const { data: cust } = await sb.from('customers').select('*').eq('id', currentTimelineCustomerId).single();
   if (!cust) return;
   const oldRepId = cust.assigned_rep;
-  if (window.BOKAN_CRM_PRODUCTION?.enabled()) {
-    const assignment = await window.BOKAN_CRM_PRODUCTION.assignCustomer(currentTimelineCustomerId, newRep, `Reassigned by ${currentRole}`);
-    if (assignment.error) throw assignment.error;
-    const activity = await window.BOKAN_CRM_PRODUCTION.addActivity({
-      customer_id: currentTimelineCustomerId, activity_type: 'Reassignment', status: cust.current_status,
-      notes: `Customer reassigned by ${currentRole}.`, customer_feedback: null, next_action_type: null, next_action_date: null
-    });
-    if (activity.error) throw activity.error;
-  } else {
-    await sb.from('customers').update({ assigned_rep: newRep }).eq('id', currentTimelineCustomerId);
-    await sb.from('customer_logs').insert([{
-      customer_id: currentTimelineCustomerId, sales_rep: currentUser.id, status: cust.current_status,
-      activity_type: 'Reassignment', notes: `Customer reassigned by ${currentRole}.`, customer_feedback: null,
-      next_action_type: null, next_action_date: null
-    }]);
-  }
+  await sb.from('customers').update({ assigned_rep: newRep }).eq('id', currentTimelineCustomerId);
+  await sb.from('customer_logs').insert([{
+    customer_id: currentTimelineCustomerId, sales_rep: currentUser.id, status: cust.current_status,
+    activity_type: 'Reassignment', notes: `Customer reassigned by ${currentRole}.`, customer_feedback: null,
+    next_action_type: null, next_action_date: null
+  }]);
   await pushNotification('reassignment', `${cust.customer_name} reassigned.`, { customer_id: cust.id, from: oldRepId, to: newRep });
   alert('Customer reassigned — full history preserved.');
   loadCustomerHistory(cust.customer_name);
