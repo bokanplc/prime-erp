@@ -117,7 +117,7 @@ const legacyStoresFound = legacyBusinessStores.filter(key => source.includes(key
 if (legacyStoresFound.length) {
   warnings.push(`Legacy browser business stores remain in source (${legacyStoresFound.length}): ${legacyStoresFound.join(', ')}. Verify each is unreachable in hosted production and migrate before enabling its module.`);
 }
-warnPattern(/const seed=\\[\\s*\\{doc:'INV-1001'.{0,500}doc:'PAY-2002'/s, 'Hard-coded V40 sample AR/AP transactions remain in the application source; do not expose these as BlackRock financial records.');
+warnPattern(/const seed=\[\s*\{doc:'INV-1001'.{0,500}doc:'PAY-2002'/s, 'Hard-coded V40 sample AR/AP transactions remain in the application source; do not expose these as BlackRock financial records.');
 
 // Basic coverage markers: these do not validate the implementation itself.
 const requiredMarkers = [
