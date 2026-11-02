@@ -32,6 +32,8 @@ try {
     'CRM representative names must be resolved only from profiles in the active company.');
   assert.match(source,/profile\?\.full_name[\s\S]{0,100}profile\?\.email[\s\S]{0,100}'Sales team member'/,
     'CRM assignment lists must use a safe display-name fallback when a profile name is missing.');
+  assert.match(source,/async function addActivity\(payload\)[\s\S]{0,220}actor_user_id:user\.id[\s\S]{0,100}assigned_user_id\)row\.assigned_user_id=user\.id/,
+    'CRM activity inserts must set the authenticated actor required by the live RLS policy.');
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
   assert.equal(wranglerConfig.assets.directory,'./dist/release','Workers Static Assets must serve only generated release output.');
