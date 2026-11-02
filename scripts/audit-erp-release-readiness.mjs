@@ -39,7 +39,7 @@ const requiredApiFileGroups = [
   ['bootstrap',['api/bootstrap.js']],
   ['store',['api/store/[key].js','api/store/[...path].js']]
 ];
-const legacyApiPaths = [...source.matchAll(/api\(\s*['"`]\(\/[^'"`]+)['"`]/g)].map(m=>m[1]);
+const legacyApiPaths = [...source.matchAll(/api\(\s*['"`](\/[^'"`]+)['"`]/g)].map(m=>m[1]);
 const missingApiGroups = legacyApiPaths.length
   ? requiredApiFileGroups.filter(([,paths])=>!paths.some(path=>existsSync(path))).map(([name])=>name)
   : [];
