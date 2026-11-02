@@ -33,7 +33,7 @@ const missing = referenced.filter(table=>!defined.includes(table));
  // Do not require legacy Cloudflare Pages Functions unless the reviewed source
  // actually calls a same-origin /api route. This prevents an obsolete platform
  // assumption from blocking a valid Supabase-backed release candidate.
-const legacyApiReferences = [...source.matchAll(/(?:fetch|axios\\.(?:get|post|put|patch|delete))\\s*\\(\\s*['"`]\\/api\\//g)].map(m=>m[0]);
+const legacyApiReferences = [...source.matchAll(/(?:fetch|axios\.(?:get|post|put|patch|delete))\s*\(\s*['"`]\/api\//g)].map(m=>m[0]);
 const missingApiGroups = legacyApiReferences.length ? ['same-origin /api dependencies need a Vercel backend implementation'] : [];
 const apiBackendPresent = missingApiGroups.length === 0;
 const rawHtmlSinkPatterns = [
