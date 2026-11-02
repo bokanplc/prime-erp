@@ -42,7 +42,8 @@ try {
   const fullReviewSource=readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8');
   const reviewBanner='PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS';
   assert.ok(reviewHtml.includes(reviewBanner),'Staging review build must display a prominent preview-only warning.');
-  assert.equal(reviewHtml.replace(/<div role="status" aria-live="polite"[^>]*>PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS<\\/div>/,'<body>'),fullReviewSource,'Staging review build must otherwise retain the complete V6.7 review source.');
+  const expectedReviewSource=fullReviewSource.replace(/<body([^>]*)>/i,'<body$1><div role="status" aria-live="polite" style="position:sticky;top:0;z-index:99999;background:#7c2d12;color:#fff;text-align:center;padding:9px 14px;font:700 12px/1.4 Arial,sans-serif;letter-spacing:.02em">'+reviewBanner+'</div>');
+  assert.equal(reviewHtml,expectedReviewSource,'Staging review build must otherwise retain the complete V6.7 review source.');
   assert.match(reviewConfig,/DEMO_REVIEW_MODE:\s*true/,'Staging preview must enable demo mode.');
   assert.match(reviewHeaders,/X-Robots-Tag: noindex, nofollow/,'Staging preview must discourage search indexing.');
   assert.match(reviewBuild,/full V6\.7 preview-only interface/,'Staging branch should produce the full V6.7 preview artifact.');
