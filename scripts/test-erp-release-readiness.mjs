@@ -34,6 +34,11 @@ try {
     'CRM assignment lists must use a safe display-name fallback when a profile name is missing.');
   assert.match(source,/async function addActivity\(payload\)[\s\S]{0,220}actor_user_id:user\.id[\s\S]{0,100}assigned_user_id\)row\.assigned_user_id=user\.id/,
     'CRM activity inserts must set the authenticated actor required by the live RLS policy.');
+  const crmReassign=source.slice(source.indexOf('async function reassignCurrentCustomer()'),source.indexOf('async function loadReport()'));
+  assert.match(crmReassign,/BOKAN_CRM_PRODUCTION\?\.enabled\(\)[\s\S]{0,500}api\.listMyCustomers\(\)[\s\S]{0,700}api\.assignCustomer\([\s\S]{0,450}api\.addActivity\(/,
+    'Production CRM reassignment must use company-scoped customer lookup, the guarded reassignment RPC and the persisted activity log.');
+  assert.match(crmReassign,/if \(!cust\) throw new Error\('Customer not found in the selected company\.'\)/,
+    'Production CRM reassignment must fail closed when the customer is outside the selected company.');
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
   assert.equal(wranglerConfig.assets.directory,'./dist/release','Workers Static Assets must serve only generated release output.');
