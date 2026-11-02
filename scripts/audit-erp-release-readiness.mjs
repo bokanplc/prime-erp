@@ -5,7 +5,7 @@
  * but fails if production/full-data mode is enabled while the source still has
  * unimplemented table contracts, missing source-controlled DDL, or the legacy API contract is missing.
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const source = readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
@@ -29,12 +29,20 @@ const referenced = [...new Set([...direct,...helper])].sort();
 const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+(?:or\s+replace\s+)?(?:table\s+(?:if\s+not\s+exists\s+)?|view\s+)(?:public\.)?([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
 const missing = referenced.filter(table=>!defined.includes(table));
 
-// The current V6.7 client is Supabase-native and is deployed on Vercel.
- // Do not require legacy Cloudflare Pages Functions unless the reviewed source
- // actually calls a same-origin /api route. This prevents an obsolete platform
- // assumption from blocking a valid Supabase-backed release candidate.
-const legacyApiReferences = [...source.matchAll(/(?:fetch|axios\.(?:get|post|put|patch|delete))\s*\(\s*['"`]\/api\//g)].map(m=>m[0]);
-const missingApiGroups = legacyApiReferences.length ? ['same-origin /api dependencies need a Vercel backend implementation'] : [];
+// The full V6.7 source still contains a legacy authenticated API adapter.
+// This project targets Vercel, so check for Vercel API routes (not Cloudflare
+// Pages Functions) before allowing the adapter to be used in production.
+const requiredApiFileGroups = [
+  ['login',['api/auth/login.js']],
+  ['change-password',['api/auth/change-password.js']],
+  ['logout',['api/auth/logout.js']],
+  ['bootstrap',['api/bootstrap.js']],
+  ['store',['api/store/[key].js','api/store/[...path].js']]
+];
+const legacyApiPaths = [...source.matchAll(/api\\(\\s*['"`](\\/[^'"`]+)['"`]/g)].map(m=>m[1]);
+const missingApiGroups = legacyApiPaths.length
+  ? requiredApiFileGroups.filter(([,paths])=>!paths.some(path=>existsSync(path))).map(([name])=>name)
+  : [];
 const apiBackendPresent = missingApiGroups.length === 0;
 const rawHtmlSinkPatterns = [
   ['notification messages',/\.innerHTML\s*=\s*data\.map\(n\s*=>\s*`[\s\S]{0,500}\$\{n\.message\}/],
@@ -130,7 +138,7 @@ console.log('BOKAN ERP full-release readiness audit');
 console.log('Referenced logical database tables: '+referenced.length);
 console.log('Applied schema tables with source-controlled CREATE TABLE definitions: '+defined.length+' ('+defined.join(', ')+')');
 console.log('Referenced tables lacking source-controlled DDL: '+missing.length);
-console.log('Legacy same-origin API dependencies: '+(missingApiGroups.join(', ')||'(none)'));
+console.log('Missing Vercel API route groups: '+(missingApiGroups.join(', ')||'(none)'));
 console.log('Known raw HTML sink patterns remaining: '+rawHtmlSinks.length+(rawHtmlSinks.length?' ('+rawHtmlSinks.join(', ')+')':''));
 console.log('PRODUCTION_MODE: '+productionMode);
 console.log('FULL_ERP_DATA_READY: '+fullDataReady);
