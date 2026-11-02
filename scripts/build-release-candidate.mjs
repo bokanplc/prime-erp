@@ -19,18 +19,22 @@ assert.equal(entry,source,'Staging entry point must match reviewed source before
 assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain disabled in the release template.');
 assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
 assert.ok(config.includes('ENABLED_PRODUCTION_TABS: []'),'No production tabs may be enabled in the release template.');
-// Cloudflare's staging branch publishes a sample-data-only review build; all other branches use the sanitized candidate.
+// Dedicated staging and feature-branch previews publish the full V6.7 interface in isolated, in-memory demo mode.
+// They never receive Supabase credentials or write business records. Other branches use the sanitized fail-closed candidate.
 const deploymentBranch = process.env.VERCEL_GIT_COMMIT_REF || process.env.WORKERS_CI_BRANCH || process.env.CF_PAGES_BRANCH || '';
-if (deploymentBranch === 'deploy/secure-staging') {
-  assert.ok(config.includes('DEMO_REVIEW_MODE: true'),'Staging review build must explicitly enable demo mode.');
-  assert.ok(config.includes('SUPABASE_URL: ""') && config.includes('SUPABASE_ANON_KEY: ""'),'Staging review build must not contain Supabase credentials.');
+if (deploymentBranch === 'deploy/secure-staging' || deploymentBranch === 'feature/blackrock-only-v67') {
+  assert.ok(config.includes('DEMO_REVIEW_MODE: true'),'Review build must explicitly enable demo mode.');
+  assert.ok(config.includes('SUPABASE_URL: ""') && config.includes('SUPABASE_ANON_KEY: ""'),'Review build must not contain Supabase credentials.');
+  const reviewBanner = '<div role="status" aria-live="polite" style="position:sticky;top:0;z-index:99999;background:#7c2d12;color:#fff;text-align:center;padding:9px 14px;font:700 12px/1.4 Arial,sans-serif;letter-spacing:.02em">PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS</div>';
+  const reviewSource = source.replace(/<body([^>]*)>/i, '<body$1>' + reviewBanner);
+  assert.notEqual(reviewSource,source,'Review-only warning banner must be present.');
   mkdirSync(dirname(outputPath),{recursive:true});
   mkdirSync(dirname(outputConfigPath),{recursive:true});
-  writeFileSync(outputPath,source);
+  writeFileSync(outputPath,reviewSource);
   writeFileSync(outputConfigPath,config);
-  const reviewHeaders=['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  X-Robots-Tag: noindex, nofollow','  Cache-Control: no-store','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\n');
+  const reviewHeaders=['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  X-Robots-Tag: noindex, nofollow','  Cache-Control: no-store','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\\n');
   writeFileSync(outputHeadersPath,reviewHeaders);
-  console.log('Built staging-only BOKAN ERP demo review artifact with sample data and no Supabase credentials.');
+  console.log('Built full V6.7 preview-only interface with in-memory sample data, a visible warning, and no Supabase credentials.');
   process.exit(0);
 }
 
