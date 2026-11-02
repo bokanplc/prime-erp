@@ -53,7 +53,7 @@ try {
   assert.match(disabledOutput,/No static completeness blockers detected by this limited inventory/,'Static inventory is clear but does not approve runtime release.');
   assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 0/,'The live core baseline and source-controlled views must cover every referenced table definition; missing original migration bodies remain documented separately.');
   assert.match(disabledOutput,/Supabase-native production authentication: present/,'The reviewed source includes Supabase-native authentication and company membership checks.');
-  assert.match(disabledOutput,/Missing backend dependencies: \\(none\\)/,'The legacy API adapter is bypassed when Supabase production auth is enabled.');
+  assert.match(disabledOutput,/Missing backend dependencies: \(none\)/,'The legacy API adapter is bypassed when Supabase production auth is enabled.');
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/runtime.*acceptance is still required/,'Static completeness must not be confused with runtime release approval.');
 
