@@ -19,6 +19,8 @@ Read-only inspection of Supabase project `kafiwnuynjemufnankvi` confirms:
 
 These checks prove object existence and RLS activation, not that every form, role path, RPC, report, or browser workflow is functionally correct.
 
+A further read-only check found **zero BlackRock ledger accounts and zero open fiscal periods**. The existing `post_journal_entry` RPC correctly rejects posting unless the caller has an authorized company role, at least two valid balanced lines use active same-company accounts, and the journal date falls inside an open fiscal period. Therefore the V22 General Ledger screen is blocked from live use until the chart of accounts and first fiscal period are established through an accountant-reviewed setup. No guessed account structure or financial seed data has been inserted.
+
 ## Confirmed remaining persistence gap
 
 The V22 corporate-finance script still stores its records in one browser-local object:
