@@ -37,7 +37,7 @@ try {
   const crmReassign=source.slice(source.indexOf('async function reassignCurrentCustomer()'),source.indexOf('async function loadReport()'));
   assert.match(crmReassign,/BOKAN_CRM_PRODUCTION\?\.enabled\(\)[\s\S]{0,500}api\.listMyCustomers\(\)[\s\S]{0,700}api\.assignCustomer\([\s\S]{0,450}api\.addActivity\(/,
     'Production CRM reassignment must use company-scoped customer lookup, the guarded reassignment RPC and the persisted activity log.');
-  assert.match(crmReassign,/if \(!cust\) throw new Error\('Customer not found in the selected company\.'\)/,
+  assert.match(crmReassign,/if\s*\(!cust\)\s*throw new Error\('Customer not found in the selected company\.'\)/,
     'Production CRM reassignment must fail closed when the customer is outside the selected company.');
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
