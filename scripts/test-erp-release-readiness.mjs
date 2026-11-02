@@ -25,6 +25,13 @@ try {
   }
   cpSync('supabase/migrations',join(root,'supabase/migrations'),{recursive:true});
   cpSync('supabase/candidates',join(root,'supabase/candidates'),{recursive:true});
+  const source=readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8');
+  const entry=readFileSync(join(root,'staging/index.html'),'utf8');
+  assert.equal(entry,source,'The deployable staging entry must remain identical to the full V6.7 source.');
+  assert.match(source,/from\('profiles'\)[\s\S]{0,180}\.eq\('company_id',companyId\)[\s\S]{0,120}\.in\('id',userIds\)/,
+    'CRM representative names must be resolved only from profiles in the active company.');
+  assert.match(source,/profile\?\.full_name[\s\S]{0,100}profile\?\.email[\s\S]{0,100}'Sales team member'/,
+    'CRM assignment lists must use a safe display-name fallback when a profile name is missing.');
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
   assert.equal(wranglerConfig.assets.directory,'./dist/release','Workers Static Assets must serve only generated release output.');
