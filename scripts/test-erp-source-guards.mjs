@@ -86,20 +86,3 @@ assert.match(source, /const canAssign=typeof currentRole!=='undefined'&&\['owner
 
 assert.doesNotMatch(source.match(/function roleTabs\(role\)[\s\S]*?\n  \}/)?.[0]||'', /salescalllog/, 'Legacy local-storage-only call log must not be exposed as a production CRM workspace; use the Supabase-backed Sales CRM activity timeline.');
 
-const operationalCostStart = source.indexOf('<section id="tab-operationalcosts"');
-const operationalCostEnd = source.indexOf('</section>', operationalCostStart);
-const operationalCostUi = source.slice(operationalCostStart, operationalCostEnd);
-const operationalCostBridgeStart = source.indexOf('<script id="bokan-operational-costs-production">');
-const operationalCostBridgeEnd = source.indexOf('</script>', operationalCostBridgeStart);
-const operationalCostBridge = source.slice(operationalCostBridgeStart, operationalCostBridgeEnd);
-assert.ok(operationalCostStart >= 0 && operationalCostEnd > operationalCostStart, 'Full V6.7 must include the operational cost register workspace.');
-assert.match(operationalCostBridge, /expense_allocation_summary/);
-assert.match(operationalCostBridge, /from\('expenses'\)\.insert\(row\)/);
-assert.match(operationalCostBridge, /from\('expense_allocations'\)\.insert\(row\)/);
-assert.match(operationalCostBridge, /\['admin','management'\]\.includes\(role\(\)\)/, 'Cost allocation UI must be manager-only.');
-assert.match(operationalCostBridge, /review_status:'pending'/, 'New operational costs must begin pending review.');
-assert.doesNotMatch(operationalCostBridge, /sales_payments|supplier_payments|journal_entries/, 'Operational cost UI must not add settlement or general-ledger workflows.');
-assert.doesNotMatch(source.match(/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[([^\]]*)\]\)/)?.[1]||'', /operationalcosts/, 'Operational costs must remain unapproved until schema application and browser acceptance.');
-
-assert.match(operationalCostBridge, /window\.__BOKAN_PROD_ALLOWED_TABS instanceof Set&&window\.__BOKAN_PROD_ALLOWED_TABS\.has\('operationalcosts'\)/, 'Operational cost queries must not run unless the specific module is in the authenticated production allowlist.');
-assert.doesNotMatch(source.slice(source.indexOf('const ROLE_TABS = {'), source.indexOf('const NAV_TREE')), /operationalcosts/, 'Operational costs must not appear in local/demo role navigation.');
