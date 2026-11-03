@@ -8797,50 +8797,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     const escHtml=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const table='<table border="1"><tr>'+Object.keys(rows[0]||{Customer:'',Salesperson:'',NextFollowUp:'',Notes:''}).map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+Object.values(r).map(v=>'<td>'+escHtml(v)+'</td>').join('')+'</tr>').join('')+'</table>';
     const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'
-<style id="bokan-company-handbook-controls">
-  #tab-companyhandbook h2 { scroll-margin-top: 16px; }
-  #tab-companyhandbook article section { scroll-margin-top: 16px; border-bottom:1px solid #E5E7EB; padding-bottom:1.25rem; }
-  @media print {
-    body:not([data-handbook-admin-print="true"]) #tab-companyhandbook,
-    body:not([data-handbook-admin-print="true"]) #company-handbook-document { display:none !important; }
-    body[data-handbook-admin-print="true"] #company-handbook-document { display:block !important; }
-  }
-</style>
-<script id="bokan-company-handbook-access">
-(function(){
-  if(typeof ROLE_TABS!=='undefined') Object.values(ROLE_TABS).forEach(tabs=>{if(Array.isArray(tabs)&&!tabs.includes('companyhandbook'))tabs.push('companyhandbook');});
-  const isAdmin=()=>typeof currentRole!=='undefined' && currentRole==='admin';
-  function syncHandbookAdminControl(){
-    const btn=document.getElementById('handbook-admin-print');
-    if(btn) btn.classList.toggle('hidden',!isAdmin());
-  }
-  window.printCompanyHandbook=function(){
-    if(!isAdmin()){
-      alert('Printing the Company Policy Handbook is restricted to Administrators.');
-      return;
-    }
-    const doc=document.getElementById('company-handbook-document');
-    if(!doc)return;
-    doc.classList.add('printable-doc');
-    document.body.dataset.handbookAdminPrint='true';
-    window.print();
-    setTimeout(()=>{doc.classList.remove('printable-doc');delete document.body.dataset.handbookAdminPrint;},1000);
-  };
-  window.addEventListener('afterprint',()=>{
-    document.getElementById('company-handbook-document')?.classList.remove('printable-doc');
-    delete document.body.dataset.handbookAdminPrint;
-  });
-  document.addEventListener('DOMContentLoaded',syncHandbookAdminControl);
-  const originalShowTab=window.showTab;
-  if(typeof originalShowTab==='function'){
-    window.showTab=function(id){syncHandbookAdminControl();return originalShowTab(id);};
-  }
-  const originalBuildTabs=window.buildTabs;
-  if(typeof originalBuildTabs==='function'){
-    window.buildTabs=function(){return originalBuildTabs.apply(this,arguments);};
-  }
-})();
-</script>
+
 
 </body></html>';
     const blob=new Blob([html],{type:'application/vnd.ms-excel'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='BOKAN_Sales_Follow_Up_Report.xls';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -9729,5 +9686,36 @@ async function enter(user){
   }, {once:true});
 })();
 </script>
+
+<style id="bokan-company-handbook-controls">
+  #tab-companyhandbook h2 { scroll-margin-top: 16px; }
+  #tab-companyhandbook article section { scroll-margin-top: 16px; border-bottom:1px solid #E5E7EB; padding-bottom:1.25rem; }
+  @media print {
+    body:not([data-handbook-admin-print="true"]) #tab-companyhandbook,
+    body:not([data-handbook-admin-print="true"]) #company-handbook-document { display:none !important; }
+    body[data-handbook-admin-print="true"] #company-handbook-document { display:block !important; }
+  }
+</style>
+<script id="bokan-company-handbook-access">
+(function(){
+  if(typeof ROLE_TABS!=='undefined') Object.values(ROLE_TABS).forEach(tabs=>{if(Array.isArray(tabs)&&!tabs.includes('companyhandbook'))tabs.push('companyhandbook');});
+  const isAdmin=()=>typeof currentRole!=='undefined' && currentRole==='admin';
+  function syncHandbookAdminControl(){
+    const btn=document.getElementById('handbook-admin-print');
+    if(btn) btn.classList.toggle('hidden',!isAdmin());
+  }
+  window.printCompanyHandbook=function(){
+    if(!isAdmin()){alert('Printing the Company Policy Handbook is restricted to Administrators.');return;}
+    const doc=document.getElementById('company-handbook-document');if(!doc)return;
+    doc.classList.add('printable-doc');document.body.dataset.handbookAdminPrint='true';window.print();
+    setTimeout(()=>{doc.classList.remove('printable-doc');delete document.body.dataset.handbookAdminPrint;},1000);
+  };
+  window.addEventListener('afterprint',()=>{document.getElementById('company-handbook-document')?.classList.remove('printable-doc');delete document.body.dataset.handbookAdminPrint;});
+  document.addEventListener('DOMContentLoaded',syncHandbookAdminControl);
+  const originalShowTab=window.showTab;
+  if(typeof originalShowTab==='function')window.showTab=function(id){syncHandbookAdminControl();return originalShowTab(id);};
+})();
+</script>
+
 </body>
 </html>
