@@ -60,5 +60,5 @@ assert.match(purchaseOrderEligibilityMigration,/v_status not in \('submitted','a
 assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review mode.');
 assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
-assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\['companyhandbook'\]\)/,'Only the non-transactional handbook is source-reviewed; Supply & Logistics must remain outside the production allowlist.');
+assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\["companyhandbook"\]\)/,'Only the non-transactional handbook is source-reviewed; Supply & Logistics must remain outside the production allowlist.');
 console.log('PASS: Supply & Logistics UI, company-scoped schema, grants, RLS and fail-closed review configuration are aligned (static checks only).');
