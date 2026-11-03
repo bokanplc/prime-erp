@@ -38,6 +38,8 @@ assert.match(bridge,/async function listActiveProducts\(\)[\s\S]{0,400}from\('pr
 assert.match(bridge,/product_id:productId/,'Delivery controls must persist the linked product ID.');
 assert.match(bridge,/orderProductId&&productId&&productId!==orderProductId/,'A manually selected delivery product must match the linked sales-order line.');
 assert.match(bridge,/sales_document_items\(product_id,description,quantity,unit\)/,'Delivery source documents must expose their persisted sales-order product lines.');
+assert.match(bridge,/deliverySourceDocuments=salesDocuments\|\|\[\]/,'Delivery product derivation must use the loaded company-scoped sales documents.');
+assert.match(bridge,/salesSelector\.addEventListener\('change'/,'Selecting a sales order must prefill the customer and linked product.');
 
 assert.match(bridge,/async function listOpenSalesDemand\(\)[\s\S]{0,1000}from\('sales_documents'\)[\s\S]{0,300}eq\('company_id',c\.id\)[\s\S]{0,300}eq\('document_type','sales_order'\)/,'Open sales demand must be read from company-scoped persisted sales orders.');
 assert.match(bridge,/const demandValue=\(salesDemand\|\|\[\]\)\.reduce\(\(sum,x\)=>sum\+Number\(x\.grand_total\|\|0\),0\)/,'Sales-demand value must be calculated from persisted sales-order totals.');
