@@ -1400,28 +1400,21 @@ body:not(.force-admin) #proforma-admin-queue{ }
         <div class="bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-5 no-print">
           <h3 class="font-bold text-sm mb-3 text-[#393A3D]" id="expense-form-title">2. Standard Expenses Form</h3>
           <form id="expense-form" class="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <select id="exp-category" class="border border-[#D4D7DC] p-1.5 rounded md:col-span-3 text-xs focus :border-[#2CA01C]" required></select>
-            <input id="exp-amount" type="number" step="0.01" placeholder="Amount (ETB)" class="border border-[#D4D7DC] p-1.5 rounded text-xs focus :border-[#2CA01C]" required>
-            <select id="exp-location" class="border border-[#D4D7DC] p-1.5 rounded text-xs focus :border-[#2CA01C]">
-              <optgroup label="Warehouse">
-                <option>Lebu</option>
-                <option>Kolfe</option>
-              </optgroup>
-              <optgroup label="Shop">
-                <option>Mesalemya</option>
-                <option>Jemo</option>
-                <option>CMC</option>
-              </optgroup>
-              <optgroup label="Head Office">
-                <option>Head Office / Merkato Africa Building</option>
-              </optgroup>
+            <div><label class="text-xs text-[#6B6C72]">Cost Date</label><input id="exp-date" type="date" class="border border-[#D4D7DC] p-1.5 rounded w-full text-xs" required></div>
+            <div><label class="text-xs text-[#6B6C72]">Cost Phase</label><select id="exp-phase" class="border border-[#D4D7DC] p-1.5 rounded w-full text-xs" required>
+              <option value="procurement">Procurement / inbound</option><option value="sales_fulfillment">Sales / delivery fulfilment</option><option value="overhead">General overhead</option><option value="unclassified">Unclassified / review later</option>
+            </select></div>
+            <div><label class="text-xs text-[#6B6C72]">Operational Cost Category</label><select id="exp-category" class="border border-[#D4D7DC] p-1.5 rounded w-full text-xs" required></select></div>
+            <input id="exp-amount" type="number" min="0.01" step="0.01" placeholder="Amount (ETB)" class="border border-[#D4D7DC] p-1.5 rounded text-xs" required>
+            <input id="exp-recipient" type="text" maxlength="180" placeholder="Recipient / supplier / contact (if known)" class="border border-[#D4D7DC] p-1.5 rounded text-xs">
+            <input id="exp-reference" type="text" maxlength="120" placeholder="Reference (purchase, shipment, vehicle, trip...)" class="border border-[#D4D7DC] p-1.5 rounded text-xs">
+            <select id="exp-location" class="border border-[#D4D7DC] p-1.5 rounded text-xs">
+              <optgroup label="Warehouse"><option>Lebu</option><option>Kolfe</option></optgroup>
+              <optgroup label="Shop"><option>Mesalemya</option><option>Jemo</option><option>CMC</option></optgroup>
+              <optgroup label="Head Office"><option>Head Office / Merkato Africa Building</option></optgroup>
             </select>
-            <select id="exp-paidby" class="border border-[#D4D7DC] p-1.5 rounded text-xs focus :border-[#2CA01C]">
-              <option>BLACKROCK</option>
-              <option>BR</option>
-              <option>Other</option>
-            </select>
-            <textarea id="exp-desc" placeholder="Description (add detail here, especially for 'Other')" class="border border-[#D4D7DC] p-1.5 rounded md:col-span-3 text-xs focus :border-[#2CA01C]"></textarea>
+            <textarea id="exp-purpose" placeholder="Business purpose (factory product selection, defect removal, sourcing introduction, inbound freight, loading or road charge)" class="border border-[#D4D7DC] p-1.5 rounded md:col-span-3 text-xs" required></textarea>
+            <textarea id="exp-desc" placeholder="Additional details / notes" class="border border-[#D4D7DC] p-1.5 rounded md:col-span-3 text-xs"></textarea>
             <div class="md:col-span-3 flex gap-2 mt-1">
               <button class="flex-1 bg-[#D97706] hover:bg-[#B45309] text-white rounded py-2 font-semibold text-xs" id="expense-submit-btn">Save Expense</button>
               <button type="button" onclick="cancelExpenseEdit()" id="expense-cancel-btn" class="hidden px-4 rounded border border-[#D4D7DC] font-semibold text-[#393A3D] text-xs">Cancel</button>
@@ -1504,8 +1497,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
               <tr class="text-left bg-[#1C252C] text-white">
                 <th class="py-2 px-3 whitespace-nowrap">Date</th>
                 <th class="py-2 px-3 whitespace-nowrap">Category</th>
-                <th class="py-2 px-3 whitespace-nowrap">Description / Payee</th>
-                <th class="py-2 px-3 whitespace-nowrap">Paid By</th>
+                <th class="py-2 px-3 whitespace-nowrap">Business Purpose</th>
+                <th class="py-2 px-3 whitespace-nowrap">Recipient / Location</th>
                 <th class="py-2 px-3 text-right whitespace-nowrap">Amount (ETB)</th>
                 <th class="py-2 px-3 no-print"></th>
               </tr>
@@ -4751,21 +4744,24 @@ const CHART_OF_ACCOUNTS = {
   ]
 };
 
+const OPERATIONAL_EXPENSE_CATEGORIES = [
+  'Factory selection / quality assistance','Defect removal / product preparation',
+  'Sourcing / introduction fee','Inbound transportation','Loading / unloading',
+  'Handling / storage','Outbound transportation','Customer delivery',
+  'Road / route incidental cost','Other direct incidental cost','General overhead'
+];
 function populateExpenseCategoryDropdown() {
   const select = document.getElementById('exp-category');
   if (!select) return;
   select.innerHTML = '';
-  for (const [group, categories] of Object.entries(CHART_OF_ACCOUNTS)) {
-    const optgroup = document.createElement('optgroup');
-    optgroup.label = group;
-    categories.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat;
-      opt.textContent = cat;
-      optgroup.appendChild(opt);
-    });
-    select.appendChild(optgroup);
-  }
+  OPERATIONAL_EXPENSE_CATEGORIES.forEach(category => {
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = category;
+    select.appendChild(option);
+  });
+  const dateInput = document.getElementById('exp-date');
+  if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
 }
 
 // Initializer
@@ -5211,12 +5207,22 @@ let editingExpenseId = null;
 
 document.getElementById('expense-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const operationalCategory = document.getElementById('exp-category').value;
+  const purpose = document.getElementById('exp-purpose').value.trim();
+  const existing = editingExpenseId ? expenseData.find(row => row.id === editingExpenseId) : null;
   const payload = {
-    category: document.getElementById('exp-category').value,
+    category: 'Operational Cost — ' + operationalCategory,
     amount: parseFloat(document.getElementById('exp-amount').value),
     description: document.getElementById('exp-desc').value,
     location: document.getElementById('exp-location').value,
-    paid_by: document.getElementById('exp-paidby').value
+    expense_date: document.getElementById('exp-date').value,
+    currency_code: 'ETB',
+    cost_phase: document.getElementById('exp-phase').value,
+    operational_category: operationalCategory,
+    recipient_name: document.getElementById('exp-recipient').value.trim() || null,
+    business_purpose: purpose,
+    source_reference: document.getElementById('exp-reference').value.trim() || null,
+    review_status: existing?.review_status || 'pending'
   };
   let error;
   if (editingExpenseId) { ({ error } = await sb.from('expenses').update(payload).eq('id', editingExpenseId)); }
@@ -5233,11 +5239,20 @@ function editExpense(id) {
   const row = expenseData.find(r => r.id === id);
   if (!row) return;
   editingExpenseId = id;
-  document.getElementById('exp-category').value = row.category;
+  const category = row.operational_category || String(row.category || '').replace(/^Operational Cost — /,'');
+  if (category && ![...document.getElementById('exp-category').options].some(option => option.value === category)) {
+    const legacy = document.createElement('option'); legacy.value = category; legacy.textContent = category;
+    document.getElementById('exp-category').appendChild(legacy);
+  }
+  document.getElementById('exp-category').value = category;
   document.getElementById('exp-amount').value = row.amount;
+  document.getElementById('exp-date').value = row.expense_date || String(row.created_at || '').slice(0,10);
+  document.getElementById('exp-phase').value = row.cost_phase || 'unclassified';
+  document.getElementById('exp-recipient').value = row.recipient_name || '';
+  document.getElementById('exp-reference').value = row.source_reference || '';
+  document.getElementById('exp-purpose').value = row.business_purpose || row.description || '';
   document.getElementById('exp-location').value = row.location || '';
   document.getElementById('exp-desc').value = row.description || '';
-  document.getElementById('exp-paidby').value = row.paid_by || 'BLACKROCK';
   document.getElementById('expense-submit-btn').textContent = 'Update Expense';
   document.getElementById('expense-cancel-btn').classList.remove('hidden');
   document.getElementById('expense-form').scrollIntoView({ behavior: 'smooth' });
@@ -5258,8 +5273,8 @@ async function loadExpenses() {
     return `<tr class="border-b border-[#ECEEF1] align-top">
       <td class="py-2 px-3 text-xs text-[#8D9096] whitespace-nowrap">${new Date(row.created_at).toLocaleDateString()}</td>
       <td class="py-2 px-3">${label} <span class="text-xs text-[#8D9096] block">(${group})</span></td>
-      <td class="py-2 px-3 text-[#6B6C72]">${escapeHtml(row.description || '')}</td>
-      <td class="py-2 px-3">${escapeHtml(row.paid_by || row.location || '')}</td>
+      <td class="py-2 px-3 text-[#6B6C72]">${escapeHtml(row.business_purpose || row.description || '')}</td>
+      <td class="py-2 px-3">${escapeHtml(row.recipient_name || row.location || '')}</td>
       <td class="py-2 px-3 text-right font-semibold">ETB ${Number(row.amount).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
       <td class="py-2 px-3 no-print whitespace-nowrap">
         <button onclick="editExpense('${row.id}')" class="text-[#2CA01C] text-xs font-semibold mr-2">Edit</button>
@@ -5279,7 +5294,7 @@ async function loadMyExpenses() {
     return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1.5 text-xs">
       <div>
         <span class="font-semibold">${label}</span> <span class="text-[#8D9096]">(${group})</span>
-        — ETB ${Number(row.amount).toLocaleString()} <span class="text-[#8D9096]">(${escapeHtml(row.paid_by || row.location || '')})</span>
+        — ETB ${Number(row.amount).toLocaleString()} <span class="text-[#8D9096]">(${escapeHtml(row.recipient_name || row.location || '')})</span>
         <span class="text-[#8D9096]">· ${new Date(row.created_at).toLocaleString()}</span>
       </div>
       <div class="flex gap-2 no-print">
@@ -5297,8 +5312,8 @@ async function deleteExpense(id) {
 }
 
 function downloadExpenseCSV() {
-  const rows = [['Date','Category Group','Category','Description/Payee','Paid By','Location','Amount']];
-  expenseData.forEach(r => { const { group, label } = splitCategory(r.category); rows.push([new Date(r.created_at).toLocaleDateString(), group, label, (r.description||'').replace(/[\r\n,]+/g,' '), r.paid_by || '', r.location || '', r.amount]); });
+  const rows = [['Date','Cost Phase','Operational Category','Recipient','Business Purpose','Reference','Location','Review Status','Amount','Currency']];
+  expenseData.forEach(r => { rows.push([r.expense_date || new Date(r.created_at).toISOString().slice(0,10), r.cost_phase || 'unclassified', r.operational_category || r.category || '', r.recipient_name || '', (r.business_purpose || r.description || '').replace(/[\\r\\n,]+/g,' '), r.source_reference || '', r.location || '', r.review_status || 'legacy', r.amount, r.currency_code || 'ETB']); });
   const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `expense_ledger_${new Date().toISOString().slice(0,10)}.csv`; a.click();
