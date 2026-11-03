@@ -38,7 +38,6 @@ GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 GRANT EXECUTE ON FUNCTION private.has_company_membership(uuid) TO authenticated;
 
 GRANT SELECT ON public.companies, public.company_memberships TO authenticated;
-GRANT SELECT ON public.customers, public.products TO authenticated;
 
 INSERT INTO public.companies(id,code,name,is_active) VALUES
 ('01350a71-0a93-44cf-b6c9-9bd547c0077a','BLACKROCK','BlackRock Investment PLC',true),
@@ -161,6 +160,7 @@ CREATE TABLE public.suppliers (
   name text NOT NULL,
   UNIQUE(company_id,id)
 );
+GRANT SELECT ON public.customers, public.products TO authenticated;
 CREATE TABLE public.purchase_documents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL REFERENCES public.companies(id),
