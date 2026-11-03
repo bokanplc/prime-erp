@@ -145,6 +145,7 @@ CREATE TABLE public.products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL REFERENCES public.companies(id),
   name text NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
   UNIQUE(company_id,id)
 );
 CREATE TABLE public.customers (
