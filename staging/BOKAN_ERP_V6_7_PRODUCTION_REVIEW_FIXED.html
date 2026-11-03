@@ -8647,8 +8647,10 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
           const row=await api().createCustomer({name,contact_person:document.getElementById('sh-c-contact').value,phone:document.getElementById('sh-c-phone').value,email:document.getElementById('sh-c-email').value,location:document.getElementById('sh-c-location').value,lead_source:'Sales & CRM Command Center',current_status:'New Lead',notes:document.getElementById('sh-c-notes').value});
           const requested=document.getElementById('sh-c-rep').value;
           const owner=reps.find(r=>r.label===requested);
-          if(owner)await api().assignCustomer(row.id,owner.user_id,'Initial assignment at customer creation');
-          form.reset();await refresh();alert('Customer saved to the BlackRock database.');
+          const canAssign=typeof currentRole!=='undefined'&&['admin','management'].includes(currentRole);
+          if(owner&&canAssign)await api().assignCustomer(row.id,owner.user_id,'Initial assignment at customer creation');
+          form.reset();await refresh();
+          alert(owner&&!canAssign?'Customer saved to the BlackRock database. A manager must confirm the salesperson assignment.':'Customer saved to the BlackRock database.');
         });
       }else if(form?.id==='sh-opp-form'){
         e.preventDefault();e.stopImmediatePropagation();
@@ -9339,6 +9341,7 @@ async function enter(user){
   }
   async function createAfterSalesTask(payload){
     const user=await requireSession();const row={...pick(payload,taskFields),company_id:company(),created_by:user.id};
+    if(!row.owner_user_id)row.owner_user_id=user.id;
     if(!row.customer_id||!String(row.task_type||'').trim())throw new Error('Customer and task type are required.');
     const {data,error}=await db().from('crm_after_sales_tasks').insert(row).select().single();if(error)throw error;return data;
   }
