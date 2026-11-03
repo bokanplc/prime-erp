@@ -62,7 +62,7 @@ if (deploymentBranch === 'deploy/secure-staging' || deploymentBranch === 'featur
   process.exit(0);
 }
 
-assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub","users"]);'),'Only the non-transactional handbook and Supabase-backed Sales CRM may be source-reviewed; other operational modules remain blocked.');
+assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub","users"]);'),'Only the handbook, Sales CRM and secure administrator user invitation workspace may be source-reviewed; other operational modules remain blocked.');
 const replacements={
   blackrock_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
