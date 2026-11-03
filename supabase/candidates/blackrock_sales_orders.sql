@@ -182,4 +182,7 @@ revoke all on function public.update_blackrock_operational_sales_order_stage(uui
 grant execute on function public.update_blackrock_operational_sales_order_stage(uuid,uuid,text)
   to authenticated;
 
+-- Keep company-scoped product catalogue DML behind RLS; no table-wide bypass privileges.
+revoke truncate, references, trigger on public.products from authenticated;
+
 commit;
