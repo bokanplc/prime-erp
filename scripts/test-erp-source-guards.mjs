@@ -100,3 +100,6 @@ assert.match(operationalCostBridge, /\['admin','management'\]\.includes\(role\(\
 assert.match(operationalCostBridge, /review_status:'pending'/, 'New operational costs must begin pending review.');
 assert.doesNotMatch(operationalCostBridge, /sales_payments|supplier_payments|journal_entries/, 'Operational cost UI must not add settlement or general-ledger workflows.');
 assert.doesNotMatch(source.match(/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[([^\]]*)\]\)/)?.[1]||'', /operationalcosts/, 'Operational costs must remain unapproved until schema application and browser acceptance.');
+
+assert.match(operationalCostBridge, /window\.__BOKAN_PROD_ALLOWED_TABS instanceof Set&&window\.__BOKAN_PROD_ALLOWED_TABS\.has\('operationalcosts'\)/, 'Operational cost queries must not run unless the specific module is in the authenticated production allowlist.');
+assert.doesNotMatch(source.slice(source.indexOf('const ROLE_TABS = {'), source.indexOf('const NAV_TREE')), /operationalcosts/, 'Operational costs must not appear in local/demo role navigation.');
