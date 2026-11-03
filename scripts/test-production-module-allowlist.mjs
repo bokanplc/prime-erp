@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const source = readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html', 'utf8');
-const start = source.indexOf('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook"]);');
+const start = source.indexOf('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub"]);');
 const end = source.indexOf('const _bokanProdConfigured', start);
 assert.ok(start >= 0 && end > start, 'Source-controlled production tab gate must exist before Supabase client initialization.');
 const gateSource = source.slice(start, end);
@@ -19,6 +19,12 @@ function loadGate(code) {
 const currentGate = loadGate(gateSource);
 assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['companyhandbook'] }), true,
   'The sole reviewed non-transactional handbook tab should pass only when explicitly enabled.');
+
+assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['saleshub'] }), true,
+  'The Supabase-backed Sales CRM Command Center should pass the source review gate when explicitly enabled.');
+assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['salescalllog'] }), false,
+  'The legacy browser-local Customer Call Log must remain outside the production allowlist.');
+
 assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['proforma'] }), false,
   'A config-only Proforma enablement must be rejected because Proforma is not source-reviewed.');
 assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['sales', 'payroll'] }), false,
