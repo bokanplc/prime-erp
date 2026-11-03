@@ -91,7 +91,7 @@ const inviteFunction = readFileSync('supabase/functions/invite-blackrock-member/
 assert.match(source, /id="bokan-invite-form"/, 'Admin workspace must include the BlackRock employee invitation form.');
 assert.match(source, /functions\.invoke\('invite-blackrock-member'/, 'Employee invitations must use the secured Edge Function.');
 assert.match(inviteFunction, /auth\.getUser\(\)/, 'Invitation endpoint must authenticate the caller.');
-assert.match(inviteFunction, /\['owner', 'admin'\]\.includes\(membership\.role\)/, 'Only BlackRock owners and administrators may invite users.');
+assert.match(inviteFunction, /\["owner", "admin"\]\.includes\(membership\.role\)/, 'Only BlackRock owners and administrators may invite users.');
 assert.match(inviteFunction, /from\("company_memberships"\)\.upsert/, 'Invited employees must receive an active company-scoped membership.');
 assert.match(inviteFunction, /SUPABASE_SERVICE_ROLE_KEY/, 'Service-role access must remain server-side in the Edge Function.');
-assert.doesNotMatch(inviteFunction, /"owner"\s*,\s*"admin"\s*\]\s*\)/, 'The invitation role allowlist must not offer owner/admin elevation.');
+assert.match(inviteFunction, /new Set\(\["sales", "staff", "manager", "accountant", "inventory", "hr"\]\)/, 'The invitation role allowlist must be restricted to non-admin employee roles.');
