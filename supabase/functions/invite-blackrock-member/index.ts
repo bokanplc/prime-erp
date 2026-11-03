@@ -82,6 +82,19 @@ Deno.serve(async (req: Request) => {
     invitedUser = existing;
   }
 
+  if (invitedUser.id === caller.id) {
+    return respond(409, { error: "You cannot change your own administrator role through the invitation form." });
+  }
+
+  const departmentLabels: Record<string, string> = {
+    sales: "Sales",
+    staff: "Data Entry",
+    manager: "Sales Management",
+    accountant: "Accounting",
+    inventory: "Inventory",
+    hr: "Human Resources"
+  };
+
   const { error: upsertError } = await admin.from("company_memberships").upsert({
     company_id: company.id,
     user_id: invitedUser.id,
@@ -97,7 +110,7 @@ Deno.serve(async (req: Request) => {
     company_id: company.id,
     full_name: fullName,
     email,
-    department: role,
+    department: departmentLabels[role],
     role
   }, { onConflict: "id" });
   if (profileError) {
