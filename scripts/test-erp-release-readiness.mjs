@@ -39,6 +39,19 @@ try {
     'Production CRM reassignment must use company-scoped customer lookup, the guarded reassignment RPC and the persisted activity log.');
   assert.match(crmReassign,/if\s*\(!cust\)\s*throw new Error\('Customer not found in the selected company\.'\)/,
     'Production CRM reassignment must fail closed when the customer is outside the selected company.');
+  const salesHubAdapter=source.slice(source.indexOf('<script id="bokan-sales-hub-production-persistence">'),source.indexOf('</script>',source.indexOf('<script id="bokan-sales-hub-production-persistence">')));
+  assert.match(source,/hydrateProductionState\(data\)\{state=data;selectedId=null;render\(\)\}/,
+    'Sales CRM must expose a controlled state hydrator for server-loaded records.');
+  assert.match(salesHubAdapter,/Promise\.all\(\[[\s\S]{0,220}listMyCustomers\(\)[\s\S]{0,120}listActivities\(\)[\s\S]{0,120}listOpportunities\(\)[\s\S]{0,120}listAfterSalesTasks\(\)/,
+    'Sales CRM must load customer, activity, opportunity and after-sales records from Supabase.');
+  assert.match(salesHubAdapter,/createCustomer\([\s\S]{0,500}assignCustomer\(/,
+    'Sales CRM customer creation must persist the customer and apply a company-member assignment.');
+  assert.match(salesHubAdapter,/createOpportunity\(/,
+    'Sales CRM opportunity creation must persist through the CRM production API.');
+  assert.match(salesHubAdapter,/createAfterSalesTask\([\s\S]{0,500}updateAfterSalesTask\(/,
+    'Sales CRM after-sales creation and completion must persist through the CRM production API.');
+  assert.match(salesHubAdapter,/Sales orders are not yet connected[\s\S]{0,180}No local-only order was created/,
+    'Sales orders must fail closed rather than create browser-only transactions before their server workflow is connected.');
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
   assert.equal(wranglerConfig.assets.directory,'./dist/release','Workers Static Assets must serve only generated release output.');
