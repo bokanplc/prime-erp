@@ -127,5 +127,192 @@ BEGIN
 END
 $$;
 
+
+-- Operational cost register and allocation candidate: isolated integration test.
+CREATE TABLE public.expenses (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id),
+  category text NOT NULL,
+  amount numeric(14,2) NOT NULL CHECK (amount >= 0),
+  description text NOT NULL DEFAULT '',
+  location text,
+  paid_by text,
+  created_by uuid REFERENCES auth.users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE public.products (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id),
+  name text NOT NULL,
+  UNIQUE(company_id,id)
+);
+CREATE TABLE public.customers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id),
+  name text NOT NULL,
+  UNIQUE(company_id,id)
+);
+CREATE TABLE public.suppliers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id),
+  name text NOT NULL,
+  UNIQUE(company_id,id)
+);
+CREATE TABLE public.purchase_documents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id),
+  document_number text NOT NULL,
+  UNIQUE(company_id,id)
+);
+CREATE TABLE public.sales_documents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL REFERENCES public.companies(id),
+  document_number text NOT NULL,
+  UNIQUE(company_id,id)
+);
+ALTER TABLE public.delivery_orders ADD COLUMN sales_document_id uuid;
+CREATE TABLE public.expense_test_ids (
+  company_code text PRIMARY KEY,
+  expense_id uuid NOT NULL,
+  product_id uuid NOT NULL,
+  purchase_id uuid NOT NULL,
+  sales_id uuid NOT NULL,
+  shipment_id uuid NOT NULL,
+  delivery_id uuid NOT NULL,
+  customer_id uuid NOT NULL,
+  supplier_id uuid NOT NULL
+);
+
+INSERT INTO auth.users(id) VALUES ('44444444-4444-4444-8444-444444444444');
+INSERT INTO public.company_memberships(company_id,user_id,role,is_active)
+VALUES ('e326f16c-7a76-4bf2-8322-fec959266992','44444444-4444-4444-8444-444444444444','manager',true);
+
+INSERT INTO public.products(company_id,name)
+SELECT c.id, c.code || ' Test Product' FROM public.companies c;
+INSERT INTO public.customers(company_id,name)
+SELECT c.id, c.code || ' Test Customer' FROM public.companies c;
+INSERT INTO public.suppliers(company_id,name)
+SELECT c.id, c.code || ' Test Supplier' FROM public.companies c;
+INSERT INTO public.purchase_documents(company_id,document_number)
+SELECT c.id, c.code || '-PO-001' FROM public.companies c;
+INSERT INTO public.sales_documents(company_id,document_number)
+SELECT c.id, c.code || '-SO-001' FROM public.companies c;
+INSERT INTO public.expenses(company_id,category,amount,description,created_by)
+SELECT c.id,'direct cost',100,'CI operational expense',u.id
+FROM public.companies c
+JOIN auth.users u ON u.id = CASE c.code WHEN 'PRIME' THEN '11111111-1111-4111-8111-111111111111'::uuid ELSE '22222222-2222-4222-8222-222222222222'::uuid END;
+
+INSERT INTO public.expense_test_ids(company_code,expense_id,product_id,purchase_id,sales_id,shipment_id,delivery_id,customer_id,supplier_id)
+SELECT c.code,e.id,p.id,po.id,so.id,sh.id,d.id,cu.id,su.id
+FROM public.companies c
+JOIN public.expenses e ON e.company_id=c.id
+JOIN public.products p ON p.company_id=c.id
+JOIN public.purchase_documents po ON po.company_id=c.id
+JOIN public.sales_documents so ON so.company_id=c.id
+JOIN public.supply_shipments sh ON sh.company_id=c.id
+JOIN public.delivery_orders d ON d.company_id=c.id
+JOIN public.customers cu ON cu.company_id=c.id
+JOIN public.suppliers su ON su.company_id=c.id;
+
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY expenses_test_select_member ON public.expenses
+FOR SELECT TO authenticated USING (private.has_company_membership(company_id));
+GRANT SELECT ON public.expenses TO authenticated;
+
+\ir ../supabase/candidates/blackrock_operational_costs.sql
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+INSERT INTO public.expense_allocations(company_id,expense_id,purchase_document_id,allocated_amount,allocation_method,created_by)
+SELECT c.id,t.expense_id,t.purchase_id,40,'manual',(select auth.uid())
+FROM public.expense_test_ids t JOIN public.companies c ON c.code=t.company_code
+WHERE t.company_code='PRIME';
+INSERT INTO public.expense_allocations(company_id,expense_id,shipment_id,allocated_amount,allocation_method,created_by)
+SELECT c.id,t.expense_id,t.shipment_id,50,'quantity',(select auth.uid())
+FROM public.expense_test_ids t JOIN public.companies c ON c.code=t.company_code
+WHERE t.company_code='PRIME';
+
+DO $cost_test$
+DECLARE v_denied boolean := false; v_visible integer; v_unallocated numeric;
+BEGIN
+  BEGIN
+    INSERT INTO public.expense_allocations(company_id,expense_id,product_id,allocated_amount,created_by)
+    SELECT c.id,t.expense_id,t.product_id,20,(select auth.uid())
+    FROM public.expense_test_ids t JOIN public.companies c ON c.code=t.company_code
+    WHERE t.company_code='PRIME';
+  EXCEPTION WHEN raise_exception THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Allocation above source expense amount was accepted'; END IF;
+
+  SELECT unallocated_amount INTO v_unallocated
+  FROM public.expense_allocation_summary s
+  JOIN public.expense_test_ids t ON t.expense_id=s.expense_id
+  WHERE t.company_code='PRIME';
+  IF v_unallocated <> 10 THEN RAISE EXCEPTION 'Expected ETB 10 unallocated, got %',v_unallocated; END IF;
+
+  v_denied := false;
+  BEGIN
+    INSERT INTO public.expense_allocations(company_id,expense_id,product_id,allocated_amount,created_by)
+    SELECT c.id,prime.expense_id,blackrock.product_id,1,(select auth.uid())
+    FROM public.expense_test_ids prime
+    JOIN public.expense_test_ids blackrock ON blackrock.company_code='BLACKROCK'
+    JOIN public.companies c ON c.code='PRIME'
+    WHERE prime.company_code='PRIME';
+  EXCEPTION WHEN foreign_key_violation THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Cross-company product allocation was accepted'; END IF;
+
+  SELECT count(*) INTO v_visible FROM public.expense_allocation_summary;
+  IF v_visible <> 1 THEN RAISE EXCEPTION 'PRIME user saw % cost summaries instead of 1',v_visible; END IF;
+END
+$cost_test$;
+RESET ROLE;
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+DO $tenant_test$
+DECLARE v_visible integer;
+BEGIN
+  SELECT count(*) INTO v_visible FROM public.expense_allocation_summary;
+  IF v_visible <> 1 THEN RAISE EXCEPTION 'BLACKROCK user saw % cost summaries instead of 1',v_visible; END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.expense_allocations a
+    JOIN public.expense_test_ids t ON t.expense_id=a.expense_id
+    WHERE t.company_code='PRIME'
+  ) THEN RAISE EXCEPTION 'BLACKROCK user read PRIME cost allocations'; END IF;
+END
+$tenant_test$;
+RESET ROLE;
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
+UPDATE public.expense_allocations
+SET allocation_note='Reviewed by manager'
+WHERE allocation_method='manual';
+DO $audit_test$
+BEGIN
+  IF (SELECT count(*) FROM public.expense_allocation_events WHERE event_type='UPDATE') <> 1 THEN
+    RAISE EXCEPTION 'Allocation update was not captured in audit history';
+  END IF;
+END
+$audit_test$;
+RESET ROLE;
+
+DO $privilege_test$
+BEGIN
+  IF has_table_privilege('authenticated','public.expenses','TRUNCATE')
+     OR has_table_privilege('authenticated','public.expenses','REFERENCES')
+     OR has_table_privilege('authenticated','public.expenses','TRIGGER') THEN
+    RAISE EXCEPTION 'Authenticated role retains non-DML expense privileges';
+  END IF;
+  IF has_table_privilege('anon','public.expense_allocations','SELECT') THEN
+    RAISE EXCEPTION 'Anonymous role can read expense allocations';
+  END IF;
+END
+$privilege_test$;
+
 \connect live_company_test
 DROP DATABASE supply_logistics_isolated WITH (FORCE);
