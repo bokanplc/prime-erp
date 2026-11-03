@@ -6545,16 +6545,22 @@ async function loadIncomeTax() {
 
 // ==================== USERS ====================
 async function loadUsers() {
-  const { data } = await sb.from('profiles').select('*').order('full_name');
   const el = document.getElementById('user-list');
   if (!el) return;
+  if (_bokanProdConfigured) {
+    const companyId = window.BOKAN_PRODUCTION_AUTH?.profile?.company_id;
+    if (!companyId) { el.textContent = 'No active BlackRock company context.'; return; }
+    const { data, error } = await sb.from('profiles')
+      .select('id,full_name,email,department,role')
+      .eq('company_id', companyId).order('full_name');
+    if (error) { el.textContent = 'Employee register could not be loaded: ' + error.message; return; }
+    const labels = { owner:'Owner', admin:'Administrator', manager:'Sales Manager', sales:'Sales Representative', staff:'Data Entry', accountant:'Accounting', inventory:'Inventory', hr:'Human Resources' };
+    el.innerHTML = (data || []).map(u => '<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div><strong>'+escapeHtml(u.full_name||'Employee')+'</strong><span class="text-[#8D9096]"> · '+escapeHtml(u.email||'')+'</span></div><span class="text-xs">'+escapeHtml(labels[u.role]||u.role||'Unassigned')+'</span></div>').join('') || '<p class="text-[#8D9096]">No active employee profiles are assigned to this company.</p>';
+    return;
+  }
+  const { data } = await sb.from('profiles').select('*').order('full_name');
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No users found.</p>'; return; }
-  el.innerHTML = data.map(u => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
-      <div>${escapeHtml(u.full_name)} <span class="text-[#8D9096]">(${escapeHtml(u.role)})</span></div>
-      <select onchange="updateRole('${u.id}', this.value)" class="border border-[#D4D7DC] rounded p-1 text-xs">
-        ${['admin','data_entry','accounting','sales','sales_manager','management','hr'].map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('')}
-      </select>
-    </div>`).join('');
+  el.innerHTML = data.map(u => '<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div>'+escapeHtml(u.full_name)+' <span class="text-[#8D9096]">('+escapeHtml(u.role)+')</span></div><select onchange="updateRole(\\''+escapeHtml(u.id)+'\\', this.value)" class="border border-[#D4D7DC] rounded p-1 text-xs">'+['admin','data_entry','accounting','sales','sales_manager','management','hr'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('')+'</select></div>').join('');
 }
 async function updateRole(id, role) {
   const allowedRoles = ['admin','data_entry','accounting','sales','sales_manager','management','hr'];
