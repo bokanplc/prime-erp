@@ -16,7 +16,8 @@ const migrationSql = readdirSync(migrationDir).filter(name=>name.endsWith('.sql'
 const appliedCandidateSql = [
   'supabase/candidates/live_company_proforma.sql',
   'supabase/candidates/crm_company_scoped_v1.sql',
-  'supabase/candidates/crm_privilege_hardening_2026-10-31.sql'
+  'supabase/candidates/crm_privilege_hardening_2026-10-31.sql',
+  'supabase/candidates/blackrock_operational_costs.sql'
 ].map(path=>readFileSync(path,'utf8'));
 const baselineSql = ['supabase/baselines/live_company_core_2026-10-31.sql'].map(path=>readFileSync(path,'utf8'));
 const schemaSources = [...migrationSql,...appliedCandidateSql,...baselineSql];
