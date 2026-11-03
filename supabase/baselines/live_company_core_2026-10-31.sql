@@ -1,6 +1,6 @@
 -- LIVE SCHEMA BASELINE SNAPSHOT — 2026-10-31
 -- Project: kafiwnuynjemufnankvi (BOKAN ERP)
--- Scope: companies, company_memberships, customers, sales_documents and their
+-- Scope: companies, company_memberships, customers, products, sales_documents and their
 -- directly required RLS helper functions, indexes, policies and grants.
 --
 -- IMPORTANT:
@@ -10,6 +10,7 @@
 -- It is a source-controlled reconstruction reference for future clean-room
 -- bootstrap/reconciliation. Do not apply it to the existing live project.
 -- The executable forward migration history remains in supabase/migrations.
+-- Note: live products grants currently include broad authenticated table privileges (including non-DML); harden separately before production.
 
 create schema if not exists private;
 
