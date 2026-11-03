@@ -6550,12 +6550,19 @@ async function loadUsers() {
   if (_bokanProdConfigured) {
     const companyId = window.BOKAN_PRODUCTION_AUTH?.profile?.company_id;
     if (!companyId) { el.textContent = 'No active BlackRock company context.'; return; }
-    const { data, error } = await sb.from('profiles')
-      .select('id,full_name,email,department,role')
-      .eq('company_id', companyId).order('full_name');
-    if (error) { el.textContent = 'Employee register could not be loaded: ' + error.message; return; }
+    const { data: memberships, error: membershipError } = await sb.from('company_memberships')
+      .select('user_id,role,is_active').eq('company_id', companyId).eq('is_active', true).order('created_at');
+    if (membershipError) { el.textContent = 'Employee access register could not be loaded: ' + membershipError.message; return; }
+    const ids = (memberships || []).map(m => m.user_id);
+    let profiles = [];
+    if (ids.length) {
+      const result = await sb.from('profiles').select('id,full_name,email,department').eq('company_id', companyId).in('id', ids);
+      if (result.error) { el.textContent = 'Employee profiles could not be loaded: ' + result.error.message; return; }
+      profiles = result.data || [];
+    }
+    const profileMap = new Map(profiles.map(p => [p.id,p]));
     const labels = { owner:'Owner', admin:'Administrator', manager:'Sales Manager', sales:'Sales Representative', staff:'Data Entry', accountant:'Accounting', inventory:'Inventory', hr:'Human Resources' };
-    el.innerHTML = (data || []).map(u => '<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div><strong>'+escapeHtml(u.full_name||'Employee')+'</strong><span class="text-[#8D9096]"> · '+escapeHtml(u.email||'')+'</span></div><span class="text-xs">'+escapeHtml(labels[u.role]||u.role||'Unassigned')+'</span></div>').join('') || '<p class="text-[#8D9096]">No active employee profiles are assigned to this company.</p>';
+    el.innerHTML = (memberships || []).map(m => { const u=profileMap.get(m.user_id)||{}; return '<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div><strong>'+escapeHtml(u.full_name||'Employee')+'</strong><span class="text-[#8D9096]"> · '+escapeHtml(u.email||'')+'</span></div><span class="text-xs">'+escapeHtml(labels[m.role]||m.role||'Unassigned')+'</span></div>'; }).join('') || '<p class="text-[#8D9096]">No active BlackRock employee memberships.</p>';
     return;
   }
   const { data } = await sb.from('profiles').select('*').order('full_name');
