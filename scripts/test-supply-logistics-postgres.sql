@@ -168,10 +168,65 @@ CREATE TABLE public.purchase_documents (
 CREATE TABLE public.sales_documents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL REFERENCES public.companies(id),
+  document_type text NOT NULL DEFAULT 'sales_order',
   document_number text NOT NULL,
+  status text NOT NULL DEFAULT 'draft',
+  document_date date NOT NULL DEFAULT current_date,
+  due_date date,
+  currency_code text NOT NULL DEFAULT 'ETB',
+  subtotal numeric(16,2) NOT NULL DEFAULT 0,
+  tax_total numeric(16,2) NOT NULL DEFAULT 0,
+  discount_total numeric(16,2) NOT NULL DEFAULT 0,
+  grand_total numeric(16,2) NOT NULL DEFAULT 0,
+  notes text,
+  created_by uuid REFERENCES auth.users(id),
+  updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(company_id,id)
 );
+CREATE TABLE public.sales_document_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id uuid NOT NULL,
+  document_id uuid NOT NULL,
+  product_id uuid,
+  description text NOT NULL,
+  quantity numeric(14,3) NOT NULL,
+  unit text NOT NULL,
+  unit_price numeric(16,2) NOT NULL,
+  tax_rate numeric(7,3) NOT NULL DEFAULT 0,
+  line_subtotal numeric(16,2) NOT NULL,
+  line_tax numeric(16,2) NOT NULL DEFAULT 0,
+  line_total numeric(16,2) NOT NULL,
+  FOREIGN KEY(company_id,document_id) REFERENCES public.sales_documents(company_id,id) ON DELETE CASCADE,
+  FOREIGN KEY(company_id,product_id) REFERENCES public.products(company_id,id) ON DELETE RESTRICT
+);
 ALTER TABLE public.delivery_orders ADD COLUMN sales_document_id uuid;
+ALTER TABLE public.sales_documents ENABLE ROW LEVEL SECURITY;
+CREATE POLICY sales_documents_test_select ON public.sales_documents
+FOR SELECT TO authenticated USING (private.has_company_membership(company_id));
+CREATE POLICY sales_documents_test_insert ON public.sales_documents
+FOR INSERT TO authenticated WITH CHECK (
+  private.has_company_membership(company_id) AND EXISTS (
+    SELECT 1 FROM public.company_memberships m
+    WHERE m.company_id=sales_documents.company_id AND m.user_id=(select auth.uid())
+      AND m.is_active AND m.role IN ('owner','admin','manager','sales','staff')
+  )
+);
+ALTER TABLE public.sales_document_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY sales_document_items_test_select ON public.sales_document_items
+FOR SELECT TO authenticated USING (private.has_company_membership(company_id));
+CREATE POLICY sales_document_items_test_insert ON public.sales_document_items
+FOR INSERT TO authenticated WITH CHECK (
+  private.has_company_membership(company_id) AND EXISTS (
+    SELECT 1 FROM public.company_memberships m
+    WHERE m.company_id=sales_document_items.company_id AND m.user_id=(select auth.uid())
+      AND m.is_active AND m.role IN ('owner','admin','manager','sales','staff')
+  )
+);
+GRANT SELECT, INSERT ON public.sales_documents TO authenticated;
+GRANT SELECT, INSERT ON public.sales_document_items TO authenticated;
+
+\ir ../supabase/candidates/blackrock_sales_orders.sql
+
 CREATE TABLE public.expense_test_ids (
   company_code text PRIMARY KEY,
   expense_id uuid NOT NULL,
@@ -203,6 +258,8 @@ SELECT c.id,'direct cost',100,'CI operational expense',u.id
 FROM public.companies c
 JOIN auth.users u ON u.id = CASE c.code WHEN 'PRIME' THEN '11111111-1111-4111-8111-111111111111'::uuid ELSE '22222222-2222-4222-8222-222222222222'::uuid END;
 
+INSERT INTO public.delivery_orders(company_id,delivery_no,customer_name,required_quantity,allocated_quantity,delivery_status)
+VALUES ('01350a71-0a93-44cf-b6c9-9bd547c0077a','DO-BLACKROCK-001','BlackRock Test Customer',10,0,'Stock Check');
 INSERT INTO public.expense_test_ids(company_code,expense_id,product_id,purchase_id,sales_id,shipment_id,delivery_id,customer_id,supplier_id)
 SELECT c.code,e.id,p.id,po.id,so.id,sh.id,d.id,cu.id,su.id
 FROM public.companies c
@@ -222,6 +279,67 @@ FOR SELECT TO authenticated USING (private.has_company_membership(company_id));
 GRANT SELECT ON public.expenses TO authenticated;
 
 \ir ../supabase/candidates/blackrock_operational_costs.sql
+
+-- Sales order creation and operational stage changes use company-scoped persistence.
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
+DO $sales_order_test$
+DECLARE
+  v_customer uuid;
+  v_product uuid;
+  v_order public.sales_documents;
+  v_denied boolean := false;
+BEGIN
+  SELECT customer_id INTO v_customer FROM public.expense_test_ids WHERE company_code='PRIME';
+  SELECT product_id INTO v_product FROM public.expense_test_ids WHERE company_code='PRIME';
+  v_order := public.create_blackrock_operational_sales_order(
+    'e326f16c-7a76-4bf2-8322-fec959266992',v_customer,'CI Operational Plywood',12,'pcs',950,v_product,current_date+3,'CI order persistence'
+  );
+  IF v_order.document_type<>'sales_order' OR v_order.operational_stage<>'customer_order'
+     OR v_order.grand_total<>11400 OR v_order.status<>'submitted' THEN
+    RAISE EXCEPTION 'Sales order did not persist expected initial document fields';
+  END IF;
+  IF (SELECT count(*) FROM public.sales_document_items WHERE document_id=v_order.id)<>1 THEN
+    RAISE EXCEPTION 'Sales order must persist its line item';
+  END IF;
+  PERFORM public.update_blackrock_operational_sales_order_stage(
+    'e326f16c-7a76-4bf2-8322-fec959266992',v_order.id,'stock_reserved'
+  );
+  IF (SELECT operational_stage FROM public.sales_documents WHERE id=v_order.id)<>'stock_reserved' THEN
+    RAISE EXCEPTION 'Sales order operational stage was not updated';
+  END IF;
+  v_denied := false;
+  BEGIN
+    PERFORM public.update_blackrock_operational_sales_order_stage(
+      'e326f16c-7a76-4bf2-8322-fec959266992',v_order.id,'not-a-stage'
+    );
+  EXCEPTION WHEN raise_exception THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'Unsupported sales order stage was accepted'; END IF;
+END
+$sales_order_test$;
+RESET ROLE;
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+DO $sales_order_tenant$
+DECLARE
+  v_customer uuid;
+  v_denied boolean := false;
+BEGIN
+  SELECT customer_id INTO v_customer FROM public.expense_test_ids WHERE company_code='PRIME';
+  BEGIN
+    PERFORM public.create_blackrock_operational_sales_order(
+      'e326f16c-7a76-4bf2-8322-fec959266992',v_customer,'Cross-company order',1,'pcs',1,NULL,NULL,NULL
+    );
+  EXCEPTION WHEN raise_exception THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN RAISE EXCEPTION 'BLACKROCK user created a PRIME sales order'; END IF;
+END
+$sales_order_tenant$;
+RESET ROLE;
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
