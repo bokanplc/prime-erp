@@ -46,6 +46,22 @@ These local preferences may remain client-side only if they are non-sensitive an
 
 The live Supabase schema contains company-scoped tables for CRM activities/opportunities, customer records/logs, proformas, supply shipments, purchasing, stock, employee/attendance/leave/performance, payroll runs/lines/approvals, expenses, trip plans, visit reports, sales targets, documents and general ledger. The 46 public base tables have RLS enabled. Object existence and RLS enablement alone do not prove the corresponding source screens use them correctly.
 
+## 2026-11-02 Sales & CRM Command Center persistence checkpoint
+
+The full V6.7 Sales & CRM Command Center now has a production-only Supabase adapter for these workflows:
+
+- Loads BlackRock customers, CRM activities, opportunities, after-sales tasks and active sales/staff directory from company-scoped production APIs.
+- Creates customer records through the canonical `customers` table. Initial owner assignment is attempted only for manager-authorized roles; ordinary sales users do not call the manager-only reassignment RPC.
+- Creates opportunities through `crm_opportunities`.
+- Creates activities through `crm_activities`, with actor/assignee identity supplied by the authenticated session.
+- Creates after-sales tasks through `crm_after_sales_tasks`; the authenticated creator is assigned as owner so the existing owner-or-manager update policy permits completion.
+- Completes after-sales tasks through the server API and reloads from Supabase.
+- Keeps sales-order creation/status changes disabled in this Command Center until the screen is connected to the canonical sales-document/order workflow. It must not fall back to browser-only transaction records in production.
+
+The staging entry is synchronized with the full V6.7 source. Regression tests enforce the production adapter, role-aware assignment, creator ownership, and fail-closed order behavior. GitHub Actions run 1069 passed all three job groups: source guards, Postgres schema smoke tests, and live BlackRock Proforma database smoke tests.
+
+**Important limitation:** these are source-contract and database tests, not authenticated browser end-to-end tests. Employee accounts/memberships, live UI CRUD under each employee role, and the full sales-order workflow remain unverified. Existing browser-local data has not been imported or deleted.
+
 ## Release gate and next migration sequence
 
 1. Keep every module that still reads or writes business records through browser storage outside the production allowlist.
