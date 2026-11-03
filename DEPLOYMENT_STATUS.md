@@ -840,3 +840,14 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - Added disposable SQL coverage rejecting a cross-company product on a delivery control, and hardened the product catalogue candidate against authenticated TRUNCATE/REFERENCES/TRIGGER privileges.
 - Vercel preview for the latest branch commit is READY. The product-linked delivery additions and final SQL assertion are newer than the last fully green GitHub Actions run; their next CI confirmation is still pending.
 - No live Supabase schema or records were changed. No production environment flags were enabled, no merge to `main`, and no employee release occurred.
+
+### 2026-11-03 profitability audit addendum
+
+A closer source review found the legacy management report at `loadBoardReport()` is not an acceptable profitability report: it subtracts all period purchases from period sales without matching inventory sold/COGS, adds all expense groups to the same period, and displays hard-coded 15% VAT and 30% corporate-tax estimates. It also reads legacy stock-entry/stock-ledger data rather than a reconciled item-level landed-cost flow. This report must remain outside the production allowlist and must not be presented as actual profit or tax liability.
+
+Required rebuild:
+- Merchandise gross profit: recognized sales revenue less cost of the quantities actually sold, using a consistent inventory valuation method (not all purchases made during the report period).
+- Landed gross profit: merchandise gross profit less reviewed procurement costs allocated to the relevant purchase/shipment/product/stock lots; unallocated and pending-review costs remain visibly separate.
+- Contribution after direct sales costs: landed gross profit less reviewed direct sales fulfilment costs (delivery, loading/unloading, trip/fuel and other direct costs), with overhead shown separately.
+- No tax, VAT, cash, customer-receipt or supplier-payment calculation in this operational report. Do not hard-code statutory rates or call an operational margin a net profit figure.
+- The current operational-cost candidate schema is additive and includes expense review states, allocation ceilings, tenant-safe source FKs, immutable allocation events and a security-invoker allocation summary view. However, it is not applied to live Supabase and there is no allocation UI/report yet.
