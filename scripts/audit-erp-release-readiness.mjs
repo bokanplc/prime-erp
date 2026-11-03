@@ -16,28 +16,30 @@ const migrationSql = readdirSync(migrationDir).filter(name=>name.endsWith('.sql'
 const appliedCandidateSql = [
   'supabase/candidates/live_company_proforma.sql',
   'supabase/candidates/crm_company_scoped_v1.sql',
-  'supabase/candidates/crm_privilege_hardening_2026-10-31.sql'
+  'supabase/candidates/crm_privilege_hardening_2026-10-31.sql',
+  'supabase/candidates/blackrock_operational_costs.sql'
 ].map(path=>readFileSync(path,'utf8'));
-const schemaSources = [...migrationSql,...appliedCandidateSql];
+const baselineSql = ['supabase/baselines/live_company_core_2026-10-31.sql'].map(path=>readFileSync(path,'utf8'));
+const schemaSources = [...migrationSql,...appliedCandidateSql,...baselineSql];
 const schema = schemaSources.join('\n');
 assert.equal(entry,source,'Staging entry point must match the reviewed source.');
 
 const direct = [...new Set([...source.matchAll(/\.from\(\s*['"]([a-z][a-z0-9_]*)['"]\s*\)/g)].map(m=>m[1]))];
 const helper = [...new Set([...source.matchAll(/\b(?:insert|update|q|count)\s*\(\s*['"]([a-z][a-z0-9_]*)['"]/g)].map(m=>m[1]).filter(t=>t.startsWith('bokan_')))];
 const referenced = [...new Set([...direct,...helper])].sort();
-const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?public\.([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
+const defined = [...new Set(schemaSources.flatMap(schema=>[...schema.matchAll(/create\s+(?:or\s+replace\s+)?(?:table\s+(?:if\s+not\s+exists\s+)?|view\s+)(?:public\.)?([a-z][a-z0-9_]*)/gi)].map(m=>m[1])))].sort();
 const missing = referenced.filter(table=>!defined.includes(table));
 
-const requiredApiFileGroups = [
-  ['login',['functions/api/auth/login.js']],
-  ['change-password',['functions/api/auth/change-password.js']],
-  ['logout',['functions/api/auth/logout.js']],
-  ['bootstrap',['functions/api/bootstrap.js']],
-  ['store',['functions/api/store/[[path]].js','functions/api/store/[key].js']]
-];
-const missingApiGroups = requiredApiFileGroups
-  .filter(([,paths])=>!paths.some(path=>existsSync(path)))
-  .map(([name])=>name);
+// The V6.7 source has a Supabase-native production auth path. When it is
+// configured and enabled, the legacy /api adapter exits before registering
+// handlers. Do not require obsolete Vercel routes for this architecture.
+const supabaseAuthPresent = source.includes('id="bokan-v61-production-auth"')
+  && source.includes("auth.auth.signInWithPassword")
+  && source.includes("auth.from('company_memberships')");
+const legacyApiPaths = [...source.matchAll(/api\(\s*['"`](\/[^'"`]+)['"`]/g)].map(m=>m[1]);
+const missingApiGroups = supabaseAuthPresent ? [] : (legacyApiPaths.length
+  ? ['Supabase production authentication path missing; legacy API adapter has no Vercel backend']
+  : []);
 const apiBackendPresent = missingApiGroups.length === 0;
 const rawHtmlSinkPatterns = [
   ['notification messages',/\.innerHTML\s*=\s*data\.map\(n\s*=>\s*`[\s\S]{0,500}\$\{n\.message\}/],
@@ -133,7 +135,8 @@ console.log('BOKAN ERP full-release readiness audit');
 console.log('Referenced logical database tables: '+referenced.length);
 console.log('Applied schema tables with source-controlled CREATE TABLE definitions: '+defined.length+' ('+defined.join(', ')+')');
 console.log('Referenced tables lacking source-controlled DDL: '+missing.length);
-console.log('Legacy API endpoint groups missing: '+(missingApiGroups.join(', ')||'(none)'));
+console.log('Supabase-native production authentication: '+(supabaseAuthPresent?'present':'missing'));
+console.log('Missing backend dependencies: '+(missingApiGroups.join(', ')||'(none)'));
 console.log('Known raw HTML sink patterns remaining: '+rawHtmlSinks.length+(rawHtmlSinks.length?' ('+rawHtmlSinks.join(', ')+')':''));
 console.log('PRODUCTION_MODE: '+productionMode);
 console.log('FULL_ERP_DATA_READY: '+fullDataReady);

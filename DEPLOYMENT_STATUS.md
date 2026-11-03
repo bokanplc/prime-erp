@@ -719,3 +719,170 @@ Read-only verification against the connected Supabase project `kafiwnuynjemufnan
 4. Continue module-by-module through CRM, HR/payroll, finance, stock, procurement/logistics, notifications, and private document Storage. Keep all production flags and module allowlists disabled until browser persistence, tenant isolation, role, and recovery tests pass.
 
 This checkpoint supersedes earlier statements in this file that the live project has no application tables or migration history. Those are historical observations only.
+
+
+## Owner-confirmed BlackRock operational scope — 2026-11-03
+
+The owner confirmed the target scope for the existing full V6.7 migration:
+- Full CRM, including leads/opportunities, pipeline, customer records/history, calls, visits, reminders, after-sales tasks and salesperson performance.
+- Operational ERP for sales, purchasing, supplier/factory records, product prices, inventory, stock movement/transfer/swap/replenishment and logistics.
+- Profitability must show both landed gross profit and direct contribution after direct sales costs.
+- Do **not** implement customer receipt records, supplier payment records, cash/bank ledgers or full accounting workflows. Peachtree remains the accountant's system.
+- Record incidental costs (e.g. factory product-selection/quality assistance, properly documented introducer/referral fees, inbound/outbound transport, loading/unloading, travel/route charges and other direct business costs) with recipient, purpose, category, amount, date, evidence/review notes, source-document linkage and later allocation where initially unassigned.
+- Keep existing accounting/payment/payroll database objects non-destructively; exclude them from the enabled operational product scope unless the owner explicitly changes this decision.
+
+### 2026-11-03 live review findings
+
+- The connected Supabase project is active and now contains 45 public tables, all reported with RLS enabled. This is materially newer than the 12-table/15-migration checkpoint recorded above.
+- Live migration history currently contains 34 entries. The current public table inventory includes CRM, supply/logistics, HR/payroll, finance and stock domains. Row-count summaries are low/zero for many new tables; schema existence is not proof that the V6.7 workflows are fully wired.
+- The live `expenses` table is currently only a basic record (category, amount, description, location, paid_by, created_by, created_at). It lacks purchase/sales/shipment/product/customer linkage, cost-phase separation, allocation and complete review/audit support. Do not claim landed-cost profitability is complete until this is addressed and tested.
+- Supabase Security Advisor currently flags three authenticated-callable SECURITY DEFINER functions (`bokan_reassign_customer_owner`, `post_journal_entry`, `reverse_journal_entry`) and leaked-password protection disabled. Review and restrict these before release; the journal functions are outside the owner's operational scope and should not be exposed as enabled user workflows.
+- The feature branch `feature/blackrock-only-v67` is 107 commits ahead of `deploy/secure-staging` and 0 behind. Draft PR #7 remains the integration/review path. A Vercel preview was reported READY for the feature branch, but it is not a production release and the Vercel account also hit a free-tier daily deployment limit on a separate attempted deployment. No merge to `main`, production deployment, or production flag change is authorized.
+- Next work: map current expense UI writes and RLS; design an additive, tested operational-cost model; reconcile full CRM and inventory workflows against the source; review the SECURITY DEFINER warnings; keep accounting/payment workflows disabled; preserve release gates.
+
+
+### 2026-11-03 expense and margin source audit
+
+- Added `docs/BLACKROCK_OPERATIONAL_COST_AUDIT.md` based on the actual full V6.7 source and read-only live Supabase inspection.
+- The current expense form only writes category, amount, description, location, paid_by and created_by. It has no cost phase, named recipient/purpose, transaction/product/customer links, allocation workflow or allocation audit.
+- The source's current dashboards treat all purchases in the selected period as direct cost/COGS, then add expenses categorized as Direct Cost / COGS. This can misstate gross margin because purchases are not necessarily the cost of goods sold in that period and can double-count inbound costs. The old report also estimates VAT and corporate income tax, which are outside the confirmed operational scope.
+- Live `public.expenses` has 10 columns and zero rows. Current RLS permits company-member reads/inserts and finance-role updates/deletes. The authenticated role also has unnecessary TRUNCATE, TRIGGER and REFERENCES privileges on this table; a reviewed forward-only hardening change is required before enabling it.
+- Live source tables already have company-composite keys for purchase documents, sales documents, products and customers. Supply shipments and delivery orders need verified company-composite unique keys before safe composite allocation references can be added.
+- No live database schema/data, grants, RLS, Auth settings, production flags, merge or deployment was changed during this audit.
+- Next implementation work is a tested additive operational-cost/allocation design, inventory-cost-flow reconciliation, removal of tax/accounting calculations from enabled operational reports, and end-to-end tests. Do not claim landed gross profit or direct contribution is complete yet.
+
+
+### 2026-11-03 operational-cost candidate implementation
+
+- Added `supabase/candidates/blackrock_operational_costs.sql`: additive operational expense metadata, company-scoped allocation links to purchase documents, shipments, products, sales documents, delivery orders, customers and suppliers; serialized allocation-total enforcement; immutable allocation event history; and an unallocated/partial/full allocation summary view.
+- Added isolated PostgreSQL integration coverage to `scripts/test-supply-logistics-postgres.sql` for allocation limits, cross-company FK rejection, per-company RLS visibility, manager audit events, and removal of dangerous non-DML expense grants. This runs only in the disposable CI database, not live Supabase.
+- Added static contract checks to the Supply & Logistics source guard.
+- Corrected the source-reviewed module allowlist to JSON-compatible syntax and synchronized the full V6.7 staging HTML entry; the production gate now recognizes only the non-transactional company handbook as source-reviewed. Operational CRM/sales/stock/cost modules remain blocked from production enablement.
+- Vercel preview for commit `60382443319f162242e1254f8a1e13d4e58da851` reports READY. GitHub Actions run 41631484561 is still executing at this checkpoint; the new operational-cost SQL test has not yet been confirmed passing.
+- No live Supabase DDL/data, production environment flags, main branch, or production domain was changed.
+
+
+### 2026-11-03 operational cost UI integration
+
+- Updated the full V6.7 Data Entry expense form to capture cost date, procurement/sales-fulfilment/overhead phase, operational cost category, amount, recipient, source reference, location, business purpose and supporting notes.
+- Removed the "Paid By" input from the operational entry workflow; no receipt, supplier payment, bank settlement or payment reconciliation fields were added.
+- New entries are marked pending review. Expense ledger and CSV output now show operational cost fields and review state. Deletion errors are surfaced so linked allocation history is not silently lost.
+- Synchronized `staging/index.html` byte-for-byte with the full source and added static UI contract checks.
+- The form now expects the additive operational-cost candidate schema. It remains preview-only until the candidate is validated and a reviewed live migration, Auth/RLS and browser workflow are completed.
+
+
+### 2026-11-03 CRM sales-order persistence implementation
+
+- Connected the full V6.7 Sales & CRM Command Center's previously disabled order actions to the existing company-scoped `sales_documents` and `sales_document_items` model.
+- Order creation now offers the active BlackRock product catalogue (SKU/name, unit and current catalogue price), links a selected product by its same-company product ID, and still allows a clearly described non-catalogue line when needed. The agreed selling price is captured per order rather than assumed from the catalogue price.
+- The UI explicitly states that order-stage labels do not themselves reserve stock or post delivery movements. Those actions remain separate controlled inventory/logistics workflows; the stage tracker must not be mistaken for a stock ledger.
+- Added candidate RPC SQL at `supabase/candidates/blackrock_sales_orders.sql`. It creates a sales order and its line item atomically, validates active company membership and allowed operational roles, verifies the customer belongs to the same company, and stores quantity, unit, agreed selling price, order value, requested delivery date and notes.
+- Added a distinct operational order stage on sales documents: Customer Order, Confirmed, Stock Check, Stock Reserved, Ready Delivery, Dispatched, Delivered, Customer Confirmation, After-Sales and Cancelled. The prior “Waiting Payment” stage was removed to respect the owner's explicit exclusion of payment workflows.
+- Connected the CRM order list to persisted sales documents and line items; the UI now shows order reference, customer, product, quantity, unit price, order value, stage and ETA. Status changes update the company-scoped sales document rather than browser local storage.
+- Synchronized `staging/index.html` byte-for-byte with the complete V6.7 source after the changes.
+- The RPC remains a candidate and has **not** been applied to live Supabase. The order UI is not production-enabled until the candidate is validated and the required migration is applied through the reviewed deployment process. No production flags, live data, main branch or production deployment were changed.
+
+
+### 2026-11-03 CRM sales-order persistence
+
+- The V6.7 CRM sales hub now creates sales orders through `create_blackrock_operational_sales_order`, lists persisted `sales_documents` with their line items, and exposes the operational fulfilment stages from customer order through delivery and after-sales.
+- Stage changes now use the narrow `update_blackrock_operational_sales_order_stage` RPC with active-company and role checks; the browser no longer performs a broad direct update to the sales document row.
+- Added candidate SQL at `supabase/candidates/blackrock_sales_orders.sql`; it is not applied to live Supabase.
+- Extended the disposable supply/logistics PostgreSQL harness to test sales order document+line persistence, initial totals/stage, authenticated stage changes, invalid stage rejection and cross-company creation rejection.
+- Added source-level release-readiness assertions for the persistent sales-order workflow. The company-scoped `products` read is included in the audited table baseline after verifying its live membership-only SELECT policy.
+- Latest Vercel preview deployment for the branch is READY; GitHub Actions is being rerun after the sales-order and operational-cost test updates. Production remains disabled.
+
+
+### 2026-11-03 sales demand and delivery integration
+
+- Extended the candidate sales-order transaction so saving a CRM sales order also creates its linked `delivery_orders` demand-control record in the same database transaction. The delivery row carries the same company, customer name, sales-document ID, required quantity, promised date and notes.
+- The delivery insert uses the existing company-composite sales-document foreign key and current delivery RLS policy. It starts at **Stock Check** with zero allocated quantity. It does not reserve stock, issue stock, dispatch goods or mark a delivery complete.
+- The CRM order-save flow refreshes the Supply & Logistics control tower after the transaction succeeds.
+- Supply & Logistics now reads actual open submitted/approved/posted sales orders and line items from Supabase, displays them as commercial demand, totals their order value, and counts delivery controls with outstanding unallocated quantity as allocation risk.
+- This replaces the prior empty demand placeholder in the production bridge. No local sample demand is presented as live production data.
+- The candidate SQL remains unapplied to live Supabase; the order/delivery workflow is not production-enabled. Inventory allocation, stock movement posting, proof of delivery and returns remain separate implementation steps.
+
+- Extended the candidate with a nullable `delivery_orders.product_id` and a composite `(company_id, product_id)` foreign key to `products(company_id, id)`. The automatically created delivery demand therefore carries the exact catalogue item; the live delivery table now displays that linked product. Live Supabase confirms the required company-composite product key already exists. The FK and UI query remain paired with the unapplied candidate migration.
+
+
+### 2026-11-03 latest integration checkpoint
+
+- Vercel generated a READY branch preview for commit `35897bc75526ddc03e2647374eaa25e5c9410e38` on `feature/blackrock-only-v67`. This confirms the preview build completed; it is not a production approval or employee release.
+- Verified that `staging/index.html` exactly matches the full V6.7 source after the CRM-to-delivery changes; candidate SQL dollar-quote delimiters and the corrected RPC grant signature are consistent.
+- Live Supabase was queried read-only to confirm the existing sales-document and delivery-order RLS policies allow the intended sales/staff insert path, delivery controls are company-linked, and products already have the composite company/product key needed by the candidate FK.
+- No candidate SQL was applied to live Supabase. No live records, production flags, `main` branch, or production deployment were changed.
+
+## 2026-11-03 latest verified continuation checkpoint
+
+- Current working branch: `feature/blackrock-only-v67`; latest source commit reviewed: `aebc6781c8d13cf6938b2c697c803d3bc2075de5` (sales-demand contract regex correction). `main` remains untouched.
+- Live Supabase read-only inventory: 34 recorded migrations; 46 public base tables; RLS enabled on all 46 (zero public base tables without RLS). The only active company row is BlackRock Investment PLC; no Prime company row remains.
+- The latest GitHub Actions run `41634730475` completed successfully across source-guard, live-company Proforma/CRM/Supply & Logistics PostgreSQL, and disposable schema-smoke jobs. The source guard parsed 41 inline JavaScript blocks with zero syntax errors and verified the full V6.7 staging entry parity. The isolated Supply & Logistics PostgreSQL test includes the operational-cost candidate and tests allocation ceilings, cross-company rejection, RLS visibility, manager audit history, and non-DML grant removal.
+- Latest Vercel preview for `feature/blackrock-only-v67` is READY at commit `aebc6781c8d13cf6938b2c697c803d3bc2075de5`. It is still a preview (no production target); project SSO protection is enabled for non-custom domains. Do not distribute this preview as an employee production login.
+- Operational cost work is still candidate-only: `supabase/candidates/blackrock_operational_costs.sql` has not been applied to live Supabase. The full V6.7 expense form captures date, phase, category, amount, recipient, source reference, location, purpose and notes, but allocation-management UI and tested profitability reports (merchandise gross profit, landed gross profit, direct contribution after direct fulfilment costs) are not yet complete. Do not claim landed-cost profitability is ready.
+- The user's operational scope remains controlling: no customer receipts, supplier payments, AR/AP settlement, cash/bank, journals/GL, tax accounting or formal payroll accounting workflows are to be enabled; preserve legacy database objects non-destructively for Peachtree/accountant continuity.
+- Live Supabase Security Advisor still reports three authenticated-callable SECURITY DEFINER functions and leaked-password protection disabled. The three functions were reviewed read-only: each checks `auth.uid()` and company membership/role before acting; CRM reassignment checks manager authorization. Journal posting/reversal are outside enabled operational scope and must remain disabled. Performance Advisor also reports unindexed foreign keys and policy/index tuning findings; review before production.
+- Source audit still has `PRODUCTION_MODE=false`, `FULL_ERP_DATA_READY=false`, and no enabled production tabs. Only the non-transactional company handbook is source-reviewed. Authentication, private document storage/downloads, allocation UI, inventory cost-flow, receiving/transfers/stock swap workflows, full CRM and operational end-to-end browser tests remain release gates.
+- No live schema/data, Auth settings, production flags, `main`, merge, or production deployment was changed during this checkpoint.
+
+### Next engineering sequence
+
+1. Reconcile the 34 live migration records with repository history; CI currently confirms 26 tracked migration SQL bodies and documents eight applied SQL bodies absent from source control. Do not alter live schema to paper over this history gap.
+2. Finish operational-cost allocation UI and reporting, using approved/reviewed costs only; distinguish merchandise gross profit, landed gross profit, and direct contribution without treating all period purchases as COGS.
+3. Reconcile stock opening balances, purchases/receiving, transfers, swaps/borrowing/replenishment, sales fulfilment, returns and delivery evidence against the full V6.7 source.
+4. Keep excluded accounting/payment/payroll workflows disabled; resolve security-advisor items and complete authenticated role/tenant, private Storage, browser save/reload and recovery tests before any employee release.
+
+
+### 2026-11-03 verified migration milestone
+
+- GitHub Actions run **41634730475** passed all three jobs: source guards, disposable schema smoke, and live-company CRM/Proforma/Supply & Logistics PostgreSQL smoke. This included the operational expense allocation candidate, sales-order document/line creation, stage RPC, RLS, allocation totals, and cross-company sales-order rejection.
+- The source-readiness inventory now has source-controlled DDL for all 43 directly referenced table names, including the live company-scoped product catalogue. The release-gate regression test and sanitized-release build both passed in that run.
+- Added product selection to delivery controls. The selected product is derived from the linked persisted sales-order line where available, checked against any manual selection, and saved as the same-company `delivery_orders.product_id`.
+- Added disposable SQL coverage rejecting a cross-company product on a delivery control, and hardened the product catalogue candidate against authenticated TRUNCATE/REFERENCES/TRIGGER privileges.
+- Vercel preview for the latest branch commit is READY. The product-linked delivery additions and final SQL assertion are newer than the last fully green GitHub Actions run; their next CI confirmation is still pending.
+- No live Supabase schema or records were changed. No production environment flags were enabled, no merge to `main`, and no employee release occurred.
+
+### 2026-11-03 profitability audit addendum
+
+A closer source review found the legacy management report at `loadBoardReport()` is not an acceptable profitability report: it subtracts all period purchases from period sales without matching inventory sold/COGS, adds all expense groups to the same period, and displays hard-coded 15% VAT and 30% corporate-tax estimates. It also reads legacy stock-entry/stock-ledger data rather than a reconciled item-level landed-cost flow. This report must remain outside the production allowlist and must not be presented as actual profit or tax liability.
+
+Required rebuild:
+- Merchandise gross profit: recognized sales revenue less cost of the quantities actually sold, using a consistent inventory valuation method (not all purchases made during the report period).
+- Landed gross profit: merchandise gross profit less reviewed procurement costs allocated to the relevant purchase/shipment/product/stock lots; unallocated and pending-review costs remain visibly separate.
+- Contribution after direct sales costs: landed gross profit less reviewed direct sales fulfilment costs (delivery, loading/unloading, trip/fuel and other direct costs), with overhead shown separately.
+- No tax, VAT, cash, customer-receipt or supplier-payment calculation in this operational report. Do not hard-code statutory rates or call an operational margin a net profit figure.
+- The current operational-cost candidate schema is additive and includes expense review states, allocation ceilings, tenant-safe source FKs, immutable allocation events and a security-invoker allocation summary view. However, it is not applied to live Supabase and there is no allocation UI/report yet.
+
+Live-data baseline checked during this continuation: `purchase_documents` currently contains 15 rows and `sales_documents` 25 rows, while `expenses`, `stock_entries`, `stock_ledger`, `supply_shipments` and `delivery_orders` each contain zero rows. This is why the profit report cannot yet be validated against real inventory/expense history. Preserve the 15 purchase and 25 sales documents; do not infer missing stock movements or costs from them without a documented receiving/fulfilment reconciliation.
+
+
+## Operational finance boundary and allocation authorization (2026-11-03)
+- Re-reviewed the live Supabase expense, purchasing, sales, stock movement, shipment and delivery contracts. The current live operational data still does not contain the stock-movement/receiving/fulfilment history needed to calculate actual COGS or landed margin.
+- Hardened the candidate operational-cost allocation migration: creating an allocation now requires an active owner/admin/manager membership, not merely any company member. Existing manager-only update/delete controls, company-scoped foreign keys, allocation ceilings, RLS, audit events and security-invoker summary remain in place.
+- Extended the isolated PostgreSQL test to prove a non-manager inventory user cannot create an allocation while a manager can, and that allocations cannot exceed the source expense or cross company boundaries. Candidate migration remains unapplied to live Supabase.
+- Enforced the user's Peachtree boundary in the V6.7 production finance bridge: general-ledger journal posting, customer receipt recording and supplier payment recording now fail closed with explicit Peachtree instructions. The finance bridge status text identifies the ERP as operational-reporting-only for these workflows.
+- Synced the full reviewed V6.7 HTML and staging entry point byte-for-byte and added regression/static-audit checks for the finance posting restrictions. These checks still require a completed GitHub Actions run; a READY Vercel preview is not production approval.
+- No customer receipts, supplier payments, journal entries, expense allocations or new stock movements were written to live data. No production deployment or main-branch change was made.
+
+
+## CRM and finance scope verification (2026-11-03)
+- Corrected the production CRM initial-assignment role check to recognize the actual Supabase membership role names (`owner`, `admin`, `manager`) as well as the mapped application role. Database-side guarded reassignment remains the authorization boundary.
+- The legacy standalone Customer Call Log still relies on browser-local storage and is not a cross-device production CRM record. Removed that legacy tab from the sales production allowlist; the Supabase-backed Sales CRM workspace remains the production path for customer accounts, activities (phone calls, messages, meetings and site visits), opportunities, after-sales tasks and sales orders.
+- The production Sales CRM bridge loads customers, activity history, opportunities, after-sales tasks, company representatives and sales orders from company-scoped Supabase tables. Live CRM baseline at this checkpoint: 22 customers; 0 CRM activities, 0 opportunities, 0 after-sales tasks and 0 customer assignments. Only one active BlackRock company membership (admin) exists in the live project; no employee accounts are active yet. Employee onboarding remains a release dependency and must not be fabricated.
+- CI workflow run 41646741909 completed successfully: source guard and full V6.7 release-gate tests passed; live-company Proforma/CRM/Supply & Logistics PostgreSQL tests passed; disposable PostgreSQL candidate-schema/RLS/privilege tests passed. These are automated source/database tests, not real-browser acceptance.
+- The workflow caught and corrected two test-baseline mismatches during this work: the deliberate removal of the sales-receipt client table reference (Peachtree boundary) and the corrected manager role names. The final run passed all three jobs.
+- Vercel preview builds are currently subject to a build-rate-limit response on the connected project. Do not interpret earlier READY previews as the latest branch build or as production release. Production remains disabled; `main` remains untouched.
+
+
+## Expense review and allocation UI (2026-11-03)
+- Reused the existing V6.7 Standard Expenses Form and Expense Ledger rather than creating a duplicate operational-cost page. The existing form already captures date, procurement/sales-fulfilment/overhead phase, category, recipient, business purpose, reference and review status; it deliberately does not capture payment settlement fields.
+- Added a management/accounting review queue and manager-only allocation controls inside the existing Expense Ledger. Allocations can be linked to purchase documents, inbound shipments, products, sales documents, delivery orders, customers or suppliers. The summary shows source amount, allocated amount, unallocated balance and allocation state.
+- The allocation bridge is fail-closed: it only queries when the authenticated user's production tab allowlist includes Expense Ledger. It relies on the candidate manager-only RLS policy and same-company foreign keys; it does not introduce customer receipts, supplier payments or journal posting.
+- Added the candidate allocation table/view to static schema completeness checks and added UI/source contract tests. GitHub Actions run 41649124540 passed all three jobs: source guard/release-gate tests, live-company CRM/Proforma/Supply & Logistics PostgreSQL tests, and disposable PostgreSQL candidate-schema/RLS/privilege tests.
+- The operational-cost candidate migration remains unapplied to live Supabase because real browser workflow acceptance is still outstanding. Expense Ledger remains outside the source-reviewed production module allowlist and production config remains disabled.
+
+
+## Employee invitation and user administration (2026-11-03)
+- Added a server-side Supabase Edge Function, `invite-blackrock-member`, deployed ACTIVE with JWT verification enabled. It verifies the signed-in caller, requires an active BlackRock owner/admin membership, restricts invitations to supported non-admin employee roles, sends Supabase Auth invitations where needed, assigns the BlackRock company membership, and prevents an administrator from changing their own role through the invitation form. The service-role key remains server-side.
+- Added an administrator-only invitation form to the V6.7 Users & Roles tab. It supports Sales Representative, Data Entry, Sales Manager, Accounting, Inventory and HR roles; it does not offer owner/admin elevation. The production employee register now reads only active BlackRock company memberships and matching company-scoped profile details. Legacy role editing remains disabled in production.
+- Added the Users & Roles invitation workspace to the source-reviewed production module allowlist. It is not enabled in the deployment config; `ENABLED_PRODUCTION_TABS` remains empty and production mode remains disabled. No employee invitations have been sent and no user accounts or memberships were created by this work.
+- CI workflow run 41651444635 passed all three jobs after the active-membership register and invitation security checks were added. This validates source contracts and existing PostgreSQL suites; the invite email/redirect flow still requires an end-to-end browser test against the configured production site URL before activation.

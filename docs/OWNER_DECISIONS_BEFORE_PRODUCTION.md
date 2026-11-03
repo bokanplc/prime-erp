@@ -50,3 +50,16 @@ The read-only security advisor still reports Leaked Password Protection Disabled
 
 ## Proforma withholding rule confirmation (2026-10-24)
 The current UI treats withholding as automatic at 3% when the VAT-inclusive Grand Total is strictly above ETB 10,000. The trusted database draft now enforces that same fixed rate/threshold and rejects direct RPC payloads that try to disable or alter them. The UI still needs a final accounting review of discount/VAT treatment; do not use live documents until that tax treatment is confirmed.
+
+
+## 7. Owner-confirmed operational scope (2026-11-03)
+
+The owner selected a CRM-first operational ERP for BlackRock Investment PLC:
+- Full CRM is required: customers/prospects, leads, opportunity pipeline, assignments, calls, visits, reminders, next actions, after-sales tasks, customer history, targets and salesperson performance/commissions.
+- Retain operational sales, purchasing, suppliers/factories, product purchase/selling prices, stock control, transfers/swaps/borrowing/replenishment, receiving and logistics.
+- Profitability must include both landed gross profit (including procurement/inbound costs) and direct contribution after direct sales/fulfilment costs.
+- Do not build/enable customer receipt records, supplier payment records, AR/AP settlement, cash/bank ledgers, general ledger, journals, trial balance, balance sheet, formal P&L, tax accounting or formal payroll. Peachtree remains the accountant's accounting system.
+- Capture incidental direct business costs, including product selection/quality assistance, sourcing/referral fees, transport, loading/unloading, travel/route charges and other justified costs. Capture actual recipient and purpose transparently; allow later allocation to purchase, shipment, supplier, product, sales order, delivery or customer. Keep unallocated costs visible and out of final margin until assigned.
+- Do not delete existing payment/accounting/payroll tables or history to implement this UI/product scope decision.
+
+See `docs/BLACKROCK_OPERATIONAL_SCOPE.md` for detailed rules and acceptance criteria. This decision supersedes earlier suggestions to implement full finance/AR/AP/journal workflows in the operational ERP.

@@ -6,13 +6,13 @@ const html=readFileSync('dist/release/index.html','utf8');
 const config=readFileSync('dist/release/config/config.js','utf8');
 const headers=readFileSync('dist/release/_headers','utf8');
 const expected={
-  prime_v40_transactions:'[]',
+  blackrock_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
-  prime_v30_controls:'{ controls: [], exceptions: [], source: [], due: [] }',
-  prime_v32_trace:'[]',
-  prime_v33_reconciliation:'{ reconciliations: [], exceptions: [] }',
-  prime_v34_close_control:'{ areas: [], statements: [], prerequisite: [] }',
-  prime_v35_postings:'{ postings: [] }',
+  blackrock_v30_controls:'{ controls: [], exceptions: [], source: [], due: [] }',
+  blackrock_v32_trace:'[]',
+  blackrock_v33_reconciliation:'{ reconciliations: [], exceptions: [] }',
+  blackrock_v34_close_control:'{ areas: [], statements: [], prerequisite: [] }',
+  blackrock_v35_postings:'{ postings: [] }',
   bokan_access_registry_v2:'[]',
   bokan_supply_tower_v1:'{ inbound: [], deliveries: [] }'
 };

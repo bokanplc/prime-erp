@@ -12,7 +12,7 @@ assert.match(auth, /companies\(id,code,name,is_active\)/, 'Membership lookup mus
 assert.match(auth, /\.eq\('user_id',user\.id\)\.eq\('is_active',true\)/, 'Only the signed-in user active memberships may be considered.');
 assert.match(auth, /m\.companies\?\.is_active/, 'Inactive companies must not authorize application access.');
 assert.match(auth, /memberships\.find\(m=>m\.company_code===preferred\)\|\|memberships\[0\]/, 'Saved company context may select only a returned authorized membership.');
-assert.match(auth, /owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'/, 'Only explicitly mapped live membership roles may enter supported ERP roles.');
+assert.match(auth, /owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',inventory:'inventory',hr:'hr',staff:'data_entry'/, 'Only explicitly mapped live membership roles may enter supported ERP roles.');
 assert.doesNotMatch(auth, /from\('profiles'\)/, 'The production login bridge must not depend on a profiles table absent from live Supabase.');
 assert.match(auth, /sel\.disabled=companyCodes\.length<=1/, 'Company switching must be limited to actual active memberships.');
 assert.match(source, /Production role changes are disabled until audited Supabase Auth user provisioning and company-membership management are implemented/, 'Production role changes must stay blocked until trusted provisioning exists.');

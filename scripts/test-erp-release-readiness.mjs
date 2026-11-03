@@ -12,6 +12,8 @@ const files = [
   'staging/config/config.js',
   'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql',
   'supabase/candidates/live_company_proforma.sql',
+  'supabase/candidates/blackrock_sales_orders.sql',
+  'supabase/baselines/live_company_core_2026-10-31.sql',
   'scripts/audit-erp-release-readiness.mjs',
   'scripts/build-release-candidate.mjs',
   'wrangler.jsonc'
@@ -24,6 +26,48 @@ try {
   }
   cpSync('supabase/migrations',join(root,'supabase/migrations'),{recursive:true});
   cpSync('supabase/candidates',join(root,'supabase/candidates'),{recursive:true});
+  const source=readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8');
+  const entry=readFileSync(join(root,'staging/index.html'),'utf8');
+  assert.equal(entry,source,'The deployable staging entry must remain identical to the full V6.7 source.');
+  assert.match(source,/from\('profiles'\)[\s\S]{0,180}\.eq\('company_id',companyId\)[\s\S]{0,120}\.in\('id',userIds\)/,
+    'CRM representative names must be resolved only from profiles in the active company.');
+  assert.match(source,/profile\?\.full_name[\s\S]{0,100}profile\?\.email[\s\S]{0,100}'Sales team member'/,
+    'CRM assignment lists must use a safe display-name fallback when a profile name is missing.');
+  assert.match(source,/async function addActivity\(payload\)[\s\S]{0,220}actor_user_id:user\.id[\s\S]{0,100}assigned_user_id\)row\.assigned_user_id=user\.id/,
+    'CRM activity inserts must set the authenticated actor required by the live RLS policy.');
+  const crmReassign=source.slice(source.indexOf('async function reassignCurrentCustomer()'),source.indexOf('async function loadReport()'));
+  assert.match(crmReassign,/BOKAN_CRM_PRODUCTION\?\.enabled\(\)[\s\S]{0,500}api\.listMyCustomers\(\)[\s\S]{0,700}api\.assignCustomer\([\s\S]{0,450}api\.addActivity\(/,
+    'Production CRM reassignment must use company-scoped customer lookup, the guarded reassignment RPC and the persisted activity log.');
+  assert.match(crmReassign,/if\s*\(!cust\)\s*throw new Error\('Customer not found in the selected company\.'\)/,
+    'Production CRM reassignment must fail closed when the customer is outside the selected company.');
+  const salesHubAdapter=source.slice(source.indexOf('<script id="bokan-sales-hub-production-persistence">'),source.indexOf('</script>',source.indexOf('<script id="bokan-sales-hub-production-persistence">')));
+  assert.match(source,/hydrateProductionState\(data\)\{state=data;selectedId=null;render\(\)\}/,
+    'Sales CRM must expose a controlled state hydrator for server-loaded records.');
+  assert.match(salesHubAdapter,/Promise\.all\(\[[\s\S]{0,220}listMyCustomers\(\)[\s\S]{0,120}listActivities\(\)[\s\S]{0,120}listOpportunities\(\)[\s\S]{0,120}listAfterSalesTasks\(\)/,
+    'Sales CRM must load customer, activity, opportunity and after-sales records from Supabase.');
+  assert.match(salesHubAdapter,/createCustomer\([\s\S]{0,1600}assignCustomer\(/,
+    'Sales CRM customer creation must persist the customer and apply a company-member assignment.');
+  assert.match(salesHubAdapter,/createOpportunity\(/,
+    'Sales CRM opportunity creation must persist through the CRM production API.');
+  assert.match(salesHubAdapter,/createAfterSalesTask\([\s\S]{0,500}updateAfterSalesTask\(/,
+    'Sales CRM after-sales creation and completion must persist through the CRM production API.');
+  assert.match(source,/async function createAfterSalesTask\(payload\)[\s\S]{0,220}if\(!row\.owner_user_id\)row\.owner_user_id=user\.id/,
+    'New after-sales tasks must be owned by their authenticated creator so the owner can complete them under RLS.');
+  assert.match(salesHubAdapter,/canAssign=typeof currentRole!=='undefined'&&\['owner','admin','manager','management'\]\.includes\(currentRole\)/,
+    'Initial CRM customer assignment must only invoke the manager-authorized reassignment RPC for manager roles.');
+  assert.match(salesHubAdapter,/await api\(\)\.createSalesOrder\(/,
+    'Sales order creation must persist through the canonical CRM production API.');
+  assert.match(salesHubAdapter,/await api\(\)\.updateSalesOrderStage\(/,
+    'Operational sales order stages must persist through the canonical CRM production API.');
+  assert.match(source,/async function createSalesOrder\(payload\)[\s\S]{0,500}rpc\('create_blackrock_operational_sales_order'/,
+    'Sales order creation must call the company-scoped database RPC.');
+  assert.match(source,/async function updateSalesOrderStage\(id,stage\)[\s\S]{0,350}rpc\('update_blackrock_operational_sales_order_stage'/,
+    'Sales order stage changes must use a narrow RPC instead of broad document updates.');
+  const salesOrderCandidate=readFileSync(join(root,'supabase/candidates/blackrock_sales_orders.sql'),'utf8');
+  assert.match(salesOrderCandidate,/create or replace function public\.create_blackrock_operational_sales_order/,'Sales order candidate must create the persistent sales document workflow.');
+  assert.match(salesOrderCandidate,/create or replace function public\.update_blackrock_operational_sales_order_stage/,'Sales order candidate must provide a guarded stage update.');
+  assert.doesNotMatch(salesOrderCandidate,/sales_payments|supplier_payments|cashbook|general_ledger/,'Operational sales orders must not introduce payment or accounting workflows.');
+
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
   assert.equal(wranglerConfig.assets.directory,'./dist/release','Workers Static Assets must serve only generated release output.');
@@ -38,17 +82,42 @@ try {
   const reviewHtml=readFileSync(join(root,'dist/release/index.html'),'utf8');
   const reviewConfig=readFileSync(join(root,'dist/release/config/config.js'),'utf8');
   const reviewHeaders=readFileSync(join(root,'dist/release/_headers'),'utf8');
-  assert.equal(reviewHtml,readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8'),'Staging review build must retain the complete V6.7 review source.');
+  const fullReviewSource=readFileSync(join(root,'staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html'),'utf8');
+  const reviewBanner='PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS';
+  assert.ok(reviewHtml.includes(reviewBanner),'Staging review build must display a prominent preview-only warning.');
+  const expectedReviewSource=fullReviewSource.replace(/<body([^>]*)>/i,'<body$1><div role="status" aria-live="polite" style="position:sticky;top:0;z-index:99999;background:#7c2d12;color:#fff;text-align:center;padding:9px 14px;font:700 12px/1.4 Arial,sans-serif;letter-spacing:.02em">'+reviewBanner+'</div>');
+  assert.equal(reviewHtml,expectedReviewSource,'Staging review build must otherwise retain the complete V6.7 review source.');
   assert.match(reviewConfig,/DEMO_REVIEW_MODE:\s*true/,'Staging preview must enable demo mode.');
   assert.match(reviewHeaders,/X-Robots-Tag: noindex, nofollow/,'Staging preview must discourage search indexing.');
-  assert.match(reviewBuild,/demo review artifact/,'Staging branch should produce the review artifact.');
+  assert.match(reviewBuild,/full V6\.7 preview-only interface/,'Staging branch should produce the full V6.7 preview artifact.');
   const pagesReviewBuild=execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',env:{...process.env,CF_PAGES_BRANCH:'deploy/secure-staging'}});
-  assert.match(pagesReviewBuild,/demo review artifact/,'Pages branch selector remains supported for compatibility.');
+  assert.match(pagesReviewBuild,/full V6\.7 preview-only interface/,'Pages branch selector remains supported for compatibility.');
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
-  assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
-  assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 37/,'Readiness audit must detect the current incomplete schema.');
+  assert.match(disabledOutput,/No static completeness blockers detected by this limited inventory/,'Static inventory is clear but does not approve runtime release.');
+  assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 0/,'The live core baseline and source-controlled views must cover every referenced table definition; missing original migration bodies remain documented separately.');
+  assert.match(disabledOutput,/Supabase-native production authentication: present/,'The reviewed source includes Supabase-native authentication and company membership checks.');
+  assert.match(disabledOutput,/Missing backend dependencies: \(none\)/,'The legacy API adapter is bypassed when Supabase production auth is enabled.');
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
-  assert.match(disabledOutput,/PASS: production remains disabled/,'Disabled candidate should be reported safely.');
+  assert.match(disabledOutput,/runtime.*acceptance is still required/,'Static completeness must not be confused with runtime release approval.');
+  let prematureProductionRejected=false;
+  let prematureProductionOutput='';
+  try {
+    execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{
+      cwd:root,encoding:'utf8',stdio:'pipe',
+      env:{...process.env,VERCEL_GIT_COMMIT_REF:'main',WORKERS_CI_BRANCH:'',CF_PAGES_BRANCH:'',
+        BOKAN_PRODUCTION_MODE:'true',BOKAN_FULL_ERP_DATA_READY:'true',
+        BOKAN_SUPABASE_URL:'https://example.supabase.co',
+        BOKAN_SUPABASE_ANON_KEY:'test-publishable-key-for-guard-check',
+        BOKAN_ENABLED_PRODUCTION_TABS:'sales'}
+    });
+  } catch (error) {
+    prematureProductionOutput=[error.stderr,error.stdout,error.message].map(v=>String(v||'')).join('\\n');
+    prematureProductionRejected=(error.status===1 || /ERR_ASSERTION/.test(prematureProductionOutput))
+      && prematureProductionOutput.includes('Production build requested a module that has not been source-reviewed.');
+  }
+  if(!prematureProductionRejected) console.error('Production-gate rejection diagnostic: '+prematureProductionOutput.slice(0,1200));
+  assert.ok(prematureProductionRejected,'Production env flags must not bypass the source-reviewed module allowlist.');
+
 
   writeFileSync(configPath,config.replace('ENABLED_PRODUCTION_TABS: []',"ENABLED_PRODUCTION_TABS: ['proforma']"));
   let unreviewedTabRejected=false;

@@ -19,30 +19,58 @@ assert.equal(entry,source,'Staging entry point must match reviewed source before
 assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain disabled in the release template.');
 assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
 assert.ok(config.includes('ENABLED_PRODUCTION_TABS: []'),'No production tabs may be enabled in the release template.');
-// Cloudflare's staging branch publishes a sample-data-only review build; all other branches use the sanitized candidate.
+// Dedicated staging and feature-branch previews publish the full V6.7 interface in isolated, in-memory demo mode.
+// They never receive Supabase credentials or write business records. Other branches use the sanitized fail-closed candidate.
 const deploymentBranch = process.env.VERCEL_GIT_COMMIT_REF || process.env.WORKERS_CI_BRANCH || process.env.CF_PAGES_BRANCH || '';
-if (deploymentBranch === 'deploy/secure-staging') {
-  assert.ok(config.includes('DEMO_REVIEW_MODE: true'),'Staging review build must explicitly enable demo mode.');
-  assert.ok(config.includes('SUPABASE_URL: ""') && config.includes('SUPABASE_ANON_KEY: ""'),'Staging review build must not contain Supabase credentials.');
+// Production config is generated only for an explicitly requested production build.
+// Preview branches exit above with the checked-in demo config and never receive these values.
+const productionRequested = process.env.BOKAN_PRODUCTION_MODE === 'true';
+let releaseConfigForOutput = releaseConfig;
+if (productionRequested) {
+  const supabaseUrl = process.env.BOKAN_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.BOKAN_SUPABASE_ANON_KEY || '';
+  const fullDataReady = process.env.BOKAN_FULL_ERP_DATA_READY === 'true';
+  const requestedTabs = [...new Set((process.env.BOKAN_ENABLED_PRODUCTION_TABS || '').split(',').map(v => v.trim()).filter(Boolean))];
+  const reviewedMatch = source.match(/window\.BOKAN_REVIEWED_PRODUCTION_TABS\s*=\s*Object\.freeze\((\[[\s\S]*?\])\)/);
+  assert.ok(reviewedMatch, 'A source-reviewed production tab allowlist is required.');
+  const reviewedTabs = JSON.parse(reviewedMatch[1]);
+  assert.ok(fullDataReady, 'Production build requires BOKAN_FULL_ERP_DATA_READY=true after end-to-end acceptance.');
+  assert.match(supabaseUrl, /^https:\/\/.+\.supabase\.co(?:\/.*)?$/, 'Production Supabase URL is missing or invalid.');
+  assert.ok(supabaseAnonKey.length > 20 && !/YOUR_|placeholder/i.test(supabaseAnonKey), 'Production Supabase publishable/anon key is missing or invalid.');
+  assert.ok(requestedTabs.length > 0, 'Production build requires an explicit reviewed module allowlist.');
+  assert.ok(requestedTabs.every(tab => reviewedTabs.includes(tab)), 'Production build requested a module that has not been source-reviewed.');
+  releaseConfigForOutput = releaseConfig
+    .replace('PRODUCTION_MODE: false', 'PRODUCTION_MODE: true')
+    .replace('FULL_ERP_DATA_READY: false', 'FULL_ERP_DATA_READY: true')
+    .replace('ENABLED_PRODUCTION_TABS: []', 'ENABLED_PRODUCTION_TABS: ' + JSON.stringify(requestedTabs))
+    .replace('SUPABASE_URL: ""', 'SUPABASE_URL: ' + JSON.stringify(supabaseUrl))
+    .replace('SUPABASE_ANON_KEY: ""', 'SUPABASE_ANON_KEY: ' + JSON.stringify(supabaseAnonKey));
+}
+if (deploymentBranch === 'deploy/secure-staging' || deploymentBranch === 'feature/blackrock-only-v67') {
+  assert.ok(config.includes('DEMO_REVIEW_MODE: true'),'Review build must explicitly enable demo mode.');
+  assert.ok(config.includes('SUPABASE_URL: ""') && config.includes('SUPABASE_ANON_KEY: ""'),'Review build must not contain Supabase credentials.');
+  const reviewBanner = '<div role="status" aria-live="polite" style="position:sticky;top:0;z-index:99999;background:#7c2d12;color:#fff;text-align:center;padding:9px 14px;font:700 12px/1.4 Arial,sans-serif;letter-spacing:.02em">PREVIEW ONLY — SAMPLE DATA — CHANGES ARE TEMPORARY AND ARE NOT SAVED TO BLACKROCK BUSINESS RECORDS</div>';
+  const reviewSource = source.replace(/<body([^>]*)>/i, '<body$1>' + reviewBanner);
+  assert.notEqual(reviewSource,source,'Review-only warning banner must be present.');
   mkdirSync(dirname(outputPath),{recursive:true});
   mkdirSync(dirname(outputConfigPath),{recursive:true});
-  writeFileSync(outputPath,source);
+  writeFileSync(outputPath,reviewSource);
   writeFileSync(outputConfigPath,config);
-  const reviewHeaders=['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  X-Robots-Tag: noindex, nofollow','  Cache-Control: no-store','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\n');
+  const reviewHeaders=['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  X-Robots-Tag: noindex, nofollow','  Cache-Control: no-store','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\\n');
   writeFileSync(outputHeadersPath,reviewHeaders);
-  console.log('Built staging-only BOKAN ERP demo review artifact with sample data and no Supabase credentials.');
+  console.log('Built full V6.7 preview-only interface with in-memory sample data, a visible warning, and no Supabase credentials.');
   process.exit(0);
 }
 
-assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([])'),'No module is source-approved for production in the release candidate.');
+assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub","users"]);'),'Only the handbook, Sales CRM and secure administrator user invitation workspace may be source-reviewed; other operational modules remain blocked.');
 const replacements={
-  prime_v40_transactions:'[]',
+  blackrock_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
-  prime_v30_controls:'{ controls: [], exceptions: [], source: [], due: [] }',
-  prime_v32_trace:'[]',
-  prime_v33_reconciliation:'{ reconciliations: [], exceptions: [] }',
-  prime_v34_close_control:'{ areas: [], statements: [], prerequisite: [] }',
-  prime_v35_postings:'{ postings: [] }',
+  blackrock_v30_controls:'{ controls: [], exceptions: [], source: [], due: [] }',
+  blackrock_v32_trace:'[]',
+  blackrock_v33_reconciliation:'{ reconciliations: [], exceptions: [] }',
+  blackrock_v34_close_control:'{ areas: [], statements: [], prerequisite: [] }',
+  blackrock_v35_postings:'{ postings: [] }',
   bokan_access_registry_v2:'[]',
   bokan_supply_tower_v1:'{ inbound: [], deliveries: [] }'
 };
@@ -83,6 +111,9 @@ function sanitize(html){
   return html;
 }
 let releaseHtml=sanitize(source);
+const reviewedTabLine = 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub","users"]);';
+assert.equal(releaseHtml.split(reviewedTabLine).length - 1, 1, 'Expected exactly one reviewed handbook allowlist to neutralize in sanitized output.');
+releaseHtml = releaseHtml.replace(reviewedTabLine, 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([]);');
 const salesHubMarker = "const KEY='bokan_sales_hub_v1', RAW=[";
 const salesHubIndex = releaseHtml.indexOf(salesHubMarker);
 assert.ok(salesHubIndex >= 0 && releaseHtml.indexOf(salesHubMarker, salesHubIndex + salesHubMarker.length) < 0, 'Expected exactly one seeded sales-hub RAW array.');
@@ -91,9 +122,9 @@ const salesHubEnd = expressionEnd(releaseHtml, salesHubStart);
 releaseHtml = releaseHtml.slice(0, salesHubStart) + '[]' + releaseHtml.slice(salesHubEnd);
 
 const fixtureBindings = [
-  { module: 'prime-v45-enterprise-layer', values: { master: '{customers:[], suppliers:[], products:[]}', stock: '[]', pay: '[]' } },
-  { module: 'prime-v41-governance-reporting', values: { seedA: '[]', seedD: '[]' } },
-  { module: 'prime-v50-integrated-controls', values: { recSeed: '[]', closeSeed: '[]', seedTx: '[]', docs: '[]' } },
+  { module: 'blackrock-v45-enterprise-layer', values: { master: '{customers:[], suppliers:[], products:[]}', stock: '[]', pay: '[]' } },
+  { module: 'blackrock-v41-governance-reporting', values: { seedA: '[]', seedD: '[]' } },
+  { module: 'blackrock-v50-integrated-controls', values: { recSeed: '[]', closeSeed: '[]', seedTx: '[]', docs: '[]' } },
   { module: 'bokan-sales-hub-v1', values: { seedReps: '[]' } }
 ];
 let sanitizedFixtureBindingCount = 0;
@@ -168,7 +199,7 @@ assert.notEqual(releaseHtml,source,'Release artifact must be sanitized, not a co
 mkdirSync(dirname(outputPath),{recursive:true});
 mkdirSync(dirname(outputConfigPath),{recursive:true});
 writeFileSync(outputPath,releaseHtml);
-writeFileSync(outputConfigPath,releaseConfig);
+writeFileSync(outputConfigPath,releaseConfigForOutput);
 const securityHeaders = ['/*','  X-Content-Type-Options: nosniff','  X-Frame-Options: DENY','  Referrer-Policy: strict-origin-when-cross-origin','  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()',''].join('\n');
 writeFileSync(outputHeadersPath,securityHeaders);
 console.log('Built sanitized release candidate: '+outputPath);

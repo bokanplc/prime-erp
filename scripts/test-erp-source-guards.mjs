@@ -34,7 +34,7 @@ const autoBoot = source.slice(autoStart, autoEnd);
 assert.match(autoBoot, /app-view['"]\)\?\.classList\.add\(['"]hidden['"]\)/, 'Startup failure must hide the app.');
 assert.doesNotMatch(autoBoot, /app-view['"]\)\?\.classList\.remove\(['"]hidden['"]\)/, 'Startup failure must never reveal the app.');
 
-assert.match(source, /window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/, 'No module is currently approved for production.');
+assert.match(source, /window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\["companyhandbook","saleshub","users"\]\)/, 'Only the handbook, Supabase-backed Sales CRM and secure administrator user invitation workspace are source-reviewed; other modules remain blocked.');
 assert.match(source, /window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function\(cfg\)/, 'Production activation must require an explicit reviewed module.');
 assert.match(source, /const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(_bokanCfg\) && window\.supabase/, 'Core Supabase client must require full readiness and a reviewed enabled module.');
 assert.match(source, /return \(map\[role\]\|\|\[\]\)\.filter\(tab=>enabled\.has\(tab\)\)/, 'Production navigation must intersect role permissions with the reviewed module allowlist.');
@@ -48,7 +48,7 @@ assert.match(source, /async function bokanProdSaveBanks\(key,banks\)\{ if\(bokan
 assert.match(source, /if\(bokanProdEnabled\(\)\)\{row\.querySelectorAll\('input'\)\.forEach\(el=>\{el\.readOnly=true/, 'Production proforma bank details must be read-only to prevent edited bank-account snapshots.');
 assert.match(source, /https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2\.118\.0/, 'Supabase browser SDK must be pinned to an exact reviewed version.');
 assert.match(source, /escapeHtml\(row\.next_action_type \|\| 'Follow-up'\)/, 'CRM follow-up activity type must be HTML-escaped before rendering.');
-assert.match(source, /escapeHtml\(row\.customers\?\.customer_name \|\| ''\)/, 'CRM customer name must be HTML-escaped before rendering.');
+assert.match(source, /escapeHtml\(nameById\[row\.customer_id\]\|\|''\)/, 'CRM customer name must be HTML-escaped before rendering.');
 assert.match(source, /escapeHtml\(row\.next_action_date \|\| ''\)/, 'CRM follow-up date must be HTML-escaped before rendering.');
 assert.match(source, /id="bokan-v61-production-auth"/, 'Production authentication bridge must exist.');
 assert.match(source, /async function deleteProforma\(id\) \{ if \(_bokanProdConfigured\) \{ alert\('Proforma deletion is disabled in production until an audited void workflow is implemented\.'\); return; \}/, 'Production proforma deletion must remain blocked until an audited void workflow exists.');
@@ -68,7 +68,40 @@ assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Produ
 assert.match(source, /Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
 assert.match(source, /if\(DEV_BYPASS\|\|window\.BOKAN_PRODUCTION_AUTH\?\.enabled\)\{gate\.style\.display='none';top\.style\.display='none';return;\}/, 'The legacy API login overlay must be hidden only for local/staging review or when Supabase Auth is enabled.');
 assert.match(source, /const productionAllowed = window\.BOKAN_PRODUCTION_AUTH\?\.enabled && window\.__BOKAN_PROD_ALLOWED_TABS instanceof Set/, 'Production navigation must use the authenticated role allowlist.');
-assert.match(source, /sales_manager:\['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma'/, 'Sales managers must be allowed to create proformas.');
-assert.match(source, /sales:\['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');
+assert.match(source, /sales_manager:\['sales','saleshub','saleslifecycle','report','salestargets','proformarequest','proforma'/, 'Sales managers must be allowed to create proformas.');
+assert.match(source, /sales:\['sales','saleshub','saleslifecycle','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');
 
 console.log('PASS: BOKAN ERP source startup guards and staging entry-point parity.');
+
+const financeStart = source.indexOf('<script id="bokan-v65-finance-production">');
+const financeEnd = source.indexOf('<script id="bokan-v66-hr-production">', financeStart);
+const finance = source.slice(financeStart, financeEnd);
+assert.match(finance, /async function createJournal\(\)\s*\{\s*throw new Error/);
+assert.match(finance, /async function recordReceipt\(\)\s*\{\s*throw new Error/);
+assert.match(finance, /async function recordPayment\(\)\s*\{\s*throw new Error/);
+assert.match(finance, /Customer receipts are recorded in Peachtree/i);
+assert.match(finance, /supplier payments are recorded in Peachtree/i);
+
+assert.match(source, /const canAssign=typeof currentRole!=='undefined'&&\['owner','admin','manager','management'\]\.includes\(currentRole\)/, 'CRM owner assignment must allow the actual Supabase owner/admin/manager role names.');
+
+assert.doesNotMatch(source.match(/function roleTabs\(role\)[\s\S]*?\n  \}/)?.[0]||'', /salescalllog/, 'Legacy local-storage-only call log must not be exposed as a production CRM workspace; use the Supabase-backed Sales CRM activity timeline.');
+
+
+const inviteFunction = readFileSync('supabase/functions/invite-blackrock-member/index.ts', 'utf8');
+assert.match(source, /id="bokan-invite-form"/, 'Admin workspace must include the BlackRock employee invitation form.');
+assert.match(source, /functions\.invoke\('invite-blackrock-member'/, 'Employee invitations must use the secured Edge Function.');
+assert.match(inviteFunction, /auth\.getUser\(\)/, 'Invitation endpoint must authenticate the caller.');
+assert.match(inviteFunction, /\["owner", "admin"\]\.includes\(membership\.role\)/, 'Only BlackRock owners and administrators may invite users.');
+assert.match(inviteFunction, /from\("company_memberships"\)\.upsert/, 'Invited employees must receive an active company-scoped membership.');
+assert.match(inviteFunction, /SUPABASE_SERVICE_ROLE_KEY/, 'Service-role access must remain server-side in the Edge Function.');
+assert.match(inviteFunction, /invitedUser\.id === caller\.id/, 'Administrators must not be able to demote their own account through the invitation endpoint.');
+const loadUsersStart = source.indexOf('async function loadUsers() {');
+const loadUsersEnd = source.indexOf('async function updateRole', loadUsersStart);
+const productionUsers = source.slice(loadUsersStart, loadUsersEnd);
+assert.match(productionUsers, /from\('company_memberships'\)/, 'Admin user register must be based on company memberships.');
+assert.match(productionUsers, /eq\('is_active', true\)/, 'Admin user register must exclude inactive company memberships.');
+assert.match(productionUsers, /eq\('company_id', companyId\)/, 'Admin user register must be scoped to the active BlackRock company.');
+assert.match(productionUsers, /from\('profiles'\)/, 'Admin user register must display employee profile details.');
+assert.match(source.slice(source.indexOf('async function updateRole'), source.indexOf('COMPANY_SETTINGS_KEY')), /if \(_bokanProdConfigured\) \{ alert\('Production role changes are disabled/, 'Production roles must not be editable through the legacy profile-only control.');
+
+assert.match(inviteFunction, /new Set\(\["sales", "staff", "manager", "accountant", "inventory", "hr"\]\)/, 'The invitation role allowlist must be restricted to non-admin employee roles.');
