@@ -8708,6 +8708,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
       const notes=prompt('Order notes (optional):','')||'';
       await api().createSalesOrder({customer_id:customer.id,product_description:product,product_id:selected?.id||null,quantity:qty,unit,unit_price:price,due_date:eta||null,notes});
       await refresh();
+      if(window.BOKAN_SUPPLY_PRODUCTION?.enabled?.())await window.BOKAN_SUPPLY_PRODUCTION.refresh();
     });
     hub.updateOrder=(id,status)=>run('Sales order stage update',async()=>{
       const stages={'Customer Order':'customer_order','Confirmed':'confirmed','Stock Check':'stock_check','Stock Reserved':'stock_reserved','Ready Delivery':'ready_delivery','Dispatched':'dispatched','Delivered':'delivered','Customer Confirmation':'customer_confirmation','After-Sales':'after_sales','Cancelled':'cancelled'};
