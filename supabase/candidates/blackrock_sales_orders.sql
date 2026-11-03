@@ -26,6 +26,7 @@ create or replace function public.create_blackrock_operational_sales_order(
   p_quantity numeric,
   p_unit text,
   p_unit_price numeric,
+  p_product_id uuid default null,
   p_due_date date default null,
   p_notes text default null
 )
@@ -63,6 +64,10 @@ begin
      or p_unit_price is null or p_unit_price<0 then
     raise exception 'Product, unit, positive quantity and non-negative unit price are required';
   end if;
+  if p_product_id is not null and not exists (
+    select 1 from public.products p
+    where p.id=p_product_id and p.company_id=p_company_id and p.is_active=true
+  ) then raise exception 'Selected product is not active in the selected company'; end if;
 
   v_total := round(p_quantity*p_unit_price,2);
   v_number := 'SO-' || to_char(current_date,'YYYYMMDD') || '-' ||
@@ -80,10 +85,10 @@ begin
   returning * into v_document;
 
   insert into public.sales_document_items(
-    company_id,document_id,description,quantity,unit,unit_price,
+    company_id,document_id,product_id,description,quantity,unit,unit_price,
     tax_rate,line_subtotal,line_tax,line_total
   ) values (
-    p_company_id,v_document.id,v_description,p_quantity,v_unit,p_unit_price,
+    p_company_id,v_document.id,p_product_id,v_description,p_quantity,v_unit,p_unit_price,
     0,v_total,0,v_total
   );
 
@@ -91,7 +96,7 @@ begin
 end;
 $$;
 
-revoke all on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,date,text)
+revoke all on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,uuid,date,text)
   from public, anon;
 grant execute on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,date,text)
   to authenticated;
