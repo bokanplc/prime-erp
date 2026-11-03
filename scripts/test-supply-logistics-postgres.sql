@@ -214,6 +214,7 @@ JOIN public.supply_shipments sh ON sh.company_id=c.id
 JOIN public.delivery_orders d ON d.company_id=c.id
 JOIN public.customers cu ON cu.company_id=c.id
 JOIN public.suppliers su ON su.company_id=c.id;
+GRANT SELECT ON public.expense_test_ids TO authenticated;
 
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY expenses_test_select_member ON public.expenses
