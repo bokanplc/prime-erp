@@ -41,6 +41,8 @@ declare
   v_description text := trim(coalesce(p_product_description,''));
   v_unit text := trim(coalesce(p_unit,''));
   v_number text;
+  v_delivery_number text;
+  v_customer_name text;
   v_total numeric(16,2);
 begin
   if v_user is null then raise exception 'Authentication required'; end if;
@@ -56,10 +58,10 @@ begin
     where m.company_id=p_company_id and m.user_id=v_user and m.is_active=true
       and m.role in ('owner','admin','manager','sales','staff')
   ) then raise exception 'Role is not permitted to create operational sales orders'; end if;
-  if not exists (
-    select 1 from public.customers c
-    where c.id=p_customer_id and c.company_id=p_company_id
-  ) then raise exception 'Customer does not belong to the selected company'; end if;
+  select c.name into v_customer_name
+  from public.customers c
+  where c.id=p_customer_id and c.company_id=p_company_id;
+  if v_customer_name is null then raise exception 'Customer does not belong to the selected company'; end if;
   if v_description='' or v_unit='' or p_quantity is null or p_quantity<=0
      or p_unit_price is null or p_unit_price<0 then
     raise exception 'Product, unit, positive quantity and non-negative unit price are required';
@@ -90,6 +92,20 @@ begin
   ) values (
     p_company_id,v_document.id,p_product_id,v_description,p_quantity,v_unit,p_unit_price,
     0,v_total,0,v_total
+  );
+
+  -- Create the linked fulfilment control in the same transaction.
+  -- This records demand only; it does not reserve or issue stock.
+  v_delivery_number := 'DO-' || to_char(current_date,'YYYYMMDD') || '-' ||
+                       upper(substr(replace(gen_random_uuid()::text,'-',''),1,8));
+  insert into public.delivery_orders(
+    company_id,delivery_no,customer_name,sales_document_id,
+    required_quantity,allocated_quantity,delivery_status,
+    promised_delivery_date,notes,created_by
+  ) values (
+    p_company_id,v_delivery_number,v_customer_name,v_document.id,
+    p_quantity,0,'Stock Check',p_due_date,
+    nullif(trim(coalesce(p_notes,'')),''),v_user
   );
 
   return v_document;
