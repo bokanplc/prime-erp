@@ -235,4 +235,105 @@ grant update, delete on public.expense_allocations to authenticated;
 -- Keep existing table and records; remove dangerous non-DML grants only.
 revoke truncate, references, trigger on public.expenses from authenticated;
 
+
+-- Immutable allocation change history: corrections remain reviewable.
+create table if not exists public.expense_allocation_events (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null,
+  expense_id uuid not null,
+  allocation_id uuid not null,
+  event_type text not null check (event_type in ('INSERT','UPDATE','DELETE')),
+  actor_user_id uuid default auth.uid() references auth.users(id) on delete set null,
+  old_record jsonb,
+  new_record jsonb,
+  occurred_at timestamptz not null default now(),
+  constraint expense_allocation_events_expense_company_fk
+    foreign key (company_id, expense_id)
+    references public.expenses(company_id, id) on delete restrict
+);
+create index if not exists expense_allocation_events_company_expense_idx
+  on public.expense_allocation_events(company_id, expense_id, occurred_at desc);
+
+create or replace function private.audit_expense_allocation_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  if tg_op = 'INSERT' then
+    insert into public.expense_allocation_events
+      (company_id, expense_id, allocation_id, event_type, actor_user_id, new_record)
+    values
+      (new.company_id, new.expense_id, new.id, tg_op, (select auth.uid()), to_jsonb(new));
+    return new;
+  elsif tg_op = 'UPDATE' then
+    insert into public.expense_allocation_events
+      (company_id, expense_id, allocation_id, event_type, actor_user_id, old_record, new_record)
+    values
+      (new.company_id, new.expense_id, new.id, tg_op, (select auth.uid()), to_jsonb(old), to_jsonb(new));
+    return new;
+  else
+    insert into public.expense_allocation_events
+      (company_id, expense_id, allocation_id, event_type, actor_user_id, old_record)
+    values
+      (old.company_id, old.expense_id, old.id, tg_op, (select auth.uid()), to_jsonb(old));
+    return old;
+  end if;
+end;
+$;
+
+drop trigger if exists expense_allocations_audit on public.expense_allocations;
+create trigger expense_allocations_audit
+after insert or update or delete on public.expense_allocations
+for each row execute function private.audit_expense_allocation_change();
+
+alter table public.expense_allocation_events enable row level security;
+drop policy if exists expense_allocation_events_select_manager on public.expense_allocation_events;
+create policy expense_allocation_events_select_manager
+on public.expense_allocation_events for select to authenticated
+using (
+  private.has_company_membership(company_id)
+  and exists (
+    select 1 from public.company_memberships m
+    where m.company_id = expense_allocation_events.company_id
+      and m.user_id = (select auth.uid()) and m.is_active
+      and m.role in ('owner','admin','manager')
+  )
+);
+revoke all on public.expense_allocation_events from anon, authenticated;
+grant select on public.expense_allocation_events to authenticated;
+
+-- One row per expense, including costs that have not yet been allocated.
+create or replace view public.expense_allocation_summary
+with (security_invoker = true)
+as
+select
+  e.company_id,
+  e.id as expense_id,
+  e.expense_date,
+  e.cost_phase,
+  e.operational_category,
+  e.amount as source_amount,
+  coalesce(sum(a.allocated_amount), 0)::numeric(16,2) as allocated_amount,
+  greatest(e.amount - coalesce(sum(a.allocated_amount), 0), 0)::numeric(16,2) as unallocated_amount,
+  e.currency_code,
+  e.review_status,
+  case
+    when e.review_status <> 'reviewed' then 'review_pending'
+    when coalesce(sum(a.allocated_amount), 0) = 0 then 'unallocated'
+    when coalesce(sum(a.allocated_amount), 0) < e.amount then 'partially_allocated'
+    else 'fully_allocated'
+  end as allocation_status
+from public.expenses e
+left join public.expense_allocations a
+  on a.company_id = e.company_id and a.expense_id = e.id
+group by e.company_id, e.id, e.expense_date, e.cost_phase,
+         e.operational_category, e.amount, e.currency_code, e.review_status;
+
+grant select on public.expense_allocation_summary to authenticated;
+
+revoke all on function private.enforce_expense_allocation_limit() from public, anon, authenticated;
+revoke all on function private.audit_expense_allocation_change() from public, anon, authenticated;
+
 commit;
