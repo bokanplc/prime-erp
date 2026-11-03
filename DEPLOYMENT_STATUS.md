@@ -781,3 +781,13 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - Connected the CRM order list to persisted sales documents and line items; the UI now shows order reference, customer, product, quantity, unit price, order value, stage and ETA. Status changes update the company-scoped sales document rather than browser local storage.
 - Synchronized `staging/index.html` byte-for-byte with the complete V6.7 source after the changes.
 - The RPC remains a candidate and has **not** been applied to live Supabase. The order UI is not production-enabled until the candidate is validated and the required migration is applied through the reviewed deployment process. No production flags, live data, main branch or production deployment were changed.
+
+
+### 2026-11-03 CRM sales-order persistence
+
+- The V6.7 CRM sales hub now creates sales orders through `create_blackrock_operational_sales_order`, lists persisted `sales_documents` with their line items, and exposes the operational fulfilment stages from customer order through delivery and after-sales.
+- Stage changes now use the narrow `update_blackrock_operational_sales_order_stage` RPC with active-company and role checks; the browser no longer performs a broad direct update to the sales document row.
+- Added candidate SQL at `supabase/candidates/blackrock_sales_orders.sql`; it is not applied to live Supabase.
+- Extended the disposable supply/logistics PostgreSQL harness to test sales order document+line persistence, initial totals/stage, authenticated stage changes, invalid stage rejection and cross-company creation rejection.
+- Added source-level release-readiness assertions for the persistent sales-order workflow. The company-scoped `products` read is included in the audited table baseline after verifying its live membership-only SELECT policy.
+- Latest Vercel preview deployment for the branch is READY; GitHub Actions is being rerun after the sales-order and operational-cost test updates. Production remains disabled.
