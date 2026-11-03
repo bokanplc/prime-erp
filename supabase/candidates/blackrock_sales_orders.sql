@@ -128,7 +128,7 @@ returns public.sales_documents
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_user uuid := (select auth.uid());
   v_document public.sales_documents;
@@ -159,7 +159,7 @@ begin
   if not found then raise exception 'Sales order not found in the selected company'; end if;
   return v_document;
 end;
-$;
+$$;
 
 revoke all on function public.update_blackrock_operational_sales_order_stage(uuid,uuid,text)
   from public, anon;
