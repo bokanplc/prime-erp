@@ -22,6 +22,8 @@ assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['companyhandbook'] }), true
 
 assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['saleshub'] }), true,
   'The Supabase-backed Sales CRM Command Center should pass the source review gate when explicitly enabled.');
+assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['operationalcosts'] }), false,
+  'Operational costs must remain disabled until the candidate migration is applied and browser-tested.');
 assert.equal(currentGate({ ENABLED_PRODUCTION_TABS: ['salescalllog'] }), false,
   'The legacy browser-local Customer Call Log must remain outside the production allowlist.');
 
