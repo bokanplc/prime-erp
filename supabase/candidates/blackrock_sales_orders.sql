@@ -145,7 +145,7 @@ begin
     where m.company_id=p_company_id and m.user_id=v_user and m.is_active=true
       and m.role in ('owner','admin','manager','sales','staff')
   ) then raise exception 'Role is not permitted to update operational sales order stages'; end if;
-  if p_stage not in (
+  if p_stage is null or p_stage not in (
     'customer_order','confirmed','stock_check','stock_reserved',
     'ready_delivery','dispatched','delivered','customer_confirmation',
     'after_sales','cancelled'
