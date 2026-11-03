@@ -4330,6 +4330,61 @@ body:not(.force-admin) #proforma-admin-queue{ }
   </div>
 </section>
 
+
+<section id="tab-operationalcosts" class="tab-panel hidden">
+  <div class="page-head mb-5">
+    <div class="page-eyebrow">BlackRock Operations · Cost Control</div>
+    <h1>Operational Costs &amp; Allocations</h1>
+    <p>Record transaction-related costs, review them, and allocate approved costs to the relevant purchase, shipment, product, sales order or delivery. This is not a customer receipt or supplier payment ledger.</p>
+  </div>
+  <div id="oc-status" class="rounded border bg-white p-3 mb-4 text-sm">Checking secure operational-cost configuration…</div>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-5">
+    <form id="oc-expense-form" class="rounded-lg border bg-white p-4 space-y-3">
+      <h2 class="font-bold text-base">Record an operational cost</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">Date<input id="oc-date" type="date" required class="block w-full border rounded p-2 mt-1"></label>
+        <label class="text-xs font-semibold">Amount (ETB)<input id="oc-amount" type="number" min="0.01" step="0.01" required class="block w-full border rounded p-2 mt-1"></label>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">Cost phase<select id="oc-phase" class="block w-full border rounded p-2 mt-1"><option value="procurement">Procurement / landed cost</option><option value="sales_fulfillment">Direct sales fulfilment</option><option value="overhead">Overhead</option><option value="unclassified">Unclassified</option></select></label>
+        <label class="text-xs font-semibold">Category<input id="oc-category" required maxlength="80" placeholder="Factory quality assistance, dealer referral…" class="block w-full border rounded p-2 mt-1"></label>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">Paid to / recipient<input id="oc-recipient" maxlength="160" class="block w-full border rounded p-2 mt-1" placeholder="Person or business"></label>
+        <label class="text-xs font-semibold">Location<input id="oc-location" maxlength="160" class="block w-full border rounded p-2 mt-1" placeholder="Factory, route, branch…"></label>
+      </div>
+      <label class="block text-xs font-semibold">Business purpose<input id="oc-purpose" required maxlength="500" class="block w-full border rounded p-2 mt-1" placeholder="Why this cost was incurred"></label>
+      <label class="block text-xs font-semibold">Reference / supporting document<input id="oc-reference" maxlength="160" class="block w-full border rounded p-2 mt-1" placeholder="Receipt, trip, shipment or document reference"></label>
+      <button type="submit" class="rounded bg-slate-800 text-white px-4 py-2 text-xs font-bold">Save cost for review</button>
+      <p class="text-xs text-slate-500">New entries remain pending review and are not included in approved cost reporting.</p>
+    </form>
+    <form id="oc-allocation-form" class="rounded-lg border bg-white p-4 space-y-3 hidden">
+      <h2 class="font-bold text-base">Allocate a reviewed cost</h2>
+      <p class="text-xs text-slate-500">Allocation is restricted to company owners, administrators and managers. The database rejects allocations above the source expense amount and cross-company links.</p>
+      <label class="block text-xs font-semibold">Reviewed cost<select id="oc-expense" required class="block w-full border rounded p-2 mt-1"></select></label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">Allocation target<select id="oc-target-type" class="block w-full border rounded p-2 mt-1"><option value="purchase_document_id">Purchase document</option><option value="shipment_id">Inbound shipment</option><option value="product_id">Product</option><option value="sales_document_id">Sales order / document</option><option value="delivery_order_id">Delivery order</option><option value="customer_id">Customer</option><option value="supplier_id">Supplier</option></select></label>
+        <label class="text-xs font-semibold">Target record<select id="oc-target-id" required class="block w-full border rounded p-2 mt-1"></select></label>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="text-xs font-semibold">Amount to allocate (ETB)<input id="oc-allocation-amount" type="number" min="0.01" step="0.01" required class="block w-full border rounded p-2 mt-1"></label>
+        <label class="text-xs font-semibold">Allocation basis<select id="oc-method" class="block w-full border rounded p-2 mt-1"><option value="manual">Manual</option><option value="quantity">Quantity</option><option value="weight">Weight</option><option value="volume">Volume</option><option value="purchase_value">Purchase value</option><option value="sales_value">Sales value</option></select></label>
+      </div>
+      <label class="block text-xs font-semibold">Allocation note<input id="oc-allocation-note" maxlength="500" class="block w-full border rounded p-2 mt-1"></label>
+      <button type="submit" class="rounded bg-slate-800 text-white px-4 py-2 text-xs font-bold">Save allocation</button>
+    </form>
+  </div>
+  <div class="rounded-lg border bg-white overflow-hidden">
+    <div class="px-4 py-3 border-b flex items-center justify-between gap-3"><div><h2 class="font-bold">Operational cost register</h2><p class="text-xs text-slate-500">Pending, reviewed, rejected and unallocated balances remain visible for control.</p></div><button type="button" id="oc-refresh" class="border rounded px-3 py-2 text-xs font-bold">Refresh</button></div>
+    <div class="overflow-auto">
+      <table class="w-full min-w-[980px] text-xs">
+        <thead class="bg-slate-50"><tr><th class="p-2 text-left">Date</th><th class="p-2 text-left">Category / Purpose</th><th class="p-2 text-left">Phase</th><th class="p-2 text-right">Amount</th><th class="p-2 text-right">Allocated</th><th class="p-2 text-right">Unallocated</th><th class="p-2 text-left">Review</th><th class="p-2 text-left">Action</th></tr></thead>
+        <tbody id="oc-rows"><tr><td colspan="8" class="p-5 text-center text-slate-500">Live cost register will appear after secure production setup.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <section id="tab-companyhandbook" class="tab-panel hidden">
   <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
     <div><div class="page-eyebrow">People &amp; Governance · Official Company Document</div><h2 class="text-2xl font-bold text-[#10284A]">BlackRock Company Policy Handbook</h2><p class="text-sm text-slate-500 mt-1">General Company Policy Handbook · Version 1.0 (Executive Master Edition) · Effective March 1, 2026</p></div>
@@ -4562,13 +4617,13 @@ let currentRole = null;
 let currentDeptTabs = null;
 
 const ROLE_TABS = {
-  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','supplytower','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
+  admin:         ['overview','sales','salescalllog','operationalcosts','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','supplytower','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
   data_entry:    ['dataentry','repository'],
-  accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
+  accounting:    ['overview','stockreport','dataentry','expenseledger','operationalcosts','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
   inventory:     ['stockreport','dataentry','repository','procurement','inventorycontrol'],
   sales:         ['sales','saleshub','saleslifecycle','salestargets','tripcost','visitreport','proformarequest'],
   sales_manager: ['sales','saleshub','saleslifecycle','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline'],
-  management:    ['overview','stockreport','expenseledger','hrreports','budgetcontrol','reportscenter'],
+  management:    ['overview','stockreport','expenseledger','operationalcosts','hrreports','budgetcontrol','reportscenter'],
   hr:            ['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','payroll']
 };
 
@@ -4608,6 +4663,7 @@ const NAV_TREE = [
   { id: 'datacontrol', label: 'Data Integrity & Backup Control', indent: true },
 
   { id: 'expenseledger', label: 'Expense Ledger' },
+  { id: 'operationalcosts', label: 'Operational Costs & Allocations', indent: true },
   { type: 'label', text: 'Sales' },
   { id: 'sales',         label: 'Sales CRM', indent: true },
   { id: 'report',        label: 'Sales Report', indent: true },
@@ -9233,12 +9289,12 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   function hideGate(){ if(gate) gate.style.display='none'; }
   function roleTabs(role){
     const map={
-      admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
-      management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
+      admin:(typeof ROLE_TABS!=='undefined' ? [...ROLE_TABS.admin,'operationalcosts'] : ['operationalcosts']),
+      management:['overview','stockreport','expenseledger','operationalcosts','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
       sales_manager:['sales','saleshub','saleslifecycle','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
       inventory:['overview','stockreport','procurement','inventorycontrol','supplytower','reportscenter','dataentry'],
       sales:['sales','saleshub','saleslifecycle','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
-      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
+      accounting:['overview','stockreport','dataentry','expenseledger','operationalcosts','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
     }; if(window.BOKAN_CONFIG?.DEMO_REVIEW_MODE===true && !_bokanProdConfigured) return (typeof ROLE_TABS!=='undefined' && Array.isArray(ROLE_TABS.admin)) ? [...ROLE_TABS.admin] : (map.admin||[]); const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
@@ -9622,7 +9678,149 @@ async function enter(user){
   document.addEventListener('bokan:company-context-changed',function(){if(prod())refresh();});
 })();
 </script>
-\n<script id="bokan-v65-finance-production">(function(){
+\n
+<script id="bokan-operational-costs-production">
+(function(){
+  'use strict';
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const enabled=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&window.BOKAN_CRM_PRODUCTION_MODE===true);
+  const db=()=>{if(!enabled())throw new Error('Operational cost production schema is not enabled.');return auth().client;};
+  const company=()=>auth().profile.company_id;
+  const role=()=>String(auth()?.profile?.role||'');
+  const canReview=()=>['admin','management','accounting'].includes(role());
+  const canAllocate=()=>['admin','management'].includes(role());
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  let expenses=[],targets={};
+  function status(message,isError){const e=document.getElementById('oc-status');if(e){e.textContent=message;e.className='rounded border p-3 mb-4 text-sm '+(isError?'bg-red-50 text-red-800':'bg-white text-slate-700');}}
+  async function requireUser(){const {data,error}=await db().auth.getUser();if(error)throw error;if(!data?.user)throw new Error('Sign in with an authorized BlackRock account first.');return data.user;}
+  async function loadTargets(){
+    const specs={
+      purchase_document_id:['purchase_documents','id,document_number','document_number'],
+      shipment_id:['supply_shipments','id,shipment_no,factory_name','shipment_no'],
+      product_id:['products','id,name,sku','name'],
+      sales_document_id:['sales_documents','id,document_number','document_number'],
+      delivery_order_id:['delivery_orders','id,delivery_no,customer_name','delivery_no'],
+      customer_id:['customers','id,name','name'],
+      supplier_id:['suppliers','id,name','name']
+    };
+    const key=document.getElementById('oc-target-type')?.value||'purchase_document_id';
+    const spec=specs[key];if(!spec)return;
+    const {data,error}=await db().from(spec[0]).select(spec[1]).eq('company_id',company()).order(spec[2]||'id');
+    if(error)throw error;
+    targets[key]=data||[];
+    const select=document.getElementById('oc-target-id');
+    if(select)select.innerHTML='<option value="">Select target record</option>'+targets[key].map(row=>{
+      const label=key==='shipment_id'?row.shipment_no+' · '+row.factory_name:
+        key==='product_id'?(row.name+(row.sku?' · '+row.sku:'')):
+        key==='delivery_order_id'?row.delivery_no+' · '+row.customer_name:
+        (row.document_number||row.name||row.id);
+      return '<option value="'+esc(row.id)+'">'+esc(label)+'</option>';
+    }).join('');
+  }
+  async function refresh(){
+    if(!enabled())return;
+    try{
+      await requireUser();
+      const [expenseResult,summaryResult]=await Promise.all([
+        db().from('expenses').select('id,company_id,expense_date,currency_code,cost_phase,operational_category,amount,review_status,recipient_name,business_purpose,source_reference').eq('company_id',company()).order('expense_date',{ascending:false}),
+        db().from('expense_allocation_summary').select('expense_id,allocated_amount,unallocated_amount,allocation_status').eq('company_id',company())
+      ]);
+      if(expenseResult.error)throw expenseResult.error;
+      if(summaryResult.error)throw summaryResult.error;
+      const summary=new Map((summaryResult.data||[]).map(x=>[x.expense_id,x]));
+      expenses=(expenseResult.data||[]).map(x=>({...x,summary:summary.get(x.id)||{allocated_amount:0,unallocated_amount:x.amount,allocation_status:'unallocated'}}));
+      render();
+      status('Live BlackRock operational costs · '+expenses.length+' records · '+expenses.filter(x=>x.review_status==='pending').length+' pending review.',false);
+    }catch(error){
+      status('Operational cost data could not be loaded: '+(error.message||error),true);
+      const rows=document.getElementById('oc-rows');if(rows)rows.innerHTML='<tr><td colspan="8" class="p-5 text-center text-red-700">No sample data is shown. Check the operational-cost schema and your company access.</td></tr>';
+    }
+  }
+  function render(){
+    const rows=document.getElementById('oc-rows');if(!rows)return;
+    rows.innerHTML=expenses.map(x=>{
+      const s=x.summary||{};
+      const actions=[];
+      if(canReview()&&x.review_status==='pending')actions.push('<button type="button" data-review="'+esc(x.id)+'" class="border rounded px-2 py-1 font-bold">Review</button>');
+      if(canAllocate()&&x.review_status==='reviewed'&&Number(s.unallocated_amount)>0)actions.push('<button type="button" data-allocate="'+esc(x.id)+'" class="border rounded px-2 py-1 font-bold">Allocate</button>');
+      return '<tr class="border-t"><td class="p-2">'+esc(x.expense_date)+'</td><td class="p-2"><strong>'+esc(x.operational_category||x.category)+'</strong><div class="text-slate-500">'+esc(x.business_purpose||'')+'</div><div class="text-slate-400">'+esc(x.recipient_name||'')+'</div></td><td class="p-2">'+esc(x.cost_phase)+'</td><td class="p-2 text-right">'+money(x.amount)+'</td><td class="p-2 text-right">'+money(s.allocated_amount)+'</td><td class="p-2 text-right">'+money(s.unallocated_amount)+'</td><td class="p-2">'+esc(x.review_status)+'</td><td class="p-2 whitespace-nowrap">'+actions.join(' ')+'</td></tr>';
+    }).join('')||'<tr><td colspan="8" class="p-5 text-center text-slate-500">No operational costs have been recorded.</td></tr>';
+    const expenseSelect=document.getElementById('oc-expense');
+    if(expenseSelect){
+      const eligible=expenses.filter(x=>x.review_status==='reviewed'&&Number(x.summary?.unallocated_amount)>0);
+      expenseSelect.innerHTML=eligible.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.expense_date)+' · '+esc(x.operational_category)+' · '+money(x.summary.unallocated_amount)+' available</option>').join('')||'<option value="">No reviewed costs with an unallocated balance</option>';
+      expenseSelect.disabled=!eligible.length;
+    }
+    const allocationForm=document.getElementById('oc-allocation-form');
+    if(allocationForm)allocationForm.classList.toggle('hidden',!canAllocate());
+  }
+  async function saveExpense(form){
+    const user=await requireUser();
+    const amount=Number(document.getElementById('oc-amount').value);
+    const category=document.getElementById('oc-category').value.trim();
+    const purpose=document.getElementById('oc-purpose').value.trim();
+    if(!category||!purpose||!Number.isFinite(amount)||amount<=0)throw new Error('Enter a category, business purpose and positive amount.');
+    const row={
+      company_id:company(),created_by:user.id,category,amount,description:purpose,
+      location:document.getElementById('oc-location').value.trim()||null,
+      paid_by:null,expense_date:document.getElementById('oc-date').value||new Date().toISOString().slice(0,10),
+      currency_code:'ETB',cost_phase:document.getElementById('oc-phase').value,
+      operational_category:category,recipient_name:document.getElementById('oc-recipient').value.trim()||null,
+      business_purpose:purpose,source_reference:document.getElementById('oc-reference').value.trim()||null,
+      review_status:'pending'
+    };
+    const {error}=await db().from('expenses').insert(row);if(error)throw error;
+    form.reset();document.getElementById('oc-date').value=new Date().toISOString().slice(0,10);
+    await refresh();
+  }
+  async function reviewExpense(id){
+    if(!canReview())throw new Error('Only management or accounting can review an operational cost.');
+    const note=prompt('Review note (optional):','');if(note===null)return;
+    const {data,error}=await db().from('expenses').update({review_status:'reviewed',review_note:note}).eq('id',id).eq('company_id',company()).select('id').single();
+    if(error)throw error;if(!data)throw new Error('Expense not found in the active company.');
+    await refresh();
+  }
+  async function allocateExpense(form){
+    if(!canAllocate())throw new Error('Only an owner, administrator or manager can allocate operational costs.');
+    const user=await requireUser();
+    const expenseId=document.getElementById('oc-expense').value;
+    const targetType=document.getElementById('oc-target-type').value;
+    const targetId=document.getElementById('oc-target-id').value;
+    const amount=Number(document.getElementById('oc-allocation-amount').value);
+    if(!expenseId||!targetId||!Number.isFinite(amount)||amount<=0)throw new Error('Select a reviewed cost, a target record and a positive allocation amount.');
+    const row={company_id:company(),expense_id:expenseId,allocated_amount:amount,allocation_method:document.getElementById('oc-method').value,allocation_note:document.getElementById('oc-allocation-note').value.trim()||null,created_by:user.id};
+    row[targetType]=targetId;
+    const {error}=await db().from('expense_allocations').insert(row);if(error)throw error;
+    form.reset();await loadTargets();await refresh();
+  }
+  function bind(){
+    const expenseForm=document.getElementById('oc-expense-form');
+    const allocationForm=document.getElementById('oc-allocation-form');
+    expenseForm?.addEventListener('submit',async event=>{event.preventDefault();try{await saveExpense(expenseForm);}catch(error){status(error.message||String(error),true);}});
+    allocationForm?.addEventListener('submit',async event=>{event.preventDefault();try{await allocateExpense(allocationForm);}catch(error){status(error.message||String(error),true);}});
+    document.getElementById('oc-target-type')?.addEventListener('change',()=>loadTargets().catch(error=>status(error.message||String(error),true)));
+    document.getElementById('oc-refresh')?.addEventListener('click',refresh);
+    document.getElementById('oc-rows')?.addEventListener('click',async event=>{
+      const review=event.target.closest('[data-review]'),allocate=event.target.closest('[data-allocate]');
+      try{
+        if(review)await reviewExpense(review.dataset.review);
+        if(allocate){
+          const id=allocate.dataset.allocate;
+          const select=document.getElementById('oc-expense');if(select)select.value=id;
+          document.getElementById('oc-allocation-form')?.scrollIntoView({behavior:'smooth',block:'center'});
+        }
+      }catch(error){status(error.message||String(error),true);}
+    });
+    document.getElementById('oc-date').value=new Date().toISOString().slice(0,10);
+  }
+  window.BOKAN_OPERATIONAL_COSTS_PRODUCTION={enabled,refresh,loadTargets};
+  document.addEventListener('DOMContentLoaded',()=>{bind();if(enabled()){loadTargets().catch(error=>status(error.message||String(error),true));refresh();}});
+  document.addEventListener('bokan:company-context-changed',()=>{if(enabled())refresh();});
+})();
+</script>
+
+<script id="bokan-v65-finance-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
   const companyId=()=>window.BOKAN_PRODUCTION_AUTH?.profile?.company_id||null;
   const actorId=()=>window.BOKAN_PRODUCTION_AUTH?.user?.id||null;
