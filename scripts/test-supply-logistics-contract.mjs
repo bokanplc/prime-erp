@@ -62,6 +62,14 @@ assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review
 assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
 assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\["companyhandbook"\]\)/,'Only the non-transactional handbook is source-reviewed; Supply & Logistics must remain outside the production allowlist.');
+assert.match(source,/id="exp-phase"/,'The V6.7 cost form must capture procurement, sales fulfilment or overhead phase.');
+assert.match(source,/id="exp-recipient"/,'The V6.7 cost form must capture the actual recipient where known.');
+assert.match(source,/id="exp-purpose"/,'The V6.7 cost form must capture a clear business purpose.');
+assert.match(source,/id="exp-reference"/,'The V6.7 cost form must capture a purchase, shipment, vehicle or trip reference.');
+assert.match(source,/cost_phase: document\.getElementById\('exp-phase'\)\.value/,'Cost phase must be persisted with each operational cost.');
+assert.match(source,/business_purpose: purpose/,'Business purpose must be persisted with each operational cost.');
+assert.match(source,/review_status: existing\?\.review_status \|\| 'pending'/,'New costs must enter the review queue without silently approving them.');
+assert.doesNotMatch(source,/paid_by: document\.getElementById\('exp-paidby'\)/,'The operational cost form must not capture payment/settlement data.');
 assert.match(operationalCosts,/add column if not exists cost_phase text/,'Operational costs must distinguish procurement, sales fulfilment and overhead.');
 assert.match(operationalCosts,/add column if not exists recipient_name text/,'Incidental cost records must capture the actual recipient where known.');
 assert.match(operationalCosts,/add column if not exists business_purpose text/,'Incidental cost records must capture a clear business purpose.');
