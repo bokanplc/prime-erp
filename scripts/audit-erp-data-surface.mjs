@@ -20,7 +20,7 @@ const expectedTables = [
   'crm_opportunities','custom_terms','customer_billings','customer_logs','customers',
   'delivery_orders','disciplinary_actions','documents','employees','expenses','fiscal_periods',
   'journal_entries','leave_requests','notifications','per_diem_requests','performance_reviews',
-  'profiles','products','proformas','purchase_documents','sales_documents','sales_payments','sales_targets',
+  'profiles','products','proformas','purchase_documents','sales_documents','sales_targets',
   'stock_entries','stock_ledger','supplier_payments','supply_shipments','trip_plans','visit_reports'
 ].sort();
 
