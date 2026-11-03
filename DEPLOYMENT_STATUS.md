@@ -830,3 +830,13 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 2. Finish operational-cost allocation UI and reporting, using approved/reviewed costs only; distinguish merchandise gross profit, landed gross profit, and direct contribution without treating all period purchases as COGS.
 3. Reconcile stock opening balances, purchases/receiving, transfers, swaps/borrowing/replenishment, sales fulfilment, returns and delivery evidence against the full V6.7 source.
 4. Keep excluded accounting/payment/payroll workflows disabled; resolve security-advisor items and complete authenticated role/tenant, private Storage, browser save/reload and recovery tests before any employee release.
+
+
+### 2026-11-03 verified migration milestone
+
+- GitHub Actions run **41634730475** passed all three jobs: source guards, disposable schema smoke, and live-company CRM/Proforma/Supply & Logistics PostgreSQL smoke. This included the operational expense allocation candidate, sales-order document/line creation, stage RPC, RLS, allocation totals, and cross-company sales-order rejection.
+- The source-readiness inventory now has source-controlled DDL for all 43 directly referenced table names, including the live company-scoped product catalogue. The release-gate regression test and sanitized-release build both passed in that run.
+- Added product selection to delivery controls. The selected product is derived from the linked persisted sales-order line where available, checked against any manual selection, and saved as the same-company `delivery_orders.product_id`.
+- Added disposable SQL coverage rejecting a cross-company product on a delivery control, and hardened the product catalogue candidate against authenticated TRUNCATE/REFERENCES/TRIGGER privileges.
+- Vercel preview for the latest branch commit is READY. The product-linked delivery additions and final SQL assertion are newer than the last fully green GitHub Actions run; their next CI confirmation is still pending.
+- No live Supabase schema or records were changed. No production environment flags were enabled, no merge to `main`, and no employee release occurred.
