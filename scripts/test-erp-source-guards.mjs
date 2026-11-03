@@ -81,3 +81,5 @@ assert.match(finance, /async function recordReceipt\(\)\s*\{\s*throw new Error/)
 assert.match(finance, /async function recordPayment\(\)\s*\{\s*throw new Error/);
 assert.match(finance, /Customer receipts are recorded in Peachtree/i);
 assert.match(finance, /supplier payments are recorded in Peachtree/i);
+
+assert.match(source, /const canAssign=typeof currentRole!=='undefined'&&\['owner','admin','manager','management'\]\.includes\(currentRole\)/, 'CRM owner assignment must allow the actual Supabase owner/admin/manager role names.');
