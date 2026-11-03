@@ -8642,8 +8642,8 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     if(!enabled()||busy)return;
     busy=true;
     try{
-      const [customers,activities,opportunities,tasks,team]=await Promise.all([
-        api().listMyCustomers(),api().listActivities(),api().listOpportunities(),api().listAfterSalesTasks(),api().listCompanyRepresentatives()
+      const [customers,activities,opportunities,tasks,team,salesOrders]=await Promise.all([
+        api().listMyCustomers(),api().listActivities(),api().listOpportunities(),api().listAfterSalesTasks(),api().listCompanyRepresentatives(),api().listSalesOrders()
       ]);
       reps=team||[];
       const accounts=(customers||[]).map(mapCustomer);
@@ -8652,7 +8652,9 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
       activitiesUi.forEach(x=>{const a=accountById.get(x.accountId);if(a&&!a.nextAction&&x.nextDate)a.nextAction=x.nextDate});
       const opportunitiesUi=(opportunities||[]).map(x=>({id:x.id,accountId:x.customer_id,customer:accountById.get(x.customer_id)?.name||'Customer',product:x.product_description,qty:Number(x.estimated_quantity||0),value:Number(x.estimated_value||0),requiredDate:dateOnly(x.required_date),stage:x.stage,nextDate:dateOnly(x.next_action_date),competitor:x.competitor||'',notes:x.notes||'',createdAt:x.created_at}));
       const afterSalesUi=(tasks||[]).map(x=>({id:x.id,accountId:x.customer_id,customer:accountById.get(x.customer_id)?.name||'Customer',date:dateOnly(x.due_date),type:x.task_type,note:x.notes||'',done:/completed|closed|done/i.test(x.status),status:x.status}));
-      window.bokanSalesHub?.hydrateProductionState({accounts,reps:reps.map(r=>({id:r.user_id,name:r.label,entity:'BlackRock Investment PLC',status:'Active'})),activities:activitiesUi,opportunities:opportunitiesUi,orders:[],afterSales:afterSalesUi,reassignments:[]});
+      const stageLabels={customer_order:'Customer Order',confirmed:'Confirmed',stock_check:'Stock Check',stock_reserved:'Stock Reserved',ready_delivery:'Ready Delivery',dispatched:'Dispatched',delivered:'Delivered',customer_confirmation:'Customer Confirmation',after_sales:'After-Sales',cancelled:'Cancelled'};
+      const ordersUi=(salesOrders||[]).map(x=>{const item=(x.sales_document_items||[])[0]||{};return{id:x.id,documentNumber:x.document_number,accountId:x.customer_id,customer:x.customers?.name||accountById.get(x.customer_id)?.name||'Customer',product:item.description||'',qty:Number(item.quantity||0),unit:item.unit||'pcs',unitPrice:Number(item.unit_price||0),total:Number(x.grand_total||0),eta:dateOnly(x.due_date),status:stageLabels[x.operational_stage]||'Customer Order',createdAt:x.created_at};});
+      window.bokanSalesHub?.hydrateProductionState({accounts,reps:reps.map(r=>({id:r.user_id,name:r.label,entity:'BlackRock Investment PLC',status:'Active'})),activities:activitiesUi,opportunities:opportunitiesUi,orders:ordersUi,afterSales:afterSalesUi,reassignments:[]});
     }catch(err){console.error('Sales CRM production refresh failed',err);alert('Sales workspace could not load saved BlackRock records: '+(err.message||err));}
     finally{busy=false}
   }
@@ -8688,8 +8690,26 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
       await api().updateAfterSalesTask(id,{status:'completed',completed_at:new Date().toISOString()});
       await refresh();
     });
-    hub.addOrder=()=>alert('Sales orders are not yet connected to the approved server-side order workflow. No local-only order was created.');
-    hub.updateOrder=()=>alert('Order status changes are disabled until the server-side sales order workflow is connected.');
+    hub.addOrder=()=>run('Sales order save',async()=>{
+      const names=[...accountById.values()].map(a=>a.name);
+      if(!names.length)throw new Error('Create a customer account before recording an order.');
+      const name=prompt('Select existing customer by exact name:\\n'+names.join('\\n'),names[0]);if(!name)return;
+      const customer=[...accountById.values()].find(a=>a.name.trim().toLowerCase()===name.trim().toLowerCase());
+      if(!customer)throw new Error('Customer not found. Use an existing BlackRock CRM account.');
+      const product=prompt('Product / item description:','');if(!product)return;
+      const qty=Number(prompt('Quantity:','1'));if(!Number.isFinite(qty)||qty<=0)throw new Error('Quantity must be greater than zero.');
+      const unit=prompt('Unit (pcs, pack, bundle, etc.):','pcs')||'pcs';
+      const price=Number(prompt('Agreed unit selling price (ETB):','0'));if(!Number.isFinite(price)||price<0)throw new Error('Unit selling price must be zero or greater.');
+      const eta=prompt('Expected delivery date (YYYY-MM-DD):',addDays(7))||'';
+      const notes=prompt('Order notes (optional):','')||'';
+      await api().createSalesOrder({customer_id:customer.id,product_description:product,quantity:qty,unit,unit_price:price,due_date:eta||null,notes});
+      await refresh();
+    });
+    hub.updateOrder=(id,status)=>run('Sales order stage update',async()=>{
+      const stages={'Customer Order':'customer_order','Confirmed':'confirmed','Stock Check':'stock_check','Stock Reserved':'stock_reserved','Ready Delivery':'ready_delivery','Dispatched':'dispatched','Delivered':'delivered','Customer Confirmation':'customer_confirmation','After-Sales':'after_sales','Cancelled':'cancelled'};
+      const stage=stages[status];if(!stage)throw new Error('Unsupported order stage.');
+      await api().updateSalesOrderStage(id,stage);await refresh();
+    });
     document.addEventListener('submit',async e=>{
       const form=e.target;
       if(form?.id==='sh-customer-form'){
@@ -9332,6 +9352,38 @@ async function enter(user){
   const activityFields=['customer_id','assigned_user_id','activity_type','activity_at','notes','customer_feedback','next_action_type','next_action_date','escalated','escalate_reason','escalate_note','status','deal_value','units_sold','product_type'];
   const opportunityFields=['customer_id','owner_user_id','product_description','estimated_quantity','estimated_value','currency_code','required_date','stage','next_action','next_action_date','competitor','notes'];
   const taskFields=['customer_id','owner_user_id','task_type','notes','due_date','status','completed_at'];
+  const orderStageValues=['customer_order','confirmed','stock_check','stock_reserved','ready_delivery','dispatched','delivered','customer_confirmation','after_sales','cancelled'];
+  async function listSalesOrders(){
+    await requireSession();
+    const {data,error}=await db().from('sales_documents')
+      .select('*,sales_document_items(*),customers(name)')
+      .eq('company_id',company()).eq('document_type','sales_order')
+      .order('document_date',{ascending:false}).order('created_at',{ascending:false});
+    if(error)throw error;
+    return data||[];
+  }
+  async function createSalesOrder(payload){
+    await requireSession();
+    const {data,error}=await db().rpc('create_blackrock_operational_sales_order',{
+      p_company_id:company(),p_customer_id:payload.customer_id,
+      p_product_description:payload.product_description,p_quantity:payload.quantity,
+      p_unit:payload.unit||'pcs',p_unit_price:payload.unit_price,
+      p_due_date:payload.due_date||null,p_notes:payload.notes||null
+    });
+    if(error)throw error;
+    return data;
+  }
+  async function updateSalesOrderStage(id,stage){
+    await requireSession();
+    if(!orderStageValues.includes(stage))throw new Error('Unsupported operational order stage.');
+    const {data,error}=await db().from('sales_documents')
+      .update({operational_stage:stage,updated_at:new Date().toISOString()})
+      .eq('id',id).eq('company_id',company()).eq('document_type','sales_order')
+      .select().single();
+    if(error)throw error;
+    if(!data)throw new Error('Sales order not found in the selected company.');
+    return data;
+  }
   async function listMyCustomers(){
     await requireSession();const c=company();
     const [customers,assignments]=await Promise.all([
@@ -9458,6 +9510,7 @@ async function enter(user){
     enabled, listMyCustomers, createCustomer, updateCustomer, listActivities, addActivity,
     assignCustomer, listOpportunities, createOpportunity, updateOpportunity,
     listAfterSalesTasks, createAfterSalesTask, updateAfterSalesTask,
+    listSalesOrders, createSalesOrder, updateSalesOrderStage,
     listCompanyRepresentatives, loadCRMControl, deactivateSalesperson
   };
 })();
