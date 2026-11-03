@@ -259,7 +259,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if tg_op = 'INSERT' then
     insert into public.expense_allocation_events
@@ -281,7 +281,7 @@ begin
     return old;
   end if;
 end;
-$;
+$$;
 
 drop trigger if exists expense_allocations_audit on public.expense_allocations;
 create trigger expense_allocations_audit
