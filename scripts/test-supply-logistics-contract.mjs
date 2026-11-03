@@ -25,7 +25,7 @@ assert.match(bridge,/st-purchase-document/,'Inbound shipment form must expose pu
 assert.match(bridge,/st-sales-document/,'Delivery form must expose sales-document selection.');
 assert.match(bridge,/purchase_document_id:purchaseDocumentId/,'Selected purchase order must be saved with the shipment.');
 assert.match(bridge,/sales_document_id:salesDocumentId/,'Selected sales source must be saved with the delivery.');
-assert.match(bridge,/populateSourceSelectors\(purchaseOrders,salesDocuments\)/,'Eligible source documents must populate the V6.7 selectors.');
+assert.match(bridge,/populateSourceSelectors\(purchaseOrders,salesDocuments,products\)/,'Eligible source documents must populate the V6.7 selectors.');
 assert.match(bridge,/auth\(\)\?\.profile\?\.company_id/,'Company scope must come from the authenticated company membership profile.');
 assert.match(bridge,/eq\('company_id',c\.id\)/,'Every live list query must be filtered by active company UUID.');
 assert.match(bridge,/selectedCode!==c\.code/,'UI company selection must not override the authenticated company context.');
