@@ -4566,8 +4566,8 @@ const ROLE_TABS = {
   data_entry:    ['dataentry','repository'],
   accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
   inventory:     ['stockreport','dataentry','repository','procurement','inventorycontrol'],
-  sales:         ['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest'],
-  sales_manager: ['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline'],
+  sales:         ['sales','saleshub','saleslifecycle','salestargets','tripcost','visitreport','proformarequest'],
+  sales_manager: ['sales','saleshub','saleslifecycle','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline'],
   management:    ['overview','stockreport','expenseledger','hrreports','budgetcontrol','reportscenter'],
   hr:            ['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','payroll']
 };
@@ -4690,7 +4690,7 @@ const NAV_TREE = [
 ];
 
 const DEPARTMENTS = [
-  { id: 'sales',      label: 'Sales Department',        desc: 'CRM, trip planning, cost requests & proforma',     tabs: ['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','tripcost','visitreport','proformarequest','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower'] },
+  { id: 'sales',      label: 'Sales Department',        desc: 'CRM, trip planning, cost requests & proforma',     tabs: ['sales','saleshub','saleslifecycle','report','salestargets','tripcost','visitreport','proformarequest','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower'] },
   { id: 'dataentry',  label: 'Data Entry',               desc: 'Log stock movements, expenses & upload documents', tabs: ['dataentry','repository'] },
   { id: 'finance',    label: 'Finance & Accounting',     desc: 'Stock report, expense ledger, billing, letters',   tabs: ['overview','mqreport','stockreport','expenseledger','dataentry','letters','billing','repository','chartaccounts','vatcontrol','financialstatements','periodclose','procurementflow','inventoryalerts','financeproduction'] },
   { id: 'hr',         label: 'Human Resources',          desc: 'Employee records, leave, performance, discipline', tabs: ['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports', 'leave','payrollprep','performance','hrproduction'] },
@@ -9235,9 +9235,9 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
     const map={
       admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
       management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
-      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
+      sales_manager:['sales','saleshub','saleslifecycle','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
       inventory:['overview','stockreport','procurement','inventorycontrol','supplytower','reportscenter','dataentry'],
-      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
+      sales:['sales','saleshub','saleslifecycle','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
       accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
       hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
       data_entry:['dataentry','repository']
