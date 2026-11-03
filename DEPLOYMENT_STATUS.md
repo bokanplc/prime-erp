@@ -853,3 +853,12 @@ Required rebuild:
 - The current operational-cost candidate schema is additive and includes expense review states, allocation ceilings, tenant-safe source FKs, immutable allocation events and a security-invoker allocation summary view. However, it is not applied to live Supabase and there is no allocation UI/report yet.
 
 Live-data baseline checked during this continuation: `purchase_documents` currently contains 15 rows and `sales_documents` 25 rows, while `expenses`, `stock_entries`, `stock_ledger`, `supply_shipments` and `delivery_orders` each contain zero rows. This is why the profit report cannot yet be validated against real inventory/expense history. Preserve the 15 purchase and 25 sales documents; do not infer missing stock movements or costs from them without a documented receiving/fulfilment reconciliation.
+
+
+## Operational finance boundary and allocation authorization (2026-11-03)
+- Re-reviewed the live Supabase expense, purchasing, sales, stock movement, shipment and delivery contracts. The current live operational data still does not contain the stock-movement/receiving/fulfilment history needed to calculate actual COGS or landed margin.
+- Hardened the candidate operational-cost allocation migration: creating an allocation now requires an active owner/admin/manager membership, not merely any company member. Existing manager-only update/delete controls, company-scoped foreign keys, allocation ceilings, RLS, audit events and security-invoker summary remain in place.
+- Extended the isolated PostgreSQL test to prove a non-manager inventory user cannot create an allocation while a manager can, and that allocations cannot exceed the source expense or cross company boundaries. Candidate migration remains unapplied to live Supabase.
+- Enforced the user's Peachtree boundary in the V6.7 production finance bridge: general-ledger journal posting, customer receipt recording and supplier payment recording now fail closed with explicit Peachtree instructions. The finance bridge status text identifies the ERP as operational-reporting-only for these workflows.
+- Synced the full reviewed V6.7 HTML and staging entry point byte-for-byte and added regression/static-audit checks for the finance posting restrictions. These checks still require a completed GitHub Actions run; a READY Vercel preview is not production approval.
+- No customer receipts, supplier payments, journal entries, expense allocations or new stock movements were written to live data. No production deployment or main-branch change was made.
