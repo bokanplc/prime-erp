@@ -803,3 +803,11 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - The candidate SQL remains unapplied to live Supabase; the order/delivery workflow is not production-enabled. Inventory allocation, stock movement posting, proof of delivery and returns remain separate implementation steps.
 
 - Extended the candidate with a nullable `delivery_orders.product_id` and a composite `(company_id, product_id)` foreign key to `products(company_id, id)`. The automatically created delivery demand therefore carries the exact catalogue item; the live delivery table now displays that linked product. Live Supabase confirms the required company-composite product key already exists. The FK and UI query remain paired with the unapplied candidate migration.
+
+
+### 2026-11-03 latest integration checkpoint
+
+- Vercel generated a READY branch preview for commit `35897bc75526ddc03e2647374eaa25e5c9410e38` on `feature/blackrock-only-v67`. This confirms the preview build completed; it is not a production approval or employee release.
+- Verified that `staging/index.html` exactly matches the full V6.7 source after the CRM-to-delivery changes; candidate SQL dollar-quote delimiters and the corrected RPC grant signature are consistent.
+- Live Supabase was queried read-only to confirm the existing sales-document and delivery-order RLS policies allow the intended sales/staff insert path, delivery controls are company-linked, and products already have the composite company/product key needed by the candidate FK.
+- No candidate SQL was applied to live Supabase. No live records, production flags, `main` branch, or production deployment were changed.
