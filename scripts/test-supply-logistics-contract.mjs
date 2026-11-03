@@ -33,6 +33,12 @@ assert.match(bridge,/planned_quantity:qty/,'Inbound quantity must be persisted.'
 assert.match(bridge,/purchasing_entity:selectedEntity/,'The selected purchasing/coordinating entity must be preserved separately from the legal-owner company scope.');
 assert.match(bridge,/selectedEntity!=='BOKAN Coordinated'&&selectedEntity!==c\.code/,'BOKAN coordination must not be silently treated as PRIME legal ownership.');
 assert.match(bridge,/required_quantity:required,allocated_quantity:allocated/,'Delivery quantities must be persisted and validated.');
+assert.match(source,/id="st-product"/,'Delivery control must offer the company product catalogue.');
+assert.match(bridge,/async function listActiveProducts\(\)[\s\S]{0,400}from\('products'\)[\s\S]{0,250}eq\('company_id',c\.id\)/,'Delivery product choices must come from the active company catalogue.');
+assert.match(bridge,/product_id:productId/,'Delivery controls must persist the linked product ID.');
+assert.match(bridge,/orderProductId&&productId&&productId!==orderProductId/,'A manually selected delivery product must match the linked sales-order line.');
+assert.match(bridge,/sales_document_items\(product_id,description,quantity,unit\)/,'Delivery source documents must expose their persisted sales-order product lines.');
+
 assert.match(bridge,/async function listOpenSalesDemand\(\)[\s\S]{0,1000}from\('sales_documents'\)[\s\S]{0,300}eq\('company_id',c\.id\)[\s\S]{0,300}eq\('document_type','sales_order'\)/,'Open sales demand must be read from company-scoped persisted sales orders.');
 assert.match(bridge,/const demandValue=\(salesDemand\|\|\[\]\)\.reduce\(\(sum,x\)=>sum\+Number\(x\.grand_total\|\|0\),0\)/,'Sales-demand value must be calculated from persisted sales-order totals.');
 assert.match(bridge,/const demandRows=document\.getElementById\('st-demand-rows'\)[\s\S]{0,500}salesDemand/,'Supply & Logistics must display the persisted sales-order demand rows.');
