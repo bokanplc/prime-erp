@@ -769,3 +769,13 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - New entries are marked pending review. Expense ledger and CSV output now show operational cost fields and review state. Deletion errors are surfaced so linked allocation history is not silently lost.
 - Synchronized `staging/index.html` byte-for-byte with the full source and added static UI contract checks.
 - The form now expects the additive operational-cost candidate schema. It remains preview-only until the candidate is validated and a reviewed live migration, Auth/RLS and browser workflow are completed.
+
+
+### 2026-11-03 CRM sales-order persistence implementation
+
+- Connected the full V6.7 Sales & CRM Command Center's previously disabled order actions to the existing company-scoped `sales_documents` and `sales_document_items` model.
+- Added candidate RPC SQL at `supabase/candidates/blackrock_sales_orders.sql`. It creates a sales order and its line item atomically, validates active company membership and allowed operational roles, verifies the customer belongs to the same company, and stores quantity, unit, agreed selling price, order value, requested delivery date and notes.
+- Added a distinct operational order stage on sales documents: Customer Order, Confirmed, Stock Check, Stock Reserved, Ready Delivery, Dispatched, Delivered, Customer Confirmation, After-Sales and Cancelled. The prior “Waiting Payment” stage was removed to respect the owner's explicit exclusion of payment workflows.
+- Connected the CRM order list to persisted sales documents and line items; the UI now shows order reference, customer, product, quantity, unit price, order value, stage and ETA. Status changes update the company-scoped sales document rather than browser local storage.
+- Synchronized `staging/index.html` byte-for-byte with the complete V6.7 source after the changes.
+- The RPC remains a candidate and has **not** been applied to live Supabase. The order UI is not production-enabled until the candidate is validated and the required migration is applied through the reviewed deployment process. No production flags, live data, main branch or production deployment were changed.
