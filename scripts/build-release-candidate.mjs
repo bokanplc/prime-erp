@@ -62,7 +62,7 @@ if (deploymentBranch === 'deploy/secure-staging' || deploymentBranch === 'featur
   process.exit(0);
 }
 
-assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([])'),'No module is source-approved for production in the release candidate.');
+assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook"]);'),'Only the non-transactional company handbook may be source-reviewed; all operational modules remain blocked.');
 const replacements={
   blackrock_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
