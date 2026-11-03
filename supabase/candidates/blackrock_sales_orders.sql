@@ -98,7 +98,7 @@ $$;
 
 revoke all on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,uuid,date,text)
   from public, anon;
-grant execute on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,date,text)
+grant execute on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,uuid,date,text)
   to authenticated;
 
 commit;
