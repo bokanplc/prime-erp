@@ -170,6 +170,7 @@ CREATE TABLE public.purchase_documents (
 CREATE TABLE public.sales_documents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL REFERENCES public.companies(id),
+  customer_id uuid,
   document_type text NOT NULL DEFAULT 'sales_order',
   document_number text NOT NULL,
   status text NOT NULL DEFAULT 'draft',
@@ -185,6 +186,9 @@ CREATE TABLE public.sales_documents (
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(company_id,id)
 );
+ALTER TABLE public.sales_documents
+  ADD CONSTRAINT sales_documents_customer_company_fk
+  FOREIGN KEY(company_id,customer_id) REFERENCES public.customers(company_id,id) ON DELETE RESTRICT;
 CREATE TABLE public.sales_document_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL,
@@ -253,8 +257,9 @@ INSERT INTO public.suppliers(company_id,name)
 SELECT c.id, c.code || ' Test Supplier' FROM public.companies c;
 INSERT INTO public.purchase_documents(company_id,document_number)
 SELECT c.id, c.code || '-PO-001' FROM public.companies c;
-INSERT INTO public.sales_documents(company_id,document_number)
-SELECT c.id, c.code || '-SO-001' FROM public.companies c;
+INSERT INTO public.sales_documents(company_id,customer_id,document_number)
+SELECT c.id,cu.id,c.code || '-SO-001'
+FROM public.companies c JOIN public.customers cu ON cu.company_id=c.id;
 INSERT INTO public.expenses(company_id,category,amount,description,created_by)
 SELECT c.id,'direct cost',100,'CI operational expense',u.id
 FROM public.companies c
