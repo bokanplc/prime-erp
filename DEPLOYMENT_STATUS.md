@@ -750,3 +750,13 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - Live source tables already have company-composite keys for purchase documents, sales documents, products and customers. Supply shipments and delivery orders need verified company-composite unique keys before safe composite allocation references can be added.
 - No live database schema/data, grants, RLS, Auth settings, production flags, merge or deployment was changed during this audit.
 - Next implementation work is a tested additive operational-cost/allocation design, inventory-cost-flow reconciliation, removal of tax/accounting calculations from enabled operational reports, and end-to-end tests. Do not claim landed gross profit or direct contribution is complete yet.
+
+
+### 2026-11-03 operational-cost candidate implementation
+
+- Added `supabase/candidates/blackrock_operational_costs.sql`: additive operational expense metadata, company-scoped allocation links to purchase documents, shipments, products, sales documents, delivery orders, customers and suppliers; serialized allocation-total enforcement; immutable allocation event history; and an unallocated/partial/full allocation summary view.
+- Added isolated PostgreSQL integration coverage to `scripts/test-supply-logistics-postgres.sql` for allocation limits, cross-company FK rejection, per-company RLS visibility, manager audit events, and removal of dangerous non-DML expense grants. This runs only in the disposable CI database, not live Supabase.
+- Added static contract checks to the Supply & Logistics source guard.
+- Corrected the source-reviewed module allowlist to JSON-compatible syntax and synchronized the full V6.7 staging HTML entry; the production gate now recognizes only the non-transactional company handbook as source-reviewed. Operational CRM/sales/stock/cost modules remain blocked from production enablement.
+- Vercel preview for commit `60382443319f162242e1254f8a1e13d4e58da851` reports READY. GitHub Actions run 41631484561 is still executing at this checkpoint; the new operational-cost SQL test has not yet been confirmed passing.
+- No live Supabase DDL/data, production environment flags, main branch, or production domain was changed.
