@@ -8796,10 +8796,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     const rows=calls.map(c=>{const a=sales?.accounts?.find(x=>norm(x.name)===norm(c.name));return {Customer:c.name,Phone:c.phone||'',Contact:c.contact||'',Salesperson:(a?.owner||c.rep||'Unassigned'),Entity:a?.entity||'BlackRock Investment PLC',Status:a?.status||'',Priority:a?.priority||'',NextFollowUp:a?.nextAction||c.today||c.tomorrow||'',Notes:a?.notes||c.notes||''}});
     const escHtml=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const table='<table border="1"><tr>'+Object.keys(rows[0]||{Customer:'',Salesperson:'',NextFollowUp:'',Notes:''}).map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+Object.values(r).map(v=>'<td>'+escHtml(v)+'</td>').join('')+'</tr>').join('')+'</table>';
-    const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'
-
-
-</body></html>';
+    const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'</body></html>';
     const blob=new Blob([html],{type:'application/vnd.ms-excel'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='BOKAN_Sales_Follow_Up_Report.xls';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   function hook(){
