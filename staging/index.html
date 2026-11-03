@@ -3032,7 +3032,16 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <div class="bg-white rounded-lg border border-[#D4D7DC] shadow-sm p-6">
         <div class="page-eyebrow">Administration</div>
         <h2 class="font-bold text-base mb-4 text-[#393A3D]">Users &amp; Roles</h2>
-        <p class="text-xs text-[#6B6C72] mb-4">Create new logins in Supabase Dashboard → Authentication → Users. New accounts default to "data_entry" — change their role below.</p>
+        <p class="text-xs text-[#6B6C72] mb-4">Invite a BlackRock employee by email and assign their company role. Invitations are restricted to the active BlackRock company and cannot grant owner or administrator access.</p>
+        <form id="bokan-invite-form" class="grid grid-cols-1 md:grid-cols-4 gap-2 border rounded-lg p-4 mb-4">
+          <input id="bokan-invite-name" required maxlength="120" placeholder="Employee full name" class="border rounded p-2 text-xs">
+          <input id="bokan-invite-email" required type="email" maxlength="254" placeholder="Work email address" class="border rounded p-2 text-xs">
+          <select id="bokan-invite-role" required class="border rounded p-2 text-xs">
+            <option value="sales">Sales Representative</option><option value="staff">Data Entry</option><option value="manager">Sales Manager</option><option value="accountant">Accounting</option><option value="inventory">Inventory</option><option value="hr">Human Resources</option>
+          </select>
+          <button type="submit" class="rounded bg-slate-800 text-white px-3 py-2 text-xs font-bold">Send invitation</button>
+          <div id="bokan-invite-status" class="md:col-span-4 text-xs text-slate-600">Only an active BlackRock owner or administrator can send invitations.</div>
+        </form>
         <div id="user-list" class="space-y-2 text-xs"></div>
       </div>
     </section>
@@ -9746,6 +9755,40 @@ async function enter(user){
   window.BOKAN_EXPENSE_ALLOCATION_PRODUCTION={enabled:active,refresh,loadTargetOptions};
   document.addEventListener('DOMContentLoaded',()=>{bind();if(active()){loadTargetOptions().catch(error=>say(error.message||String(error),true));refresh();}});
   document.addEventListener('bokan:company-context-changed',()=>{if(active()){loadTargetOptions().catch(error=>say(error.message||String(error),true));refresh();}});
+})();
+</script>
+
+
+<script id="bokan-blackrock-user-invites">
+(function(){
+  'use strict';
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const allowed=()=>window.__BOKAN_PROD_ALLOWED_TABS instanceof Set&&window.__BOKAN_PROD_ALLOWED_TABS.has('users');
+  const active=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&auth()?.profile?.role==='admin'&&allowed());
+  const status=(message,error)=>{const el=document.getElementById('bokan-invite-status');if(el){el.textContent=message;el.className='md:col-span-4 text-xs '+(error?'text-red-700':'text-slate-600');}};
+  document.addEventListener('DOMContentLoaded',()=>{
+    const form=document.getElementById('bokan-invite-form');
+    if(!form)return;
+    form.addEventListener('submit',async event=>{
+      event.preventDefault();
+      if(!active()){status('Invitation is available only to an authenticated BlackRock administrator.',true);return;}
+      const button=form.querySelector('button[type="submit"]');
+      const email=document.getElementById('bokan-invite-email').value.trim().toLowerCase();
+      const full_name=document.getElementById('bokan-invite-name').value.trim();
+      const role=document.getElementById('bokan-invite-role').value;
+      if(!email||!full_name){status('Enter the employee name and email address.',true);return;}
+      button.disabled=true;button.textContent='Sending…';
+      try{
+        const {data,error}=await auth().client.functions.invoke('invite-blackrock-member',{body:{email,full_name,role}});
+        if(error)throw error;
+        if(!data?.success)throw new Error(data?.error||'Invitation could not be completed.');
+        status(data.status==='invited'?'Invitation email sent to '+data.email+'. Access is assigned as '+data.role+'.':'Existing account assigned to BlackRock as '+data.role+'. Ask the employee to sign in with their existing account.',false);
+        form.reset();
+        if(typeof loadUsers==='function')await loadUsers();
+      }catch(error){status(error.message||'Invitation failed. Check the Edge Function and administrator access.',true);}
+      finally{button.disabled=false;button.textContent='Send invitation';}
+    });
+  });
 })();
 </script>
 
