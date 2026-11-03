@@ -287,6 +287,27 @@ GRANT SELECT ON public.expenses TO authenticated;
 
 \ir ../supabase/candidates/blackrock_operational_costs.sql
 
+-- Delivery product links must reject cross-company catalogue items.
+DO $delivery_product_tenant$
+DECLARE
+  v_blackrock_product uuid;
+  v_denied boolean := false;
+BEGIN
+  SELECT product_id INTO v_blackrock_product
+  FROM public.expense_test_ids WHERE company_code='BLACKROCK';
+  BEGIN
+    UPDATE public.delivery_orders
+    SET product_id=v_blackrock_product
+    WHERE delivery_no='DO-PRIME-001';
+  EXCEPTION WHEN foreign_key_violation THEN
+    v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'PRIME delivery control accepted a BLACKROCK product';
+  END IF;
+END
+$delivery_product_tenant$;
+
 -- Sales order creation and operational stage changes use company-scoped persistence.
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
