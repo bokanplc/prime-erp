@@ -79,5 +79,5 @@ const finance = source.slice(financeStart, financeEnd);
 assert.match(finance, /async function createJournal\(\)\s*\{\s*throw new Error/);
 assert.match(finance, /async function recordReceipt\(\)\s*\{\s*throw new Error/);
 assert.match(finance, /async function recordPayment\(\)\s*\{\s*throw new Error/);
-assert.match(finance, /record customer receipts in Peachtree/i);
+assert.match(finance, /Customer receipts are recorded in Peachtree/i);
 assert.match(finance, /supplier payments are recorded in Peachtree/i);
