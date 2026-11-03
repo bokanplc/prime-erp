@@ -129,3 +129,15 @@ Before enabling margin reporting, reconcile how V6.7 stock movements represent r
 6. Run browser tests against a non-production Auth user before any production feature flag is enabled.
 
 **Stop-ship note:** The existing expense screen and current margin/tax reports do not yet satisfy the owner-confirmed scope. The presence of an `expenses` table is not evidence that landed-cost profitability is implemented.
+
+
+## 9. Candidate implementation added (2026-11-03)
+
+A forward-only candidate has now been authored at `supabase/candidates/blackrock_operational_costs.sql`. It adds:
+- Expense date, currency, cost phase, operational category, recipient, purpose, source reference and review status while preserving legacy columns.
+- Company-composite keys and allocation links to purchase documents, shipments, products, sales documents, delivery orders, customers and suppliers.
+- Parent-row locking to prevent concurrent allocations exceeding the source expense amount.
+- Allocation event history and a summary view showing unallocated, partially allocated and fully allocated balances.
+- Company-member reads/inserts, manager-only correction/deletion and removal of non-DML grants on the expense register.
+
+Disposable PostgreSQL integration assertions have been added to `scripts/test-supply-logistics-postgres.sql`; static contract checks were added to `scripts/test-supply-logistics-contract.mjs`. These must pass in GitHub Actions before the candidate is considered validated. The candidate has **not** been applied to live Supabase and the existing V6.7 expense UI has not yet been wired to it.
