@@ -760,3 +760,12 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - Corrected the source-reviewed module allowlist to JSON-compatible syntax and synchronized the full V6.7 staging HTML entry; the production gate now recognizes only the non-transactional company handbook as source-reviewed. Operational CRM/sales/stock/cost modules remain blocked from production enablement.
 - Vercel preview for commit `60382443319f162242e1254f8a1e13d4e58da851` reports READY. GitHub Actions run 41631484561 is still executing at this checkpoint; the new operational-cost SQL test has not yet been confirmed passing.
 - No live Supabase DDL/data, production environment flags, main branch, or production domain was changed.
+
+
+### 2026-11-03 operational cost UI integration
+
+- Updated the full V6.7 Data Entry expense form to capture cost date, procurement/sales-fulfilment/overhead phase, operational cost category, amount, recipient, source reference, location, business purpose and supporting notes.
+- Removed the "Paid By" input from the operational entry workflow; no receipt, supplier payment, bank settlement or payment reconciliation fields were added.
+- New entries are marked pending review. Expense ledger and CSV output now show operational cost fields and review state. Deletion errors are surfaced so linked allocation history is not silently lost.
+- Synchronized `staging/index.html` byte-for-byte with the full source and added static UI contract checks.
+- The form now expects the additive operational-cost candidate schema. It remains preview-only until the candidate is validated and a reviewed live migration, Auth/RLS and browser workflow are completed.
