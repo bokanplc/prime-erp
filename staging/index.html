@@ -1508,6 +1508,30 @@ body:not(.force-admin) #proforma-admin-queue{ }
           </table>
         </div>
       </div>
+    
+      <div id="expense-allocation-panel" class="hidden mt-5 border border-[#D4D7DC] rounded-lg bg-slate-50 p-4">
+        <div class="mb-3"><h3 class="font-bold text-sm">Operational Cost Review &amp; Allocation</h3><p class="text-xs text-slate-600 mt-1">Management reviews incidental costs before allocating them to a purchase, shipment, product, sales document or delivery. Allocations are manager-only and remain subject to company-scoped database controls.</p></div>
+        <div id="expense-allocation-status" class="text-xs mb-3 text-slate-600">Checking cost-allocation configuration…</div>
+        <div id="expense-review-queue" class="mb-4">
+          <h4 class="text-xs font-bold uppercase tracking-wide mb-2">Pending cost review</h4>
+          <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-200"><th class="p-2 text-left">Date</th><th class="p-2 text-left">Cost</th><th class="p-2 text-left">Purpose</th><th class="p-2 text-right">Amount</th><th class="p-2"></th></tr></thead><tbody id="expense-review-rows"></tbody></table></div>
+        </div>
+        <form id="expense-allocation-form" class="hidden border-t border-[#D4D7DC] pt-4 grid grid-cols-1 md:grid-cols-3 gap-2">
+          <h4 class="md:col-span-3 text-xs font-bold uppercase tracking-wide">Allocate a reviewed cost</h4>
+          <select id="expense-allocation-expense" required class="border rounded p-2 text-xs md:col-span-2"></select>
+          <input id="expense-allocation-amount" type="number" min="0.01" step="0.01" required placeholder="Amount to allocate (ETB)" class="border rounded p-2 text-xs">
+          <select id="expense-allocation-target-type" class="border rounded p-2 text-xs"><option value="purchase_document_id">Purchase document</option><option value="shipment_id">Inbound shipment</option><option value="product_id">Product</option><option value="sales_document_id">Sales document / order</option><option value="delivery_order_id">Delivery order</option><option value="customer_id">Customer</option><option value="supplier_id">Supplier</option></select>
+          <select id="expense-allocation-target" required class="border rounded p-2 text-xs md:col-span-2"></select>
+          <select id="expense-allocation-method" class="border rounded p-2 text-xs"><option value="manual">Manual basis</option><option value="quantity">Quantity</option><option value="weight">Weight</option><option value="volume">Volume</option><option value="purchase_value">Purchase value</option><option value="sales_value">Sales value</option></select>
+          <input id="expense-allocation-note" maxlength="500" placeholder="Allocation explanation / note" class="border rounded p-2 text-xs md:col-span-2">
+          <button type="submit" class="rounded bg-slate-800 text-white p-2 text-xs font-bold">Save allocation</button>
+        </form>
+        <div class="border-t border-[#D4D7DC] pt-3 mt-4">
+          <h4 class="text-xs font-bold uppercase tracking-wide mb-2">Allocation balances</h4>
+          <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-200"><th class="p-2 text-left">Date</th><th class="p-2 text-left">Category</th><th class="p-2 text-left">Phase</th><th class="p-2 text-right">Source cost</th><th class="p-2 text-right">Allocated</th><th class="p-2 text-right">Unallocated</th><th class="p-2 text-left">Status</th></tr></thead><tbody id="expense-allocation-rows"></tbody></table></div>
+        </div>
+      </div>
+
     </section>
 
     <!-- ---------- SALES CRM ---------- -->
@@ -9627,6 +9651,103 @@ async function enter(user){
 </script>
 \n
 
+
+
+<script id="bokan-expense-allocation-production">
+(function(){
+  'use strict';
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const allowed=()=>window.__BOKAN_PROD_ALLOWED_TABS instanceof Set&&window.__BOKAN_PROD_ALLOWED_TABS.has('expenseledger');
+  const active=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&allowed());
+  const db=()=>{if(!active())throw new Error('Expense allocation is not enabled for this authenticated role.');return auth().client;};
+  const company=()=>auth().profile.company_id;
+  const role=()=>String(auth()?.profile?.role||'');
+  const canReview=()=>['admin','management','accounting'].includes(role());
+  const canAllocate=()=>['admin','management'].includes(role());
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  let summaries=[],pending=[],targetCache={};
+  function say(msg,error){const e=document.getElementById('expense-allocation-status');if(e){e.textContent=msg;e.className='text-xs mb-3 '+(error?'text-red-700':'text-slate-600');}}
+  async function loadTargetOptions(){
+    const type=document.getElementById('expense-allocation-target-type')?.value||'purchase_document_id';
+    const spec={
+      purchase_document_id:['purchase_documents','id,document_number','document_number'],
+      shipment_id:['supply_shipments','id,shipment_no,factory_name','shipment_no'],
+      product_id:['products','id,name,sku','name'],
+      sales_document_id:['sales_documents','id,document_number','document_number'],
+      delivery_order_id:['delivery_orders','id,delivery_no,customer_name','delivery_no'],
+      customer_id:['customers','id,name','name'],
+      supplier_id:['suppliers','id,name','name']
+    }[type];
+    if(!spec)return;
+    const {data,error}=await db().from(spec[0]).select(spec[1]).eq('company_id',company()).order(spec[2]);
+    if(error)throw error;
+    targetCache[type]=data||[];
+    const select=document.getElementById('expense-allocation-target');
+    if(select)select.innerHTML='<option value="">Select target record</option>'+targetCache[type].map(row=>{
+      const label=type==='shipment_id'?row.shipment_no+' · '+row.factory_name:
+        type==='product_id'?row.name+(row.sku?' · '+row.sku:''):
+        type==='delivery_order_id'?row.delivery_no+' · '+row.customer_name:
+        (row.document_number||row.name||row.id);
+      return '<option value="'+esc(row.id)+'">'+esc(label)+'</option>';
+    }).join('');
+  }
+  async function refresh(){
+    if(!active())return;
+    try{
+      const [summaryResult,expenseResult]=await Promise.all([
+        db().from('expense_allocation_summary').select('expense_id,expense_date,cost_phase,operational_category,source_amount,allocated_amount,unallocated_amount,allocation_status,review_status').eq('company_id',company()).order('expense_date',{ascending:false}),
+        db().from('expenses').select('id,expense_date,operational_category,category,business_purpose,amount,review_status').eq('company_id',company()).eq('review_status','pending').order('expense_date',{ascending:false})
+      ]);
+      if(summaryResult.error)throw summaryResult.error;
+      if(expenseResult.error)throw expenseResult.error;
+      summaries=summaryResult.data||[];pending=expenseResult.data||[];
+      render();
+      say('Live allocation control · '+summaries.length+' costs · '+pending.length+' pending review.',false);
+    }catch(error){say('Allocation controls are unavailable: '+(error.message||error)+'. No sample records are displayed.',true);}
+  }
+  function render(){
+    const reviewRows=document.getElementById('expense-review-rows');
+    if(reviewRows)reviewRows.innerHTML=pending.map(row=>'<tr class="border-t"><td class="p-2">'+esc(row.expense_date)+'</td><td class="p-2">'+esc(row.operational_category||row.category)+'</td><td class="p-2">'+esc(row.business_purpose||'')+'</td><td class="p-2 text-right">'+money(row.amount)+'</td><td class="p-2">'+(canReview()?'<button type="button" data-expense-review="'+esc(row.id)+'" class="border rounded px-2 py-1 font-bold">Approve</button>':'')+'</td></tr>').join('')||'<tr><td colspan="5" class="p-3 text-center text-slate-500">No pending costs.</td></tr>';
+    const rows=document.getElementById('expense-allocation-rows');
+    if(rows)rows.innerHTML=summaries.map(row=>'<tr class="border-t"><td class="p-2">'+esc(row.expense_date)+'</td><td class="p-2">'+esc(row.operational_category)+'</td><td class="p-2">'+esc(row.cost_phase)+'</td><td class="p-2 text-right">'+money(row.source_amount)+'</td><td class="p-2 text-right">'+money(row.allocated_amount)+'</td><td class="p-2 text-right">'+money(row.unallocated_amount)+'</td><td class="p-2">'+esc(row.allocation_status)+'</td></tr>').join('')||'<tr><td colspan="7" class="p-3 text-center text-slate-500">No allocation summary available.</td></tr>';
+    const eligible=summaries.filter(row=>row.review_status==='reviewed'&&Number(row.unallocated_amount)>0);
+    const select=document.getElementById('expense-allocation-expense');
+    if(select)select.innerHTML=eligible.map(row=>'<option value="'+esc(row.expense_id)+'">'+esc(row.expense_date)+' · '+esc(row.operational_category)+' · '+money(row.unallocated_amount)+' available</option>').join('')||'<option value="">No reviewed costs with an unallocated balance</option>';
+    const form=document.getElementById('expense-allocation-form');
+    if(form)form.classList.toggle('hidden',!canAllocate()||!eligible.length);
+  }
+  async function approve(id){
+    if(!canReview())throw new Error('Only management or accounting may approve operational costs.');
+    const note=prompt('Review note (optional):','');if(note===null)return;
+    const {data,error}=await db().from('expenses').update({review_status:'reviewed',review_note:note}).eq('company_id',company()).eq('id',id).select('id').single();
+    if(error)throw error;if(!data)throw new Error('Cost not found in the active company.');
+    await refresh();
+  }
+  async function allocate(form){
+    if(!canAllocate())throw new Error('Only an owner, administrator or manager may allocate operational costs.');
+    const {data:userData,error:userError}=await db().auth.getUser();if(userError)throw userError;
+    const expenseId=document.getElementById('expense-allocation-expense').value;
+    const targetType=document.getElementById('expense-allocation-target-type').value;
+    const targetId=document.getElementById('expense-allocation-target').value;
+    const amount=Number(document.getElementById('expense-allocation-amount').value);
+    if(!expenseId||!targetId||!Number.isFinite(amount)||amount<=0)throw new Error('Select a reviewed cost, target record and positive amount.');
+    const row={company_id:company(),expense_id:expenseId,allocated_amount:amount,allocation_method:document.getElementById('expense-allocation-method').value,allocation_note:document.getElementById('expense-allocation-note').value.trim()||null,created_by:userData.user.id};
+    row[targetType]=targetId;
+    const {error}=await db().from('expense_allocations').insert(row);if(error)throw error;
+    form.reset();await loadTargetOptions();await refresh();
+  }
+  function bind(){
+    document.getElementById('expense-allocation-form')?.addEventListener('submit',async event=>{event.preventDefault();try{await allocate(event.currentTarget);}catch(error){say(error.message||String(error),true);}});
+    document.getElementById('expense-allocation-target-type')?.addEventListener('change',()=>loadTargetOptions().catch(error=>say(error.message||String(error),true)));
+    document.getElementById('expense-review-rows')?.addEventListener('click',async event=>{const button=event.target.closest('[data-expense-review]');if(!button)return;try{await approve(button.dataset.expenseReview);}catch(error){say(error.message||String(error),true);}});
+    document.getElementById('expense-allocation-panel')?.classList.toggle('hidden',!canReview());
+  }
+  window.BOKAN_EXPENSE_ALLOCATION_PRODUCTION={enabled:active,refresh,loadTargetOptions};
+  document.addEventListener('DOMContentLoaded',()=>{bind();if(active()){loadTargetOptions().catch(error=>say(error.message||String(error),true));refresh();}});
+  document.addEventListener('bokan:company-context-changed',()=>{if(active()){loadTargetOptions().catch(error=>say(error.message||String(error),true));refresh();}});
+})();
+</script>
 
 <script id="bokan-v65-finance-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
