@@ -9280,6 +9280,7 @@ function applyProfile(profile,user){
   const sw=document.getElementById('switch-dept-btn');
   if(sw) sw.classList.toggle('hidden',profile.role==='sales'||profile.role==='hr'||profile.role==='accounting'||profile.role==='data_entry');
   const allowed=roleTabs(profile.role);
+  if(!allowed.includes('companyhandbook')) allowed.push('companyhandbook');
   window.__BOKAN_PROD_ALLOWED_TABS=new Set(allowed);
   if(typeof buildTabs==='function') buildTabs();
   if(typeof loadAllForRole==='function'){try{loadAllForRole()}catch(e){console.warn('role loader',e)}}
