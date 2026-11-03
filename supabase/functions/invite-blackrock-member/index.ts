@@ -7,7 +7,7 @@ const corsHeaders = {
   "Content-Type": "application/json"
 };
 
-const allowedRoles = new Set(["sales", "staff", "manager", "accountant", "inventory", "hr", "viewer"]);
+const allowedRoles = new Set(["sales", "staff", "manager", "accountant", "inventory", "hr"]);
 
 function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders });
@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
   let invitedUser: { id: string } | null = null;
   let invitationSent = false;
   const redirectTo = Deno.env.get("APP_SITE_URL");
-  const inviteOptions: Record<string, unknown> = { data: { full_name: fullName } };
+  const inviteOptions: { data: { full_name: string }; redirectTo?: string } = { data: { full_name: fullName } };
   if (redirectTo) inviteOptions.redirectTo = redirectTo;
 
   const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, inviteOptions);
