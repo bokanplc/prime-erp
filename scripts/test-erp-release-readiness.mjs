@@ -92,7 +92,7 @@ try {
     execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{
       cwd:root,encoding:'utf8',stdio:'pipe',
       env:{...process.env,VERCEL_GIT_COMMIT_REF:'main',WORKERS_CI_BRANCH:'',CF_PAGES_BRANCH:'',
-        BOKAN_PRODUCTION_MODE:'true',BOKAN_FULL_ERP_DATA_READY:'true',
+        BOKAN_PRODUCTION_MODE:'true',BOKAN_PRODUCTION_MODE:'true',BOKAN_FULL_ERP_DATA_READY:'true',
         BOKAN_SUPABASE_URL:'https://example.supabase.co',
         BOKAN_SUPABASE_ANON_KEY:'test-publishable-key-for-guard-check',
         BOKAN_ENABLED_PRODUCTION_TABS:'sales'}
