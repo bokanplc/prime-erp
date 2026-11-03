@@ -8696,13 +8696,17 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
       const name=prompt('Select existing customer by exact name:\\n'+names.join('\\n'),names[0]);if(!name)return;
       const customer=[...accountById.values()].find(a=>a.name.trim().toLowerCase()===name.trim().toLowerCase());
       if(!customer)throw new Error('Customer not found. Use an existing BlackRock CRM account.');
-      const product=prompt('Product / item description:','');if(!product)return;
+      const products=await api().listCompanyProducts();
+      const productChoice=prompt('Product / SKU (choose an exact active product or type a custom description):\\n'+products.map(p=>(p.sku?p.sku+' — ':'')+p.name).join('\\n'),'');
+      if(!productChoice)return;
+      const selected=products.find(p=>String(p.name).trim().toLowerCase()===productChoice.trim().toLowerCase()||String(p.sku||'').trim().toLowerCase()===productChoice.trim().toLowerCase());
+      const product=selected?.name||productChoice.trim();
       const qty=Number(prompt('Quantity:','1'));if(!Number.isFinite(qty)||qty<=0)throw new Error('Quantity must be greater than zero.');
-      const unit=prompt('Unit (pcs, pack, bundle, etc.):','pcs')||'pcs';
-      const price=Number(prompt('Agreed unit selling price (ETB):','0'));if(!Number.isFinite(price)||price<0)throw new Error('Unit selling price must be zero or greater.');
+      const unit=prompt('Unit (pcs, pack, bundle, etc.):',selected?.unit||'pcs')||selected?.unit||'pcs';
+      const price=Number(prompt('Agreed unit selling price (ETB):',String(selected?.unit_price??0)));if(!Number.isFinite(price)||price<0)throw new Error('Unit selling price must be zero or greater.');
       const eta=prompt('Expected delivery date (YYYY-MM-DD):',addDays(7))||'';
       const notes=prompt('Order notes (optional):','')||'';
-      await api().createSalesOrder({customer_id:customer.id,product_description:product,quantity:qty,unit,unit_price:price,due_date:eta||null,notes});
+      await api().createSalesOrder({customer_id:customer.id,product_description:product,product_id:selected?.id||null,quantity:qty,unit,unit_price:price,due_date:eta||null,notes});
       await refresh();
     });
     hub.updateOrder=(id,status)=>run('Sales order stage update',async()=>{
@@ -9353,6 +9357,12 @@ async function enter(user){
   const opportunityFields=['customer_id','owner_user_id','product_description','estimated_quantity','estimated_value','currency_code','required_date','stage','next_action','next_action_date','competitor','notes'];
   const taskFields=['customer_id','owner_user_id','task_type','notes','due_date','status','completed_at'];
   const orderStageValues=['customer_order','confirmed','stock_check','stock_reserved','ready_delivery','dispatched','delivered','customer_confirmation','after_sales','cancelled'];
+  async function listCompanyProducts(){
+    await requireSession();
+    const {data,error}=await db().from('products')
+      .select('id,sku,name,unit,unit_price').eq('company_id',company()).eq('is_active',true).order('name');
+    if(error)throw error;return data||[];
+  }
   async function listSalesOrders(){
     await requireSession();
     const {data,error}=await db().from('sales_documents')
@@ -9368,7 +9378,7 @@ async function enter(user){
       p_company_id:company(),p_customer_id:payload.customer_id,
       p_product_description:payload.product_description,p_quantity:payload.quantity,
       p_unit:payload.unit||'pcs',p_unit_price:payload.unit_price,
-      p_due_date:payload.due_date||null,p_notes:payload.notes||null
+      p_product_id:payload.product_id||null,p_due_date:payload.due_date||null,p_notes:payload.notes||null
     });
     if(error)throw error;
     return data;
@@ -9510,7 +9520,7 @@ async function enter(user){
     enabled, listMyCustomers, createCustomer, updateCustomer, listActivities, addActivity,
     assignCustomer, listOpportunities, createOpportunity, updateOpportunity,
     listAfterSalesTasks, createAfterSalesTask, updateAfterSalesTask,
-    listSalesOrders, createSalesOrder, updateSalesOrderStage,
+    listSalesOrders, listCompanyProducts, createSalesOrder, updateSalesOrderStage,
     listCompanyRepresentatives, loadCRMControl, deactivateSalesperson
   };
 })();
