@@ -147,5 +147,5 @@ if (warnings.length || failures.length) {
 if (!/Customer receipts are recorded in Peachtree/.test(source) ||
     !/Supplier payments are recorded in Peachtree/.test(source) ||
     !/General ledger journal posting is disabled/.test(source)) {
-  errors.push('Peachtree-only payment and GL posting guard is missing');
+  failures.push('Peachtree-only payment and GL posting guard is missing');
 }
