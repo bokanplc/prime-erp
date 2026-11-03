@@ -111,6 +111,9 @@ function sanitize(html){
   return html;
 }
 let releaseHtml=sanitize(source);
+const reviewedTabLine = 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook"]);';
+assert.equal(releaseHtml.split(reviewedTabLine).length - 1, 1, 'Expected exactly one reviewed handbook allowlist to neutralize in sanitized output.');
+releaseHtml = releaseHtml.replace(reviewedTabLine, 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([]);');
 const salesHubMarker = "const KEY='bokan_sales_hub_v1', RAW=[";
 const salesHubIndex = releaseHtml.indexOf(salesHubMarker);
 assert.ok(salesHubIndex >= 0 && releaseHtml.indexOf(salesHubMarker, salesHubIndex + salesHubMarker.length) < 0, 'Expected exactly one seeded sales-hub RAW array.');
