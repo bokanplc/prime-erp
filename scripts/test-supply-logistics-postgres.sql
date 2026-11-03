@@ -455,6 +455,11 @@ BEGIN
      OR has_table_privilege('authenticated','public.expenses','TRIGGER') THEN
     RAISE EXCEPTION 'Authenticated role retains non-DML expense privileges';
   END IF;
+  IF has_table_privilege('authenticated','public.products','TRUNCATE')
+     OR has_table_privilege('authenticated','public.products','REFERENCES')
+     OR has_table_privilege('authenticated','public.products','TRIGGER') THEN
+    RAISE EXCEPTION 'Authenticated role retains non-DML product catalogue privileges';
+  END IF;
   IF has_table_privilege('anon','public.expense_allocations','SELECT') THEN
     RAISE EXCEPTION 'Anonymous role can read expense allocations';
   END IF;
