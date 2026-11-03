@@ -791,3 +791,13 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - Extended the disposable supply/logistics PostgreSQL harness to test sales order document+line persistence, initial totals/stage, authenticated stage changes, invalid stage rejection and cross-company creation rejection.
 - Added source-level release-readiness assertions for the persistent sales-order workflow. The company-scoped `products` read is included in the audited table baseline after verifying its live membership-only SELECT policy.
 - Latest Vercel preview deployment for the branch is READY; GitHub Actions is being rerun after the sales-order and operational-cost test updates. Production remains disabled.
+
+
+### 2026-11-03 sales demand and delivery integration
+
+- Extended the candidate sales-order transaction so saving a CRM sales order also creates its linked `delivery_orders` demand-control record in the same database transaction. The delivery row carries the same company, customer name, sales-document ID, required quantity, promised date and notes.
+- The delivery insert uses the existing company-composite sales-document foreign key and current delivery RLS policy. It starts at **Stock Check** with zero allocated quantity. It does not reserve stock, issue stock, dispatch goods or mark a delivery complete.
+- The CRM order-save flow refreshes the Supply & Logistics control tower after the transaction succeeds.
+- Supply & Logistics now reads actual open submitted/approved/posted sales orders and line items from Supabase, displays them as commercial demand, totals their order value, and counts delivery controls with outstanding unallocated quantity as allocation risk.
+- This replaces the prior empty demand placeholder in the production bridge. No local sample demand is presented as live production data.
+- The candidate SQL remains unapplied to live Supabase; the order/delivery workflow is not production-enabled. Inventory allocation, stock movement posting, proof of delivery and returns remain separate implementation steps.
