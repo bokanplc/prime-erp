@@ -68,8 +68,8 @@ assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Produ
 assert.match(source, /Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
 assert.match(source, /if\(DEV_BYPASS\|\|window\.BOKAN_PRODUCTION_AUTH\?\.enabled\)\{gate\.style\.display='none';top\.style\.display='none';return;\}/, 'The legacy API login overlay must be hidden only for local/staging review or when Supabase Auth is enabled.');
 assert.match(source, /const productionAllowed = window\.BOKAN_PRODUCTION_AUTH\?\.enabled && window\.__BOKAN_PROD_ALLOWED_TABS instanceof Set/, 'Production navigation must use the authenticated role allowlist.');
-assert.match(source, /sales_manager:\['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma'/, 'Sales managers must be allowed to create proformas.');
-assert.match(source, /sales:\['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');
+assert.match(source, /sales_manager:\['sales','saleshub','saleslifecycle','report','salestargets','proformarequest','proforma'/, 'Sales managers must be allowed to create proformas.');
+assert.match(source, /sales:\['sales','saleshub','saleslifecycle','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');
 
 console.log('PASS: BOKAN ERP source startup guards and staging entry-point parity.');
 
@@ -83,3 +83,5 @@ assert.match(finance, /Customer receipts are recorded in Peachtree/i);
 assert.match(finance, /supplier payments are recorded in Peachtree/i);
 
 assert.match(source, /const canAssign=typeof currentRole!=='undefined'&&\['owner','admin','manager','management'\]\.includes\(currentRole\)/, 'CRM owner assignment must allow the actual Supabase owner/admin/manager role names.');
+
+assert.doesNotMatch(source.match(/function roleTabs\(role\)[\s\S]*?\n  \}/)?.[0]||'', /salescalllog/, 'Legacy local-storage-only call log must not be exposed as a production CRM workspace; use the Supabase-backed Sales CRM activity timeline.');
