@@ -184,12 +184,19 @@ using (
 );
 
 drop policy if exists expense_allocations_insert_member on public.expense_allocations;
-create policy expense_allocations_insert_member
+drop policy if exists expense_allocations_insert_manager on public.expense_allocations;
+create policy expense_allocations_insert_manager
 on public.expense_allocations for insert to authenticated
 with check (
   created_by = (select auth.uid())
   and private.has_company_membership(company_id)
   and exists (select 1 from public.companies c where c.id = company_id and c.is_active)
+  and exists (
+    select 1 from public.company_memberships m
+    where m.company_id = expense_allocations.company_id
+      and m.user_id = (select auth.uid()) and m.is_active
+      and m.role in ('owner','admin','manager')
+  )
 );
 
 drop policy if exists expense_allocations_update_manager on public.expense_allocations;
