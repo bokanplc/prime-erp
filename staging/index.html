@@ -4546,7 +4546,7 @@ function makeMockSupabase() {
 
 const _bokanCfg = window.BOKAN_CONFIG || {};
 // A global FULL_ERP_DATA_READY flag is not sufficient to expose every module. Each tab must be explicitly reviewed in source and explicitly enabled in config.
-window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook"]);
+window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub"]);
 window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function(cfg){
   const reviewed = window.BOKAN_REVIEWED_PRODUCTION_TABS;
   const enabled = Array.isArray(cfg?.ENABLED_PRODUCTION_TABS) ? cfg.ENABLED_PRODUCTION_TABS : [];
