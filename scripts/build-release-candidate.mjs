@@ -62,7 +62,7 @@ if (deploymentBranch === 'deploy/secure-staging' || deploymentBranch === 'featur
   process.exit(0);
 }
 
-assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub"]);'),'Only the non-transactional handbook and Supabase-backed Sales CRM may be source-reviewed; other operational modules remain blocked.');
+assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub","users"]);'),'Only the non-transactional handbook and Supabase-backed Sales CRM may be source-reviewed; other operational modules remain blocked.');
 const replacements={
   blackrock_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',
@@ -111,7 +111,7 @@ function sanitize(html){
   return html;
 }
 let releaseHtml=sanitize(source);
-const reviewedTabLine = 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub"]);';
+const reviewedTabLine = 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(["companyhandbook","saleshub","users"]);';
 assert.equal(releaseHtml.split(reviewedTabLine).length - 1, 1, 'Expected exactly one reviewed handbook allowlist to neutralize in sanitized output.');
 releaseHtml = releaseHtml.replace(reviewedTabLine, 'window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([]);');
 const salesHubMarker = "const KEY='bokan_sales_hub_v1', RAW=[";
