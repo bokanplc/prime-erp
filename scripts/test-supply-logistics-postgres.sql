@@ -371,6 +371,25 @@ RESET ROLE;
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+DO $allocation_role_test$
+DECLARE v_denied boolean := false;
+BEGIN
+  BEGIN
+    INSERT INTO public.expense_allocations(company_id,expense_id,product_id,allocated_amount,created_by)
+    SELECT c.id,t.expense_id,t.product_id,1,(select auth.uid())
+    FROM public.expense_test_ids t JOIN public.companies c ON c.code=t.company_code
+    WHERE t.company_code='PRIME';
+  EXCEPTION WHEN insufficient_privilege THEN v_denied := true;
+  END;
+  IF NOT v_denied THEN
+    RAISE EXCEPTION 'Non-manager allocation insert was not rejected';
+  END IF;
+END
+$allocation_role_test$;
+RESET ROLE;
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
 INSERT INTO public.expense_allocations(company_id,expense_id,purchase_document_id,allocated_amount,allocation_method,created_by)
 SELECT c.id,t.expense_id,t.purchase_id,40,'manual',(select auth.uid())
 FROM public.expense_test_ids t JOIN public.companies c ON c.code=t.company_code
