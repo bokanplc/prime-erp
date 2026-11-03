@@ -9683,7 +9683,7 @@ async function enter(user){
 (function(){
   'use strict';
   const auth=()=>window.BOKAN_PRODUCTION_AUTH;
-  const enabled=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&window.BOKAN_CRM_PRODUCTION_MODE===true);
+  const enabled=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&window.BOKAN_CRM_PRODUCTION_MODE===true&&window.__BOKAN_PROD_ALLOWED_TABS instanceof Set&&window.__BOKAN_PROD_ALLOWED_TABS.has('operationalcosts'));
   const db=()=>{if(!enabled())throw new Error('Operational cost production schema is not enabled.');return auth().client;};
   const company=()=>auth().profile.company_id;
   const role=()=>String(auth()?.profile?.role||'');
@@ -9816,7 +9816,7 @@ async function enter(user){
   }
   window.BOKAN_OPERATIONAL_COSTS_PRODUCTION={enabled,refresh,loadTargets};
   document.addEventListener('DOMContentLoaded',()=>{bind();if(enabled()){loadTargets().catch(error=>status(error.message||String(error),true));refresh();}});
-  document.addEventListener('bokan:company-context-changed',()=>{if(enabled())refresh();});
+  document.addEventListener('bokan:company-context-changed',()=>{if(enabled()){loadTargets().catch(error=>status(error.message||String(error),true));refresh();}});
 })();
 </script>
 
