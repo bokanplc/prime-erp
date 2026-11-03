@@ -94,4 +94,5 @@ assert.match(inviteFunction, /auth\.getUser\(\)/, 'Invitation endpoint must auth
 assert.match(inviteFunction, /\["owner", "admin"\]\.includes\(membership\.role\)/, 'Only BlackRock owners and administrators may invite users.');
 assert.match(inviteFunction, /from\("company_memberships"\)\.upsert/, 'Invited employees must receive an active company-scoped membership.');
 assert.match(inviteFunction, /SUPABASE_SERVICE_ROLE_KEY/, 'Service-role access must remain server-side in the Edge Function.');
+assert.match(inviteFunction, /invitedUser\.id === caller\.id/, 'Administrators must not be able to demote their own account through the invitation endpoint.');
 assert.match(inviteFunction, /new Set\(\["sales", "staff", "manager", "accountant", "inventory", "hr"\]\)/, 'The invitation role allowlist must be restricted to non-admin employee roles.');
