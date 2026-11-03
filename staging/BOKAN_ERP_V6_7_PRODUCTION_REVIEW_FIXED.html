@@ -9386,10 +9386,9 @@ async function enter(user){
   async function updateSalesOrderStage(id,stage){
     await requireSession();
     if(!orderStageValues.includes(stage))throw new Error('Unsupported operational order stage.');
-    const {data,error}=await db().from('sales_documents')
-      .update({operational_stage:stage,updated_at:new Date().toISOString()})
-      .eq('id',id).eq('company_id',company()).eq('document_type','sales_order')
-      .select().single();
+    const {data,error}=await db().rpc('update_blackrock_operational_sales_order_stage',{
+      p_company_id:company(),p_sales_document_id:id,p_stage:stage
+    });
     if(error)throw error;
     if(!data)throw new Error('Sales order not found in the selected company.');
     return data;
