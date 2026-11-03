@@ -72,3 +72,12 @@ assert.match(source, /sales_manager:\['sales','saleshub','saleslifecycle','sales
 assert.match(source, /sales:\['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');
 
 console.log('PASS: BOKAN ERP source startup guards and staging entry-point parity.');
+
+const financeStart = source.indexOf('<script id="bokan-v65-finance-production">');
+const financeEnd = source.indexOf('<script id="bokan-v66-hr-production">', financeStart);
+const finance = source.slice(financeStart, financeEnd);
+assert.match(finance, /async function createJournal\(\)\s*\{\s*throw new Error/);
+assert.match(finance, /async function recordReceipt\(\)\s*\{\s*throw new Error/);
+assert.match(finance, /async function recordPayment\(\)\s*\{\s*throw new Error/);
+assert.match(finance, /record customer receipts in Peachtree/i);
+assert.match(finance, /supplier payments are recorded in Peachtree/i);
