@@ -83,6 +83,34 @@ grant execute on function private.can_manage_company(uuid) to authenticated;
 grant execute on function private.has_company_membership(uuid) to authenticated;
 
 
+-- Catalog-derived snapshot of the live company-scoped product catalogue.
+create table public.products (
+  id uuid not null default gen_random_uuid(),
+  company_id uuid not null,
+  sku text,
+  name text not null,
+  description text,
+  unit text not null default 'unit',
+  unit_price numeric not null default 0,
+  tax_rate numeric not null default 0,
+  is_active boolean not null default true,
+  created_by uuid,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint products_pkey primary key (id),
+  constraint products_company_id_id_key unique (company_id,id),
+  constraint products_company_id_sku_key unique (company_id,sku),
+  constraint products_company_id_fkey foreign key (company_id)
+    references public.companies(id) on delete cascade,
+  constraint products_created_by_fkey foreign key (created_by)
+    references auth.users(id) on delete set null,
+  constraint products_tax_rate_check check (tax_rate >= 0 and tax_rate <= 1),
+  constraint products_unit_price_check check (unit_price >= 0)
+);
+create index products_company_name_idx on public.products using btree (company_id,name);
+create index products_created_by_idx on public.products using btree (created_by);
+
+
 create table public.customers (
   id uuid not null default gen_random_uuid(),
   company_id uuid not null,
@@ -166,6 +194,7 @@ create index sales_documents_created_by_idx on public.sales_documents using btre
 alter table public.companies enable row level security;
 alter table public.company_memberships enable row level security;
 alter table public.customers enable row level security;
+alter table public.products enable row level security;
 alter table public.sales_documents enable row level security;
 
 create policy companies_select_member on public.companies
@@ -174,6 +203,33 @@ create policy memberships_select_self_or_manager on public.company_memberships
   for select to authenticated using (
     user_id = (select auth.uid()) or private.can_manage_company(company_id)
   );
+
+create policy products_select_member on public.products
+  for select to authenticated using (private.has_company_membership(company_id));
+create policy products_insert_inventory on public.products
+  for insert to authenticated with check (
+    private.can_manage_company(company_id) or exists (
+      select 1 from public.company_memberships m
+      where m.company_id=products.company_id
+        and m.user_id=(select auth.uid()) and m.is_active and m.role='inventory'
+    )
+  );
+create policy products_update_inventory on public.products
+  for update to authenticated using (
+    private.can_manage_company(company_id) or exists (
+      select 1 from public.company_memberships m
+      where m.company_id=products.company_id
+        and m.user_id=(select auth.uid()) and m.is_active and m.role='inventory'
+    )
+  ) with check (
+    private.can_manage_company(company_id) or exists (
+      select 1 from public.company_memberships m
+      where m.company_id=products.company_id
+        and m.user_id=(select auth.uid()) and m.is_active and m.role='inventory'
+    )
+  );
+create policy products_delete_manager on public.products
+  for delete to authenticated using (private.can_manage_company(company_id));
 
 create policy customers_select_member on public.customers
   for select to authenticated using (private.has_company_membership(company_id));
@@ -241,7 +297,7 @@ create policy sales_documents_update_sales on public.sales_documents
 create policy sales_documents_delete_manager on public.sales_documents
   for delete to authenticated using (private.can_manage_company(company_id));
 
-revoke all on public.companies,public.company_memberships,public.customers,public.sales_documents from anon;
-grant all privileges on public.companies,public.company_memberships,public.sales_documents to authenticated;
+revoke all on public.companies,public.company_memberships,public.customers,public.products,public.sales_documents from anon;
+grant all privileges on public.companies,public.company_memberships,public.products,public.sales_documents to authenticated;
 grant select,insert,update on public.customers to authenticated;
-grant all privileges on public.companies,public.company_memberships,public.customers,public.sales_documents to service_role;
+grant all privileges on public.companies,public.company_memberships,public.customers,public.products,public.sales_documents to service_role;
