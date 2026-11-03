@@ -719,3 +719,23 @@ Read-only verification against the connected Supabase project `kafiwnuynjemufnan
 4. Continue module-by-module through CRM, HR/payroll, finance, stock, procurement/logistics, notifications, and private document Storage. Keep all production flags and module allowlists disabled until browser persistence, tenant isolation, role, and recovery tests pass.
 
 This checkpoint supersedes earlier statements in this file that the live project has no application tables or migration history. Those are historical observations only.
+
+
+## Owner-confirmed BlackRock operational scope — 2026-11-03
+
+The owner confirmed the target scope for the existing full V6.7 migration:
+- Full CRM, including leads/opportunities, pipeline, customer records/history, calls, visits, reminders, after-sales tasks and salesperson performance.
+- Operational ERP for sales, purchasing, supplier/factory records, product prices, inventory, stock movement/transfer/swap/replenishment and logistics.
+- Profitability must show both landed gross profit and direct contribution after direct sales costs.
+- Do **not** implement customer receipt records, supplier payment records, cash/bank ledgers or full accounting workflows. Peachtree remains the accountant's system.
+- Record incidental costs (e.g. factory product-selection/quality assistance, properly documented introducer/referral fees, inbound/outbound transport, loading/unloading, travel/route charges and other direct business costs) with recipient, purpose, category, amount, date, evidence/review notes, source-document linkage and later allocation where initially unassigned.
+- Keep existing accounting/payment/payroll database objects non-destructively; exclude them from the enabled operational product scope unless the owner explicitly changes this decision.
+
+### 2026-11-03 live review findings
+
+- The connected Supabase project is active and now contains 45 public tables, all reported with RLS enabled. This is materially newer than the 12-table/15-migration checkpoint recorded above.
+- Live migration history currently contains 34 entries. The current public table inventory includes CRM, supply/logistics, HR/payroll, finance and stock domains. Row-count summaries are low/zero for many new tables; schema existence is not proof that the V6.7 workflows are fully wired.
+- The live `expenses` table is currently only a basic record (category, amount, description, location, paid_by, created_by, created_at). It lacks purchase/sales/shipment/product/customer linkage, cost-phase separation, allocation and complete review/audit support. Do not claim landed-cost profitability is complete until this is addressed and tested.
+- Supabase Security Advisor currently flags three authenticated-callable SECURITY DEFINER functions (`bokan_reassign_customer_owner`, `post_journal_entry`, `reverse_journal_entry`) and leaked-password protection disabled. Review and restrict these before release; the journal functions are outside the owner's operational scope and should not be exposed as enabled user workflows.
+- The feature branch `feature/blackrock-only-v67` is 107 commits ahead of `deploy/secure-staging` and 0 behind. Draft PR #7 remains the integration/review path. A Vercel preview was reported READY for the feature branch, but it is not a production release and the Vercel account also hit a free-tier daily deployment limit on a separate attempted deployment. No merge to `main`, production deployment, or production flag change is authorized.
+- Next work: map current expense UI writes and RLS; design an additive, tested operational-cost model; reconcile full CRM and inventory workflows against the source; review the SECURITY DEFINER warnings; keep accounting/payment workflows disabled; preserve release gates.
