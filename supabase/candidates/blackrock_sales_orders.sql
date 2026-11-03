@@ -101,4 +101,53 @@ revoke all on function public.create_blackrock_operational_sales_order(uuid,uuid
 grant execute on function public.create_blackrock_operational_sales_order(uuid,uuid,text,numeric,text,numeric,uuid,date,text)
   to authenticated;
 
+
+-- Operational stage changes use a narrow RPC rather than granting broad document updates.
+create or replace function public.update_blackrock_operational_sales_order_stage(
+  p_company_id uuid,
+  p_sales_document_id uuid,
+  p_stage text
+)
+returns public.sales_documents
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_user uuid := (select auth.uid());
+  v_document public.sales_documents;
+begin
+  if v_user is null then raise exception 'Authentication required'; end if;
+  if not private.has_company_membership(p_company_id) then
+    raise exception 'Active company membership required';
+  end if;
+  if not exists (select 1 from public.companies c where c.id=p_company_id and c.is_active=true) then
+    raise exception 'Selected company is inactive';
+  end if;
+  if not exists (
+    select 1 from public.company_memberships m
+    where m.company_id=p_company_id and m.user_id=v_user and m.is_active=true
+      and m.role in ('owner','admin','manager','sales','staff')
+  ) then raise exception 'Role is not permitted to update operational sales order stages'; end if;
+  if p_stage not in (
+    'customer_order','confirmed','stock_check','stock_reserved',
+    'ready_delivery','dispatched','delivered','customer_confirmation',
+    'after_sales','cancelled'
+  ) then raise exception 'Unsupported operational order stage'; end if;
+
+  update public.sales_documents
+  set operational_stage=p_stage,updated_at=now()
+  where id=p_sales_document_id and company_id=p_company_id and document_type='sales_order'
+  returning * into v_document;
+
+  if not found then raise exception 'Sales order not found in the selected company'; end if;
+  return v_document;
+end;
+$;
+
+revoke all on function public.update_blackrock_operational_sales_order_stage(uuid,uuid,text)
+  from public, anon;
+grant execute on function public.update_blackrock_operational_sales_order_stage(uuid,uuid,text)
+  to authenticated;
+
 commit;
