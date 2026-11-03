@@ -72,7 +72,7 @@ assert.match(purchaseOrderEligibilityMigration,/v_status not in \('submitted','a
 assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review mode.');
 assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
-assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\["companyhandbook"\]\)/,'Only the non-transactional handbook is source-reviewed; Supply & Logistics must remain outside the production allowlist.');
+assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\["companyhandbook","saleshub"\]\)/,'Only the non-transactional handbook and Supabase-backed Sales CRM are source-reviewed; Supply & Logistics must remain outside the production allowlist.');
 assert.match(source,/id="exp-phase"/,'The V6.7 cost form must capture procurement, sales fulfilment or overhead phase.');
 assert.match(source,/id="exp-recipient"/,'The V6.7 cost form must capture the actual recipient where known.');
 assert.match(source,/id="exp-purpose"/,'The V6.7 cost form must capture a clear business purpose.');
