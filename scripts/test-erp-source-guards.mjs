@@ -95,4 +95,13 @@ assert.match(inviteFunction, /\["owner", "admin"\]\.includes\(membership\.role\)
 assert.match(inviteFunction, /from\("company_memberships"\)\.upsert/, 'Invited employees must receive an active company-scoped membership.');
 assert.match(inviteFunction, /SUPABASE_SERVICE_ROLE_KEY/, 'Service-role access must remain server-side in the Edge Function.');
 assert.match(inviteFunction, /invitedUser\.id === caller\.id/, 'Administrators must not be able to demote their own account through the invitation endpoint.');
+const loadUsersStart = source.indexOf('async function loadUsers() {');
+const loadUsersEnd = source.indexOf('\\nasync function updateRole', loadUsersStart);
+const productionUsers = source.slice(loadUsersStart, loadUsersEnd);
+assert.match(productionUsers, /from\('company_memberships'\)/, 'Admin user register must be based on company memberships.');
+assert.match(productionUsers, /eq\('is_active', true\)/, 'Admin user register must exclude inactive company memberships.');
+assert.match(productionUsers, /eq\('company_id', companyId\)/, 'Admin user register must be scoped to the active BlackRock company.');
+assert.match(productionUsers, /from\('profiles'\)/, 'Admin user register must display employee profile details.');
+assert.match(source.slice(source.indexOf('async function updateRole'), source.indexOf('COMPANY_SETTINGS_KEY')), /if \(_bokanProdConfigured\) \{ alert\('Production role changes are disabled/, 'Production roles must not be editable through the legacy profile-only control.');
+
 assert.match(inviteFunction, /new Set\(\["sales", "staff", "manager", "accountant", "inventory", "hr"\]\)/, 'The invitation role allowlist must be restricted to non-admin employee roles.');
