@@ -12,6 +12,7 @@ const files = [
   'staging/config/config.js',
   'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql',
   'supabase/candidates/live_company_proforma.sql',
+  'supabase/candidates/blackrock_sales_orders.sql',
   'supabase/baselines/live_company_core_2026-10-31.sql',
   'scripts/audit-erp-release-readiness.mjs',
   'scripts/build-release-candidate.mjs',
@@ -54,8 +55,19 @@ try {
     'New after-sales tasks must be owned by their authenticated creator so the owner can complete them under RLS.');
   assert.match(salesHubAdapter,/canAssign=typeof currentRole!=='undefined'&&\['admin','management'\]\.includes\(currentRole\)/,
     'Initial CRM customer assignment must only invoke the manager-authorized reassignment RPC for manager roles.');
-  assert.match(salesHubAdapter,/Sales orders are not yet connected[\s\S]{0,180}No local-only order was created/,
-    'Sales orders must fail closed rather than create browser-only transactions before their server workflow is connected.');
+  assert.match(salesHubAdapter,/await api\(\)\.createSalesOrder\(/,
+    'Sales order creation must persist through the canonical CRM production API.');
+  assert.match(salesHubAdapter,/await api\(\)\.updateSalesOrderStage\(/,
+    'Operational sales order stages must persist through the canonical CRM production API.');
+  assert.match(source,/async function createSalesOrder\(payload\)[\s\S]{0,500}rpc\('create_blackrock_operational_sales_order'/,
+    'Sales order creation must call the company-scoped database RPC.');
+  assert.match(source,/async function updateSalesOrderStage\(id,stage\)[\s\S]{0,350}rpc\('update_blackrock_operational_sales_order_stage'/,
+    'Sales order stage changes must use a narrow RPC instead of broad document updates.');
+  const salesOrderCandidate=readFileSync(join(root,'supabase/candidates/blackrock_sales_orders.sql'),'utf8');
+  assert.match(salesOrderCandidate,/create or replace function public\.create_blackrock_operational_sales_order/,'Sales order candidate must create the persistent sales document workflow.');
+  assert.match(salesOrderCandidate,/create or replace function public\.update_blackrock_operational_sales_order_stage/,'Sales order candidate must provide a guarded stage update.');
+  assert.doesNotMatch(salesOrderCandidate,/sales_payments|supplier_payments|cashbook|general_ledger/,'Operational sales orders must not introduce payment or accounting workflows.');
+
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
   assert.equal(wranglerConfig.name,'prime-erp','Wrangler must target the connected Worker name.');
   assert.equal(wranglerConfig.assets.directory,'./dist/release','Workers Static Assets must serve only generated release output.');
