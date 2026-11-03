@@ -88,19 +88,23 @@ try {
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/runtime.*acceptance is still required/,'Static completeness must not be confused with runtime release approval.');
   let prematureProductionRejected=false;
+  let prematureProductionOutput='';
   try {
     execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{
       cwd:root,encoding:'utf8',stdio:'pipe',
       env:{...process.env,VERCEL_GIT_COMMIT_REF:'main',WORKERS_CI_BRANCH:'',CF_PAGES_BRANCH:'',
-        BOKAN_PRODUCTION_MODE:'true',BOKAN_PRODUCTION_MODE:'true',BOKAN_FULL_ERP_DATA_READY:'true',
+        BOKAN_PRODUCTION_MODE:'true',BOKAN_FULL_ERP_DATA_READY:'true',
         BOKAN_SUPABASE_URL:'https://example.supabase.co',
         BOKAN_SUPABASE_ANON_KEY:'test-publishable-key-for-guard-check',
         BOKAN_ENABLED_PRODUCTION_TABS:'sales'}
     });
   } catch (error) {
-    prematureProductionRejected=error.status===1 && String(error.stderr||'').includes('Production build requested a module that has not been source-reviewed.');
+    prematureProductionOutput=[error.stderr,error.stdout,error.message].map(v=>String(v||'')).join('\\n');
+    prematureProductionRejected=(error.status===1 || /ERR_ASSERTION/.test(prematureProductionOutput))
+      && prematureProductionOutput.includes('Production build requested a module that has not been source-reviewed.');
   }
-  assert.ok(prematureProductionRejected,'Production env flags must not bypass the source-reviewed module allowlist.');
+  if(!prematureProductionRejected) console.error('Production-gate rejection diagnostic: '+prematureProductionOutput.slice(0,1200));
+  assert.ok(prematureProductionRejected,'Production env flags must not bypass the source-reviewed module allowlist.
 
 
   writeFileSync(configPath,config.replace('ENABLED_PRODUCTION_TABS: []',"ENABLED_PRODUCTION_TABS: ['proforma']"));
