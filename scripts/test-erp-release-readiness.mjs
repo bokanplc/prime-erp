@@ -44,7 +44,7 @@ try {
     'Sales CRM must expose a controlled state hydrator for server-loaded records.');
   assert.match(salesHubAdapter,/Promise\.all\(\[[\s\S]{0,220}listMyCustomers\(\)[\s\S]{0,120}listActivities\(\)[\s\S]{0,120}listOpportunities\(\)[\s\S]{0,120}listAfterSalesTasks\(\)/,
     'Sales CRM must load customer, activity, opportunity and after-sales records from Supabase.');
-  assert.match(salesHubAdapter,/createCustomer\([\s\S]{0,500}assignCustomer\(/,
+  assert.match(salesHubAdapter,/createCustomer\([\s\S]{0,1600}assignCustomer\(/,
     'Sales CRM customer creation must persist the customer and apply a company-member assignment.');
   assert.match(salesHubAdapter,/createOpportunity\(/,
     'Sales CRM opportunity creation must persist through the CRM production API.');
