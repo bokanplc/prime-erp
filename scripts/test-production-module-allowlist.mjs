@@ -37,7 +37,7 @@ assert.equal(currentGate({}), false,
   'Missing module configuration must keep production disabled.');
 
 const hypotheticalReviewedSource = gateSource.replace(
-  'Object.freeze(["companyhandbook"])',
+  'Object.freeze(["companyhandbook","saleshub"])',
   'Object.freeze(["proforma"])'
 );
 assert.notEqual(hypotheticalReviewedSource, gateSource,
