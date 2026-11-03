@@ -9,6 +9,7 @@ const migration=fs.readFileSync('supabase/migrations/20261031082508_add_company_
 const purchasingEntityMigration=fs.readFileSync('supabase/migrations/20261031084536_add_supply_shipment_purchasing_entity.sql','utf8');
 const sourceDocumentMigration=fs.readFileSync('supabase/migrations/20261031124815_link_supply_logistics_to_purchase_sales_documents.sql','utf8');
 const purchaseOrderEligibilityMigration=fs.readFileSync('supabase/migrations/20261031125430_require_submitted_purchase_order_for_shipment_link.sql','utf8');
+const operationalCosts=fs.readFileSync('supabase/candidates/blackrock_operational_costs.sql','utf8');
 assert.equal(entry,source,'The staging entry must match the reviewed full V6.7 source.');
 const start=source.indexOf('<script id="bokan-v64-supply-production-bridge">');
 const end=source.indexOf('</script>',start);
@@ -61,4 +62,19 @@ assert.match(config,/DEMO_REVIEW_MODE: true/,'Staging remains sample-data review
 assert.match(config,/PRODUCTION_MODE: false/,'Production mode must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS: \[\]/,'No production tab may be activated by this migration.');
 assert.match(source,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\["companyhandbook"\]\)/,'Only the non-transactional handbook is source-reviewed; Supply & Logistics must remain outside the production allowlist.');
+assert.match(operationalCosts,/add column if not exists cost_phase text/,'Operational costs must distinguish procurement, sales fulfilment and overhead.');
+assert.match(operationalCosts,/add column if not exists recipient_name text/,'Incidental cost records must capture the actual recipient where known.');
+assert.match(operationalCosts,/add column if not exists business_purpose text/,'Incidental cost records must capture a clear business purpose.');
+assert.match(operationalCosts,/create table if not exists public\.expense_allocations/,'Direct costs must be allocatable to the source transactions and products.');
+assert.match(operationalCosts,/foreign key \(company_id, purchase_document_id\)/,'Purchase allocations must enforce same-company ownership.');
+assert.match(operationalCosts,/foreign key \(company_id, shipment_id\)/,'Shipment allocations must enforce same-company ownership.');
+assert.match(operationalCosts,/foreign key \(company_id, sales_document_id\)/,'Sales allocations must enforce same-company ownership.');
+assert.match(operationalCosts,/foreign key \(company_id, delivery_order_id\)/,'Delivery allocations must enforce same-company ownership.');
+assert.match(operationalCosts,/for update/,'Concurrent allocations must serialize against the parent expense.');
+assert.match(operationalCosts,/Expense allocations cannot exceed the source expense amount/,'Allocation totals must never exceed the original expense.');
+assert.match(operationalCosts,/create table if not exists public\.expense_allocation_events/,'Allocation corrections must have an audit history.');
+assert.match(operationalCosts,/create or replace view public\.expense_allocation_summary/,'Unallocated and partially allocated costs must be reportable.');
+assert.match(operationalCosts,/alter table public\.expense_allocations enable row level security/,'Allocation records must have RLS enabled.');
+assert.match(operationalCosts,/revoke truncate, references, trigger on public\.expenses from authenticated/,'Operational cost entry must not grant dangerous table-level privileges.');
+assert.doesNotMatch(operationalCosts,/create table public\.(cashbook|bank_reconciliations|general_ledger)/,'The operational cost register must not introduce a payment or general-ledger workflow.');
 console.log('PASS: Supply & Logistics UI, company-scoped schema, grants, RLS and fail-closed review configuration are aligned (static checks only).');
