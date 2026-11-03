@@ -29,8 +29,8 @@ assert.equal(currentGate({}), false,
   'Missing module configuration must keep production disabled.');
 
 const hypotheticalReviewedSource = gateSource.replace(
-  "Object.freeze(['companyhandbook'])",
-  "Object.freeze(['proforma'])"
+  "Object.freeze(["companyhandbook"])",
+  "Object.freeze(["proforma"])"
 );
 assert.notEqual(hypotheticalReviewedSource, gateSource,
   'Test fixture must simulate a source-reviewed module without changing production source.');
