@@ -801,3 +801,5 @@ The owner confirmed the target scope for the existing full V6.7 migration:
 - Supply & Logistics now reads actual open submitted/approved/posted sales orders and line items from Supabase, displays them as commercial demand, totals their order value, and counts delivery controls with outstanding unallocated quantity as allocation risk.
 - This replaces the prior empty demand placeholder in the production bridge. No local sample demand is presented as live production data.
 - The candidate SQL remains unapplied to live Supabase; the order/delivery workflow is not production-enabled. Inventory allocation, stock movement posting, proof of delivery and returns remain separate implementation steps.
+
+- Extended the candidate with a nullable `delivery_orders.product_id` and a composite `(company_id, product_id)` foreign key to `products(company_id, id)`. The automatically created delivery demand therefore carries the exact catalogue item; the live delivery table now displays that linked product. Live Supabase confirms the required company-composite product key already exists. The FK and UI query remain paired with the unapplied candidate migration.
