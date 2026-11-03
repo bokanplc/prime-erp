@@ -33,9 +33,9 @@ assert.match(bridge,/planned_quantity:qty/,'Inbound quantity must be persisted.'
 assert.match(bridge,/purchasing_entity:selectedEntity/,'The selected purchasing/coordinating entity must be preserved separately from the legal-owner company scope.');
 assert.match(bridge,/selectedEntity!=='BOKAN Coordinated'&&selectedEntity!==c\.code/,'BOKAN coordination must not be silently treated as PRIME legal ownership.');
 assert.match(bridge,/required_quantity:required,allocated_quantity:allocated/,'Delivery quantities must be persisted and validated.');
-assert.match(bridge,/async function listOpenSalesDemand\(\)[\\s\\S]{0,1000}from\('sales_documents'\)[\\s\\S]{0,300}eq\('company_id',c\.id\)[\\s\\S]{0,300}eq\('document_type','sales_order'\)/,'Open sales demand must be read from company-scoped persisted sales orders.');
+assert.match(bridge,/async function listOpenSalesDemand\(\)[\s\S]{0,1000}from\('sales_documents'\)[\s\S]{0,300}eq\('company_id',c\.id\)[\s\S]{0,300}eq\('document_type','sales_order'\)/,'Open sales demand must be read from company-scoped persisted sales orders.');
 assert.match(bridge,/const demandValue=\(salesDemand\|\|\[\]\)\.reduce\(\(sum,x\)=>sum\+Number\(x\.grand_total\|\|0\),0\)/,'Sales-demand value must be calculated from persisted sales-order totals.');
-assert.match(bridge,/const demandRows=document\.getElementById\('st-demand-rows'\)[\\s\\S]{0,500}salesDemand/,'Supply & Logistics must display the persisted sales-order demand rows.');
+assert.match(bridge,/const demandRows=document\.getElementById\('st-demand-rows'\)[\s\S]{0,500}salesDemand/,'Supply & Logistics must display the persisted sales-order demand rows.');
 assert.match(bridge,/Live Supabase records · '\+company\(\)\.code/,'The live dashboard must identify company-scoped Supabase data.');
 assert.match(bridge,/No sample fallback was loaded/,'A live data failure must not silently fall back to local sample data.');
 assert.doesNotMatch(bridge,/bokan_shipments|bokan_delivery_orders|bokan_inventory_balances/,'The bridge must not call nonexistent bokan_* logistics tables.');
