@@ -8726,7 +8726,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
           const row=await api().createCustomer({name,contact_person:document.getElementById('sh-c-contact').value,phone:document.getElementById('sh-c-phone').value,email:document.getElementById('sh-c-email').value,location:document.getElementById('sh-c-location').value,lead_source:'Sales & CRM Command Center',current_status:'New Lead',notes:document.getElementById('sh-c-notes').value});
           const requested=document.getElementById('sh-c-rep').value;
           const owner=reps.find(r=>r.label===requested);
-          const canAssign=typeof currentRole!=='undefined'&&['admin','management'].includes(currentRole);
+          const canAssign=typeof currentRole!=='undefined'&&['owner','admin','manager','management'].includes(currentRole);
           if(owner&&canAssign)await api().assignCustomer(row.id,owner.user_id,'Initial assignment at customer creation');
           form.reset();await refresh();
           alert(owner&&!canAssign?'Customer saved to the BlackRock database. A manager must confirm the salesperson assignment.':'Customer saved to the BlackRock database.');
