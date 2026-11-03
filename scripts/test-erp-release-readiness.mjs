@@ -50,6 +50,10 @@ try {
     'Sales CRM opportunity creation must persist through the CRM production API.');
   assert.match(salesHubAdapter,/createAfterSalesTask\([\s\S]{0,500}updateAfterSalesTask\(/,
     'Sales CRM after-sales creation and completion must persist through the CRM production API.');
+  assert.match(source,/async function createAfterSalesTask\(payload\)[\s\S]{0,220}if\(!row\.owner_user_id\)row\.owner_user_id=user\.id/,
+    'New after-sales tasks must be owned by their authenticated creator so the owner can complete them under RLS.');
+  assert.match(salesHubAdapter,/canAssign=typeof currentRole!=='undefined'&&\['admin','management'\]\.includes\(currentRole\)/,
+    'Initial CRM customer assignment must only invoke the manager-authorized reassignment RPC for manager roles.');
   assert.match(salesHubAdapter,/Sales orders are not yet connected[\s\S]{0,180}No local-only order was created/,
     'Sales orders must fail closed rather than create browser-only transactions before their server workflow is connected.');
   const wranglerConfig=JSON.parse(readFileSync(join(root,'wrangler.jsonc'),'utf8'));
