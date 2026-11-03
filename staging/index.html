@@ -6560,7 +6560,8 @@ async function loadUsers() {
   }
   const { data } = await sb.from('profiles').select('*').order('full_name');
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No users found.</p>'; return; }
-  el.innerHTML = data.map(u => '<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div>'+escapeHtml(u.full_name)+' <span class="text-[#8D9096]">('+escapeHtml(u.role)+')</span></div><select onchange="updateRole(\\''+escapeHtml(u.id)+'\\', this.value)" class="border border-[#D4D7DC] rounded p-1 text-xs">'+['admin','data_entry','accounting','sales','sales_manager','management','hr'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('')+'</select></div>').join('');
+  el.innerHTML = data.map(u => '<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div>'+escapeHtml(u.full_name)+' <span class="text-[#8D9096]">('+escapeHtml(u.role)+')</span></div><select data-user-role="'+escapeHtml(u.id)+'" class="border border-[#D4D7DC] rounded p-1 text-xs">'+['admin','data_entry','accounting','sales','sales_manager','management','hr'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('')+'</select></div>').join('');
+  el.querySelectorAll('[data-user-role]').forEach(select => select.addEventListener('change', () => updateRole(select.dataset.userRole, select.value)));
 }
 async function updateRole(id, role) {
   const allowedRoles = ['admin','data_entry','accounting','sales','sales_manager','management','hr'];
