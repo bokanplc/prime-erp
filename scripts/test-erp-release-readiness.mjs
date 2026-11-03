@@ -104,7 +104,7 @@ try {
       && prematureProductionOutput.includes('Production build requested a module that has not been source-reviewed.');
   }
   if(!prematureProductionRejected) console.error('Production-gate rejection diagnostic: '+prematureProductionOutput.slice(0,1200));
-  assert.ok(prematureProductionRejected,'Production env flags must not bypass the source-reviewed module allowlist.
+  assert.ok(prematureProductionRejected,'Production env flags must not bypass the source-reviewed module allowlist.');
 
 
   writeFileSync(configPath,config.replace('ENABLED_PRODUCTION_TABS: []',"ENABLED_PRODUCTION_TABS: ['proforma']"));
