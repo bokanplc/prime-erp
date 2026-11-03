@@ -18,7 +18,7 @@ const expectedTables = [
   'bokan_performance_reviews','companies','company_bank_accounts','company_memberships',
   'company_proforma_settings','crm_activities','crm_after_sales_tasks','crm_customer_assignments',
   'crm_opportunities','custom_terms','customer_billings','customer_logs','customers',
-  'delivery_orders','disciplinary_actions','documents','employees','expenses','fiscal_periods',
+  'delivery_orders','disciplinary_actions','documents','employees','expenses','expense_allocations','expense_allocation_summary','fiscal_periods',
   'journal_entries','leave_requests','notifications','per_diem_requests','performance_reviews',
   'profiles','products','proformas','purchase_documents','sales_documents','sales_targets',
   'stock_entries','stock_ledger','supplier_payments','supply_shipments','trip_plans','visit_reports'
