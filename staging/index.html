@@ -8808,12 +8808,14 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
 </style>
 <script id="bokan-company-handbook-access">
 (function(){
+  if(typeof ROLE_TABS!=='undefined') Object.values(ROLE_TABS).forEach(tabs=>{if(Array.isArray(tabs)&&!tabs.includes('companyhandbook'))tabs.push('companyhandbook');});
+  const isAdmin=()=>typeof currentRole!=='undefined' && currentRole==='admin';
   function syncHandbookAdminControl(){
     const btn=document.getElementById('handbook-admin-print');
-    if(btn) btn.classList.toggle('hidden',window.currentRole!=='admin');
+    if(btn) btn.classList.toggle('hidden',!isAdmin());
   }
   window.printCompanyHandbook=function(){
-    if(window.currentRole!=='admin'){
+    if(!isAdmin()){
       alert('Printing the Company Policy Handbook is restricted to Administrators.');
       return;
     }
