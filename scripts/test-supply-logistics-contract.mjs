@@ -97,3 +97,15 @@ assert.match(operationalCosts,/alter table public\.expense_allocations enable ro
 assert.match(operationalCosts,/revoke truncate, references, trigger on public\.expenses from authenticated/,'Operational cost entry must not grant dangerous table-level privileges.');
 assert.doesNotMatch(operationalCosts,/create table public\.(cashbook|bank_reconciliations|general_ledger)/,'The operational cost register must not introduce a payment or general-ledger workflow.');
 console.log('PASS: Supply & Logistics UI, company-scoped schema, grants, RLS and fail-closed review configuration are aligned (static checks only).');
+
+const allocationPanel = source.slice(source.indexOf('id="expense-allocation-panel"'), source.indexOf('</section>', source.indexOf('id="tab-expenseledger"')));
+const allocationBridgeStart = source.indexOf('<script id="bokan-expense-allocation-production">');
+const allocationBridgeEnd = source.indexOf('</script>', allocationBridgeStart);
+const allocationBridge = source.slice(allocationBridgeStart, allocationBridgeEnd);
+assert.match(allocationPanel, /id="expense-allocation-form"/, 'Expense ledger must provide a manager allocation form.');
+assert.match(allocationPanel, /id="expense-review-rows"/, 'Expense ledger must expose pending operational cost review.');
+assert.match(allocationBridge, /expense_allocation_summary/, 'Expense ledger must show allocation and unallocated balances.');
+assert.match(allocationBridge, /from\('expense_allocations'\)\.insert\(row\)/, 'Cost allocations must persist to the dedicated allocation table.');
+assert.match(allocationBridge, /\['admin','management'\]\.includes\(role\(\)\)/, 'Only management may allocate operational costs.');
+assert.match(allocationBridge, /window\.__BOKAN_PROD_ALLOWED_TABS\.has\('expenseledger'\)/, 'Allocation queries must be restricted to the authenticated expense-ledger tab.');
+assert.doesNotMatch(allocationBridge, /sales_payments|supplier_payments|journal_entries/, 'Cost allocation must not introduce settlement or general-ledger workflows.');
