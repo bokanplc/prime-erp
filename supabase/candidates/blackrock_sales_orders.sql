@@ -19,6 +19,22 @@ create index if not exists sales_documents_company_operational_stage_idx
   on public.sales_documents(company_id, operational_stage, document_date desc)
   where document_type = 'sales_order';
 
+-- Preserve the sold product on the linked fulfilment control so stock allocation
+-- can later be made against the correct company-owned catalogue item.
+alter table public.delivery_orders
+  add column if not exists product_id uuid;
+
+alter table public.delivery_orders
+  drop constraint if exists delivery_orders_product_same_company_fk,
+  add constraint delivery_orders_product_same_company_fk
+    foreign key (company_id, product_id)
+    references public.products(company_id, id)
+    on delete restrict;
+
+create index if not exists delivery_orders_company_product_idx
+  on public.delivery_orders(company_id, product_id)
+  where product_id is not null;
+
 create or replace function public.create_blackrock_operational_sales_order(
   p_company_id uuid,
   p_customer_id uuid,
@@ -99,11 +115,11 @@ begin
   v_delivery_number := 'DO-' || to_char(current_date,'YYYYMMDD') || '-' ||
                        upper(substr(replace(gen_random_uuid()::text,'-',''),1,8));
   insert into public.delivery_orders(
-    company_id,delivery_no,customer_name,sales_document_id,
+    company_id,delivery_no,customer_name,sales_document_id,product_id,
     required_quantity,allocated_quantity,delivery_status,
     promised_delivery_date,notes,created_by
   ) values (
-    p_company_id,v_delivery_number,v_customer_name,v_document.id,
+    p_company_id,v_delivery_number,v_customer_name,v_document.id,p_product_id,
     p_quantity,0,'Stock Check',p_due_date,
     nullif(trim(coalesce(p_notes,'')),''),v_user
   );
