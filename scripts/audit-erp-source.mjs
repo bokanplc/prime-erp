@@ -143,3 +143,9 @@ if (warnings.length || failures.length) {
 } else {
   console.log('\nRESULT: Static checks passed only. This is not production security approval.');
 }
+
+if (!/Customer receipts are recorded in Peachtree/.test(source) ||
+    !/Supplier payments are recorded in Peachtree/.test(source) ||
+    !/General ledger journal posting is disabled/.test(source)) {
+  errors.push('Peachtree-only payment and GL posting guard is missing');
+}
