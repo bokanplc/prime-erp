@@ -1641,7 +1641,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <form id="tc-form" class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
     <input id="tc-date" type="date" required>
     <select id="tc-class"><option value="landed_cost">Landed Cost</option><option value="direct_sales_cost" selected>Direct Sales Cost</option><option value="operating_expense">Operating Expense</option></select>
-    <select id="tc-category" required><option>Factory Selection / Sourcing</option><option>Quality Assistance / Inspection</option><option>Dealer Referral / Introduction</option><option>Loading / Unloading</option><option>Transport / Delivery</option><option>Handling / Storage</option><option>Sales Commission / Incentive</option><option>Other Transaction Cost</option><option>General Operating Expense</option></select>
+    <select id="tc-category" required><option>Dealer Referral / Introduction</option><option>Factory Selection / Sourcing</option><option>Quality Assistance / Inspection</option><option>Loading / Unloading</option><option>Transport / Delivery</option><option>Handling / Storage</option><option>Sales Commission / Incentive</option><option>Other Transaction Cost</option><option>General Operating Expense</option></select>
     <input id="tc-amount" type="number" min="0.01" step="0.01" required placeholder="Amount (ETB)">
     <input id="tc-recipient" maxlength="200" placeholder="Recipient / Agent / Dealer">
     <input id="tc-location" maxlength="300" placeholder="Factory / Site / Location">
@@ -9703,7 +9703,7 @@ async function enter(user){
     try{const rows=await api().list();render(rows);status('Live BlackRock transaction-cost records loaded. Costs are company-scoped and classified for profitability reporting.');}
     catch(e){writable(false);status('Transaction costs could not be loaded: '+(e.message||e),true);}
   }
-  $('tc-date')?.value&&( $('tc-date').value=new Date().toISOString().slice(0,10));
+  if($('tc-date')) $('tc-date').value=new Date().toISOString().slice(0,10);
   $('tc-category')?.addEventListener('change',e=>{
     const v=e.target.value;
     const cls=/Factory|Quality|Loading|Transport|Handling/.test(v)?'landed_cost':(/General Operating/.test(v)?'operating_expense':'direct_sales_cost');
