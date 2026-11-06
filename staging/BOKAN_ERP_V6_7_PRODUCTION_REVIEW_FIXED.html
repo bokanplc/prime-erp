@@ -5134,7 +5134,7 @@ function showTab(id) {
   if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }
   if (id === 'managementreporting') window.BOKAN_PROFITABILITY?.refresh();
   if (id === 'stockreport') { loadLedger(); loadStock(); }
-  if (id === 'expenseledger') { loadExpenses(); window.BOKAN_TRANSACTION_COSTS?.refresh(); }
+  if (id === 'expenseledger') { loadExpenses(); window.BOKAN_TRANSACTION_COSTS_UI?.refresh(); }
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
   if (id === 'sales') { loadWeeklyActions(); initSalesPortal(); }
   if (id === 'report') { loadReport(); renderNotifications(); }
