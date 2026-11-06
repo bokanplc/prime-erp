@@ -1630,7 +1630,28 @@ body:not(.force-admin) #proforma-admin-queue{ }
           </table>
         </div>
       </div>
-    </section>
+    <div class="mt-5 bg-white rounded-lg border border-[#C8D3E0] shadow-sm p-5">
+  <div class="mb-3"><div class="page-eyebrow">Direct & Landed Costs</div><h3 class="font-bold text-base text-[#10284A]">Transaction Cost Register</h3><p class="text-xs text-slate-500">Record factory selection, quality assistance, dealer referrals, loading, transport and other costs against a transaction. This register does not record customer receipts or supplier payments.</p></div>
+  <div id="tc-status" class="mb-3 rounded border border-[#C8D3E0] bg-slate-50 px-3 py-2 text-xs text-slate-600" role="status">Review mode: live transaction-cost access is not enabled.</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Landed Costs</div><div id="tc-total-landed" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Direct Sales Costs</div><div id="tc-total-sales" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Operating Expenses</div><div id="tc-total-opex" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
+  </div>
+  <form id="tc-form" class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+    <input id="tc-date" type="date" required>
+    <select id="tc-class"><option value="landed_cost">Landed Cost</option><option value="direct_sales_cost" selected>Direct Sales Cost</option><option value="operating_expense">Operating Expense</option></select>
+    <select id="tc-category" required><option>Factory Selection / Sourcing</option><option>Quality Assistance / Inspection</option><option>Dealer Referral / Introduction</option><option>Loading / Unloading</option><option>Transport / Delivery</option><option>Handling / Storage</option><option>Sales Commission / Incentive</option><option>Other Transaction Cost</option><option>General Operating Expense</option></select>
+    <input id="tc-amount" type="number" min="0.01" step="0.01" required placeholder="Amount (ETB)">
+    <input id="tc-recipient" maxlength="200" placeholder="Recipient / Agent / Dealer">
+    <input id="tc-location" maxlength="300" placeholder="Factory / Site / Location">
+    <select id="tc-related-type"><option value="">Not linked to a document</option><option value="purchase_document">Purchase Document</option><option value="sales_document">Sales Document</option><option value="shipment">Shipment</option><option value="customer">Customer</option><option value="other">Other Reference</option></select>
+    <input id="tc-related-reference" maxlength="160" placeholder="Document number / Customer / Reference">
+    <textarea id="tc-description" class="md:col-span-3" rows="2" maxlength="5000" placeholder="Purpose and details of the cost"></textarea>
+    <button type="submit" class="md:col-span-3 bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold">Save Transaction Cost</button>
+  </form>
+  <div class="overflow-auto"><table class="w-full text-xs"><thead><tr class="border-b text-left bg-[#EEF3F8]"><th class="py-2">Date</th><th>Cost Class</th><th>Category</th><th>Recipient</th><th>Related Reference</th><th>Description</th><th class="text-right">Amount</th></tr></thead><tbody id="tc-rows"><tr><td colspan="7" class="py-4 text-center text-slate-500">No live transaction costs loaded.</td></tr></tbody></table></div>
+</div></section>
 
     <!-- ---------- SALES CRM ---------- -->
     <section id="tab-sales" class="tab-panel hidden">
@@ -5098,7 +5119,7 @@ function showTab(id) {
   if (id === 'overview') { loadOverview(); loadBoardReport(); loadIncomeTax(); }
   if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }
   if (id === 'stockreport') { loadLedger(); loadStock(); }
-  if (id === 'expenseledger') loadExpenses();
+  if (id === 'expenseledger') { loadExpenses(); window.BOKAN_TRANSACTION_COSTS?.refresh(); }
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
   if (id === 'sales') { loadWeeklyActions(); initSalesPortal(); }
   if (id === 'report') { loadReport(); renderNotifications(); }
@@ -9648,6 +9669,65 @@ async function enter(user){
     document.body.innerHTML = '<main style="font-family:Arial,sans-serif;max-width:680px;margin:12vh auto;padding:28px;color:#1f2937;border:1px solid #d1d5db;border-radius:12px"><h1 style="font-size:22px">BOKAN ERP is not configured for hosted use</h1><p>This review build is blocked because secure production configuration is missing. No demo data should be used for business transactions.</p><p>Configure Supabase Authentication, the reviewed database schema, row-level security, and the approved public client key before enabling hosted access.</p></main>';
     document.documentElement.style.visibility = 'visible';
   }, {once:true});
+})();
+</script>
+<script id="bokan-v69-transaction-costs">
+(function(){
+  const context=()=>window.BOKAN_PRODUCTION_AUTH;
+  const enabled=()=>!!(context()?.enabled===true&&context()?.client&&context()?.profile?.company_id);
+  const db=()=>{if(!enabled())throw new Error('Transaction-cost production access is not enabled.');return context().client;};
+  const company=()=>context().profile.company_id;
+  async function requireSession(){const c=db();const {data,error}=await c.auth.getUser();if(error)throw error;if(!data?.user)throw new Error('Please sign in.');return data.user;}
+  async function list(){await requireSession();const {data,error}=await db().from('transaction_costs').select('*').eq('company_id',company()).order('cost_date',{ascending:false}).order('created_at',{ascending:false});if(error)throw error;return data||[];}
+  async function create(payload){const user=await requireSession();const row={...payload,company_id:company(),created_by:user.id,currency_code:'ETB'};if(!row.category||!Number.isFinite(Number(row.amount))||Number(row.amount)<=0)throw new Error('Choose a cost category and enter an amount greater than zero.');const {data,error}=await db().from('transaction_costs').insert(row).select().single();if(error)throw error;return data;}
+  window.BOKAN_TRANSACTION_COSTS={enabled,list,create};
+})();
+(function(){
+  const $=id=>document.getElementById(id),api=()=>window.BOKAN_TRANSACTION_COSTS;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  function status(t,error){const el=$('tc-status');if(el){el.textContent=t;el.style.color=error?'#B42318':'#526173';}}
+  function writable(on){const f=$('tc-form');if(f)f.querySelectorAll('input,select,textarea,button').forEach(x=>x.disabled=!on);}
+  function review(){writable(false);status('Review mode: live transaction-cost access is not enabled. The form is disabled and no sample costs are displayed.');}
+  function render(rows){
+    const sums={landed_cost:0,direct_sales_cost:0,operating_expense:0};
+    rows.forEach(r=>{sums[r.cost_class]=(sums[r.cost_class]||0)+Number(r.amount||0);});
+    $('tc-total-landed').textContent=money(sums.landed_cost);
+    $('tc-total-sales').textContent=money(sums.direct_sales_cost);
+    $('tc-total-opex').textContent=money(sums.operating_expense);
+    $('tc-rows').innerHTML=rows.length?rows.map(r=>'<tr class="border-b"><td class="py-2">'+esc(r.cost_date)+'</td><td>'+esc(r.cost_class.replace(/_/g,' '))+'</td><td>'+esc(r.category)+'</td><td>'+esc(r.recipient_name||'—')+'</td><td>'+esc((r.related_document_type||'')+(r.related_reference?' · '+r.related_reference:'' )||'—')+'</td><td>'+esc(r.description||'')+'</td><td class="text-right font-semibold">'+money(r.amount)+'</td></tr>').join(''):'<tr><td colspan="7" class="py-4 text-center text-slate-500">No transaction costs recorded yet.</td></tr>';
+  }
+  async function refresh(){
+    if(!api()?.enabled()){review();return;}
+    writable(true);status('Loading BlackRock transaction costs…');
+    try{const rows=await api().list();render(rows);status('Live BlackRock transaction-cost records loaded. Costs are company-scoped and classified for profitability reporting.');}
+    catch(e){writable(false);status('Transaction costs could not be loaded: '+(e.message||e),true);}
+  }
+  $('tc-date')?.value&&( $('tc-date').value=new Date().toISOString().slice(0,10));
+  $('tc-category')?.addEventListener('change',e=>{
+    const v=e.target.value;
+    const cls=/Factory|Quality|Loading|Transport|Handling/.test(v)?'landed_cost':(/General Operating/.test(v)?'operating_expense':'direct_sales_cost');
+    $('tc-class').value=cls;
+  });
+  $('tc-form')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    try{
+      await api().create({
+        cost_date:$('tc-date').value,
+        cost_class:$('tc-class').value,
+        category:$('tc-category').value,
+        amount:Number($('tc-amount').value),
+        recipient_name:$('tc-recipient').value.trim()||null,
+        location:$('tc-location').value.trim()||null,
+        related_document_type:$('tc-related-type').value||null,
+        related_reference:$('tc-related-reference').value.trim()||null,
+        description:$('tc-description').value.trim()
+      });
+      e.target.reset();$('tc-date').value=new Date().toISOString().slice(0,10);await refresh();
+    }catch(err){status('Transaction cost was not saved: '+(err.message||err),true);}
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',review,{once:true});else review();
+  window.BOKAN_TRANSACTION_COSTS_UI={refresh,review};
 })();
 </script>
 </body>
