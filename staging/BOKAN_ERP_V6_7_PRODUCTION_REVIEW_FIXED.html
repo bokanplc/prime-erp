@@ -1310,7 +1310,21 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <div id="v41-attention" class="space-y-2"></div>
     </div>
   </div>
-</section>
+<div class="bg-white border border-[#C8D3E0] rounded-xl p-5 mt-4">
+  <div class="page-eyebrow">BlackRock Profitability</div>
+  <h3 class="font-bold text-base text-[#10284A] mb-1">Landed Gross Profit & Direct Sales Costs</h3>
+  <p class="text-xs text-slate-500 mb-3">Uses posted sales invoices, posted stock issues/returns and classified transaction costs only. Draft documents are excluded. Customer receipts and supplier payments are not used. Operating expenses are shown separately and are not deducted from the direct-sales-cost measure.</p>
+  <div id="profitability-status" class="mb-3 rounded border border-[#C8D3E0] bg-slate-50 px-3 py-2 text-xs text-slate-600" role="status">Review mode: live profitability data is not enabled.</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Net Sales Revenue</div><div id="pbi-revenue" class="text-xl font-bold text-[#10284A]">—</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Cost of Goods Sold</div><div id="pbi-cogs" class="text-xl font-bold text-[#10284A]">—</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Additional Landed Costs</div><div id="pbi-landed-costs" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Landed Gross Profit</div><div id="pbi-landed-gp" class="text-xl font-bold text-[#10284A]">—</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Direct Sales Costs</div><div id="pbi-direct-sales" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Profit After Direct Sales Costs</div><div id="pbi-after-direct" class="text-xl font-bold text-[#10284A]">—</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Operating Expenses (separate)</div><div id="pbi-opex" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
+  </div>
+</div></section>
 
 <section id="tab-approvalworkflow" class="tab-panel hidden">
   <div class="mb-4"><div class="page-eyebrow">Governance</div><h2 class="text-2xl font-bold text-[#10284A]">Approval Workflow</h2><p class="text-sm text-slate-500">Controlled request routing with explicit approval decisions and audit-ready status.</p></div>
@@ -5118,6 +5132,7 @@ function showTab(id) {
 
   if (id === 'overview') { loadOverview(); loadBoardReport(); loadIncomeTax(); }
   if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }
+  if (id === 'managementreporting') window.BOKAN_PROFITABILITY?.refresh();
   if (id === 'stockreport') { loadLedger(); loadStock(); }
   if (id === 'expenseledger') { loadExpenses(); window.BOKAN_TRANSACTION_COSTS?.refresh(); }
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
@@ -9728,6 +9743,49 @@ async function enter(user){
   });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',review,{once:true});else review();
   window.BOKAN_TRANSACTION_COSTS_UI={refresh,review};
+})();
+</script>
+<script id="bokan-v70-profitability-report">
+(function(){
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const enabled=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id);
+  const $=id=>document.getElementById(id);
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  function status(t,error){const el=$('profitability-status');if(el){el.textContent=t;el.style.color=error?'#B42318':'#526173';}}
+  function pending(){['pbi-revenue','pbi-cogs','pbi-landed-gp','pbi-after-direct'].forEach(id=>{if($(id))$(id).textContent='—';});status('Review mode: live profitability data is not enabled. No sample figures are displayed.');}
+  async function refresh(){
+    if(!enabled()){pending();return;}
+    status('Loading posted BlackRock sales, stock movements and transaction costs…');
+    try{
+      const c=auth().client,cid=auth().profile.company_id;
+      const [sales,stock,costs]=await Promise.all([
+        c.from('sales_documents').select('document_type,status,subtotal,discount_total').eq('company_id',cid).eq('document_type','invoice').eq('status','posted'),
+        c.from('stock_movements').select('movement_type,quantity,unit_cost').eq('company_id',cid),
+        c.from('transaction_costs').select('cost_class,amount').eq('company_id',cid)
+      ]);
+      if(sales.error)throw sales.error;if(stock.error)throw stock.error;if(costs.error)throw costs.error;
+      const revenue=(sales.data||[]).reduce((sum,r)=>sum+Number(r.subtotal||0)-Number(r.discount_total||0),0);
+      const issues=(stock.data||[]).filter(r=>r.movement_type==='sale_issue');
+      const returns=(stock.data||[]).filter(r=>r.movement_type==='customer_return');
+      const cogs=issues.reduce((sum,r)=>sum+Number(r.quantity||0)*Number(r.unit_cost||0),0)-returns.reduce((sum,r)=>sum+Number(r.quantity||0)*Number(r.unit_cost||0),0);
+      const costRows=costs.data||[];
+      const landed=costRows.filter(r=>r.cost_class==='landed_cost').reduce((sum,r)=>sum+Number(r.amount||0),0);
+      const direct=costRows.filter(r=>r.cost_class==='direct_sales_cost').reduce((sum,r)=>sum+Number(r.amount||0),0);
+      const opex=costRows.filter(r=>r.cost_class==='operating_expense').reduce((sum,r)=>sum+Number(r.amount||0),0);
+      $('pbi-landed-costs').textContent=money(landed);$('pbi-direct-sales').textContent=money(direct);$('pbi-opex').textContent=money(opex);
+      const hasCostBasis=(sales.data||[]).length>0&&issues.length>0;
+      if(hasCostBasis){
+        const gross=revenue-cogs-landed;
+        $('pbi-revenue').textContent=money(revenue);$('pbi-cogs').textContent=money(cogs);$('pbi-landed-gp').textContent=money(gross);$('pbi-after-direct').textContent=money(gross-direct);
+        status('Posted sales invoices: '+sales.data.length+' · Stock issues: '+issues.length+' · Customer returns: '+returns.length+' · Transaction costs: '+costRows.length+'. Landed gross profit and profit after direct sales costs are calculated from posted records only.');
+      }else{
+        $('pbi-revenue').textContent=(sales.data||[]).length?money(revenue):'—';$('pbi-cogs').textContent=issues.length?money(cogs):'—';$('pbi-landed-gp').textContent='Pending';$('pbi-after-direct').textContent='Pending';
+        status('Profit metrics are pending: both posted sales invoices and posted stock issue movements are required. Draft historical documents and unposted stock are excluded. Transaction-cost totals are shown separately.');
+      }
+    }catch(e){status('Profitability data could not be loaded: '+(e.message||e),true);}
+  }
+  window.BOKAN_PROFITABILITY={enabled,refresh};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pending,{once:true});else pending();
 })();
 </script>
 </body>
