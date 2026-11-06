@@ -762,3 +762,18 @@ This checkpoint supersedes the 2026-10-30 live-schema counts above.
 7. Only after the above pass, review a non-empty source allowlist and production config; keep `main` and production untouched until that release candidate is genuinely ready.
 
 No business data, document statuses, historical dates, stock balances, suppliers, staff accounts, production flags, `main`, or production deployment were changed during this checkpoint.
+
+
+### Module-level source audit — 2026-11-06
+
+A further source-to-live-schema review is recorded in
+`docs/PRODUCTION_MODULE_INTEGRATION_AUDIT.md`. It confirms CRM has a dedicated
+company-scoped bridge but needs real employee accounts/browser tests; the sales
+and purchase document creation/approval/stock-posting RPCs are not wired by the
+current source; legacy stock screens still use `stock_entries` / `stock_ledger`
+while profitability reads `stock_movements`; HR legacy CRUD targets table names
+not present in the canonical live schema; and finance/HR production adapters
+currently provide KPI counts rather than full write/approval workflows. Supply
+demand/exception controls and private document upload/download also remain
+incomplete. This is why the 91-section interface cannot yet be equated with 91
+operational modules.
