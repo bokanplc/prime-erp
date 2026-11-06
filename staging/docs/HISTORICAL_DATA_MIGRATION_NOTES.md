@@ -12,7 +12,7 @@ Source workbook: `1Q_Report_BR_Prime_Clean_Corporate.xlsx`, `Daily_Data_Entry` s
   - The two delivery dates previously offset by one day were aligned to the latest workbook: the 550-piece delivery is dated 2026-10-27 and the 600-piece delivery is dated 2026-10-28.
   - The 675-piece purchase dated 2026-11-02 was added as a draft supplier invoice.
   - Reconciled purchase quantity: **5,827 pcs**. Reconciled purchase value: **ETB 28,754,500**.
-- The 29 BlackRock sales lines in the workbook are now represented in the sales documents. Three missing lines were added as draft invoices: Matusala 150 pcs (2026-07-24), Ortid 593 pcs (2026-10-28), and Ortid 135 pcs (2026-10-29).
+- The 29 BlackRock sales lines in the workbook (5,609 pcs) are now represented in the sales documents. The database also retains two pre-existing Argaw line items (320 pcs total) that are not present in the current workbook. Three missing lines were added as draft invoices: Matusala 150 pcs (2026-07-24), Ortid 593 pcs (2026-10-28), and Ortid 135 pcs (2026-10-29).
 - Two additional Argaw line items already present in the database were retained; they are not in the current workbook's Daily_Data_Entry list and were not deleted.
 - Sales prices were blank in the source workbook. Those lines remain at ETB 0 pending later price entry; no revenue has been fabricated.
 
