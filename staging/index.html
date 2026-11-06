@@ -9773,14 +9773,14 @@ async function enter(user){
       const direct=costRows.filter(r=>r.cost_class==='direct_sales_cost').reduce((sum,r)=>sum+Number(r.amount||0),0);
       const opex=costRows.filter(r=>r.cost_class==='operating_expense').reduce((sum,r)=>sum+Number(r.amount||0),0);
       $('pbi-landed-costs').textContent=money(landed);$('pbi-direct-sales').textContent=money(direct);$('pbi-opex').textContent=money(opex);
-      const hasCostBasis=(sales.data||[]).length>0&&issues.length>0;
+      const hasCostBasis=(sales.data||[]).length>0&&issues.length>0&&issues.every(r=>Number(r.unit_cost)>0);
       if(hasCostBasis){
         const gross=revenue-cogs-landed;
         $('pbi-revenue').textContent=money(revenue);$('pbi-cogs').textContent=money(cogs);$('pbi-landed-gp').textContent=money(gross);$('pbi-after-direct').textContent=money(gross-direct);
         status('Posted sales invoices: '+sales.data.length+' · Stock issues: '+issues.length+' · Customer returns: '+returns.length+' · Transaction costs: '+costRows.length+'. Landed gross profit and profit after direct sales costs are calculated from posted records only.');
       }else{
         $('pbi-revenue').textContent=(sales.data||[]).length?money(revenue):'—';$('pbi-cogs').textContent=issues.length?money(cogs):'—';$('pbi-landed-gp').textContent='Pending';$('pbi-after-direct').textContent='Pending';
-        status('Profit metrics are pending: both posted sales invoices and posted stock issue movements are required. Draft historical documents and unposted stock are excluded. Transaction-cost totals are shown separately.');
+        status('Profit metrics are pending: both posted sales invoices and fully costed stock issue movements are required. Draft historical documents and unposted stock are excluded. Transaction-cost totals are shown separately.');
       }
     }catch(e){status('Profitability data could not be loaded: '+(e.message||e),true);}
   }
