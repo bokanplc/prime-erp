@@ -7384,21 +7384,31 @@ async function loadRepoProformas() {
 }
 async function deleteProforma(id) { if (_bokanProdConfigured) { alert('Proforma deletion is disabled in production until an audited void workflow is implemented.'); return; } if (!confirm('Delete this proforma record?')) return; await sb.from('proformas').delete().eq('id', id); loadRepoProformas(); }
 async function uploadRepoFile(category, titleInputId, fileInputId, extraCols) {
-  // Fail closed in production until private Storage policies and signed-download
-  // handling replace the public URL flow below. Local preview remains available.
-  if (_bokanProdConfigured) {
-    alert('Document uploads are temporarily disabled until private document storage and authorized downloads are configured.');
-    return false;
-  }
   const title = document.getElementById(titleInputId).value.trim();
   const fileInput = document.getElementById(fileInputId);
   const file = fileInput.files[0];
-  if (!title || !file) { alert('Add a title and choose a file.'); return; }
-  const path = `${category}/${Date.now()}_${file.name}`;
-  await sb.storage.from('documents').upload(path, file);
-  const { data: pub } = sb.storage.from('documents').getPublicUrl(path);
-  const payload = { category, title, file_path: path, file_url: pub.publicUrl, uploaded_by: currentUser.id, ...(extraCols || {}) };
-  await sb.from('documents').insert([payload]);
+  if (!title || !file) { alert('Add a title and choose a file.'); return false; }
+  if (_bokanProdConfigured) {
+    const auth = window.BOKAN_PRODUCTION_AUTH, client = auth?.client;
+    const companyId = auth?.profile?.company_id, userId = auth?.user?.id;
+    if (!auth?.enabled || !client || !companyId || !userId) { alert('Sign in with an active BlackRock company account before uploading documents.'); return false; }
+    if (file.size > 25 * 1024 * 1024) { alert('This file is larger than the 25 MB document limit.'); return false; }
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-120) || 'document';
+    const path = `${companyId}/${category}/${Date.now()}_${safeName}`;
+    const { error: uploadError } = await client.storage.from('bokan-company-documents').upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: false });
+    if (uploadError) { alert('Document upload failed: ' + uploadError.message); return false; }
+    const payload = { company_id: companyId, category, title, file_path: path, file_url: null, uploaded_by: userId, ...(extraCols || {}) };
+    const { error: rowError } = await client.from('documents').insert(payload);
+    if (rowError) { await client.storage.from('bokan-company-documents').remove([path]); alert('Document details could not be saved: ' + rowError.message); return false; }
+  } else {
+    const path = `${category}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await sb.storage.from('documents').upload(path, file);
+    if (uploadError) { alert('Preview upload failed: ' + uploadError.message); return false; }
+    const { data: pub } = sb.storage.from('documents').getPublicUrl(path);
+    const payload = { category, title, file_path: path, file_url: pub.publicUrl, uploaded_by: currentUser.id, ...(extraCols || {}) };
+    const { error } = await sb.from('documents').insert([payload]);
+    if (error) { alert('Preview document record failed: ' + error.message); return false; }
+  }
   fileInput.value = '';
   document.getElementById(titleInputId).value = '';
   return true;
@@ -7408,18 +7418,47 @@ document.getElementById('repo-policies-form').addEventListener('submit', async (
 async function loadRepoFiles(category, targetElId) {
   const el = document.getElementById(targetElId);
   if (!el) return;
+  let rows = [];
   if (_bokanProdConfigured) {
-    el.innerHTML = '<p class="text-[#8D9096]">Document downloads are temporarily disabled until private storage and authorized downloads are configured.</p>';
-    return;
+    const auth = window.BOKAN_PRODUCTION_AUTH, client = auth?.client, companyId = auth?.profile?.company_id;
+    if (!auth?.enabled || !client || !companyId) { el.textContent = 'Sign in with an active company account to view documents.'; return; }
+    const { data, error } = await client.from('documents').select('id,category,title,file_path,file_url,created_at').eq('company_id', companyId).eq('category', category).order('created_at', { ascending: false });
+    if (error) { el.textContent = 'Documents could not be loaded: ' + error.message; return; }
+    rows = await Promise.all((data || []).map(async d => {
+      const { data: signed, error: signError } = await client.storage.from('bokan-company-documents').createSignedUrl(d.file_path, 300);
+      return { ...d, signedUrl: signError ? null : signed?.signedUrl || null };
+    }));
+  } else {
+    const { data, error } = await sb.from('documents').select('*').eq('category', category).order('created_at', { ascending: false });
+    if (error) { el.textContent = 'Preview documents could not be loaded: ' + error.message; return; }
+    rows = data || [];
   }
-  const { data } = await sb.from('documents').select('*').eq('category', category).order('created_at', { ascending: false });
-  if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No files uploaded yet.</p>'; return; }
-  el.innerHTML = data.map(d => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2">
-      <div><a href="${safeDocumentHref(d.file_url)}" target="_blank" rel="noopener noreferrer" class="text-[#2CA01C] font-semibold underline">${escapeHtml(d.title)}</a></div>
-      <div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(d.created_at).toLocaleDateString()}</span><button type="button" data-doc-id="${escapeHtml(d.id)}" data-file-path="${escapeHtml(d.file_path)}" data-doc-category="${escapeHtml(category)}" data-target-el="${escapeHtml(targetElId)}" onclick="deleteRepoFile(this.dataset.docId,this.dataset.filePath,this.dataset.docCategory,this.dataset.targetEl)" class="text-red-600 text-xs no-print">Delete</button></div>
-    </div>`).join('');
+  if (!rows.length) { el.innerHTML = '<p class="text-[#8D9096]">No files uploaded yet.</p>'; return; }
+  const canDelete = !_bokanProdConfigured || ['admin','management'].includes(window.BOKAN_PRODUCTION_AUTH?.profile?.role);
+  el.innerHTML = rows.map(d => {
+    const href = _bokanProdConfigured ? d.signedUrl : safeDocumentHref(d.file_url);
+    const link = href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="text-[#2CA01C] font-semibold underline">${escapeHtml(d.title)}</a>` : `<span class="text-slate-500">${escapeHtml(d.title)} (download unavailable)</span>`;
+    const remove = canDelete ? `<button type="button" data-doc-id="${escapeHtml(d.id)}" data-file-path="${escapeHtml(d.file_path)}" data-doc-category="${escapeHtml(category)}" data-target-el="${escapeHtml(targetElId)}" onclick="deleteRepoFile(this.dataset.docId,this.dataset.filePath,this.dataset.docCategory,this.dataset.targetEl)" class="text-red-600 text-xs no-print">Delete</button>` : '';
+    return `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-2"><div>${link}</div><div class="flex items-center gap-3"><span class="text-xs text-[#8D9096]">${new Date(d.created_at).toLocaleDateString()}</span>${remove}</div></div>`;
+  }).join('');
 }
-async function deleteRepoFile(id, filePath, category, targetElId) { if (_bokanProdConfigured) { alert('Document deletion is temporarily disabled until private document storage policies are configured.'); return; } if (!confirm('Delete this file? This cannot be undone.')) return; await sb.storage.from('documents').remove([filePath]); await sb.from('documents').delete().eq('id', id); loadRepoFiles(category, targetElId); }
+async function deleteRepoFile(id, filePath, category, targetElId) {
+  if (!confirm('Delete this file? This cannot be undone.')) return;
+  if (_bokanProdConfigured) {
+    const auth = window.BOKAN_PRODUCTION_AUTH, client = auth?.client, companyId = auth?.profile?.company_id;
+    if (!auth?.enabled || !client || !companyId || !['admin','management'].includes(auth.profile?.role)) { alert('Only an authorized company manager can delete documents.'); return; }
+    const { error: storageError } = await client.storage.from('bokan-company-documents').remove([filePath]);
+    if (storageError) { alert('The file could not be removed: ' + storageError.message); return; }
+    const { error: rowError } = await client.from('documents').delete().eq('id', id).eq('company_id', companyId);
+    if (rowError) { alert('The file was removed but its document record needs administrator cleanup: ' + rowError.message); return; }
+  } else {
+    const { error: storageError } = await sb.storage.from('documents').remove([filePath]);
+    if (storageError) { alert('Preview file could not be removed: ' + storageError.message); return; }
+    const { error: rowError } = await sb.from('documents').delete().eq('id', id);
+    if (rowError) { alert('Preview document record could not be removed: ' + rowError.message); return; }
+  }
+  await loadRepoFiles(category, targetElId);
+}
 
 // ==================== HR: EMPLOYEE DIRECTORY ====================
 let employeeData = [];
