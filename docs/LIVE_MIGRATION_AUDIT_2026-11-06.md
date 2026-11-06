@@ -8,7 +8,7 @@
 ## Verified source and deployment
 
 - The full V6.7 staging artifact contains **91 tab panels**. The preserved source file and `staging/index.html` are byte-for-byte synchronized. All **40 inline JavaScript blocks** pass static syntax parsing.
-- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-1m8vzwo7c-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
+- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-km2s36gho-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
 - `PRODUCTION_MODE`, `FULL_ERP_DATA_READY`, and the reviewed production-tab allowlist remain disabled. `main` has not been changed or promoted.
 
 ## Verified live Supabase foundation
@@ -61,7 +61,7 @@ The 61-piece Yellow Plywood opening-stock row is not posted to inventory. The so
 | Transaction costs / profitability | New `transaction_costs` table and UI classify landed costs, direct sales costs and operating expenses; management reporting calculates landed gross profit and profit after direct sales costs from posted invoices and fully costed stock issues | No real cost rows yet; profit metrics correctly remain pending until posted sales and stock issue movements exist |
 | Company policy handbook | RLS-protected `company_policy_documents` contains one active handbook; the employee viewer is read-only, visible to all employee roles, and offers print only to admins | Authenticated production access is still disabled; non-admin print is suppressed in the app, but screenshots/copy cannot be technically prevented |
 | Documents / storage | Metadata table exists | Private Storage buckets, object policies and signed downloads not implemented |
-| Remaining V6.7 modules | All 90 UI panels remain in the full review artifact | Each module still needs a source-to-schema map, persistence, trusted writes, RLS and browser acceptance tests |
+| Remaining V6.7 modules | All 91 UI panels remain in the full review artifact | Each module still needs a source-to-schema map, persistence, trusted writes, RLS and browser acceptance tests |
 
 ## Recent source changes
 
