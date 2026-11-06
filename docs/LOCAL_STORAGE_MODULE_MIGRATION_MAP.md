@@ -72,3 +72,8 @@ The current reviewed-tab allowlist is intentionally empty. This is not a stateme
 A new company-scoped CRM workspace is now implemented in `tab-crmcontrol` and calls the `BOKAN_CRM_PRODUCTION` adapter rather than reading browser-local CRM stores. It covers customer create/edit, calls and visits through `crm_activities`, opportunity pipeline through `crm_opportunities`, after-sales reminders through `crm_after_sales_tasks`, customer history, customer reassignment, and representative coverage. Sales target actuals use the same company-scoped CRM activities in production rather than the nonexistent `customer_logs` table.
 
 This does **not** migrate the older `bokan_sales_hub_v1`, `bokan_sales_crm_v1`, or `bokan_sales_lifecycle_v1` browser-local stores, and does not make the CRM production-approved. The CRM forms are disabled in staging demo-review mode; production activation still requires authenticated staff memberships, RLS/role-denial browser tests, and explicit allowlist approval.
+
+
+## 2026-11-06 policy handbook update
+
+The BlackRock Company Policy Handbook is stored in the RLS-protected `company_policy_documents` table, not browser local storage. Active company members can read the handbook through `tab-policyhandbook`; the print action is exposed only when the authenticated app role is `admin`. The content is rendered as a read-only HTML text viewer. Browser screenshots or manual copying cannot be technically prevented, so this is an application-level print restriction rather than DRM.
