@@ -65,3 +65,10 @@ Do not add a tab to either production allowlist until all relevant gates are com
 7. release candidate regenerated and all CI checks passing.
 
 The current reviewed-tab allowlist is intentionally empty. This is not a statement that the ERP has no usable local-preview functionality; it means no hosted business module has yet passed the complete production acceptance gate.
+
+
+## 2026-11-06 CRM workspace update
+
+A new company-scoped CRM workspace is now implemented in `tab-crmcontrol` and calls the `BOKAN_CRM_PRODUCTION` adapter rather than reading browser-local CRM stores. It covers customer create/edit, calls and visits through `crm_activities`, opportunity pipeline through `crm_opportunities`, after-sales reminders through `crm_after_sales_tasks`, customer history, customer reassignment, and representative coverage. Sales target actuals use the same company-scoped CRM activities in production rather than the nonexistent `customer_logs` table.
+
+This does **not** migrate the older `bokan_sales_hub_v1`, `bokan_sales_crm_v1`, or `bokan_sales_lifecycle_v1` browser-local stores, and does not make the CRM production-approved. The CRM forms are disabled in staging demo-review mode; production activation still requires authenticated staff memberships, RLS/role-denial browser tests, and explicit allowlist approval.
