@@ -8,13 +8,13 @@
 ## Verified source and deployment
 
 - The full V6.7 staging artifact contains **91 tab panels**. The preserved source file and `staging/index.html` are byte-for-byte synchronized. All **40 inline JavaScript blocks** pass static syntax parsing.
-- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-km2s36gho-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
+- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-2rf3ih35e-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
 - `PRODUCTION_MODE`, `FULL_ERP_DATA_READY`, and the reviewed production-tab allowlist remain disabled. `main` has not been changed or promoted.
 
 ## Verified live Supabase foundation
 
 - **48 public base tables**; RLS is enabled on all 48; zero public base tables are missing RLS.
-- **41 applied migrations**, including the seven 2026-11-06 forward migrations recorded below.
+- **39 applied migrations (rechecked against the live migration history on 2026-11-06)**, including the seven 2026-11-06 forward migrations recorded below.
 - The company registry contains only active **BLACKROCK / BlackRock Investment PLC**. The full V6.7 UI and demo-review data are now single-company: no Prime company option, company context, or Prime sample transactions remain. The context selector is locked to BlackRock.
 - Current company membership inventory has only the existing administrator membership. Sales and data-entry staff memberships have not yet been provisioned.
 - 55 previously uncovered foreign keys now have covering indexes. The performance advisor no longer reports unindexed foreign keys or duplicate permissive SELECT policies on the two Finance tables. The supply-shipment purchasing-entity constraint now accepts only BlackRock and BOKAN Coordinated.
@@ -89,3 +89,26 @@ The 61-piece Yellow Plywood opening-stock row is not posted to inventory. The so
 The Supabase Auth Google identity is linked to the existing active BlackRock administrator account and its company membership. The full V6.7 login now includes a Google OAuth button/handler alongside email/password and supports an explicit `AUTH_REDIRECT_URL` override (blank uses the current origin). This cannot be end-to-end tested while `PRODUCTION_MODE=false`, the Supabase browser URL/key are blank, and the current preview origin may not be in Supabase's redirect allowlist.
 
 Vercel project protection is currently enabled for all non-custom domains, and the project has only Vercel-hosted domains attached. Keep staging protected. Before employee release, attach the intended custom company domain (or make an explicit access-protection decision), add that exact domain to Supabase Auth's allowed redirect URLs, and test the Google callback with the existing linked admin identity plus employee memberships.
+
+
+## Follow-through audit — 2026-11-06 (live recheck)
+
+A fresh read-only check was run against the connected Supabase project while continuing the remaining migration work:
+
+- Public base tables: **48**.
+- RLS-enabled public base tables: **48**; tables without RLS: **0**.
+- Applied migration records: **39** (the previous 41 count in this document was inaccurate and is corrected above).
+- Company registry: **1** active BlackRock company.
+- Company memberships: **1** active administrator membership. The Auth project contains three user accounts, but only one is attached to the company; do not grant roles to the other accounts until their intended employee identities and roles are confirmed.
+- RLS policy inventory: all 48 tables have RLS enabled; policy counts vary by table and must still be tested with real authenticated sessions.
+- Security advisor: three authenticated-callable SECURITY DEFINER RPC warnings remain for customer reassignment and journal post/reversal. The function bodies currently include explicit `auth.uid()`, company-membership/role checks, and restricted search paths; do not remove SECURITY DEFINER blindly because the atomic RPCs require controlled privileged writes. Continue reviewing their EXECUTE grants and role-denial tests.
+- Auth advisor: leaked-password protection is disabled and requires an owner-level Supabase Auth setting change.
+- Performance advisor: 91 unused-index informational observations are expected on a lightly used staging database; no index was dropped.
+
+### Remaining work is now split into actionable and owner-dependent items
+
+**Can be completed in code/database without owner input:** finish source-to-live field mapping for every remaining V6.7 tab; connect legacy forms to canonical company-scoped tables; implement missing trusted workflows and constraints; migrate documents to private Storage; add automated static/schema tests; and expand disposable-user Auth/RLS integration tests.
+
+**Requires owner-controlled information or settings:** employee account-to-role mapping and memberships; exact opening stock/financial balances and the source documents that support them; approval of any uncertain historical stock ownership; the intended company login domain / redirect allowlist; and enabling leaked-password protection in Supabase Auth.
+
+No production setting, production allowlist, or `main` branch change was made by this audit.
