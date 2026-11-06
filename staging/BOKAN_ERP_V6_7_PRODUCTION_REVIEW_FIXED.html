@@ -1313,7 +1313,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 <div class="bg-white border border-[#C8D3E0] rounded-xl p-5 mt-4">
   <div class="page-eyebrow">BlackRock Profitability</div>
   <h3 class="font-bold text-base text-[#10284A] mb-1">Landed Gross Profit & Direct Sales Costs</h3>
-  <p class="text-xs text-slate-500 mb-3">Uses posted sales invoices, posted stock issues/returns and classified transaction costs only. Draft documents are excluded. Customer receipts and supplier payments are not used. Operating expenses are shown separately and are not deducted from the direct-sales-cost measure.</p>
+  <p class="text-xs text-slate-500 mb-3">Uses posted sales invoices, posted stock issues/returns and classified transaction costs only. Draft documents are excluded. Customer receipts and supplier payments are not used. Operating expenses are shown separately and are not deducted from the direct-sales-cost measure. Additional landed costs are subtracted separately, so do not also include the same amount in stock-movement unit cost.</p>
   <div id="profitability-status" class="mb-3 rounded border border-[#C8D3E0] bg-slate-50 px-3 py-2 text-xs text-slate-600" role="status">Review mode: live profitability data is not enabled.</div>
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
     <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Net Sales Revenue</div><div id="pbi-revenue" class="text-xl font-bold text-[#10284A]">—</div></div>
@@ -1645,7 +1645,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
         </div>
       </div>
     <div class="mt-5 bg-white rounded-lg border border-[#C8D3E0] shadow-sm p-5">
-  <div class="mb-3"><div class="page-eyebrow">Direct & Landed Costs</div><h3 class="font-bold text-base text-[#10284A]">Transaction Cost Register</h3><p class="text-xs text-slate-500">Record factory selection, quality assistance, dealer referrals, loading, transport and other costs against a transaction. This register does not record customer receipts or supplier payments.</p></div>
+  <div class="mb-3"><div class="page-eyebrow">Direct & Landed Costs</div><h3 class="font-bold text-base text-[#10284A]">Transaction Cost Register</h3><p class="text-xs text-slate-500">Record factory selection, quality assistance, dealer referrals, loading, transport and other costs against a transaction. Classify each cost separately; do not enter customer receipts or supplier payments here.</p></div>
   <div id="tc-status" class="mb-3 rounded border border-[#C8D3E0] bg-slate-50 px-3 py-2 text-xs text-slate-600" role="status">Review mode: live transaction-cost access is not enabled.</div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
     <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Landed Costs</div><div id="tc-total-landed" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
