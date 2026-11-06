@@ -8,7 +8,6 @@
 ## Verified source and deployment
 
 - The full V6.7 staging artifact contains **90 tab panels**. The preserved source file and `staging/index.html` are byte-for-byte synchronized. All **39 inline JavaScript blocks** pass static syntax parsing.
-- A static parse check passed for all **36 inline JavaScript blocks**; no syntax errors were found.
 - Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-1m8vzwo7c-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
 - `PRODUCTION_MODE`, `FULL_ERP_DATA_READY`, and the reviewed production-tab allowlist remain disabled. `main` has not been changed or promoted.
 
@@ -24,7 +23,10 @@
 ### New forward migrations
 
 - `20261106062819_index_uncovered_foreign_keys` — additive indexes for the previously uncovered public-schema foreign keys.
-- `20261106062902_split_finance_read_and_write_rls_policies` — separates Finance write policies from member read policies while preserving the existing owner/admin/manager/accountant write conditions.\n- `20261106063435_decommission_prime_purchasing_entity` — removes the decommissioned Prime purchasing-entity value from the live supply-shipment constraint.\n- `20261106064054_create_transaction_costs_for_direct_and_landed_costs` — adds the company-scoped register for landed costs, direct sales costs and operating expenses, with member-create / finance-manage RLS.\n- `20261106064214_index_transaction_costs_creator_membership_fk` — adds the composite index for the new creator-membership foreign key.
+- `20261106062902_split_finance_read_and_write_rls_policies` — separates Finance write policies from member read policies while preserving the existing owner/admin/manager/accountant write conditions.
+- `20261106063435_decommission_prime_purchasing_entity` — removes the decommissioned Prime purchasing-entity value from the live supply-shipment constraint.
+- `20261106064054_create_transaction_costs_for_direct_and_landed_costs` — adds the company-scoped register for landed costs, direct sales costs and operating expenses, with member-create / finance-manage RLS.
+- `20261106064214_index_transaction_costs_creator_membership_fk` — adds the composite index for the new creator-membership foreign key.
 
 All five migration SQL files are source-controlled under `supabase/migrations/` and recorded in the live migration history.
 
@@ -54,14 +56,18 @@ The 61-piece Yellow Plywood opening-stock row is not posted to inventory. The so
 | Finance | GL tables and atomic `post_journal_entry` / reversal RPCs exist; Finance adapter now uses live table names and company UUID | No chart-of-accounts seed, fiscal periods, or journals; approved-source posting/idempotency, bank/tax/budget/fixed-assets/close and browser tests |
 | HR / Payroll | HR tables and UUID-scoped bridge exist | No employee/payroll rows; employee self-service, sensitive payroll separation, approvals and browser role tests |
 | Inventory | Products and stock movement foundation exist | No stock movements; opening balances and all historical stock sources must be reconciled before posting |
-| Transaction costs / profitability | New `transaction_costs` table and UI classify landed costs, direct sales costs and operating expenses; management reporting now calculates landed gross profit and profit after direct sales costs from posted invoices and fully costed stock issues | No real cost rows yet; profit metrics correctly remain pending until posted sales and stock issue movements exist |\n| Documents / storage | Metadata table exists | Private Storage buckets, object policies and signed downloads not implemented |
+| Transaction costs / profitability | New `transaction_costs` table and UI classify landed costs, direct sales costs and operating expenses; management reporting now calculates landed gross profit and profit after direct sales costs from posted invoices and fully costed stock issues | No real cost rows yet; profit metrics correctly remain pending until posted sales and stock issue movements exist |
+| Documents / storage | Metadata table exists | Private Storage buckets, object policies and signed downloads not implemented |
 | Remaining V6.7 modules | All 90 UI panels remain in the full review artifact | Each module still needs a source-to-schema map, persistence, trusted writes, RLS and browser acceptance tests |
 
 ## Recent source changes
 
 - Finance adapter aligned to `journal_entries`, `fiscal_periods`, `ledger_accounts`, `sales_documents`, and `purchase_documents`; company UUID is resolved before queries; journal posting calls the atomic RPC. No receipt/payment write methods are exposed.
 - HR adapter resolves the active company UUID and includes it in inserts.
-- Sales target actuals use `crm_activities` and company-scoped `profiles` in production; the legacy `customer_logs` path remains only for demo review mode.\n- A full CRM workspace UI is now wired to the existing CRM production adapter: customer create/edit, activity/call/visit logging, pipeline creation/stage updates, after-sales tasks, customer history, and customer reassignment. All forms remain disabled in demo-review mode and require the authenticated company context.\n- The Expense Ledger now includes a separate Transaction Cost Register for factory selection, quality assistance, dealer referral, loading, transport and other costs. Entries are classified as landed cost, direct sales cost or operating expense; customer receipts and supplier payments are not recorded.\n- Management Reporting now shows landed gross profit and profit after direct sales costs. It excludes drafts and remains pending until posted sales invoices and fully costed stock issues are available.
+- Sales target actuals use `crm_activities` and company-scoped `profiles` in production; the legacy `customer_logs` path remains only for demo review mode.
+- A full CRM workspace UI is now wired to the existing CRM production adapter: customer create/edit, activity/call/visit logging, pipeline creation/stage updates, after-sales tasks, customer history, and customer reassignment. All forms remain disabled in demo-review mode and require the authenticated company context.
+- The Expense Ledger now includes a separate Transaction Cost Register for factory selection, quality assistance, dealer referral, loading, transport and other costs. Entries are classified as landed cost, direct sales cost or operating expense; customer receipts and supplier payments are not recorded.
+- Management Reporting now shows landed gross profit and profit after direct sales costs. It excludes drafts and remains pending until posted sales invoices and fully costed stock issues are available.
 - Finance/HR audit and BlackRock-only workplan have been updated to match the live schema and current project scope.
 
 ## Next work sequence
