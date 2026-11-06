@@ -4,7 +4,7 @@
 
 ## Non-negotiable project scope
 
-Migrate the existing full BOKAN ERP V6.7 application as one integrated ERP for BlackRock Investment PLC and Prime Investment Group. Proforma is one workflow inside the ERP, not a standalone application or separate release. Withholding is not a required Proforma feature and must not block the full ERP migration.
+Migrate the existing full BOKAN ERP V6.7 application as one integrated ERP for **BlackRock Investment PLC only**. Prime Investment Group has been decommissioned from this project; do not reintroduce Prime company records, transactions, users, inventory, accounting, or memberships. Proforma is one workflow inside the ERP, not a standalone application or separate release. Withholding is not a required Proforma feature and must not block the full ERP migration.
 
 Keep production mode and the reviewed-module allowlist disabled until each module passes its acceptance gates. Forward-only live schema migrations may be applied when source-controlled, tested, company-scoped and explicitly verified. Do not merge the staging branch into main or deploy a production release as a shortcut.
 
@@ -25,7 +25,7 @@ Fourteen timestamped SQL files are tracked under `supabase/migrations`; the thre
 - Accept the four historical SQL bodies as an existing source-control gap; do not spend migration time attempting recovery or inventing historical migration bodies.
 - Preserve a clearly labeled current-schema baseline later if it becomes necessary for reproducible environment setup.
 - Compare constraints, indexes, triggers, views, functions, grants, and RLS against the live catalog before any forward migration.
-- Preserve existing operational records and verify company isolation for both legal entities.
+- Preserve BlackRock operational records and enforce the single active BlackRock company boundary. Keep Prime historical data out of the target ERP.
 
 ### 1. Identity, company context, and access
 - Test real Supabase Auth sign-in/out, session refresh, company switching, inactive membership denial, and role denial.
