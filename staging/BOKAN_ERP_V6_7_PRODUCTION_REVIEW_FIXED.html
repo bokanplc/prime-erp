@@ -54,7 +54,7 @@
     #sidebar.open { transform: translateX(0); }
   }
 
-/* ===== PRIME FORM UX ENHANCEMENT ===== */
+/* ===== BOKAN ERP FORM UX ENHANCEMENT ===== */
 .form-launcher{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;margin-top:8px;border:1px solid #d7dbe0;border-radius:10px;background:#fff;box-shadow:0 2px 8px rgba(20,30,40,.05);cursor:pointer;text-align:left;transition:.15s ease}
 .form-launcher:hover{border-color:#2CA01C;box-shadow:0 5px 16px rgba(20,30,40,.09);transform:translateY(-1px)}
 .form-launcher .fl-title{font-size:12px;font-weight:700;color:#293038}.form-launcher .fl-sub{font-size:10px;color:#7b8087;margin-top:2px}.form-launcher .fl-icon{width:30px;height:30px;border-radius:8px;background:#eaf7e8;color:#238016;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex:none}
@@ -845,7 +845,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 <style id="bokan-company-context">
   /* BOKAN master palette: a restrained bridge between enterprise blue and QuickBooks-inspired green. */
   :root{--context-accent:#24364B;--context-soft:#F2F5F8;--context-strong:#182738;--context-secondary:#0875E1}
-  /* PRIME — Workday-inspired: confident enterprise blue, clean neutrals. */
+  /* BlackRock workspace — Workday-inspired: confident enterprise blue, clean neutrals. */
   body.context-prime{--context-accent:#0875E1;--context-soft:#EAF4FF;--context-strong:#0759A8;--context-secondary:#5AA7EA}
   /* BlackRock — QuickBooks-inspired: clean business green. */
   body.context-blackrock{--context-accent:#2CA01C;--context-soft:#ECF8E9;--context-strong:#176B0F;--context-secondary:#5EAE50}
@@ -1058,7 +1058,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="bokan-owner-card"><div class="bokan-owner-label">Commercial Owner</div><div class="bokan-owner-value">The team/person responsible for acquiring and managing the customer relationship.</div></div>
     <div class="bokan-owner-card"><div class="bokan-owner-label">Operational Owner</div><div class="bokan-owner-value">The team/company responsible for fulfillment, warehouse and logistics execution.</div></div>
   </div>
-  <div class="prime-control-card p-4"><div class="corp-card-title">Example operating flow</div><div class="text-xs text-slate-600 leading-6">BlackRock salesperson acquires customer → management allocates opportunity to PRIME → PRIME owns inventory and legally sells → BlackRock remains commercial relationship owner → BOKAN logistics coordinates delivery. <strong>No intercompany transaction is created merely because BlackRock generated the customer.</strong></div></div>
+  <div class="prime-control-card p-4"><div class="corp-card-title">Example operating flow</div><div class="text-xs text-slate-600 leading-6">BlackRock salesperson acquires and owns the customer relationship → BlackRock controls the sale and inventory record → BOKAN ERP coordinates purchasing, fulfillment and delivery. <strong>No intercompany transaction is created merely because BlackRock generated the customer.</strong></div></div>
 </section>
 
 <section id="tab-opportunityallocation" class="tab-panel hidden">
@@ -6595,7 +6595,7 @@ function submitProformaRequest(event){
   rows.unshift(request);
   saveStoredProformaRequests(rows);
   document.getElementById('pf-request-form').reset();
-  document.getElementById('pfr-company').value = 'PRIME';
+  document.getElementById('pfr-company').value = 'BLACKROCK';
   document.getElementById('pfr-vat').value = '15';
   document.getElementById('pfr-discount').value = '0';
   document.getElementById('pfr-items').innerHTML = '';
