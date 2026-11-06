@@ -948,7 +948,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 .policy-handbook th{background:#EEF3F8;font-weight:800;color:#29415C}
 .policy-handbook .policy-signature-grid{border:1px solid #CBD5E1;padding:16px;border-radius:6px;margin-top:14px}
 .policy-handbook .policy-footer{border-top:1px solid #CBD5E1;padding-top:12px;margin-top:30px;text-align:center;font-size:9px;letter-spacing:.08em;color:#64748B}
-@media print{.policy-handbook-content{border:0!important;padding:0!important}.policy-handbook .policy-toc a{color:inherit;text-decoration:none}}
+@media print{.policy-handbook-content{border:0!important;padding:0!important}.policy-handbook .policy-toc a{color:inherit;text-decoration:none}body.policy-print-restricted #policy-handbook-content,body.policy-print-restricted #policy-handbook-content *{display:none!important;visibility:hidden!important}}
 </style>
 </head>
 <body class="bg-[#F4F5F8] min-h-screen">
@@ -9847,7 +9847,7 @@ async function enter(user){
   const auth=()=>window.BOKAN_PRODUCTION_AUTH;
   const state={isAdmin:false,loaded:false};
   function status(message,error){const el=$('policy-status');if(el){el.textContent=message;el.style.color=error?'#B42318':'#526173';}}
-  function showSignIn(){state.isAdmin=false;state.loaded=false;$('policy-print-btn')?.classList.add('hidden');$('policy-access-note').textContent='Read-only employee view. Printing is restricted to administrators.';$('policy-document-body').textContent='Sign in with an active BlackRock employee account to read the handbook.';status('The handbook is available only to authenticated BlackRock company members.');}
+  function showSignIn(){state.isAdmin=false;state.loaded=false;document.body.classList.add('policy-print-restricted');$('policy-print-btn')?.classList.add('hidden');$('policy-access-note').textContent='Read-only employee view. Printing is restricted to administrators.';$('policy-document-body').textContent='Sign in with an active BlackRock employee account to read the handbook.';status('The handbook is available only to authenticated BlackRock company members.');}
   async function refresh(){
     const a=auth();
     if(!a?.enabled||!a?.client||!a?.profile?.company_id){showSignIn();return;}
@@ -9857,6 +9857,7 @@ async function enter(user){
       if(error)throw error;
       if(!data){status('The handbook has not been published for this company.',true);return;}
       state.isAdmin=a.profile.role==='admin';
+      document.body.classList.toggle('policy-print-restricted',!state.isAdmin);
       state.loaded=true;
       $('policy-title').textContent=data.title;
       $('policy-meta').textContent='Version '+data.version+' · Effective '+new Date(data.effective_date+'T00:00:00').toLocaleDateString();
@@ -9864,14 +9865,16 @@ async function enter(user){
       $('policy-print-btn').classList.toggle('hidden',!state.isAdmin);
       $('policy-access-note').textContent=state.isAdmin?'Administrator access: printing is available from the Print Handbook button. Employee accounts have read-only access.':'Read-only employee view. Printing and document download controls are disabled; only administrators can print the handbook.';
       status('Official company policy loaded. This document is available to active BlackRock employees.');
-    }catch(e){state.isAdmin=false;state.loaded=false;$('policy-print-btn')?.classList.add('hidden');status('The handbook could not be loaded: '+(e.message||e),true);}
+    }catch(e){state.isAdmin=false;state.loaded=false;document.body.classList.add('policy-print-restricted');$('policy-print-btn')?.classList.add('hidden');status('The handbook could not be loaded: '+(e.message||e),true);}
   }
   function print(){
     if(!state.isAdmin||!state.loaded){status('Printing is restricted to administrators.',true);return;}
     const el=$('policy-handbook-content');if(!el)return;
+    const cleanup=()=>el.classList.remove('printable-doc');
     el.classList.add('printable-doc');
+    window.addEventListener('afterprint',cleanup,{once:true});
     window.print();
-    setTimeout(()=>el.classList.remove('printable-doc'),800);
+    setTimeout(cleanup,30000);
   }
   window.BOKAN_POLICY_HANDBOOK={refresh,print};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showSignIn,{once:true});else showSignIn();
