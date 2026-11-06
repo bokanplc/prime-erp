@@ -114,3 +114,15 @@ The authenticated `reverse_journal_entry` procedure locks the original posted jo
 Verification: a rollback-only authenticated SQL test created temporary accounts and an open period, called the posting RPC, verified equal posted totals and poster identity, called the reversal RPC, verified the reversal totals and original-entry link, then rolled back all test rows.
 
 Important remaining limitation: the posting RPC currently accepts a balanced source-linked journal but does **not yet independently validate the business approval state of a sales/purchase source document**. Do not wire sales or purchase auto-posting to it until source-specific validation and idempotency semantics are implemented and tested. The Finance UI remains disabled.
+
+
+### 2026-11-06 transaction-cost and profitability extension
+
+A separate `transaction_costs` table now captures factory selection/sourcing, quality assistance, dealer referral, loading, transport, handling and other transaction costs. Each row is company-scoped, records date/category/recipient/location/reference/amount, and classifies the cost as `landed_cost`, `direct_sales_cost`, or `operating_expense`. Company members can record costs; owner/admin/manager/accountant roles manage updates and deletion. No payment, receipt or supplier-payment fields are part of this register.
+
+The Management Reporting profitability panel now calculates:
+- **Landed gross profit** = net posted sales revenue − cost of goods sold from fully costed `sale_issue` stock movements (less customer returns) − additional landed costs.
+- **Profit after direct sales costs** = landed gross profit − classified direct sales costs.
+- Operating expenses are displayed separately and are not deducted from the direct-sales-cost measure.
+
+Draft sales/purchase documents and unposted stock movements are excluded. The metrics remain pending until posted sales invoices and fully costed stock issue movements exist. No real transaction-cost rows have been entered yet.
