@@ -57,3 +57,21 @@ Applied as migration `20261106151937_move_privileged_rpc_implementations_private
   warnings are cleared. The remaining warning is that leaked-password protection
   is disabled in Supabase Auth; this is an Auth dashboard setting, not a database
   migration.
+
+
+## RLS smoke tests — 2026-11-06
+
+Executed read-only checks inside rolled-back transactions using the authenticated
+Postgres role and controlled JWT subject claims:
+
+- The existing BlackRock admin identity could read the single active company,
+  22 customers, 28 sales documents, 16 purchase documents, and the one policy
+  document.
+- A non-member UUID could read zero rows from companies, customers, sales
+  documents, and company policy documents.
+- The anonymous role was denied SELECT on `public.customers` at the table
+  privilege layer.
+
+These checks validate basic company isolation for the tested tables only. They
+do not replace tests with real staff accounts, browser sign-in, or complete
+workflow tests.
