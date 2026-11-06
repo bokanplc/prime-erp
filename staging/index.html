@@ -923,7 +923,34 @@ body:not(.force-admin) #proforma-admin-queue{ }
   .pf-summary-terms,.pf-bank-box{break-inside:avoid}
 }
 @media(max-width:760px){.pf-summary-grid{grid-template-columns:1fr;gap:16px}.pf-totals-box{max-width:none}.pf-summary-terms{min-height:0}}
-</style></head>
+</style><style id="bokan-policy-handbook-styles">
+.policy-handbook-content{background:#fff;color:#263445}
+.policy-handbook{max-width:920px;margin:0 auto;font-size:13px;line-height:1.75;color:#263445}
+.policy-handbook .policy-cover{padding:26px 12px 30px;text-align:center;border-bottom:2px solid #CBD5E1;margin-bottom:24px}
+.policy-handbook .policy-company{font-size:10px;font-weight:800;letter-spacing:.12em;color:#526173}
+.policy-handbook h1{font-size:24px;line-height:1.25;font-weight:800;color:#10284A;margin:14px 0 8px}
+.policy-handbook .policy-subtitle{font-size:13px;color:#526173}
+.policy-handbook .policy-meta{display:grid;grid-template-columns:140px 1fr;gap:4px 12px;max-width:520px;margin:22px auto 0;text-align:left;font-size:11px}
+.policy-handbook .policy-meta dt{font-weight:700;color:#526173}.policy-handbook .policy-meta dd{margin:0}
+.policy-handbook .policy-toc{background:#F5F7FA;border:1px solid #D7E0EA;border-radius:8px;padding:18px 22px;margin:22px 0}
+.policy-handbook .policy-toc h2{font-size:16px;margin:0 0 8px}
+.policy-handbook .policy-toc ol{margin:0;padding-left:22px;columns:2;column-gap:28px}
+.policy-handbook .policy-toc li{break-inside:avoid;margin:3px 0;font-size:11px}
+.policy-handbook a{color:#1D5FA7;text-decoration:underline}
+.policy-handbook section{margin:28px 0;scroll-margin-top:18px}
+.policy-handbook section h2{font-size:17px;font-weight:800;color:#10284A;border-bottom:1px solid #CBD5E1;padding-bottom:7px;margin:0 0 12px}
+.policy-handbook h3{font-size:13px;font-weight:800;color:#29415C;margin:16px 0 6px}
+.policy-handbook p{margin:7px 0}
+.policy-handbook ul,.policy-handbook ol{padding-left:22px;margin:8px 0}
+.policy-handbook li{margin:5px 0}
+.policy-handbook table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11px}
+.policy-handbook th,.policy-handbook td{border:1px solid #CBD5E1;padding:8px;vertical-align:top;text-align:left}
+.policy-handbook th{background:#EEF3F8;font-weight:800;color:#29415C}
+.policy-handbook .policy-signature-grid{border:1px solid #CBD5E1;padding:16px;border-radius:6px;margin-top:14px}
+.policy-handbook .policy-footer{border-top:1px solid #CBD5E1;padding-top:12px;margin-top:30px;text-align:center;font-size:9px;letter-spacing:.08em;color:#64748B}
+@media print{.policy-handbook-content{border:0!important;padding:0!important}.policy-handbook .policy-toc a{color:inherit;text-decoration:none}}
+</style>
+</head>
 <body class="bg-[#F4F5F8] min-h-screen">
 <div id="prime-prod-gate"><div class="pg-card">
   <div class="pg-brand">BOKAN ERP · Production</div>
@@ -2923,7 +2950,19 @@ body:not(.force-admin) #proforma-admin-queue{ }
     </section>
 
     <!-- ---------- HR: EMPLOYEE DIRECTORY ---------- -->
-    <section id="tab-hremployees" class="tab-panel hidden">
+    <section id="tab-policyhandbook" class="tab-panel hidden">
+  <div class="mb-4"><div class="page-eyebrow">BlackRock Internal Governance</div><h2 class="text-2xl font-bold text-[#10284A]">Company Policy Handbook</h2><p class="text-sm text-slate-500">Official employee policy reference · Version 1.0 · Effective March 1, 2026</p></div>
+  <div id="policy-status" class="mb-3 rounded-lg border border-[#C8D3E0] bg-white px-4 py-3 text-xs text-slate-600" role="status">Checking secure employee access…</div>
+  <div class="bg-white border border-[#C8D3E0] rounded-xl p-4 md:p-6">
+    <div class="flex flex-wrap items-start justify-between gap-3 border-b pb-4 mb-4">
+      <div><div class="text-[10px] uppercase tracking-wider text-slate-500">BlackRock Investment PLC</div><h3 id="policy-title" class="text-lg font-bold text-[#10284A]">General Company Policy Handbook</h3><div id="policy-meta" class="text-xs text-slate-500 mt-1">Version 1.0 · Effective March 1, 2026</div></div>
+      <button id="policy-print-btn" type="button" class="hidden bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold" onclick="BOKAN_POLICY_HANDBOOK.print()">Print Handbook (Admin Only)</button>
+    </div>
+    <div id="policy-access-note" class="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-600">Read-only employee view. Printing is restricted to administrators.</div>
+    <div id="policy-handbook-content" class="policy-handbook-content"><div id="policy-document-body" class="text-sm text-slate-500">Sign in with an active BlackRock employee account to read the handbook.</div></div>
+  </div>
+</section>
+<section id="tab-hremployees" class="tab-panel hidden">
       <div class="mb-3 no-print">
         <div class="page-eyebrow">Human Resources</div>
         <h2 class="font-bold text-lg text-[#393A3D]">Employee Directory</h2>
@@ -4665,7 +4704,7 @@ function makeMockSupabase() {
 
 const _bokanCfg = window.BOKAN_CONFIG || {};
 // A global FULL_ERP_DATA_READY flag is not sufficient to expose every module. Each tab must be explicitly reviewed in source and explicitly enabled in config.
-window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([]);
+window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(['policyhandbook']);
 window.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function(cfg){
   const reviewed = window.BOKAN_REVIEWED_PRODUCTION_TABS;
   const enabled = Array.isArray(cfg?.ENABLED_PRODUCTION_TABS) ? cfg.ENABLED_PRODUCTION_TABS : [];
@@ -4681,14 +4720,14 @@ let currentRole = null;
 let currentDeptTabs = null;
 
 const ROLE_TABS = {
-  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','supplytower','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
-  data_entry:    ['dataentry','repository'],
-  accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol'],
-  inventory:     ['stockreport','dataentry','repository','procurement','inventorycontrol'],
-  sales:         ['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest'],
-  sales_manager: ['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline'],
-  management:    ['overview','stockreport','expenseledger','hrreports','budgetcontrol','reportscenter'],
-  hr:            ['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','payroll']
+  admin:         ['overview','sales','salescalllog','report','salestargets','tripcost','visitreport','stockreport','dataentry','salesorders','collections','expenseledger','proformarequest','proforma','billing','letters','repository','hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','policyhandbook','users','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','supplytower','fixedassets','budgetcontrol','payroll','audittrail','reportscenter'],
+  data_entry:    ['dataentry','repository','policyhandbook'],
+  accounting:    ['overview','stockreport','dataentry','expenseledger','letters','billing','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','policyhandbook'],
+  inventory:     ['stockreport','dataentry','repository','procurement','inventorycontrol','policyhandbook'],
+  sales:         ['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','policyhandbook'],
+  sales_manager: ['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','salespipeline','salesorders','collections','salesdiscipline','policyhandbook'],
+  management:    ['overview','stockreport','expenseledger','hrreports','budgetcontrol','reportscenter','policyhandbook'],
+  hr:            ['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','payroll','policyhandbook']
 };
 
 const NAV_TREE = [
@@ -4736,6 +4775,7 @@ const NAV_TREE = [
   { id: 'proformarequest', label: 'Proforma Request', indent: true },
   { id: 'salesfollowup', label: 'Follow-Up Control', indent: true },
   { type: 'label', text: 'Human Resources' },
+  { id: 'policyhandbook', label: 'Company Policy Handbook', indent: true },
   { id: 'hremployees',    label: 'Employee Directory', indent: true },
   { id: 'hrleave',        label: 'Leave Requests', indent: true },
   { id: 'hrperformance',  label: 'Performance Reviews', indent: true },
@@ -5019,6 +5059,7 @@ function enterDepartment(deptId) {
   if (!dept) return;
   const roleTabs = new Set(ROLE_TABS[currentRole] || []);
   currentDeptTabs = dept.tabs.filter(t => roleTabs.has(t));
+  if (roleTabs.has('policyhandbook') && !currentDeptTabs.includes('policyhandbook')) currentDeptTabs.push('policyhandbook');
   document.getElementById('landing-view').classList.add('hidden');
   document.getElementById('app-view').classList.remove('hidden');
   document.getElementById('current-dept-label').textContent = dept.label;
@@ -5133,6 +5174,7 @@ function showTab(id) {
   if (id === 'overview') { loadOverview(); loadBoardReport(); loadIncomeTax(); }
   if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }
   if (id === 'managementreporting') window.BOKAN_PROFITABILITY?.refresh();
+  if (id === 'policyhandbook') window.BOKAN_POLICY_HANDBOOK?.refresh();
   if (id === 'stockreport') { loadLedger(); loadStock(); }
   if (id === 'expenseledger') { loadExpenses(); window.BOKAN_TRANSACTION_COSTS_UI?.refresh(); }
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
@@ -9170,12 +9212,12 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   function roleTabs(role){
     const map={
       admin:(typeof ROLE_TABS!=='undefined' ? ROLE_TABS.admin : []),
-      management:['overview','stockreport','expenseledger','hrreports','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
-      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency'],
-      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower'],
-      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast'],
-      hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail'],
-      data_entry:['dataentry','repository']
+      management:['overview','stockreport','expenseledger','hrreports','policyhandbook','proforma','financialstatements','vatcontrol','periodclose','managementqueue','approvalinbox','bankrecon','cashforecast','hrproduction','groupcommand','companycontext','opportunityallocation','factoryagency','logisticscontrol','supplytower','reportscenter','audittrail','integratedcontrols','reconciliation','periodclose','documentcontrol','masterdata','inventorycosting','rolespermissions','crmcontrol','payrollcontrol','managementreporting','approvalworkflow','auditcontrol','integrationcenter','exceptionworkbench','periodlockcontrol','masterdataquality','enterprise_release','trialbalance','datacontrol','controltower','masterdata','monthclose'],
+      sales_manager:['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','logisticscontrol','supplytower','factoryagency','policyhandbook'],
+      sales:['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma','salespipeline','salesorders','collections','salesdiscipline','opportunityallocation','supplytower','policyhandbook'],
+      accounting:['overview','stockreport','dataentry','expenseledger','letters','billing','proforma','repository','generalledger','receivables','payables','bankcash','procurement','inventorycontrol','fixedassets','budgetcontrol','reportscenter','chartaccounts','vatcontrol','financialstatements','periodclose','audittrail','reconciliation','integratedcontrols','postingengine','bankrecon','cashforecast','policyhandbook'],
+      hr:['hremployees','hrleave','hrperformance','hrdisciplinary','hrreports','leave','payrollprep','performance','payroll','audittrail','policyhandbook'],
+      data_entry:['dataentry','repository','policyhandbook']
     }; if(window.BOKAN_CONFIG?.DEMO_REVIEW_MODE===true && !_bokanProdConfigured) return (typeof ROLE_TABS!=='undefined' && Array.isArray(ROLE_TABS.admin)) ? [...ROLE_TABS.admin] : (map.admin||[]); const enabled=new Set((Array.isArray(cfg.ENABLED_PRODUCTION_TABS)?cfg.ENABLED_PRODUCTION_TABS:[]).filter(tab=>Array.isArray(window.BOKAN_REVIEWED_PRODUCTION_TABS)&&window.BOKAN_REVIEWED_PRODUCTION_TABS.includes(tab))); return (map[role]||[]).filter(tab=>enabled.has(tab));
   }
   function mapMembershipRole(role){ const map={owner:'admin',admin:'admin',manager:'management',sales:'sales',accountant:'accounting',staff:'data_entry'}; return map[role]||null; }
@@ -9797,6 +9839,42 @@ async function enter(user){
   }
   window.BOKAN_PROFITABILITY={enabled,refresh};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pending,{once:true});else pending();
+})();
+</script>
+<script id="bokan-v71-policy-handbook">
+(function(){
+  const $=id=>document.getElementById(id);
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const state={isAdmin:false,loaded:false};
+  function status(message,error){const el=$('policy-status');if(el){el.textContent=message;el.style.color=error?'#B42318':'#526173';}}
+  function showSignIn(){state.isAdmin=false;state.loaded=false;$('policy-print-btn')?.classList.add('hidden');$('policy-access-note').textContent='Read-only employee view. Printing is restricted to administrators.';$('policy-document-body').textContent='Sign in with an active BlackRock employee account to read the handbook.';status('The handbook is available only to authenticated BlackRock company members.');}
+  async function refresh(){
+    const a=auth();
+    if(!a?.enabled||!a?.client||!a?.profile?.company_id){showSignIn();return;}
+    status('Loading the official BlackRock policy handbook…');
+    try{
+      const {data,error}=await a.client.from('company_policy_documents').select('title,version,effective_date,content_html').eq('company_id',a.profile.company_id).eq('document_key','company-policy-handbook').eq('is_active',true).maybeSingle();
+      if(error)throw error;
+      if(!data){status('The handbook has not been published for this company.',true);return;}
+      state.isAdmin=a.profile.role==='admin';
+      state.loaded=true;
+      $('policy-title').textContent=data.title;
+      $('policy-meta').textContent='Version '+data.version+' · Effective '+new Date(data.effective_date+'T00:00:00').toLocaleDateString();
+      $('policy-document-body').innerHTML=data.content_html;
+      $('policy-print-btn').classList.toggle('hidden',!state.isAdmin);
+      $('policy-access-note').textContent=state.isAdmin?'Administrator access: printing is available from the Print Handbook button. Employee accounts have read-only access.':'Read-only employee view. Printing and document download controls are disabled; only administrators can print the handbook.';
+      status('Official company policy loaded. This document is available to active BlackRock employees.');
+    }catch(e){state.isAdmin=false;state.loaded=false;$('policy-print-btn')?.classList.add('hidden');status('The handbook could not be loaded: '+(e.message||e),true);}
+  }
+  function print(){
+    if(!state.isAdmin||!state.loaded){status('Printing is restricted to administrators.',true);return;}
+    const el=$('policy-handbook-content');if(!el)return;
+    el.classList.add('printable-doc');
+    window.print();
+    setTimeout(()=>el.classList.remove('printable-doc'),800);
+  }
+  window.BOKAN_POLICY_HANDBOOK={refresh,print};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showSignIn,{once:true});else showSignIn();
 })();
 </script>
 </body>
