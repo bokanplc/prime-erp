@@ -82,3 +82,10 @@ The 61-piece Yellow Plywood opening-stock row is not posted to inventory. The so
 4. Finish Finance source-document automation and HR sensitive-data/approval controls.
 5. Provision staff memberships only when the employees' authenticated accounts are ready.
 6. Keep the production allowlist empty and do not promote `main` until the full ERP passes its acceptance gates.
+
+
+### Hosted sign-in and employee access gate
+
+The Supabase Auth Google identity is linked to the existing active BlackRock administrator account and its company membership. The full V6.7 login now includes a Google OAuth button/handler alongside email/password and supports an explicit `AUTH_REDIRECT_URL` override (blank uses the current origin). This cannot be end-to-end tested while `PRODUCTION_MODE=false`, the Supabase browser URL/key are blank, and the current preview origin may not be in Supabase's redirect allowlist.
+
+Vercel project protection is currently enabled for all non-custom domains, and the project has only Vercel-hosted domains attached. Keep staging protected. Before employee release, attach the intended custom company domain (or make an explicit access-protection decision), add that exact domain to Supabase Auth's allowed redirect URLs, and test the Google callback with the existing linked admin identity plus employee memberships.
