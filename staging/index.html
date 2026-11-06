@@ -1174,15 +1174,105 @@ body:not(.force-admin) #proforma-admin-queue{ }
 </section>
 
 <section id="tab-crmcontrol" class="tab-panel hidden">
-  <div class="mb-4"><div class="page-eyebrow">Sales CRM</div><h2 class="text-2xl font-bold text-[#10284A]">CRM Performance & Coverage</h2><p class="text-sm text-slate-500">Turn customer activity into measurable coverage, pipeline and follow-up discipline.</p></div>
+  <div class="mb-4">
+    <div class="page-eyebrow">BlackRock Sales CRM</div>
+    <h2 class="text-2xl font-bold text-[#10284A]">Customer Relationship Management</h2>
+    <p class="text-sm text-slate-500">Customer records, calls, visits, follow-ups, pipeline opportunities, after-sales tasks and salesperson coverage.</p>
+  </div>
+  <div id="crm-live-status" class="mb-4 rounded-lg border border-[#C8D3E0] bg-white px-4 py-3 text-xs text-slate-600" role="status">Review mode: live CRM access is not enabled. No sample customer data is shown.</div>
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mb-5">
     <div class="bg-white border border-[#C8D3E0] rounded-xl p-4"><div class="text-xs text-slate-500">Customer Records</div><div id="v45-crmcustomers" class="text-2xl font-bold">0</div></div>
     <div class="bg-white border border-[#C8D3E0] rounded-xl p-4"><div class="text-xs text-slate-500">Activities</div><div id="v45-activities" class="text-2xl font-bold">0</div></div>
     <div class="bg-white border border-[#C8D3E0] rounded-xl p-4"><div class="text-xs text-slate-500">Phone Calls</div><div id="v45-calls" class="text-2xl font-bold">0</div></div>
     <div class="bg-white border border-[#C8D3E0] rounded-xl p-4"><div class="text-xs text-slate-500">Unique Customers Touched</div><div id="v45-touched" class="text-2xl font-bold">0</div></div>
-    <div class="bg-white border border-[#C8D3E0] rounded-xl p-4"><div class="text-xs text-slate-500">Overdue</div><div id="v45-overdue" class="text-2xl font-bold">0</div></div>
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-4"><div class="text-xs text-slate-500">Overdue Follow-ups</div><div id="v45-overdue" class="text-2xl font-bold">0</div></div>
   </div>
-  <div class="bg-white border border-[#C8D3E0] rounded-xl p-5"><h3 class="font-bold mb-3">Rep Coverage</h3><div class="overflow-auto"><table class="w-full text-sm"><thead><tr class="border-b"><th class="text-left py-2">Representative</th><th>Activities</th><th>Calls</th><th>Unique Customers</th><th>Overdue</th></tr></thead><tbody id="v45-reprows"></tbody></table></div></div>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-5">
+      <h3 class="font-bold text-[#10284A] mb-3">Customer Master</h3>
+      <form id="crm-customer-form" class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+        <input id="crm-customer-name" required maxlength="300" placeholder="Customer / Company name">
+        <input id="crm-customer-contact" maxlength="200" placeholder="Contact person">
+        <input id="crm-customer-phone" maxlength="80" placeholder="Phone / WhatsApp">
+        <input id="crm-customer-email" type="email" maxlength="254" placeholder="Email">
+        <input id="crm-customer-location" maxlength="300" placeholder="Address / Project location">
+        <select id="crm-customer-status"><option value="New Lead">New Lead</option><option value="Qualified">Qualified</option><option value="Meeting Scheduled">Meeting Scheduled</option><option value="Quotation Sent">Quotation Sent</option><option value="Active Customer">Active Customer</option><option value="On Hold">On Hold</option><option value="Closed / Won">Closed / Won</option><option value="Closed / Lost">Closed / Lost</option></select>
+        <input id="crm-customer-source" maxlength="120" placeholder="Lead source">
+        <input id="crm-customer-tax" maxlength="80" placeholder="TIN / Tax number">
+        <textarea id="crm-customer-notes" class="md:col-span-2" rows="2" maxlength="5000" placeholder="Customer notes"></textarea>
+        <div class="md:col-span-2 flex gap-2"><button id="crm-customer-save" type="submit" class="bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold">Save Customer</button><button id="crm-customer-cancel" type="button" class="hidden border rounded-lg px-4 py-2 text-xs" onclick="BOKAN_CRM_UI.cancelCustomerEdit()">Cancel Edit</button></div>
+      </form>
+      <div class="flex items-center justify-between gap-2 mb-2"><input id="crm-customer-search" placeholder="Search customer, contact or phone"><span id="crm-customer-count" class="text-xs text-slate-500">0 records</span></div>
+      <div class="overflow-auto max-h-80"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="py-2">Customer</th><th>Contact</th><th>Status</th><th>Owner</th><th></th></tr></thead><tbody id="crm-customer-rows"><tr><td colspan="5" class="py-4 text-center text-slate-500">No live CRM data loaded.</td></tr></tbody></table></div>
+    </div>
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-5">
+      <h3 class="font-bold text-[#10284A] mb-3">Log Call, Visit or Follow-up</h3>
+      <form id="crm-activity-form" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <select id="crm-activity-customer" required class="md:col-span-2"><option value="">Select customer</option></select>
+        <select id="crm-activity-type"><option>Phone Call</option><option>WhatsApp / Message</option><option>In-Person Meeting</option><option>Site Visit</option><option>Sample Delivered</option><option>Quotation Sent</option><option>Proforma Sent</option><option>Price Discussion</option><option>Negotiation</option><option>Customer Service</option><option>Order Follow-up</option><option>Delivery Follow-up</option><option>Other</option></select>
+        <input id="crm-activity-date" type="date">
+        <select id="crm-activity-assignee"><option value="">No assigned representative</option></select>
+        <select id="crm-activity-status"><option value="open">Open</option><option value="completed">Completed</option><option value="Closed / Won">Closed / Won</option><option value="Closed / Lost">Closed / Lost</option></select>
+        <textarea id="crm-activity-notes" class="md:col-span-2" rows="2" maxlength="10000" placeholder="What happened?"></textarea>
+        <textarea id="crm-activity-feedback" class="md:col-span-2" rows="2" maxlength="5000" placeholder="Customer feedback / response"></textarea>
+        <input id="crm-activity-next" maxlength="120" placeholder="Next action">
+        <input id="crm-activity-next-date" type="date" aria-label="Next action date">
+        <input id="crm-activity-product" maxlength="120" placeholder="Product type">
+        <input id="crm-activity-units" type="number" min="0" step="0.01" placeholder="Units sold (if closed)">
+        <input id="crm-activity-value" type="number" min="0" step="0.01" placeholder="Deal value ETB (if closed)">
+        <button type="submit" class="md:col-span-2 bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold">Save Activity</button>
+      </form>
+      <div class="mt-4 border-t pt-3"><h4 class="font-semibold text-sm mb-2">Recent Activities</h4><div class="overflow-auto max-h-56"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="py-2">Date</th><th>Customer</th><th>Activity</th><th>Next action</th></tr></thead><tbody id="crm-activity-rows"><tr><td colspan="4" class="py-3 text-center text-slate-500">No live activities loaded.</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-5">
+      <h3 class="font-bold text-[#10284A] mb-3">Opportunity Pipeline</h3>
+      <form id="crm-opportunity-form" class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+        <select id="crm-opportunity-customer" required class="md:col-span-2"><option value="">Select customer</option></select>
+        <input id="crm-opportunity-product" required maxlength="500" placeholder="Product / requirement">
+        <select id="crm-opportunity-stage"><option value="lead">Lead</option><option value="qualified">Qualified</option><option value="quotation">Quotation</option><option value="negotiation">Negotiation</option><option value="won">Won</option><option value="lost">Lost</option><option value="on_hold">On hold</option></select>
+        <input id="crm-opportunity-qty" type="number" min="0" step="0.01" placeholder="Estimated quantity">
+        <input id="crm-opportunity-value" type="number" min="0" step="0.01" placeholder="Estimated value ETB">
+        <input id="crm-opportunity-required" type="date" aria-label="Required date">
+        <input id="crm-opportunity-competitor" maxlength="300" placeholder="Competitor (optional)">
+        <input id="crm-opportunity-next" maxlength="500" placeholder="Next action">
+        <input id="crm-opportunity-next-date" type="date" aria-label="Next action date">
+        <textarea id="crm-opportunity-notes" class="md:col-span-2" rows="2" maxlength="10000" placeholder="Opportunity notes"></textarea>
+        <button type="submit" class="md:col-span-2 bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold">Create Opportunity</button>
+      </form>
+      <div class="overflow-auto max-h-72"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="py-2">Customer / Requirement</th><th>Value</th><th>Stage</th><th>Next action</th></tr></thead><tbody id="crm-opportunity-rows"><tr><td colspan="4" class="py-3 text-center text-slate-500">No opportunities loaded.</td></tr></tbody></table></div>
+    </div>
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-5">
+      <h3 class="font-bold text-[#10284A] mb-3">After-sales Tasks & Reminders</h3>
+      <form id="crm-task-form" class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+        <select id="crm-task-customer" required class="md:col-span-2"><option value="">Select customer</option></select>
+        <input id="crm-task-type" required maxlength="200" placeholder="Task / reminder">
+        <input id="crm-task-due" type="date" aria-label="Due date">
+        <select id="crm-task-owner"><option value="">Current user</option></select>
+        <textarea id="crm-task-notes" class="md:col-span-2" rows="2" maxlength="10000" placeholder="Task notes"></textarea>
+        <button type="submit" class="md:col-span-2 bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold">Create Reminder</button>
+      </form>
+      <div class="overflow-auto max-h-72"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="py-2">Task</th><th>Customer</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody id="crm-task-rows"><tr><td colspan="5" class="py-3 text-center text-slate-500">No after-sales tasks loaded.</td></tr></tbody></table></div>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-5">
+      <h3 class="font-bold text-[#10284A] mb-3">Customer History</h3>
+      <select id="crm-history-customer" class="mb-3"><option value="">Select customer to view history</option></select>
+      <div class="overflow-auto max-h-72"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="py-2">Date</th><th>Activity</th><th>Notes / Feedback</th><th>Next action</th></tr></thead><tbody id="crm-history-rows"><tr><td colspan="4" class="py-3 text-center text-slate-500">Select a customer.</td></tr></tbody></table></div>
+    </div>
+    <div class="bg-white border border-[#C8D3E0] rounded-xl p-5">
+      <h3 class="font-bold text-[#10284A] mb-3">Customer Assignment</h3>
+      <form id="crm-reassign-form" class="space-y-2">
+        <select id="crm-reassign-customer" required><option value="">Select customer</option></select>
+        <select id="crm-reassign-owner" required><option value="">Select active sales representative</option></select>
+        <input id="crm-reassign-reason" required maxlength="500" placeholder="Reason for reassignment">
+        <button type="submit" class="bg-[#2867E8] text-white rounded-lg px-4 py-2 text-xs font-bold">Reassign Customer</button>
+      </form>
+      <div class="mt-4 border-t pt-3"><h4 class="font-semibold text-sm mb-2">Sales Representative Coverage</h4><div class="overflow-auto"><table class="w-full text-xs"><thead><tr class="border-b"><th class="text-left py-2">Representative</th><th>Activities</th><th>Calls</th><th>Customers</th><th>Overdue</th></tr></thead><tbody id="v45-reprows"></tbody></table></div></div>
+    </div>
+  </div>
 </section>
 
 <section id="tab-payrollcontrol" class="tab-panel hidden">
@@ -5006,7 +5096,7 @@ function showTab(id) {
   document.querySelectorAll(`[data-tab-id="${id}"]`).forEach(b => b.classList.add('active'));
 
   if (id === 'overview') { loadOverview(); loadBoardReport(); loadIncomeTax(); }
-  if (id === 'crmcontrol' && window.BOKAN_CRM_PRODUCTION?.enabled()) window.BOKAN_CRM_PRODUCTION.loadCRMControl().catch(e=>console.error('CRM control load failed',e));
+  if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }
   if (id === 'stockreport') { loadLedger(); loadStock(); }
   if (id === 'expenseledger') loadExpenses();
   if (id === 'dataentry') { loadMyLedger(); loadMyStock(); loadMyExpenses(); }
@@ -9263,6 +9353,90 @@ async function enter(user){
     listAfterSalesTasks, createAfterSalesTask, updateAfterSalesTask,
     listCompanyRepresentatives, loadCRMControl, deactivateSalesperson
   };
+})();
+</script>
+<script id="bokan-v68-crm-workspace">
+(function(){
+  const $=id=>document.getElementById(id);
+  const api=()=>window.BOKAN_CRM_PRODUCTION;
+  const state={customers:[],activities:[],opportunities:[],tasks:[],reps:[],profileNames:{},editingCustomerId:null};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtDate=v=>v?new Date(v).toLocaleDateString():'—';
+  const money=v=>v==null||v===''?'—':'ETB '+Number(v).toLocaleString();
+  const profile=()=>window.BOKAN_PRODUCTION_AUTH?.profile||null;
+  const userId=()=>profile()?.id||null;
+  function setStatus(message,isError){const el=$('crm-live-status');if(el){el.textContent=message;el.style.color=isError?'#B42318':'#526173';}}
+  function setWritable(enabled){['crm-customer-form','crm-activity-form','crm-opportunity-form','crm-task-form','crm-reassign-form'].forEach(id=>{const f=$(id);if(f)f.querySelectorAll('input,select,textarea,button').forEach(x=>{x.disabled=!enabled;});});}
+  function showReviewMode(){setWritable(false);setStatus('Review mode: live CRM access is not enabled. No sample customer data is shown, and CRM forms are disabled.');}
+  function personName(id){return state.profileNames[id]||id||'Unassigned';}
+  function customerName(id){return state.customers.find(c=>c.id===id)?.name||'Unknown customer';}
+  function setOptions(id,rows,placeholder,selected){const el=$(id);if(!el)return;const keep=selected??el.value;el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+rows.map(r=>'<option value="'+esc(r.value)+'">'+esc(r.label)+'</option>').join('');if(rows.some(r=>r.value===keep))el.value=keep;}
+  function renderCustomers(){
+    const q=($('crm-customer-search')?.value||'').trim().toLowerCase();
+    const rows=state.customers.filter(c=>[c.name,c.contact_person,c.phone,c.email,c.location].join(' ').toLowerCase().includes(q));
+    $('crm-customer-count').textContent=rows.length+' records';
+    $('crm-customer-rows').innerHTML=rows.length?rows.map(c=>'<tr class="border-b"><td class="py-2 font-semibold">'+esc(c.name)+'</td><td>'+esc(c.contact_person||'—')+'<div class="text-slate-500">'+esc(c.phone||'')+'</div></td><td>'+esc(c.current_status||'—')+'</td><td>'+esc(personName(c.crm_assignment?.owner_user_id))+'</td><td class="whitespace-nowrap"><button type="button" class="text-blue-700 mr-2" data-crm-edit="'+esc(c.id)+'">Edit</button><button type="button" class="text-blue-700" data-crm-history="'+esc(c.id)+'">History</button></td></tr>').join(''):'<tr><td colspan="5" class="py-4 text-center text-slate-500">No matching customers.</td></tr>';
+    const opts=state.customers.map(c=>({value:c.id,label:c.name}));
+    ['crm-activity-customer','crm-opportunity-customer','crm-task-customer','crm-history-customer','crm-reassign-customer'].forEach(id=>setOptions(id,opts,id==='crm-history-customer'?'Select customer to view history':'Select customer'));
+  }
+  function renderActivities(){
+    const rows=state.activities.slice().sort((a,b)=>String(b.activity_at).localeCompare(String(a.activity_at))).slice(0,20);
+    $('crm-activity-rows').innerHTML=rows.length?rows.map(a=>'<tr class="border-b"><td class="py-2">'+fmtDate(a.activity_at)+'</td><td>'+esc(customerName(a.customer_id))+'</td><td>'+esc(a.activity_type)+'</td><td>'+esc(a.next_action_type||'—')+(a.next_action_date?'<div class="text-slate-500">'+fmtDate(a.next_action_date)+'</div>':'')+'</td></tr>').join(''):'<tr><td colspan="4" class="py-3 text-center text-slate-500">No CRM activities recorded yet.</td></tr>';
+    const today=new Date().toISOString().slice(0,10);
+    $('v45-crmcustomers').textContent=state.customers.length;
+    $('v45-activities').textContent=state.activities.length;
+    $('v45-calls').textContent=state.activities.filter(a=>/phone|call/i.test(a.activity_type||'')).length;
+    $('v45-touched').textContent=new Set(state.activities.map(a=>a.customer_id)).size;
+    $('v45-overdue').textContent=state.activities.filter(a=>a.next_action_date&&a.next_action_date<today).length;
+  }
+  function renderOpportunities(){
+    const rows=state.opportunities.slice().sort((a,b)=>String(b.updated_at).localeCompare(String(a.updated_at)));
+    $('crm-opportunity-rows').innerHTML=rows.length?rows.map(o=>'<tr class="border-b"><td class="py-2 font-semibold">'+esc(customerName(o.customer_id))+'<div class="text-slate-500">'+esc(o.product_description)+'</div></td><td>'+money(o.estimated_value)+'</td><td><select data-crm-stage="'+esc(o.id)+'" class="min-w-24"><option value="lead" '+(o.stage==='lead'?'selected':'')+'>Lead</option><option value="qualified" '+(o.stage==='qualified'?'selected':'')+'>Qualified</option><option value="quotation" '+(o.stage==='quotation'?'selected':'')+'>Quotation</option><option value="negotiation" '+(o.stage==='negotiation'?'selected':'')+'>Negotiation</option><option value="won" '+(o.stage==='won'?'selected':'')+'>Won</option><option value="lost" '+(o.stage==='lost'?'selected':'')+'>Lost</option><option value="on_hold" '+(o.stage==='on_hold'?'selected':'')+'>On hold</option></select></td><td>'+esc(o.next_action||'—')+(o.next_action_date?'<div class="text-slate-500">'+fmtDate(o.next_action_date)+'</div>':'')+'</td></tr>').join(''):'<tr><td colspan="4" class="py-3 text-center text-slate-500">No pipeline opportunities recorded yet.</td></tr>';
+  }
+  function renderTasks(){
+    $('crm-task-rows').innerHTML=state.tasks.length?state.tasks.map(t=>'<tr class="border-b"><td class="py-2 font-semibold">'+esc(t.task_type)+'<div class="text-slate-500">'+esc(t.notes||'')+'</div></td><td>'+esc(customerName(t.customer_id))+'</td><td>'+fmtDate(t.due_date)+'</td><td>'+esc(t.status)+'</td><td class="whitespace-nowrap">'+(t.status==='open'?'<button type="button" class="text-blue-700 mr-2" data-crm-task="completed" data-id="'+esc(t.id)+'">Complete</button><button type="button" class="text-red-700" data-crm-task="cancelled" data-id="'+esc(t.id)+'">Cancel</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="5" class="py-3 text-center text-slate-500">No after-sales tasks recorded yet.</td></tr>';
+  }
+  function renderHistory(customerId){
+    const rows=state.activities.filter(a=>a.customer_id===customerId).sort((a,b)=>String(b.activity_at).localeCompare(String(a.activity_at)));
+    $('crm-history-rows').innerHTML=rows.length?rows.map(a=>'<tr class="border-b"><td class="py-2">'+fmtDate(a.activity_at)+'</td><td>'+esc(a.activity_type)+'</td><td>'+esc(a.notes||'')+(a.customer_feedback?'<div class="text-slate-500">'+esc(a.customer_feedback)+'</div>':'')+'</td><td>'+esc(a.next_action_type||'—')+(a.next_action_date?'<div class="text-slate-500">'+fmtDate(a.next_action_date)+'</div>':'')+'</td></tr>').join(''):'<tr><td colspan="4" class="py-3 text-center text-slate-500">No history for this customer yet.</td></tr>';
+  }
+  function renderReps(){
+    const opts=state.reps.map(r=>({value:r.user_id,label:personName(r.user_id)+' · '+r.role}));
+    setOptions('crm-activity-assignee',opts,'No assigned representative');
+    setOptions('crm-task-owner',opts,'Current user');
+    setOptions('crm-reassign-owner',opts,'Select active sales representative');
+    const rows=state.reps.map(rep=>{const acts=state.activities.filter(a=>(a.assigned_user_id||a.actor_user_id)===rep.user_id);return {rep,count:acts.length,calls:acts.filter(a=>/phone|call/i.test(a.activity_type||'')).length,touched:new Set(acts.map(a=>a.customer_id)).size,overdue:acts.filter(a=>a.next_action_date&&a.next_action_date<new Date().toISOString().slice(0,10)).length};});
+    $('v45-reprows').innerHTML=rows.length?rows.map(x=>'<tr class="border-b"><td class="py-2">'+esc(personName(x.rep.user_id))+'</td><td class="text-center">'+x.count+'</td><td class="text-center">'+x.calls+'</td><td class="text-center">'+x.touched+'</td><td class="text-center">'+x.overdue+'</td></tr>').join(''):'<tr><td colspan="5" class="py-3 text-slate-500">No active sales representatives have been added to BlackRock yet.</td></tr>';
+  }
+  async function refresh(){
+    if(!api()?.enabled()){showReviewMode();return;}
+    setWritable(true);setStatus('Loading live BlackRock CRM records…');
+    try{
+      const [customers,activities,opportunities,tasks,reps]=await Promise.all([api().listMyCustomers(),api().listActivities(),api().listOpportunities(),api().listAfterSalesTasks(),api().listCompanyRepresentatives()]);
+      state.customers=customers;state.activities=activities;state.opportunities=opportunities;state.tasks=tasks;state.reps=reps;
+      try{
+        const p=profile();const {data,error}=await window.BOKAN_PRODUCTION_AUTH.client.from('profiles').select('id,full_name').eq('company_id',p.company_id);
+        if(!error)(data||[]).forEach(x=>state.profileNames[x.id]=x.full_name||x.id);
+      }catch(e){}
+      renderCustomers();renderActivities();renderOpportunities();renderTasks();renderReps();
+      setStatus('Live BlackRock CRM records loaded. Changes are saved to Supabase under the active company membership.');
+    }catch(e){setWritable(false);setStatus('CRM data could not be loaded: '+(e.message||e),true);}
+  }
+  function cancelCustomerEdit(){state.editingCustomerId=null;$('crm-customer-form').reset();$('crm-customer-save').textContent='Save Customer';$('crm-customer-cancel').classList.add('hidden');}
+  function editCustomer(id){const c=state.customers.find(x=>x.id===id);if(!c)return;state.editingCustomerId=id;$('crm-customer-name').value=c.name||'';$('crm-customer-contact').value=c.contact_person||'';$('crm-customer-phone').value=c.phone||'';$('crm-customer-email').value=c.email||'';$('crm-customer-location').value=c.location||'';$('crm-customer-status').value=c.current_status||'New Lead';$('crm-customer-source').value=c.lead_source||'';$('crm-customer-tax').value=c.tax_number||'';$('crm-customer-notes').value=c.notes||'';$('crm-customer-save').textContent='Update Customer';$('crm-customer-cancel').classList.remove('hidden');}
+  async function submitCustomer(e){e.preventDefault();try{const payload={name:$('crm-customer-name').value.trim(),contact_person:$('crm-customer-contact').value.trim(),phone:$('crm-customer-phone').value.trim(),email:$('crm-customer-email').value.trim(),location:$('crm-customer-location').value.trim(),current_status:$('crm-customer-status').value,lead_source:$('crm-customer-source').value.trim(),tax_number:$('crm-customer-tax').value.trim(),notes:$('crm-customer-notes').value.trim()};if(state.editingCustomerId)await api().updateCustomer(state.editingCustomerId,payload);else await api().createCustomer(payload);cancelCustomerEdit();await refresh();}catch(e){setStatus('Customer was not saved: '+(e.message||e),true);}}
+  async function submitActivity(e){e.preventDefault();try{const d=$('crm-activity-date').value;const payload={customer_id:$('crm-activity-customer').value,activity_type:$('crm-activity-type').value,activity_at:d?new Date(d+'T12:00:00').toISOString():new Date().toISOString(),assigned_user_id:$('crm-activity-assignee').value||null,status:$('crm-activity-status').value,notes:$('crm-activity-notes').value.trim(),customer_feedback:$('crm-activity-feedback').value.trim(),next_action_type:$('crm-activity-next').value.trim()||null,next_action_date:$('crm-activity-next-date').value||null,product_type:$('crm-activity-product').value.trim()||null,units_sold:$('crm-activity-units').value===''?null:Number($('crm-activity-units').value),deal_value:$('crm-activity-value').value===''?null:Number($('crm-activity-value').value)};await api().addActivity(payload);$('crm-activity-form').reset();await refresh();}catch(e){setStatus('Activity was not saved: '+(e.message||e),true);}}
+  async function submitOpportunity(e){e.preventDefault();try{const payload={customer_id:$('crm-opportunity-customer').value,product_description:$('crm-opportunity-product').value.trim(),stage:$('crm-opportunity-stage').value,estimated_quantity:Number($('crm-opportunity-qty').value||0),estimated_value:Number($('crm-opportunity-value').value||0),currency_code:'ETB',required_date:$('crm-opportunity-required').value||null,competitor:$('crm-opportunity-competitor').value.trim()||null,next_action:$('crm-opportunity-next').value.trim()||null,next_action_date:$('crm-opportunity-next-date').value||null,notes:$('crm-opportunity-notes').value.trim()};await api().createOpportunity(payload);$('crm-opportunity-form').reset();await refresh();}catch(e){setStatus('Opportunity was not saved: '+(e.message||e),true);}}
+  async function submitTask(e){e.preventDefault();try{const payload={customer_id:$('crm-task-customer').value,task_type:$('crm-task-type').value.trim(),notes:$('crm-task-notes').value.trim(),due_date:$('crm-task-due').value||null,owner_user_id:$('crm-task-owner').value||userId(),status:'open'};await api().createAfterSalesTask(payload);$('crm-task-form').reset();await refresh();}catch(e){setStatus('Reminder was not saved: '+(e.message||e),true);}}
+  async function submitReassignment(e){e.preventDefault();try{await api().assignCustomer($('crm-reassign-customer').value,$('crm-reassign-owner').value,$('crm-reassign-reason').value.trim());$('crm-reassign-form').reset();await refresh();}catch(e){setStatus('Customer reassignment was not saved: '+(e.message||e),true);}}
+  document.addEventListener('submit',e=>{if(e.target.id==='crm-customer-form')submitCustomer(e);if(e.target.id==='crm-activity-form')submitActivity(e);if(e.target.id==='crm-opportunity-form')submitOpportunity(e);if(e.target.id==='crm-task-form')submitTask(e);if(e.target.id==='crm-reassign-form')submitReassignment(e);});
+  $('crm-customer-search')?.addEventListener('input',renderCustomers);
+  $('crm-history-customer')?.addEventListener('change',e=>renderHistory(e.target.value));
+  $('crm-customer-rows')?.addEventListener('click',e=>{const edit=e.target.closest('[data-crm-edit]'),history=e.target.closest('[data-crm-history]');if(edit)editCustomer(edit.dataset.crmEdit);if(history){$('crm-history-customer').value=history.dataset.crmHistory;renderHistory(history.dataset.crmHistory);}});
+  $('crm-opportunity-rows')?.addEventListener('change',async e=>{const id=e.target.dataset.crmStage;if(!id)return;try{await api().updateOpportunity(id,{stage:e.target.value});await refresh();}catch(err){setStatus('Opportunity stage was not updated: '+(err.message||err),true);}});
+  $('crm-task-rows')?.addEventListener('click',async e=>{const btn=e.target.closest('[data-crm-task]');if(!btn)return;try{const patch=btn.dataset.crmTask==='completed'?{status:'completed',completed_at:new Date().toISOString()}:{status:'cancelled'};await api().updateAfterSalesTask(btn.dataset.id,patch);await refresh();}catch(err){setStatus('Task status was not updated: '+(err.message||err),true);}});
+  window.BOKAN_CRM_UI={refresh,showReviewMode,cancelCustomerEdit};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showReviewMode,{once:true});else showReviewMode();
 })();
 </script>
 
