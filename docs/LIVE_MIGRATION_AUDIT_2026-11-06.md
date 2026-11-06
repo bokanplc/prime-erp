@@ -9,24 +9,24 @@
 
 - The full V6.7 staging artifact contains **90 tab panels**. The preserved source file and `staging/index.html` are byte-for-byte synchronized.
 - A static parse check passed for all **36 inline JavaScript blocks**; no syntax errors were found.
-- Latest Vercel preview deployment is **READY** from `deploy/secure-staging`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
+- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-2anw4ybqv-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
 - `PRODUCTION_MODE`, `FULL_ERP_DATA_READY`, and the reviewed production-tab allowlist remain disabled. `main` has not been changed or promoted.
 
 ## Verified live Supabase foundation
 
 - **46 public base tables**; RLS is enabled on all 46; zero public base tables are missing RLS.
-- **36 applied migrations**, including the two 2026-11-06 forward migrations recorded below.
-- The company registry contains only active **BLACKROCK / BlackRock Investment PLC**. Prime has been decommissioned from the target project.
+- **37 applied migrations**, including the three 2026-11-06 forward migrations recorded below.
+- The company registry contains only active **BLACKROCK / BlackRock Investment PLC**. The full V6.7 UI and demo-review data are now single-company: no Prime company option, company context, or Prime sample transactions remain. The context selector is locked to BlackRock.
 - Current company membership inventory has only the existing administrator membership. Sales and data-entry staff memberships have not yet been provisioned.
-- 55 previously uncovered foreign keys now have covering indexes. The performance advisor no longer reports unindexed foreign keys or duplicate permissive SELECT policies on the two Finance tables.
+- 55 previously uncovered foreign keys now have covering indexes. The performance advisor no longer reports unindexed foreign keys or duplicate permissive SELECT policies on the two Finance tables. The supply-shipment purchasing-entity constraint now accepts only BlackRock and BOKAN Coordinated.
 - Remaining advisor observations: three authenticated-only SECURITY DEFINER RPC warnings (CRM reassignment and Finance journal post/reverse), the Auth leaked-password-protection setting warning, and unused-index informational notices. No business behavior was changed by the index/RLS-performance migrations.
 
 ### New forward migrations
 
 - `20261106062819_index_uncovered_foreign_keys` — additive indexes for the previously uncovered public-schema foreign keys.
-- `20261106062902_split_finance_read_and_write_rls_policies` — separates Finance write policies from member read policies while preserving the existing owner/admin/manager/accountant write conditions.
+- `20261106062902_split_finance_read_and_write_rls_policies` — separates Finance write policies from member read policies while preserving the existing owner/admin/manager/accountant write conditions.\n- `20261106063435_decommission_prime_purchasing_entity` — removes the decommissioned Prime purchasing-entity value from the live supply-shipment constraint.
 
-Both migration SQL files are source-controlled under `supabase/migrations/` and recorded in the live migration history.
+All three migration SQL files are source-controlled under `supabase/migrations/` and recorded in the live migration history.
 
 ## Historical BlackRock transaction migration
 
