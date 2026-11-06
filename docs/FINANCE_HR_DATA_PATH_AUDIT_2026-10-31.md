@@ -18,16 +18,18 @@ The principal browser-local stores found in the actual V6.7 source are:
 - `prime_v53_quality_issues` and `prime_v53_lastscan`: local data-quality scan results.
 - `prime_v27_ops`, `prime_v28_control`, `prime_v29_control`, `prime_v30_controls`, `prime_v33_reconciliation`: additional operations/master/control state consumed by the finance and close workflows.
 
-### Existing Finance production bridge — not live-ready
+### Existing Finance production bridge — partially reconciled, still disabled
 
-The source has a `BOKAN_FINANCE_PRODUCTION` bridge, but it is not a working live contract. It calls these nonexistent tables/RPCs:
-- `bokan_journal_entries`
-- `bokan_ar_invoices`, `bokan_ar_receipts`
-- `bokan_ap_bills`, `bokan_ap_payments`
-- `bokan_fiscal_periods`
-- `bokan_finance_close_readiness`
+The V6.7 `BOKAN_FINANCE_PRODUCTION` adapter has been corrected against the current live schema:
 
-The bridge scopes queries with a company-code string and `window.sb`, rather than deriving the UUID from the authenticated active company membership profile and using the shared authenticated Supabase client. Its create methods accept raw payloads without a complete approved-source, balanced-journal, idempotency, period-lock and reversal contract. It must remain disabled.
+- General Ledger reads use `journal_entries`; periods use `fiscal_periods`; account lists use `ledger_accounts`.
+- Sales and supplier document counts use the canonical `sales_documents` and `purchase_documents` tables. No parallel `bokan_ar_invoices` / `bokan_ap_bills` tables are assumed.
+- The adapter resolves the active company code to the live `companies.id` UUID before filtering by `company_id`.
+- Journal posting calls the existing atomic `post_journal_entry` RPC. The RPC validates active company membership and finance role, balanced debit/credit lines, active same-company accounts, and an open fiscal period.
+- The adapter no longer exposes customer receipt or supplier payment write methods. Those remain in Peachtree, per the project decision.
+- The previous nonexistent `bokan_finance_close_readiness` RPC is not called.
+
+Remaining gaps: the adapter still uses the legacy `window.sb` bridge rather than a single shared typed auth context; it does not yet auto-post approved sales/purchase source documents; source-document approval state and idempotency must be enforced before automation; bank/cash, reconciliation, VAT, budgets, fixed assets, period close, statements, and browser authorization tests remain incomplete. Finance must stay disabled.
 
 ### Finance schema direction
 
@@ -51,16 +53,19 @@ Observed local stores include:
 - `prime_v22_corporate.payroll`: a second payroll array in the corporate finance store.
 - `prime_v27_ops` and `prime_v29_control`: master-data and management-control state used by adjacent HR/operations views.
 
-### Existing HR production bridge — not live-ready
+### Existing HR production bridge — schema-backed, still disabled
 
-The source has a `BOKAN_HR_PRODUCTION` bridge, but all of its core table names are absent from the live Supabase schema:
+The live Supabase schema now includes the HR/Payroll tables:
 - `bokan_employees`
 - `bokan_attendance_records`
 - `bokan_leave_requests`
 - `bokan_payroll_runs`, `bokan_payroll_lines`, `bokan_payroll_approvals`
 - `bokan_performance_reviews`
+- `bokan_disciplinary_actions`
 
-It also uses a company-code string and `window.sb` rather than the authenticated active company UUID and shared authenticated client. The live database has no HR employee/attendance/leave/payroll tables yet. The bridge must remain disabled.
+The V6.7 `BOKAN_HR_PRODUCTION` adapter now resolves the active company code to the live company UUID, scopes list/count queries by that UUID, and injects the UUID on inserts. Live RLS policies restrict employee/attendance/performance writes to owner/admin/manager/HR; payroll runs, lines and approvals use finance/HR role checks. The leave-request policy supports member submission with creator identity and HR/manager approval.
+
+Remaining gaps: the adapter still uses the legacy `window.sb` bridge; employee self-service/team scoping and sensitive payroll-field separation need end-to-end verification; HR tables currently have no migrated business rows; no browser/JWT tests have approved the full HR lifecycle. HR and Payroll must stay disabled.
 
 ### HR schema direction
 
@@ -68,7 +73,7 @@ Build one company-scoped employee master and keep highly sensitive compensation/
 
 ## Activation decision
 
-Finance and HR production bridges are **not approved**. Keep the production allowlist empty. First finish the Supply & Logistics browser-authenticated test; then reconcile the CRM UI bridge to the live `crm_*` contracts. Finance schema design should follow the source-document accounting direction above; HR follows with its stricter sensitive-data/RLS model. The full V6.7 screens remain available in demo review mode only.
+Finance and HR production bridges are **not approved**. Keep the production allowlist empty. First reconcile the CRM UI bridge to the live `crm_*` contracts and complete browser-authenticated tests for Supply & Logistics. Finance's schema-backed adapter and HR's schema-backed tables are meaningful progress, not full module acceptance. Finance source-document automation, bank/tax/close workflows, HR self-service/team access, sensitive payroll isolation, and real Auth/JWT/browser role-denial tests remain required. The full V6.7 screens remain available in demo review mode only.
 
 
 ## General Ledger foundation applied — 2026-10-31
