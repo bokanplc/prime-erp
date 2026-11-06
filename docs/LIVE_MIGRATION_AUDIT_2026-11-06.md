@@ -14,7 +14,7 @@
 ## Verified live Supabase foundation
 
 - **48 public base tables**; RLS is enabled on all 48; zero public base tables are missing RLS.
-- **39 applied migrations (rechecked against the live migration history on 2026-11-06)**, including the seven 2026-11-06 forward migrations recorded below.
+- **40 applied migrations (rechecked against the live migration history on 2026-11-06)**, including the seven 2026-11-06 forward migrations recorded below.
 - The company registry contains only active **BLACKROCK / BlackRock Investment PLC**. The full V6.7 UI and demo-review data are now single-company: no Prime company option, company context, or Prime sample transactions remain. The context selector is locked to BlackRock.
 - Current company membership inventory has only the existing administrator membership. Sales and data-entry staff memberships have not yet been provisioned.
 - 55 previously uncovered foreign keys now have covering indexes. The performance advisor no longer reports unindexed foreign keys or duplicate permissive SELECT policies on the two Finance tables. The supply-shipment purchasing-entity constraint now accepts only BlackRock and BOKAN Coordinated.
@@ -97,7 +97,7 @@ A fresh read-only check was run against the connected Supabase project while con
 
 - Public base tables: **48**.
 - RLS-enabled public base tables: **48**; tables without RLS: **0**.
-- Applied migration records: **39** (the previous 41 count in this document was inaccurate and is corrected above).
+- Applied migration records: **40** (the previous 41 count in this document was inaccurate and is corrected above).
 - Company registry: **1** active BlackRock company.
 - Company memberships: **1** active administrator membership. The Auth project contains three user accounts, but only one is attached to the company; do not grant roles to the other accounts until their intended employee identities and roles are confirmed.
 - RLS policy inventory: all 48 tables have RLS enabled; policy counts vary by table and must still be tested with real authenticated sessions.
@@ -110,5 +110,14 @@ A fresh read-only check was run against the connected Supabase project while con
 **Can be completed in code/database without owner input:** finish source-to-live field mapping for every remaining V6.7 tab; connect legacy forms to canonical company-scoped tables; implement missing trusted workflows and constraints; migrate documents to private Storage; add automated static/schema tests; and expand disposable-user Auth/RLS integration tests.
 
 **Requires owner-controlled information or settings:** employee account-to-role mapping and memberships; exact opening stock/financial balances and the source documents that support them; approval of any uncertain historical stock ownership; the intended company login domain / redirect allowlist; and enabling leaked-password protection in Supabase Auth.
+
+### Private document repository migration — 2026-11-06
+
+- Applied migration `20261106075213_create_private_company_document_storage`; live migration history now records **40** applied migrations.
+- Created private bucket `bokan-company-documents` with a 25 MB upload limit and an explicit allowlist for PDF, common image, text, Word, Excel and PowerPoint formats.
+- Storage RLS permits active company members to read and upload only beneath their own company UUID folder. Only owner/admin/manager members may update or delete objects.
+- Updated the full V6.7 Document Repository upload/list/delete flow to use the private bucket, company-scoped metadata rows, short-lived signed download URLs (5 minutes), and manager-only delete controls. Preview mode retains its existing isolated demo storage behavior.
+- Updated both staging HTML entry/source files and statically parsed all 40 inline JavaScript blocks with zero syntax errors. The two files remain byte-identical.
+- Vercel created a **READY** staging preview for the synchronized entry-point commit `e9bd119`; the intermediate source-only deployment errored while the two files were temporarily out of sync. The READY deployment uses the synchronized commit.
 
 No production setting, production allowlist, or `main` branch change was made by this audit.
