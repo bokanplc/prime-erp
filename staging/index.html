@@ -9352,32 +9352,67 @@ async function enter(user){
 })();
 </script>
 \n<script id="bokan-v65-finance-production">(function(){
+  // Production adapter aligned to the live public schema. Receipts and supplier
+  // payments remain in Peachtree; this module deliberately does not write them.
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
-  const company=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'PRIME';
-  async function count(table,filter){ if(!prod) return 0; let q=window.sb.from(table).select('*',{count:'exact',head:true}); if(filter) q=filter(q); const r=await q; return r.error?0:(r.count||0); }
+  const companyCode=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';
+  async function companyId(){
+    const {data,error}=await window.sb.from('companies').select('id').eq('code',companyCode()).eq('is_active',true).single();
+    if(error) throw error;
+    if(!data?.id) throw new Error('Active company was not found in the live company registry.');
+    return data.id;
+  }
+  async function count(table,filter){
+    if(!prod)return 0;
+    let q=window.sb.from(table).select('*',{count:'exact',head:true});
+    if(filter)q=filter(q);
+    const r=await q;
+    if(r.error)throw r.error;
+    return r.count||0;
+  }
   async function refresh(){
     const mode=document.getElementById('v65-mode'),status=document.getElementById('v65-status');
-    if(!prod){ if(mode)mode.textContent='Review'; if(status)status.textContent='Review mode: Supabase production configuration is not active. Finance data remains in the existing review layer.'; return; }
+    if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='Review mode: Supabase production configuration is not active. Finance data remains in the existing review layer.';return;}
     if(mode)mode.textContent='Production';
     try{
+      const cid=await companyId();
       const [gl,ar,ap,periods]=await Promise.all([
-        count('bokan_journal_entries',q=>q.eq('company_id',company())),
-        count('bokan_ar_invoices',q=>q.eq('company_id',company()).neq('status','paid').neq('status','void')),
-        count('bokan_ap_bills',q=>q.eq('company_id',company()).neq('status','paid').neq('status','void')),
-        count('bokan_fiscal_periods',q=>q.eq('company_id',company()).eq('status','open'))
+        count('journal_entries',q=>q.eq('company_id',cid).eq('status','posted')),
+        count('sales_documents',q=>q.eq('company_id',cid).eq('document_type','invoice')),
+        count('purchase_documents',q=>q.eq('company_id',cid).eq('document_type','supplier_invoice')),
+        count('fiscal_periods',q=>q.eq('company_id',cid).eq('status','open'))
       ]);
       ['v65-gl','v65-ar','v65-ap','v65-periods'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.textContent=[gl,ar,ap,periods][i]});
-      if(status)status.textContent='Supabase Finance Production layer is connected for the active legal entity. Posting remains subject to RLS, period controls and balanced-entry validation.';
-    }catch(e){if(status)status.textContent='Finance production layer could not be read: '+(e.message||e);}
+      if(status)status.textContent='Live finance records loaded for '+companyCode()+'. Sales and supplier documents are tracked here; customer receipts and supplier payments remain in Peachtree.';
+    }catch(e){if(status)status.textContent='Finance production data could not be read: '+(e.message||e);}
   }
-  async function createJournal(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_journal_entries').insert(payload).select().single()}
-  async function createAR(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ar_invoices').insert(payload).select().single()}
-  async function recordReceipt(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ar_receipts').insert(payload).select().single()}
-  async function createAP(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ap_bills').insert(payload).select().single()}
-  async function recordPayment(payload){if(!prod) throw new Error('Production mode is not configured'); return window.sb.from('bokan_ap_payments').insert(payload).select().single()}
-  async function listPeriods(){if(!prod) return {data:[],error:null}; return window.sb.from('bokan_fiscal_periods').select('*').eq('company_id',company()).order('period_start',{ascending:false})}
-  async function closeReadiness(periodId){if(!prod) return {data:null,error:null}; return window.sb.rpc('bokan_finance_close_readiness',{p_period_id:periodId})}
-  window.BOKAN_FINANCE_PRODUCTION={enabled:()=>prod,refresh,createJournal,createAR,recordReceipt,createAP,recordPayment,listPeriods,closeReadiness};
+  async function postJournal(payload){
+    if(!prod)throw new Error('Production mode is not configured');
+    const cid=await companyId();
+    const {data,error}=await window.sb.rpc('post_journal_entry',{
+      p_company_id:cid,
+      p_journal_number:payload.journal_number,
+      p_journal_date:payload.journal_date,
+      p_memo:payload.memo||'',
+      p_currency_code:payload.currency_code||'ETB',
+      p_lines:payload.lines,
+      p_source_type:payload.source_type||null,
+      p_source_id:payload.source_id||null
+    });
+    if(error)throw error;
+    return data;
+  }
+  async function listPeriods(){
+    if(!prod)return {data:[],error:null};
+    const cid=await companyId();
+    return window.sb.from('fiscal_periods').select('id,period_name,start_date,end_date,status').eq('company_id',cid).order('start_date',{ascending:false});
+  }
+  async function listAccounts(){
+    if(!prod)return {data:[],error:null};
+    const cid=await companyId();
+    return window.sb.from('ledger_accounts').select('id,account_code,account_name,account_type,normal_balance,is_active').eq('company_id',cid).eq('is_active',true).order('account_code');
+  }
+  window.BOKAN_FINANCE_PRODUCTION={enabled:()=>prod,refresh,postJournal,createJournal:postJournal,listPeriods,listAccounts};
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,250));
 })();</script>\n<script id="bokan-v66-hr-production">(function(){
   const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
