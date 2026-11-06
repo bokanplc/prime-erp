@@ -7,15 +7,15 @@
 
 ## Verified source and deployment
 
-- The full V6.7 staging artifact contains **90 tab panels**. The preserved source file and `staging/index.html` are byte-for-byte synchronized. All **37 inline JavaScript blocks** pass static syntax parsing.
+- The full V6.7 staging artifact contains **90 tab panels**. The preserved source file and `staging/index.html` are byte-for-byte synchronized. All **39 inline JavaScript blocks** pass static syntax parsing.
 - A static parse check passed for all **36 inline JavaScript blocks**; no syntax errors were found.
-- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-g7kj277ql-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
+- Latest Vercel preview deployment is **READY** from `deploy/secure-staging` at `https://prime-1m8vzwo7c-bokanplc-3642.vercel.app`. The build log identifies it as a staging-only demo-review artifact with sample data and no Supabase credentials. It is not a live-data ERP release.
 - `PRODUCTION_MODE`, `FULL_ERP_DATA_READY`, and the reviewed production-tab allowlist remain disabled. `main` has not been changed or promoted.
 
 ## Verified live Supabase foundation
 
-- **46 public base tables**; RLS is enabled on all 46; zero public base tables are missing RLS.
-- **37 applied migrations**, including the three 2026-11-06 forward migrations recorded below.
+- **47 public base tables**; RLS is enabled on all 47; zero public base tables are missing RLS.
+- **39 applied migrations**, including the five 2026-11-06 forward migrations recorded below.
 - The company registry contains only active **BLACKROCK / BlackRock Investment PLC**. The full V6.7 UI and demo-review data are now single-company: no Prime company option, company context, or Prime sample transactions remain. The context selector is locked to BlackRock.
 - Current company membership inventory has only the existing administrator membership. Sales and data-entry staff memberships have not yet been provisioned.
 - 55 previously uncovered foreign keys now have covering indexes. The performance advisor no longer reports unindexed foreign keys or duplicate permissive SELECT policies on the two Finance tables. The supply-shipment purchasing-entity constraint now accepts only BlackRock and BOKAN Coordinated.
@@ -24,9 +24,9 @@
 ### New forward migrations
 
 - `20261106062819_index_uncovered_foreign_keys` — additive indexes for the previously uncovered public-schema foreign keys.
-- `20261106062902_split_finance_read_and_write_rls_policies` — separates Finance write policies from member read policies while preserving the existing owner/admin/manager/accountant write conditions.\n- `20261106063435_decommission_prime_purchasing_entity` — removes the decommissioned Prime purchasing-entity value from the live supply-shipment constraint.
+- `20261106062902_split_finance_read_and_write_rls_policies` — separates Finance write policies from member read policies while preserving the existing owner/admin/manager/accountant write conditions.\n- `20261106063435_decommission_prime_purchasing_entity` — removes the decommissioned Prime purchasing-entity value from the live supply-shipment constraint.\n- `20261106064054_create_transaction_costs_for_direct_and_landed_costs` — adds the company-scoped register for landed costs, direct sales costs and operating expenses, with member-create / finance-manage RLS.\n- `20261106064214_index_transaction_costs_creator_membership_fk` — adds the composite index for the new creator-membership foreign key.
 
-All three migration SQL files are source-controlled under `supabase/migrations/` and recorded in the live migration history.
+All five migration SQL files are source-controlled under `supabase/migrations/` and recorded in the live migration history.
 
 ## Historical BlackRock transaction migration
 
@@ -48,20 +48,20 @@ The 61-piece Yellow Plywood opening-stock row is not posted to inventory. The so
 |---|---|---|
 | Identity / company context | Supabase Auth bridge derives access from active company memberships; only BlackRock remains | Add sales/data-entry memberships; real sign-in, session, company and role-denial browser tests |
 | Customers / sales documents | 22 BlackRock customers; 28 sales docs / 31 lines; historical sales and purchases loaded as drafts | Fill missing sale prices; approvals, stock posting, customer assignment and end-to-end document lifecycle |
-| CRM | Full company-scoped CRM workspace now includes customer master, call/visit/activity logging, pipeline opportunities, after-sales reminders, customer history, reassignment and representative coverage; target actuals use company-scoped `crm_activities` | No CRM activities/opportunities/tasks yet; staff memberships and real Auth/RLS browser tests remain |
+| CRM | Full company-scoped CRM workspace includes customer master, call/visit/activity logging, pipeline opportunities, after-sales reminders, customer history, reassignment and representative coverage; target actuals use company-scoped `crm_activities` | No CRM activities/opportunities/tasks yet; staff memberships and real Auth/RLS browser tests remain |
 | Sales operations | `sales_targets`, `trip_plans`, `visit_reports`, and per-diem schema are present | No migrated targets/trips/visits; commission logic and staff ownership must be reconciled before activation |
 | Supply & Logistics | Company-scoped inbound shipment and delivery-control tables plus bridge exist | No live records; sales-demand, reservations, receiving/stock posting and exceptions remain |
 | Finance | GL tables and atomic `post_journal_entry` / reversal RPCs exist; Finance adapter now uses live table names and company UUID | No chart-of-accounts seed, fiscal periods, or journals; approved-source posting/idempotency, bank/tax/budget/fixed-assets/close and browser tests |
 | HR / Payroll | HR tables and UUID-scoped bridge exist | No employee/payroll rows; employee self-service, sensitive payroll separation, approvals and browser role tests |
 | Inventory | Products and stock movement foundation exist | No stock movements; opening balances and all historical stock sources must be reconciled before posting |
-| Documents / storage | Metadata table exists | Private Storage buckets, object policies and signed downloads not implemented |
+| Transaction costs / profitability | New `transaction_costs` table and UI classify landed costs, direct sales costs and operating expenses; management reporting now calculates landed gross profit and profit after direct sales costs from posted invoices and fully costed stock issues | No real cost rows yet; profit metrics correctly remain pending until posted sales and stock issue movements exist |\n| Documents / storage | Metadata table exists | Private Storage buckets, object policies and signed downloads not implemented |
 | Remaining V6.7 modules | All 90 UI panels remain in the full review artifact | Each module still needs a source-to-schema map, persistence, trusted writes, RLS and browser acceptance tests |
 
 ## Recent source changes
 
 - Finance adapter aligned to `journal_entries`, `fiscal_periods`, `ledger_accounts`, `sales_documents`, and `purchase_documents`; company UUID is resolved before queries; journal posting calls the atomic RPC. No receipt/payment write methods are exposed.
 - HR adapter resolves the active company UUID and includes it in inserts.
-- Sales target actuals use `crm_activities` and company-scoped `profiles` in production; the legacy `customer_logs` path remains only for demo review mode.\n- A full CRM workspace UI is now wired to the existing CRM production adapter: customer create/edit, activity/call/visit logging, pipeline creation/stage updates, after-sales tasks, customer history, and customer reassignment. All forms remain disabled in demo-review mode and require the authenticated company context.
+- Sales target actuals use `crm_activities` and company-scoped `profiles` in production; the legacy `customer_logs` path remains only for demo review mode.\n- A full CRM workspace UI is now wired to the existing CRM production adapter: customer create/edit, activity/call/visit logging, pipeline creation/stage updates, after-sales tasks, customer history, and customer reassignment. All forms remain disabled in demo-review mode and require the authenticated company context.\n- The Expense Ledger now includes a separate Transaction Cost Register for factory selection, quality assistance, dealer referral, loading, transport and other costs. Entries are classified as landed cost, direct sales cost or operating expense; customer receipts and supplier payments are not recorded.\n- Management Reporting now shows landed gross profit and profit after direct sales costs. It excludes drafts and remains pending until posted sales invoices and fully costed stock issues are available.
 - Finance/HR audit and BlackRock-only workplan have been updated to match the live schema and current project scope.
 
 ## Next work sequence
