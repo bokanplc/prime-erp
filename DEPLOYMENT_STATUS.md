@@ -719,3 +719,46 @@ Read-only verification against the connected Supabase project `kafiwnuynjemufnan
 4. Continue module-by-module through CRM, HR/payroll, finance, stock, procurement/logistics, notifications, and private document Storage. Keep all production flags and module allowlists disabled until browser persistence, tenant isolation, role, and recovery tests pass.
 
 This checkpoint supersedes earlier statements in this file that the live project has no application tables or migration history. Those are historical observations only.
+
+
+## Live migration continuation checkpoint — 2026-11-06 (current)
+
+This checkpoint supersedes the 2026-10-30 live-schema counts above.
+
+### Current live platform state
+
+- Supabase project `kafiwnuynjemufnankvi` has 48 public base tables and 42 migration-history records before today's two security-hardening migrations; the latest tracked migration records are `20261106151808_harden_public_api_privileges` and `20261106151937_move_privileged_rpc_implementations_private`.
+- All existing public application tables have RLS enabled. A controlled read-only smoke test confirmed the BlackRock admin can see the company-scoped customer/sales/purchase/policy records tested, while a non-member subject sees zero rows from the tested company tables.
+- Removed `TRUNCATE`, `REFERENCES`, `TRIGGER`, and `MAINTAIN` from the browser-authenticated role on existing public tables; removed existing anonymous table privileges; restricted public function execution; and moved two privileged function implementations into the non-exposed `private` schema behind SECURITY INVOKER public wrappers.
+- The two corresponding signed-in SECURITY DEFINER Security Advisor warnings are cleared. Leaked-password protection remains disabled and must be enabled in Supabase Auth before production release.
+- The private `bokan-company-documents` Storage bucket exists and is not public; company-member object policies are present. The bucket currently contains zero files.
+- The active company is BlackRock Investment PLC. There is one active company membership (admin) and no active sales staff memberships yet.
+
+### Historical transaction reconciliation
+
+- Source workbook reviewed: Library artifact `1Q_Report_BR_Prime_Clean_Corporate.xlsx`, specifically `Daily_Data_Entry`. Former PRME rows were excluded from the BlackRock-only comparison.
+- BlackRock source totals: 1 opening-stock line (61 Yellow Plywood pcs); 16 purchase lines (5,827 pcs; ETB 28,754,500); 29 sales lines (5,609 pcs; source selling prices blank).
+- Live database: 16 purchase documents / 16 lines match purchase quantities and values exactly, but all are drafts, supplier_id is NULL on all, and supplier master has zero rows.
+- Live sales: 28 draft documents / 31 lines / 5,929 pcs, with all line totals zero. This is 320 pcs more than the current source workbook: two additional lines (Yellow Plywood 20 pcs and Morale Timber 300 pcs for Argaw Kettalew) are not present in the currently reviewed source workbook and need provenance review.
+- The 61-pc opening-stock line has not been posted to stock; live stock_movements and stock_ledger contain zero rows. Sales unit prices are absent from the source and must not be invented.
+- Detailed findings and safe follow-up steps are recorded in `docs/BLACKROCK_HISTORICAL_TRANSACTION_RECONCILIATION.md`. No historical records were altered by that audit.
+
+### Full V6.7 source and production gate
+
+- The full source remains the 91-section `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` on `deploy/secure-staging`.
+- The source-reviewed production tab list currently contains only `policyhandbook`. The staging config remains demo-review-only, with production mode false, full-data-ready false, blank Supabase browser credentials, and an empty enabled production tab list. Do not turn on production flags as a shortcut.
+- CRM bridge fields align with the live customer/activity/opportunity/task schema, but CRM operational tables have no activity, assignment, opportunity or after-sales-task rows. The live company has no sales representatives yet.
+- All 28 sales documents and all 16 purchase documents are drafts. No stock movements exist. The business workflows are not yet demonstrated end-to-end.
+- Latest Vercel staging deployment is READY on `deploy/secure-staging`; project `live=false`, and the production target remains an older `main` build. No production deployment, merge, or `main` change was made.
+
+### Current stop-ship blockers
+
+1. Complete sales/purchase document workflow wiring and test draft → approval → stock issue/receipt with correct RLS and product linkage; preserve the owner's rule that customer receipts and supplier payments remain in Peachtree.
+2. Resolve the 320-pc historical sales discrepancy and confirm the Assosa date; preserve uncertain historical dates as explicitly estimated.
+3. Link supplier/product masters and record the 61-pc BlackRock opening stock through a documented opening movement.
+4. Complete CRM with real staff memberships and test customer ownership, activity, opportunities, follow-ups and role restrictions.
+5. Finish HR/payroll, finance, stock costing, logistics, document Storage and reporting modules; verify profitability with landed gross profit and profit after direct sales costs.
+6. Enable leaked-password protection; run real browser sign-in, employee-role, cross-user, backup/export and recovery tests.
+7. Only after the above pass, review a non-empty source allowlist and production config; keep `main` and production untouched until that release candidate is genuinely ready.
+
+No business data, document statuses, historical dates, stock balances, suppliers, staff accounts, production flags, `main`, or production deployment were changed during this checkpoint.
