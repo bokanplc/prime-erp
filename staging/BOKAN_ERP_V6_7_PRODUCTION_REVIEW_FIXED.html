@@ -976,7 +976,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 <div id="login-view" class="min-h-screen flex items-center justify-center">
   <div class="bg-white rounded-lg shadow-md border border-[#D4D7DC] w-full max-w-sm p-8">
     <div class="text-center mb-6">
-      <div class="w-12 h-12 rounded bg-[#24364B] text-white font-bold text-xl flex items-center justify-center mx-auto mb-2">P</div>
+      <div class="w-12 h-12 rounded bg-[#24364B] text-white font-bold text-xl flex items-center justify-center mx-auto mb-2">B</div>
       <h1 class="text-lg font-bold text-[#393A3D]">BlackRock Investment PLC</h1>
       <p class="text-xs text-[#6B6C72]">Operations Portal</p>
     </div>
@@ -986,6 +986,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <button class="w-full bg-[#2CA01C] hover:bg-[#0759A8] text-white font-semibold py-2 rounded text-xs">Sign In</button>
       <p id="login-error" class="text-red-600 text-xs hidden"></p>
     </form>
+    <div class="flex items-center gap-3 my-4"><span class="h-px bg-slate-200 flex-1"></span><span class="text-[10px] text-slate-400 uppercase tracking-wider">or</span><span class="h-px bg-slate-200 flex-1"></span></div>
+    <button id="login-google-btn" type="button" class="hidden w-full border border-[#C8D3E0] bg-white hover:bg-slate-50 text-[#10284A] font-semibold py-2 rounded text-xs">Continue with Google</button>
     <p class="text-xs text-[#8D9096] mt-4 text-center">Accounts are created by an administrator. Contact your admin if you don't have a login.</p>
   </div>
 </div>
@@ -994,7 +996,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 <div id="landing-view" class="hidden min-h-screen bg-[#F4F5F8]">
   <div class="max-w-4xl mx-auto px-4 py-16">
     <div class="text-center mb-10">
-      <div class="w-12 h-12 rounded bg-[#24364B] text-white font-bold text-xl flex items-center justify-center mx-auto mb-3">P</div>
+      <div class="w-12 h-12 rounded bg-[#24364B] text-white font-bold text-xl flex items-center justify-center mx-auto mb-3">B</div>
       <h1 class="text-lg font-bold text-[#393A3D]">BlackRock Investment PLC</h1>
       <p class="text-xs text-[#6B6C72] mt-1">Select your workspace to continue</p>
     </div>
@@ -1039,7 +1041,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <!-- Sidebar -->
   <aside id="sidebar" class="bg-[#1C252C] text-white flex-shrink-0 flex flex-col no-print z-40">
     <div class="p-5 border-b border-white/10 flex items-center gap-2">
-      <div class="w-8 h-8 rounded bg-[#24364B] flex items-center justify-center font-bold text-xs text-white">P</div>
+      <div class="w-8 h-8 rounded bg-[#24364B] flex items-center justify-center font-bold text-xs text-white">B</div>
       <div>
         <div class="font-bold text-xs leading-tight tracking-wide">BOKAN PLATFORM</div>
         <div class="text-[10px] text-[#BABEC5]">BLACKROCK ONLY</div>
@@ -9205,6 +9207,8 @@ window.bokanSupplyTower={refresh:render,addInbound,addDelivery,exportCSV}; docum
   const landing=document.getElementById('landing-view');
   const note=document.getElementById('review-access-note');
   const emailEl=document.getElementById('login-email'), passEl=document.getElementById('login-password'), errEl=document.getElementById('login-error');
+  const googleBtn=document.getElementById('login-google-btn');
+  if(googleBtn) googleBtn.classList.toggle('hidden',!configured);
   if(note) note.innerHTML='<strong class="text-slate-900">BOKAN Production Authentication</strong><br>Connected to Supabase. Access is controlled by role, active status and company scope.';
   function setError(msg){if(errEl){errEl.textContent=msg||'';errEl.classList.toggle('hidden',!msg)}}
   function showGate(){ if(gate) gate.style.display='flex'; if(app) app.classList.add('hidden'); if(landing) landing.classList.add('hidden'); if(login) login.classList.remove('hidden'); }
@@ -9300,6 +9304,16 @@ async function enter(user){
     catch(e){await auth.signOut(); showGate(); setError(e.message||'Access denied.');}
   }
   async function signIn(e){e.preventDefault();setError('');const email=emailEl?.value.trim(),password=passEl?.value||'';if(!email||!password){setError('Enter your email and password.');return;} const btn=e.submitter||document.querySelector('#login-form button');if(btn)btn.disabled=true;try{const {data,error}=await auth.auth.signInWithPassword({email,password});if(error)throw error;await enter(data.user)}catch(err){setError(err.message||'Sign in failed.')}finally{if(btn)btn.disabled=false;}}
+  async function signInWithGoogle(){
+    setError('');
+    if(!googleBtn)return;
+    googleBtn.disabled=true;
+    try{
+      const redirectTo=String(cfg.AUTH_REDIRECT_URL||window.location.origin||'').trim();
+      const {error}=await auth.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{access_type:'offline',prompt:'select_account'}}});
+      if(error)throw error;
+    }catch(err){setError(err.message||'Google sign-in failed. Check the Supabase redirect URL configuration.');googleBtn.disabled=false;}
+  }
   async function signOut(){await auth.auth.signOut();window.location.reload();}
   async function changePassword(){const p=prompt('Enter your new BOKAN password (minimum 8 characters):');if(!p)return;if(p.length<8){alert('Password must be at least 8 characters.');return;}const {error}=await auth.auth.updateUser({password:p});if(error)alert(error.message);else alert('Password updated successfully.');}
   window.signOut=signOut;
@@ -9307,6 +9321,7 @@ async function enter(user){
   document.addEventListener('DOMContentLoaded',async function(){
     showGate();
     const form=document.getElementById('login-form'); if(form)form.addEventListener('submit',signIn);
+    if(googleBtn)googleBtn.addEventListener('click',signInWithGoogle);
     const topChange=document.getElementById('pg-change-top'); if(topChange)topChange.onclick=changePassword;
     try{const {data}=await auth.auth.getSession(); if(data.session?.user) await enter(data.session.user); else {hideGate();showGate();}}
     catch(e){hideGate();showGate();setError(e.message||'Unable to initialize secure authentication.')}
