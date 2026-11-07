@@ -8,6 +8,7 @@ on:
       - 'staging/**'
       - 'scripts/**'
       - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
+      - 'docs/LIVE_MIGRATION_SOURCE_GAP.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
       - '.github/workflows/erp-source-guards.yml'
