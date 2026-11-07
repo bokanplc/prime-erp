@@ -3591,7 +3591,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <form id="sp-form" class="bg-white rounded-lg p-4">
       <h2 class="text-sm font-bold mb-3">NEW OPPORTUNITY</h2>
       <input id="sp-customer" required placeholder="Customer / company" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="sp-contact" placeholder="Contact person / phone" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="sp-product" required placeholder="Product / customer requirement" class="w-full border p-2 rounded mb-2 text-xs">\n      <input id="sp-contact" placeholder="Contact person / phone" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="sp-rep" required placeholder="Assigned sales representative" class="w-full border p-2 rounded mb-2 text-xs">
       <select id="sp-stage" class="w-full border p-2 rounded mb-2 text-xs"><option>Lead</option><option>Qualified</option><option>Proposal</option><option>Negotiation</option><option>Won</option><option>Lost</option></select>
       <input id="sp-value-in" type="number" step="0.01" placeholder="Estimated value (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
@@ -8859,7 +8859,100 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     const rows=calls.map(c=>{const a=sales?.accounts?.find(x=>norm(x.name)===norm(c.name));return {Customer:c.name,Phone:c.phone||'',Contact:c.contact||'',Salesperson:(a?.owner||c.rep||'Unassigned'),Entity:a?.entity||'BlackRock Investment PLC',Status:a?.status||'',Priority:a?.priority||'',NextFollowUp:a?.nextAction||c.today||c.tomorrow||'',Notes:a?.notes||c.notes||''}});
     const escHtml=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const table='<table border="1"><tr>'+Object.keys(rows[0]||{Customer:'',Salesperson:'',NextFollowUp:'',Notes:''}).map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+Object.values(r).map(v=>'<td>'+escHtml(v)+'</td>').join('')+'</tr>').join('')+'</table>';
-    const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'</body></html>';
+    const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'
+<script id="bokan-v73-sales-pipeline-production-bridge">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const enabled=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&window.BOKAN_CRM_PRODUCTION?.enabled?.());
+  const state={customers:[],opportunities:[],busy:false,subscribed:false};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const today=()=>new Date().toISOString().slice(0,10);
+  function status(message,error){
+    let el=$('sp-production-status');
+    if(!el){el=document.createElement('div');el.id='sp-production-status';el.className='text-xs mb-2';el.setAttribute('aria-live','polite');$('sp-form')?.prepend(el);}
+    if(el){el.textContent=message||'';el.style.color=error?'#B42318':'#526173';}
+  }
+  function toSelect(id,label){
+    const old=$(id);if(!old||old.tagName==='SELECT')return old;
+    const el=document.createElement('select');el.id=id;el.name=old.name||id;el.required=true;el.className=old.className;
+    el.setAttribute('aria-label',label);el.innerHTML='<option value="">'+esc(label)+'</option>';old.replaceWith(el);return el;
+  }
+  function setOptions(id,items,placeholder){
+    const el=$(id);if(!el)return;const selected=el.value;
+    el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+'</option>').join('');
+    if(items.some(x=>x.id===selected))el.value=selected;
+  }
+  function render(){
+    const customerNames=new Map(state.customers.map(x=>[x.id,x.name]));
+    const rows=state.opportunities;
+    const open=rows.filter(x=>!['Won','Lost'].includes(String(x.stage)));
+    if($('sp-open'))$('sp-open').textContent=String(open.length);
+    if($('sp-value'))$('sp-value').textContent=money(open.reduce((n,x)=>n+Number(x.estimated_value||0),0));
+    if($('sp-due'))$('sp-due').textContent=String(open.filter(x=>x.next_action_date&&x.next_action_date<=today()).length);
+    if($('sp-won'))$('sp-won').textContent=String(rows.filter(x=>x.stage==='Won').length);
+    const q=($('sp-search')?.value||'').toLowerCase();
+    const filtered=rows.filter(x=>((customerNames.get(x.customer_id)||'')+' '+(x.stage||'')+' '+(x.next_action||'')).toLowerCase().includes(q));
+    const body=$('sp-table');if(!body)return;
+    body.innerHTML=filtered.length?filtered.map(x=>'<tr class="border-t border-[#E4E8ED]"><td class="p-2">'+esc(customerNames.get(x.customer_id)||'—')+'</td><td class="p-2">'+esc(auth()?.user?.email||'Assigned owner')+'</td><td class="p-2">'+esc(x.stage||'Lead')+'</td><td class="p-2 text-right">'+money(x.estimated_value)+'</td><td class="p-2">'+esc(x.required_date||'—')+'</td><td class="p-2">'+esc(x.next_action||'—')+'</td></tr>').join(''):'<tr><td colspan="6" class="p-3 text-center text-slate-500">No live opportunities yet.</td></tr>';
+  }
+  async function refresh(){
+    if(!enabled())return;
+    try{
+      status('Loading live CRM pipeline…');
+      const [customers,opportunities]=await Promise.all([
+        window.BOKAN_CRM_PRODUCTION.listMyCustomers(),
+        window.BOKAN_CRM_PRODUCTION.listOpportunities()
+      ]);
+      state.customers=customers;state.opportunities=opportunities;
+      setOptions('sp-customer',customers.map(x=>({id:x.id,label:x.name})),'Select customer');
+      const rep=$('sp-rep');
+      if(rep){rep.value=auth()?.profile?.full_name||auth()?.user?.email||'Signed-in user';rep.readOnly=true;rep.setAttribute('aria-label','Opportunity owner');}
+      render();status('Live CRM pipeline. New opportunities are saved to the selected company.');
+    }catch(e){status('CRM pipeline could not be loaded: '+(e.message||e),true);}
+  }
+  async function save(e){
+    e.preventDefault();e.stopImmediatePropagation();
+    if(state.busy||!enabled())return;
+    const form=$('sp-form');if(!form?.reportValidity())return;
+    const customerId=$('sp-customer')?.value;
+    const product=String($('sp-product')?.value||'').trim();
+    const value=Number($('sp-value-in')?.value||0);
+    if(!customerId||!product||!Number.isFinite(value)||value<0){status('Choose a customer and enter the product or requirement and a valid estimated value.',true);return;}
+    state.busy=true;const button=form.querySelector('button[type="submit"],button:not([type])');if(button){button.disabled=true;button.textContent='SAVING…';}
+    try{
+      await window.BOKAN_CRM_PRODUCTION.createOpportunity({
+        customer_id:customerId,product_description:product,estimated_value:value,
+        currency_code:'ETB',required_date:$('sp-close')?.value||null,
+        stage:$('sp-stage')?.value||'Lead',next_action:$('sp-next')?.value.trim()||null,
+        next_action_date:$('sp-close')?.value||null,
+        notes:[String($('sp-contact')?.value||'').trim(),String($('sp-notes')?.value||'').trim()].filter(Boolean).join(' | ')
+      });
+      form.reset();await refresh();status('Opportunity saved to the live CRM pipeline.');
+    }catch(err){status('Opportunity was not saved: '+(err.message||err),true);}
+    finally{state.busy=false;if(button){button.disabled=false;button.textContent='SAVE OPPORTUNITY';}}
+  }
+  function activate(){
+    const form=$('sp-form');if(!form||form.dataset.bokanPipelineBridge)return;
+    form.dataset.bokanPipelineBridge='true';
+    if(enabled()){
+      toSelect('sp-customer','Select customer');
+      if(!$('sp-product')){const input=document.createElement('input');input.id='sp-product';input.required=true;input.placeholder='Product / customer requirement';input.className='w-full border p-2 rounded mb-2 text-xs';$('sp-contact')?.after(input);}
+      form.addEventListener('submit',save,true);
+      $('sp-search')?.addEventListener('input',render);
+      const client=auth()?.client;
+      if(client&&!state.subscribed){client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session){state.customers=[];state.opportunities=[];render();return;}setTimeout(refresh,0);});state.subscribed=true;}
+      refresh();
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activate,{once:true});else activate();
+  document.addEventListener('click',e=>{if(e.target.closest('[data-tab="salespipeline"],[data-tab-target="salespipeline"]'))refresh();});
+  window.BOKAN_SALES_PIPELINE_UI={refresh};
+})();
+</script>
+\n</body></html>';
     const blob=new Blob([html],{type:'application/vnd.ms-excel'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='BOKAN_Sales_Follow_Up_Report.xls';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   function hook(){
