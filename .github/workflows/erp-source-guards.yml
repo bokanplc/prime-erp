@@ -173,3 +173,34 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: live_company_test
         run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-supply-logistics-postgres.sql
+
+  postgres-purchase-receiving-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: purchase_receiving_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d purchase_receiving_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Test atomic purchase receiving, cost validation, RLS and company isolation
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: purchase_receiving_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-purchase-receiving-postgres.sql
