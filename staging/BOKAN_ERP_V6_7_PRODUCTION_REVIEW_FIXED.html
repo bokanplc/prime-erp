@@ -10358,6 +10358,7 @@ async function enter(user){
   const reviewAdd=window.bokanAccessAddUser;
   const reviewToggle=window.bokanAccessToggle;
   const reviewReconcile=window.bokanAccessReconcileCustomers;
+  const reviewExport=window.bokanAccessExport;
   window.bokanAccessRenderProduction=render;
   window.bokanAccessAddUser=async function(){
     if(!ctx()?.enabled){if(reviewAdd)reviewAdd();return;}
@@ -10375,6 +10376,17 @@ async function enter(user){
       alert(data.status==='invited'?'Invitation sent. The employee can complete account setup from their email.':'Existing account assigned to BlackRock.');
       await render();
     }catch(error){alert(error.message||'Employee invitation failed. No local access record was created.');}
+  };
+  window.bokanAccessExport=async function(){
+    if(!ctx()?.enabled){if(reviewExport)reviewExport();return;}
+    try{
+      const users=await loadMembers();
+      const rows=[['Employee','Department','Role','Company','Status','Email'],...users.map(u=>[u.name,u.department,roleLabel(u.role),'BlackRock',u.is_active?'Active':'Inactive',u.profile?.email||''])];
+      const csv=rows.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\\n');
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='BOKAN_BlackRock_Access_Register.csv';a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),500);
+    }catch(error){alert(error.message||'The live access register could not be exported.');}
   };
   window.bokanAccessToggle=function(id){
     if(ctx()?.enabled){alert('Direct activation and deactivation are temporarily disabled until the audited membership-change workflow is completed.');return;}
