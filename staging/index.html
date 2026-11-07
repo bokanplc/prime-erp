@@ -3591,7 +3591,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <form id="sp-form" class="bg-white rounded-lg p-4">
       <h2 class="text-sm font-bold mb-3">NEW OPPORTUNITY</h2>
       <input id="sp-customer" required placeholder="Customer / company" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="sp-contact" placeholder="Contact person / phone" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="sp-product" required placeholder="Product / customer requirement" class="w-full border p-2 rounded mb-2 text-xs">\n      <input id="sp-contact" placeholder="Contact person / phone" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="sp-rep" required placeholder="Assigned sales representative" class="w-full border p-2 rounded mb-2 text-xs">
       <select id="sp-stage" class="w-full border p-2 rounded mb-2 text-xs"><option>Lead</option><option>Qualified</option><option>Proposal</option><option>Negotiation</option><option>Won</option><option>Lost</option></select>
       <input id="sp-value-in" type="number" step="0.01" placeholder="Estimated value (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
@@ -3616,11 +3616,12 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <input id="so-customer" required placeholder="Customer / company" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-rep" placeholder="Sales representative" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-product" required placeholder="Product / item" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="so-qty" type="number" step="0.01" placeholder="Quantity" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="so-total" type="number" step="0.01" placeholder="Order value (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="so-qty" type="number" step="0.01" min="0.01" required placeholder="Quantity" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="so-total" type="number" step="0.01" min="0.01" required placeholder="Unit selling price (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
       <select id="so-status" class="w-full border p-2 rounded mb-2 text-xs"><option>Draft</option><option>Approved</option><option>Partially Fulfilled</option><option>Fulfilled</option><option>Cancelled</option></select>
       <input id="so-delivery" type="date" class="w-full border p-2 rounded mb-3 text-xs">
-      <button class="w-full bg-[#0077C5] hover:bg-[#0065A5] text-white rounded py-2 text-xs font-bold">SAVE SALES ORDER</button>
+      <div id="so-production-status" class="text-xs mb-2" aria-live="polite"></div>
+      <button type="submit" class="w-full bg-[#0077C5] hover:bg-[#0065A5] text-white rounded py-2 text-xs font-bold">SAVE SALES ORDER</button>
     </form>
     <div class="lg:col-span-2 bg-white rounded-lg p-4">
       <h2 class="text-sm font-bold mb-3">ORDER REGISTER</h2>
@@ -4961,8 +4962,11 @@ async function sendTelegramNotification(text) {
 }
 
 async function pushNotification(type, message, meta) {
-  const payload = { type, message, meta: meta || null, read: false, created_by: currentUser?.id || null };
-  await sb.from('notifications').insert([payload]);
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) throw new Error('Select an active company before creating a notification.');
+  const payload = { ...(companyId ? { company_id: companyId } : {}), type, message, meta: meta || null, read: false, created_by: currentUser?.id || null };
+  const { error } = await sb.from('notifications').insert([payload]);
+  if (error) throw error;
   sendTelegramNotification(`[BOKAN ERP] ${message}`);
   if (typeof renderNotifications === 'function') renderNotifications();
 }
@@ -4975,7 +4979,12 @@ async function renderNotifications() {
   const canSee = currentRole === 'admin' || currentRole === 'sales_manager' || currentRole === 'management';
   wrap.classList.toggle('hidden', !canSee);
   if (!canSee) return;
-  const { data } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+  let query = sb.from('notifications').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) return;
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
+  if (error) { console.error('Notifications could not be loaded:', error); return; }
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No notifications yet.</p>'; return; }
   el.innerHTML = data.map(n => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1">
       <span>${NOTIF_ICONS[n.type] || '•'} ${escapeHtml(n.message)}</span>
@@ -5370,7 +5379,10 @@ let editingExpenseId = null;
 
 document.getElementById('expense-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving an expense.'); return; }
   const payload = {
+    ...(productionCompanyId ? { company_id: productionCompanyId } : {}),
     category: document.getElementById('exp-category').value,
     amount: parseFloat(document.getElementById('exp-amount').value),
     description: document.getElementById('exp-desc').value,
@@ -5378,7 +5390,7 @@ document.getElementById('expense-form').addEventListener('submit', async (e) => 
     paid_by: document.getElementById('exp-paidby').value
   };
   let error;
-  if (editingExpenseId) { ({ error } = await sb.from('expenses').update(payload).eq('id', editingExpenseId)); }
+  if (editingExpenseId) { let query = sb.from('expenses').update(payload).eq('id', editingExpenseId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else { payload.created_by = currentUser.id; ({ error } = await sb.from('expenses').insert([payload])); }
   if (error) { alert('Error: ' + error.message); return; }
   e.target.reset();
@@ -5410,7 +5422,12 @@ function cancelExpenseEdit() {
 async function loadExpenses() {
   const el = document.getElementById('expense-list');
   if (!el) return;
-  const { data } = await sb.from('expenses').select('*').order('created_at', { ascending: false }).limit(200);
+  let query = sb.from('expenses').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before loading expenses.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(200);
+  if (error) { alert('Expenses could not be loaded: ' + error.message); return; }
   expenseData = data || [];
   el.innerHTML = expenseData.map(row => {
     const { group, label } = splitCategory(row.category);
@@ -5431,7 +5448,12 @@ async function loadExpenses() {
 async function loadMyExpenses() {
   const el = document.getElementById('my-expense-list');
   if (!el) return;
-  const { data } = await sb.from('expenses').select('*').order('created_at', { ascending: false }).limit(20);
+  let query = sb.from('expenses').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before loading expenses.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(20);
+  if (error) { alert('Your expenses could not be loaded: ' + error.message); return; }
   expenseData = data || [];
   el.innerHTML = expenseData.map(row => {
     const { group, label } = splitCategory(row.category);
@@ -5450,7 +5472,12 @@ async function loadMyExpenses() {
 
 async function deleteExpense(id) {
   if (!confirm('Delete this entry?')) return;
-  await sb.from('expenses').delete().eq('id', id);
+  let query = sb.from('expenses').delete().eq('id', id);
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before deleting an expense.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { error } = await query;
+  if (error) { alert('Expense was not deleted: ' + error.message); return; }
   loadMyExpenses();
   if (!document.getElementById('tab-expenseledger').classList.contains('hidden')) loadExpenses();
 }
@@ -5885,7 +5912,10 @@ function updateTargetHierarchyVisibility() {
 
 document.getElementById('target-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving a sales target.'); return; }
   const payload = {
+    ...(productionCompanyId ? { company_id: productionCompanyId } : {}),
     employee_name: document.getElementById('tg-employee').value,
     period: document.getElementById('tg-period').value,
     target_quantity: parseFloat(document.getElementById('tg-amount').value) || 0,
@@ -5899,7 +5929,7 @@ document.getElementById('target-form').addEventListener('submit', async (e) => {
     flat_rate_unit_label: document.getElementById('tg-flat-unit-label').value || null
   };
   let error;
-  if (editingTargetId) { ({ error } = await sb.from('sales_targets').update(payload).eq('id', editingTargetId)); }
+  if (editingTargetId) { let query = sb.from('sales_targets').update(payload).eq('id', editingTargetId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else { payload.created_by = currentUser.id; ({ error } = await sb.from('sales_targets').insert([payload])); }
   if (error) { alert('Error: ' + error.message); return; }
   e.target.reset();
@@ -5930,16 +5960,20 @@ function editTarget(id) {
   document.getElementById('target-form').scrollIntoView({ behavior: 'smooth' });
 }
 function cancelTargetEdit() { editingTargetId = null; document.getElementById('target-submit-btn').textContent = 'Save Target'; document.getElementById('target-cancel-btn').classList.add('hidden'); }
-async function deleteTarget(id) { if (!confirm('Delete this target?')) return; await sb.from('sales_targets').delete().eq('id', id); loadSalesTargets(); }
+async function deleteTarget(id) { if (!confirm('Delete this target?')) return; let query = sb.from('sales_targets').delete().eq('id', id); const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null; if (companyId) query = query.eq('company_id', companyId); const { error } = await query; if (error) { alert('Target was not deleted: ' + error.message); return; } loadSalesTargets(); }
 
 async function loadSalesTargets() {
-  document.getElementById('target-form-wrap').classList.remove('hidden');
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  const role = window.BOKAN_PRODUCTION_AUTH?.profile?.role;
+  const canManageTargets = !window.BOKAN_PRODUCTION_AUTH?.enabled || ['owner','admin','manager'].includes(role);
+  document.getElementById('target-form-wrap').classList.toggle('hidden', !canManageTargets);
   const periodFilter = document.getElementById('target-period-filter').value;
   let tq = sb.from('sales_targets').select('*');
+  if (productionCompanyId) tq = tq.eq('company_id', productionCompanyId);
   if (periodFilter) tq = tq.eq('period', periodFilter);
-  const { data: targets } = await tq;
+  const { data: targets, error: targetError } = await tq;
+  if (targetError) throw targetError;
   salesTargetsData = targets || [];
-  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
   let profiles = [];
   if (productionCompanyId) {
     const { data: salesMembers, error: memberError } = await sb.from('company_memberships').select('user_id').eq('company_id', productionCompanyId).eq('is_active', true).eq('role', 'sales');
@@ -6195,9 +6229,11 @@ document.getElementById('tripplan-form').addEventListener('submit', async (e) =>
     }
   }
 
-  const payload = { employee_name: document.getElementById('tp-employee').value, departure_date: document.getElementById('tp-departure').value, return_date: document.getElementById('tp-return').value || null, destination: document.getElementById('tp-destination').value, transportation_mode: document.getElementById('tp-transport-mode').value, purpose: document.getElementById('tp-purpose').value, product_type: document.getElementById('tp-product-type').value, planned_visits: plannedVisits, notes: document.getElementById('tp-notes').value, is_late_exception: !!(isLate && exceptionChecked), late_explanation: (isLate && exceptionChecked) ? explanation : null };
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving a trip plan.'); return; }
+  const payload = { ...(productionCompanyId ? { company_id: productionCompanyId } : {}), employee_name: document.getElementById('tp-employee').value, departure_date: document.getElementById('tp-departure').value, return_date: document.getElementById('tp-return').value || null, destination: document.getElementById('tp-destination').value, transportation_mode: document.getElementById('tp-transport-mode').value, purpose: document.getElementById('tp-purpose').value, product_type: document.getElementById('tp-product-type').value, planned_visits: plannedVisits, notes: document.getElementById('tp-notes').value, is_late_exception: !!(isLate && exceptionChecked), late_explanation: (isLate && exceptionChecked) ? explanation : null };
   let error, tripId = editingTripPlanId;
-  if (editingTripPlanId) { ({ error } = await sb.from('trip_plans').update(payload).eq('id', editingTripPlanId)); }
+  if (editingTripPlanId) { let query = sb.from('trip_plans').update(payload).eq('id', editingTripPlanId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else {
     payload.created_by = currentUser.id;
     const { data: inserted, error: insErr } = await sb.from('trip_plans').insert([payload]).select();
@@ -6233,11 +6269,16 @@ function editTripPlan(id) {
   document.getElementById('tripplan-form').scrollIntoView({ behavior: 'smooth' });
 }
 function cancelTripPlanEdit() { editingTripPlanId = null; document.getElementById('tripplan-submit-btn').textContent = 'Submit Trip Plan'; document.getElementById('tripplan-cancel-btn').classList.add('hidden'); }
-async function deleteTripPlan(id) { if (!confirm('Delete this trip plan?')) return; await sb.from('trip_plans').delete().eq('id', id); loadTripPlans(); refreshPerDiemTripPlanOptions(); }
+async function deleteTripPlan(id) { if (!confirm('Delete this trip plan?')) return; let query = sb.from('trip_plans').delete().eq('id', id); const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null; if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before deleting a trip plan.'); return; } if (companyId) query = query.eq('company_id', companyId); const { error } = await query; if (error) { alert('Trip plan was not deleted: ' + error.message); return; } loadTripPlans(); refreshPerDiemTripPlanOptions(); }
 async function loadTripPlans() {
   const el = document.getElementById('tripplan-list');
   if (!el) return;
-  const { data } = await sb.from('trip_plans').select('*').order('departure_date', { ascending: false }).limit(50);
+  let query = sb.from('trip_plans').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before loading trip plans.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('departure_date', { ascending: false }).limit(50);
+  if (error) { alert('Trip plans could not be loaded: ' + error.message); return; }
   document.getElementById('tripplan-list-title').textContent = 'All Trip Plans';
   tripPlanData = data || [];
   refreshPerDiemTripPlanOptions();
@@ -6290,9 +6331,11 @@ document.getElementById('visitreport-form').addEventListener('submit', async (e)
     alert('This report is overdue — please add a brief explanation before submitting (it will be flagged to Admin/Manager).');
     return;
   }
-  const payload = { employee_name: document.getElementById('vr-employee').value, visit_date: visitDate, customer_name: document.getElementById('vr-customer').value, contact_person: document.getElementById('vr-contact').value, location: document.getElementById('vr-location').value, purpose: document.getElementById('vr-purpose').value, product_type: document.getElementById('vr-product-type').value, outcome: document.getElementById('vr-outcome').value, next_steps: document.getElementById('vr-next-steps').value, follow_up_date: document.getElementById('vr-followup').value || null, is_late: isLate, late_explanation: isLate ? lateExplanation : null };
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving a visit report.'); return; }
+  const payload = { ...(productionCompanyId ? { company_id: productionCompanyId } : {}), employee_name: document.getElementById('vr-employee').value, visit_date: visitDate, customer_name: document.getElementById('vr-customer').value, contact_person: document.getElementById('vr-contact').value, location: document.getElementById('vr-location').value, purpose: document.getElementById('vr-purpose').value, product_type: document.getElementById('vr-product-type').value, outcome: document.getElementById('vr-outcome').value, next_steps: document.getElementById('vr-next-steps').value, follow_up_date: document.getElementById('vr-followup').value || null, is_late: isLate, late_explanation: isLate ? lateExplanation : null };
   let error, reportId = editingVisitReportId;
-  if (editingVisitReportId) { ({ error } = await sb.from('visit_reports').update(payload).eq('id', editingVisitReportId)); }
+  if (editingVisitReportId) { let query = sb.from('visit_reports').update(payload).eq('id', editingVisitReportId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else {
     payload.created_by = currentUser.id;
     const { data: inserted, error: insErr } = await sb.from('visit_reports').insert([payload]).select();
@@ -6328,11 +6371,16 @@ function editVisitReport(id) {
   document.getElementById('visitreport-form').scrollIntoView({ behavior: 'smooth' });
 }
 function cancelVisitReportEdit() { editingVisitReportId = null; document.getElementById('visitreport-submit-btn').textContent = 'Submit Visit Report'; document.getElementById('visitreport-cancel-btn').classList.add('hidden'); }
-async function deleteVisitReport(id) { if (!confirm('Delete this visit report?')) return; await sb.from('visit_reports').delete().eq('id', id); loadVisitReports(); }
+async function deleteVisitReport(id) { if (!confirm('Delete this visit report?')) return; let query = sb.from('visit_reports').delete().eq('id', id); const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null; if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before deleting a visit report.'); return; } if (companyId) query = query.eq('company_id', companyId); const { error } = await query; if (error) { alert('Visit report was not deleted: ' + error.message); return; } loadVisitReports(); }
 async function loadVisitReports() {
   const el = document.getElementById('visitreport-list');
   if (!el) return;
-  const { data } = await sb.from('visit_reports').select('*').order('visit_date', { ascending: false }).limit(50);
+  let query = sb.from('visit_reports').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before loading visit reports.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('visit_date', { ascending: false }).limit(50);
+  if (error) { alert('Visit reports could not be loaded: ' + error.message); return; }
   document.getElementById('visitreport-list-title').textContent = 'All Visit Reports';  visitReportData = data || [];
   const overdueBanner = document.getElementById('vr-overdue-banner');
   if (overdueBanner) overdueBanner.classList.toggle('hidden', !visitReportData.some(r => r.is_late));
@@ -8858,7 +8906,7 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     const rows=calls.map(c=>{const a=sales?.accounts?.find(x=>norm(x.name)===norm(c.name));return {Customer:c.name,Phone:c.phone||'',Contact:c.contact||'',Salesperson:(a?.owner||c.rep||'Unassigned'),Entity:a?.entity||'BlackRock Investment PLC',Status:a?.status||'',Priority:a?.priority||'',NextFollowUp:a?.nextAction||c.today||c.tomorrow||'',Notes:a?.notes||c.notes||''}});
     const escHtml=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const table='<table border="1"><tr>'+Object.keys(rows[0]||{Customer:'',Salesperson:'',NextFollowUp:'',Notes:''}).map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+Object.values(r).map(v=>'<td>'+escHtml(v)+'</td>').join('')+'</tr>').join('')+'</table>';
-    const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'</body></html>';
+    const html='<html><head><meta charset="UTF-8"></head><body><h2>BOKAN Sales & Customer Follow-Up Report</h2><p>Generated '+new Date().toLocaleString()+'</p>'+table+'\n</body></html>';
     const blob=new Blob([html],{type:'application/vnd.ms-excel'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='BOKAN_Sales_Follow_Up_Report.xls';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   function hook(){
@@ -9078,6 +9126,11 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   }
   function assignedName(c){return c.sales_rep||c.account_owner||c.owner||c.salesperson||c.rep||''}
   function render(){
+    if(window.BOKAN_PRODUCTION_AUTH?.enabled){
+      if(typeof window.bokanAccessRenderProduction==='function') window.bokanAccessRenderProduction();
+      else {const rows=document.getElementById('b2-user-rows');if(rows)rows.innerHTML='<tr><td colspan="6" class="py-4 text-slate-500">Loading secure company access…</td></tr>';}
+      return;
+    }
     const users=accessUsers(), active=users.filter(x=>x.status==='Active');
     const sales=active.filter(x=>/sales/i.test(x.department||'')).length;
     const inactive=users.filter(x=>x.status!=='Active').length;
@@ -9461,8 +9514,20 @@ async function enter(user){
     if(error)throw error;if(!data)throw new Error('After-sales task not found in the selected company.');return data;
   }
   async function listCompanyRepresentatives(){
-    await requireSession();const {data,error}=await db().from('company_memberships').select('user_id,role,is_active').eq('company_id',company()).eq('is_active',true).eq('role','sales').order('role');
-    if(error)throw error;return (data||[]).map(m=>({...m,label:m.user_id}));
+    await requireSession();const companyId=company();
+    const {data:members,error:memberError}=await db().from('company_memberships')
+      .select('user_id,role,is_active').eq('company_id',companyId).eq('is_active',true).eq('role','sales').order('user_id');
+    if(memberError)throw memberError;
+    const userIds=(members||[]).map(m=>m.user_id);
+    if(!userIds.length)return [];
+    const {data:profiles,error:profileError}=await db().from('profiles')
+      .select('id,full_name,email').eq('company_id',companyId).in('id',userIds);
+    if(profileError)throw profileError;
+    const profileById=new Map((profiles||[]).map(p=>[p.id,p]));
+    return (members||[]).map(m=>{
+      const profile=profileById.get(m.user_id);
+      return {...m,label:profile?.full_name?.trim()||profile?.email||m.user_id};
+    });
   }
   async function loadCRMControl(){
     const [customers,activities,reps]=await Promise.all([listMyCustomers(),listActivities(),listCompanyRepresentatives()]);
@@ -9932,6 +9997,407 @@ async function enter(user){
   }
   window.BOKAN_POLICY_HANDBOOK={refresh,print};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showSignIn,{once:true});else showSignIn();
+})();
+</script>
+
+<script id="bokan-v72-sales-orders-production-bridge">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const productionConfigured=()=>auth()?.enabled===true;
+  const enabled=()=>!!(productionConfigured()&&auth()?.client&&auth()?.profile?.company_id);
+  const state={customers:[],products:[],reps:[],orders:[],busy:false,subscribed:false};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  function status(message,error){
+    const el=$('so-production-status');
+    if(el){el.textContent=message||'';el.style.color=error?'#B42318':'#526173';}
+  }
+  function toSelect(id,placeholder){
+    const old=$(id);
+    if(!old)return null;
+    if(old.tagName==='SELECT')return old;
+    const el=document.createElement('select');
+    el.id=id;el.name=old.name||id;el.required=true;el.className=old.className;
+    el.setAttribute('aria-label',placeholder);
+    el.innerHTML='<option value="">'+esc(placeholder)+'</option>';
+    old.replaceWith(el);
+    return el;
+  }
+  function setOptions(id,items,placeholder){
+    const el=$(id);if(!el)return;
+    const current=el.value;
+    el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+
+      items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+'</option>').join('');
+    if(items.some(x=>x.id===current))el.value=current;
+  }
+  function clear(){
+    state.customers=[];state.products=[];state.reps=[];state.orders=[];
+    if($('so-table'))$('so-table').innerHTML='';
+    status('');
+  }
+  function renderOrders(){
+    const body=$('so-table');if(!body)return;
+    if(!state.orders.length){
+      body.innerHTML='<tr><td colspan="6" class="p-3 text-center text-slate-500">No sales orders have been created in this company yet.</td></tr>';
+      return;
+    }
+    const customerNames=new Map(state.customers.map(x=>[x.id,x.name]));
+    body.innerHTML=state.orders.map(d=>{
+      const items=d.items||[];
+      const desc=items.map(x=>x.description).join(', ');
+      const qty=items.reduce((n,x)=>n+Number(x.quantity||0),0);
+      return '<tr class="border-t border-[#E4E8ED]">'+
+        '<td class="p-2">'+esc(d.document_number)+'</td>'+
+        '<td class="p-2">'+esc(customerNames.get(d.customer_id)||'—')+'</td>'+
+        '<td class="p-2">'+esc(desc||'—')+'</td>'+
+        '<td class="p-2 text-right">'+qty.toLocaleString()+'</td>'+
+        '<td class="p-2 text-right">'+money(d.grand_total)+'</td>'+
+        '<td class="p-2">'+esc(String(d.status||'draft').toUpperCase())+'</td></tr>';
+    }).join('');
+  }
+  async function loadOptions(){
+    const db=auth().client,companyId=auth().profile.company_id;
+    const [customersRes,productsRes,repsRes]=await Promise.all([
+      db.from('customers').select('id,name,assigned_rep').eq('company_id',companyId).order('name'),
+      db.from('products').select('id,name,unit,sku').eq('company_id',companyId).eq('is_active',true).order('name'),
+      db.from('company_memberships').select('user_id').eq('company_id',companyId).eq('is_active',true).eq('role','sales')
+    ]);
+    if(customersRes.error)throw customersRes.error;
+    if(productsRes.error)throw productsRes.error;
+    if(repsRes.error)throw repsRes.error;
+    state.customers=customersRes.data||[];
+    state.products=productsRes.data||[];
+    const repIds=(repsRes.data||[]).map(x=>x.user_id);
+    let names={};
+    if(repIds.length){
+      const profiles=await db.from('profiles').select('id,full_name').in('id',repIds);
+      if(profiles.error)throw profiles.error;
+      (profiles.data||[]).forEach(x=>names[x.id]=x.full_name||'Sales representative');
+    }
+    state.reps=repIds.map(id=>({id,label:names[id]||'Sales representative'}));
+    const profile=auth().profile;
+    if(profile.role==='sales')state.reps=state.reps.filter(x=>x.id===profile.id||x.id===auth().user?.id);
+    setOptions('so-customer',state.customers.map(x=>({id:x.id,label:x.name})), 'Select customer');
+    setOptions('so-product',state.products.map(x=>({id:x.id,label:x.name+(x.sku?' · '+x.sku:'')})), 'Select product');
+    setOptions('so-rep',state.reps,'Select sales representative');
+    const rep=$('so-rep');
+    const userId=auth().user?.id;
+    if(profile.role==='sales'&&rep){
+      rep.value=userId||'';
+      rep.disabled=true;
+    }else if(rep){
+      rep.disabled=false;
+    }
+    const customer=$('so-customer');
+    if(customer&&!customer.dataset.bokanRepBound){
+      customer.addEventListener('change',()=>{
+        if(auth()?.profile?.role==='sales')return;
+        const item=state.customers.find(x=>x.id===customer.value);
+        if(item?.assigned_rep&&state.reps.some(x=>x.id===item.assigned_rep)&&$('so-rep'))$('so-rep').value=item.assigned_rep;
+      });
+      customer.dataset.bokanRepBound='true';
+    }
+    const statusSelect=$('so-status');
+    if(statusSelect){statusSelect.value='Draft';statusSelect.disabled=true;statusSelect.classList.add('hidden');}
+  }
+  async function loadOrders(){
+    const db=auth().client,companyId=auth().profile.company_id;
+    const docs=await db.from('sales_documents')
+      .select('id,document_number,status,grand_total,customer_id,document_date')
+      .eq('company_id',companyId)
+      .in('document_type',['sales_order','invoice'])
+      .order('document_date',{ascending:false})
+      .limit(100);
+    if(docs.error)throw docs.error;
+    const ids=(docs.data||[]).map(x=>x.id);
+    if(!ids.length){state.orders=[];renderOrders();return;}
+    const lines=await db.from('sales_document_items')
+      .select('document_id,description,quantity,unit')
+      .eq('company_id',companyId)
+      .in('document_id',ids);
+    if(lines.error)throw lines.error;
+    const byDoc={};
+    (lines.data||[]).forEach(x=>(byDoc[x.document_id]||(byDoc[x.document_id]=[])).push(x));
+    state.orders=(docs.data||[]).map(x=>({...x,items:byDoc[x.id]||[]}));
+    renderOrders();
+  }
+  async function refresh(){
+    if(!productionConfigured())return;
+    if(!enabled()){status('Waiting for an authenticated BlackRock company session.');return;}
+    try{
+      status('Loading live sales orders…');
+      await loadOptions();
+      await loadOrders();
+      status('Live sales-order register. New entries are saved as drafts; no stock or payments are posted.');
+    }catch(e){status('Sales orders could not be loaded: '+(e.message||e),true);}
+  }
+  async function saveDraft(){
+    if(state.busy)return;
+    if(!enabled()){status('Sign in with an active BlackRock company account before saving.',true);return;}
+    const form=$('so-form');
+    const qty=Number($('so-qty')?.value||0);
+    const unitPrice=Number($('so-total')?.value||0);
+    const customerId=$('so-customer')?.value||null;
+    const productId=$('so-product')?.value||null;
+    const salespersonId=$('so-rep')?.value||null;
+    const product=state.products.find(x=>x.id===productId);
+    if(!form?.reportValidity())return;
+    if(!product||!customerId||!salespersonId||qty<=0||unitPrice<=0){
+      status('Choose a customer, sales representative and product, then enter a positive quantity and unit selling price.',true);
+      return;
+    }
+    const localDate=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const document={
+      company_id:auth().profile.company_id,
+      customer_id:customerId,
+      salesperson_id:salespersonId,
+      document_type:'sales_order',
+      document_number:$('so-no').value.trim(),
+      document_date:localDate,
+      due_date:$('so-delivery').value||null,
+      currency_code:'ETB',
+      discount_total:0
+    };
+    const items=[{
+      product_id:productId,
+      description:product.name,
+      quantity:qty,
+      unit:product.unit||'unit',
+      unit_price:Math.round(unitPrice*100)/100,
+      tax_rate:0
+    }];
+    state.busy=true;
+    const button=form.querySelector('button[type="submit"]');
+    if(button){button.disabled=true;button.textContent='SAVING DRAFT…';}
+    try{
+      const result=await auth().client.rpc('create_sales_document_with_items',{p_document:document,p_items:items});
+      if(result.error)throw result.error;
+      form.reset();
+      status('Sales order saved as a draft. No stock movement or payment was recorded.');
+      await refresh();
+    }catch(e){status('Sales order was not saved: '+(e.message||e),true);}
+    finally{
+      state.busy=false;
+      if(button){button.disabled=false;button.textContent='SAVE DRAFT SALES ORDER';}
+    }
+  }
+  function activate(){
+    const form=$('so-form');if(!form||form.dataset.bokanSalesBridge)return;
+    form.dataset.bokanSalesBridge='true';
+    const configured=productionConfigured();
+    if(configured){
+      toSelect('so-customer','Select customer');
+      toSelect('so-rep','Select sales representative');
+      toSelect('so-product','Select product');
+      const button=form.querySelector('button[type="submit"]');
+      if(button)button.textContent='SAVE DRAFT SALES ORDER';
+      form.addEventListener('submit',e=>{
+        if(!productionConfigured())return;
+        e.preventDefault();e.stopImmediatePropagation();
+        saveDraft();
+      },true);
+      const client=auth()?.client;
+      if(client&&!state.subscribed){
+        client.auth.onAuthStateChange((event,session)=>{
+          if(event==='SIGNED_OUT'||!session){clear();return;}
+          setTimeout(()=>refresh(),0);
+        });
+        state.subscribed=true;
+      }
+      refresh();
+    }
+  }
+  window.BOKAN_SALES_DOCUMENTS={refresh,clear};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activate,{once:true});
+  else activate();
+})();
+</script>
+
+<script id="bokan-v73-sales-pipeline-production-bridge">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const enabled=()=>!!(auth()?.enabled===true&&auth()?.client&&auth()?.profile?.company_id&&window.BOKAN_CRM_PRODUCTION?.enabled?.());
+  const state={customers:[],opportunities:[],busy:false,subscribed:false};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const today=()=>new Date().toISOString().slice(0,10);
+  function status(message,error){
+    let el=$('sp-production-status');
+    if(!el){el=document.createElement('div');el.id='sp-production-status';el.className='text-xs mb-2';el.setAttribute('aria-live','polite');$('sp-form')?.prepend(el);}
+    if(el){el.textContent=message||'';el.style.color=error?'#B42318':'#526173';}
+  }
+  function toSelect(id,label){
+    const old=$(id);if(!old||old.tagName==='SELECT')return old;
+    const el=document.createElement('select');el.id=id;el.name=old.name||id;el.required=true;el.className=old.className;
+    el.setAttribute('aria-label',label);el.innerHTML='<option value="">'+esc(label)+'</option>';old.replaceWith(el);return el;
+  }
+  function setOptions(id,items,placeholder){
+    const el=$(id);if(!el)return;const selected=el.value;
+    el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+'</option>').join('');
+    if(items.some(x=>x.id===selected))el.value=selected;
+  }
+  function render(){
+    const customerNames=new Map(state.customers.map(x=>[x.id,x.name]));
+    const rows=state.opportunities;
+    const open=rows.filter(x=>!['Won','Lost'].includes(String(x.stage)));
+    if($('sp-open'))$('sp-open').textContent=String(open.length);
+    if($('sp-value'))$('sp-value').textContent=money(open.reduce((n,x)=>n+Number(x.estimated_value||0),0));
+    if($('sp-due'))$('sp-due').textContent=String(open.filter(x=>x.next_action_date&&x.next_action_date<=today()).length);
+    if($('sp-won'))$('sp-won').textContent=String(rows.filter(x=>x.stage==='Won').length);
+    const q=($('sp-search')?.value||'').toLowerCase();
+    const filtered=rows.filter(x=>((customerNames.get(x.customer_id)||'')+' '+(x.stage||'')+' '+(x.next_action||'')).toLowerCase().includes(q));
+    const body=$('sp-table');if(!body)return;
+    body.innerHTML=filtered.length?filtered.map(x=>'<tr class="border-t border-[#E4E8ED]"><td class="p-2">'+esc(customerNames.get(x.customer_id)||'—')+'</td><td class="p-2">'+esc(auth()?.user?.email||'Assigned owner')+'</td><td class="p-2">'+esc(x.stage||'Lead')+'</td><td class="p-2 text-right">'+money(x.estimated_value)+'</td><td class="p-2">'+esc(x.required_date||'—')+'</td><td class="p-2">'+esc(x.next_action||'—')+'</td></tr>').join(''):'<tr><td colspan="6" class="p-3 text-center text-slate-500">No live opportunities yet.</td></tr>';
+  }
+  async function refresh(){
+    if(!enabled())return;
+    try{
+      status('Loading live CRM pipeline…');
+      const [customers,opportunities]=await Promise.all([
+        window.BOKAN_CRM_PRODUCTION.listMyCustomers(),
+        window.BOKAN_CRM_PRODUCTION.listOpportunities()
+      ]);
+      state.customers=customers;state.opportunities=opportunities;
+      setOptions('sp-customer',customers.map(x=>({id:x.id,label:x.name})),'Select customer');
+      const rep=$('sp-rep');
+      if(rep){rep.value=auth()?.profile?.full_name||auth()?.user?.email||'Signed-in user';rep.readOnly=true;rep.setAttribute('aria-label','Opportunity owner');}
+      render();status('Live CRM pipeline. New opportunities are saved to the selected company.');
+    }catch(e){status('CRM pipeline could not be loaded: '+(e.message||e),true);}
+  }
+  async function save(e){
+    e.preventDefault();e.stopImmediatePropagation();
+    if(state.busy||!enabled())return;
+    const form=$('sp-form');if(!form?.reportValidity())return;
+    const customerId=$('sp-customer')?.value;
+    const product=String($('sp-product')?.value||'').trim();
+    const value=Number($('sp-value-in')?.value||0);
+    if(!customerId||!product||!Number.isFinite(value)||value<0){status('Choose a customer and enter the product or requirement and a valid estimated value.',true);return;}
+    state.busy=true;const button=form.querySelector('button[type="submit"],button:not([type])');if(button){button.disabled=true;button.textContent='SAVING…';}
+    try{
+      await window.BOKAN_CRM_PRODUCTION.createOpportunity({
+        customer_id:customerId,product_description:product,estimated_value:value,
+        currency_code:'ETB',required_date:$('sp-close')?.value||null,
+        stage:$('sp-stage')?.value||'Lead',next_action:$('sp-next')?.value.trim()||null,
+        next_action_date:$('sp-close')?.value||null,
+        notes:[String($('sp-contact')?.value||'').trim(),String($('sp-notes')?.value||'').trim()].filter(Boolean).join(' | ')
+      });
+      form.reset();await refresh();status('Opportunity saved to the live CRM pipeline.');
+    }catch(err){status('Opportunity was not saved: '+(err.message||err),true);}
+    finally{state.busy=false;if(button){button.disabled=false;button.textContent='SAVE OPPORTUNITY';}}
+  }
+  function activate(){
+    const form=$('sp-form');if(!form)return;
+    if(!form.dataset.bokanPipelineBridge){form.dataset.bokanPipelineBridge='true';}
+    if(enabled()&&!form.dataset.bokanPipelineProduction){
+      form.dataset.bokanPipelineProduction='true';
+      toSelect('sp-customer','Select customer');
+      if(!$('sp-product')){const input=document.createElement('input');input.id='sp-product';input.required=true;input.placeholder='Product / customer requirement';input.className='w-full border p-2 rounded mb-2 text-xs';$('sp-contact')?.after(input);}
+      form.addEventListener('submit',save,true);
+      $('sp-search')?.addEventListener('input',render);
+      refresh();
+    }
+    const client=auth()?.client;
+    if(client&&!state.subscribed){client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session){state.customers=[];state.opportunities=[];render();return;}setTimeout(()=>{if(enabled())refresh();},0);});state.subscribed=true;}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activate,{once:true});else activate();
+  document.addEventListener('click',e=>{if(e.target.closest('[data-tab="salespipeline"],[data-tab-target="salespipeline"]'))refresh();});
+  window.BOKAN_SALES_PIPELINE_UI={refresh};
+})();
+</script>
+
+<script id="bokan-v74-production-access-registry">
+(function(){
+  'use strict';
+  const ctx=()=>window.BOKAN_PRODUCTION_AUTH;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const roleLabel=role=>({owner:'Owner',admin:'Administrator',manager:'Manager',sales:'Sales Representative',staff:'Data Entry',accountant:'Accountant',inventory:'Inventory'}[role]||role);
+  let loading=false;
+  async function loadMembers(){
+    const state=ctx(),companyId=state?.profile?.company_id,client=state?.client;
+    if(!state?.enabled||!client||!companyId)throw new Error('Sign in and select the BlackRock company before viewing access.');
+    if(state.profile.role!=='admin')throw new Error('Only a BlackRock owner or administrator can view employee access.');
+    const {data:members,error:memberError}=await client.from('company_memberships')
+      .select('user_id,role,is_active,created_at').eq('company_id',companyId).order('created_at',{ascending:true});
+    if(memberError)throw memberError;
+    const ids=(members||[]).map(m=>m.user_id);
+    let profiles=[];
+    if(ids.length){
+      const {data,error}=await client.from('profiles').select('id,full_name,email,department')
+        .eq('company_id',companyId).in('id',ids);
+      if(error)throw error;
+      profiles=data||[];
+    }
+    const byId=new Map(profiles.map(p=>[p.id,p]));
+    return (members||[]).map(m=>({...m,profile:byId.get(m.user_id)||null,
+      name:byId.get(m.user_id)?.full_name||byId.get(m.user_id)?.email||m.user_id,
+      department:byId.get(m.user_id)?.department||roleLabel(m.role)}));
+  }
+  async function render(){
+    if(loading)return;loading=true;
+    const rows=document.getElementById('b2-user-rows');
+    try{
+      const users=await loadMembers(),active=users.filter(u=>u.is_active),sales=active.filter(u=>u.role==='sales').length;
+      document.getElementById('b2-active-users').textContent=String(active.length);
+      document.getElementById('b2-sales-users').textContent=String(sales);
+      document.getElementById('b2-inactive-users').textContent=String(users.length-active.length);
+      document.getElementById('b2-assigned-accounts').textContent='—';
+      document.getElementById('b2-unassigned-accounts').textContent='—';
+      if(rows)rows.innerHTML=users.map(u=>`<tr class="border-b"><td class="py-2 font-semibold">${esc(u.name)}</td><td>${esc(u.department)}</td><td>${esc(roleLabel(u.role))}</td><td class="text-center">BlackRock</td><td class="text-center"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${u.is_active?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700'}">${u.is_active?'Active':'Inactive'}</span></td><td class="text-right"><span class="text-xs text-slate-500">Admin-controlled</span></td></tr>`).join('')||'<tr><td colspan="6" class="py-4 text-slate-500">No company memberships found.</td></tr>';
+      const accounts=document.getElementById('b2-account-rows');
+      if(accounts)accounts.innerHTML='<tr><td colspan="5" class="py-5 text-slate-500">Customer assignment reporting will be available after the new reconciled customer data is provided and loaded.</td></tr>';
+    }catch(error){
+      if(rows)rows.innerHTML=`<tr><td colspan="6" class="py-4 text-red-700">${esc(error.message||'Employee access could not be loaded.')}</td></tr>`;
+      document.getElementById('b2-assigned-accounts').textContent='—';
+      document.getElementById('b2-unassigned-accounts').textContent='—';
+    }finally{loading=false;}
+  }
+  const reviewAdd=window.bokanAccessAddUser;
+  const reviewToggle=window.bokanAccessToggle;
+  const reviewReconcile=window.bokanAccessReconcileCustomers;
+  const reviewExport=window.bokanAccessExport;
+  window.bokanAccessRenderProduction=render;
+  window.bokanAccessAddUser=async function(){
+    if(!ctx()?.enabled){if(reviewAdd)reviewAdd();return;}
+    if(ctx()?.profile?.role!=='admin'){alert('Only a BlackRock owner or administrator can invite employees.');return;}
+    const fullName=prompt('Employee full name:');if(!fullName)return;
+    const email=prompt('Employee email address:');if(!email)return;
+    const roleInput=prompt('Company role: enter sales or staff (Data Entry).','sales');
+    if(!roleInput)return;
+    const role=roleInput.trim().toLowerCase();
+    if(!['sales','staff'].includes(role)){alert('For this release, invitations are limited to Sales and Data Entry. HR and other roles are not enabled.');return;}
+    try{
+      const {data,error}=await ctx().client.functions.invoke('invite-blackrock-member',{body:{email:email.trim(),full_name:fullName.trim(),role}});
+      if(error)throw error;
+      if(!data?.success)throw new Error(data?.error||'The invitation service did not confirm the request.');
+      alert(data.status==='invited'?'Invitation sent. The employee can complete account setup from their email.':'Existing account assigned to BlackRock.');
+      await render();
+    }catch(error){alert(error.message||'Employee invitation failed. No local access record was created.');}
+  };
+  window.bokanAccessExport=async function(){
+    if(!ctx()?.enabled){if(reviewExport)reviewExport();return;}
+    try{
+      const users=await loadMembers();
+      const rows=[['Employee','Department','Role','Company','Status','Email'],...users.map(u=>[u.name,u.department,roleLabel(u.role),'BlackRock',u.is_active?'Active':'Inactive',u.profile?.email||''])];
+      const csv=rows.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\\n');
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='BOKAN_BlackRock_Access_Register.csv';a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),500);
+    }catch(error){alert(error.message||'The live access register could not be exported.');}
+  };
+  window.bokanAccessToggle=function(id){
+    if(ctx()?.enabled){alert('Direct activation and deactivation are temporarily disabled until the audited membership-change workflow is completed.');return;}
+    if(reviewToggle)reviewToggle(id);
+  };
+  window.bokanAccessReconcileCustomers=function(){
+    if(ctx()?.enabled){alert('Customer assignment checks are deferred until the new reconciled customer data is supplied.');return;}
+    if(reviewReconcile)reviewReconcile();
+  };
+  document.addEventListener('bokan:company-context-changed',()=>{if(ctx()?.enabled)render();});
+  document.addEventListener('DOMContentLoaded',()=>{if(ctx()?.enabled)render();});
 })();
 </script>
 </body>

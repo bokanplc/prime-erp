@@ -34,7 +34,7 @@ if (deploymentBranch === 'deploy/secure-staging') {
   process.exit(0);
 }
 
-assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([])'),'No module is source-approved for production in the release candidate.');
+assert.ok(source.includes("window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(['policyhandbook']);"),'The company policy handbook is the only source-reviewed production module; config still enables no production tabs.');
 const replacements={
   prime_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',

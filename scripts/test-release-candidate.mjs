@@ -29,7 +29,7 @@ assert.match(config,/PRODUCTION_MODE\s*:\s*false/,'Production mode must remain d
 assert.match(config,/DEMO_REVIEW_MODE\s*:\s*false/,'Sanitized release candidate must disable demo review mode.');
 assert.match(config,/FULL_ERP_DATA_READY\s*:\s*false/,'Full ERP data readiness must remain disabled.');
 assert.match(config,/ENABLED_PRODUCTION_TABS\s*:\s*\[\]/,'Release candidate must not enable production tabs.');
-assert.match(html,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/,'Release candidate must have no source-approved production tabs.');
+assert.match(html,/window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\['policyhandbook'\]\)/,'Release candidate must retain the handbook-only source review allowlist.');
 assert.match(html,/const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(_bokanCfg\) && window\.supabase/,'Release candidate must retain the full-ERP and reviewed-module readiness gates on the core Supabase client.');
 assert.match(config,/SUPABASE_URL\s*:\s*""/,'Supabase URL must remain blank.');
 assert.match(config,/SUPABASE_ANON_KEY\s*:\s*""/,'Supabase browser key must remain blank.');
@@ -57,8 +57,8 @@ assert.match(html,/rel="noopener noreferrer"/,'External document tabs must not r
 assert.match(html,/data-file-path="\$\{escapeHtml\(d\.file_path\)\}"[\s\S]{0,180}deleteRepoFile\(this\.dataset\.docId,this\.dataset\.filePath/,'Document delete actions must pass data through escaped dataset attributes, not inline JavaScript string interpolation.');
 assert.match(html,/let _bokanProformaSaveInFlight = false;[\s\S]{0,900}if \(_bokanProformaSaveInFlight\) return;[\s\S]{0,250}_bokanProformaSaveInFlight = true;[\s\S]{0,500}button\.disabled = true;[\s\S]{0,800}finally \{[\s\S]{0,200}_bokanProformaSaveInFlight = false;/,'Release candidate must block duplicate concurrent Proforma saves.');
 assert.match(html,/Proforma deletion is disabled in production until an audited void workflow is implemented/,'Production proforma deletion must remain blocked until an audited void workflow exists.');
-assert.match(html,/Document uploads are temporarily disabled until private document storage and authorized downloads are configured/,'Production document uploads must remain blocked.');
-assert.match(html,/Document downloads are temporarily disabled until private storage and authorized downloads are configured/,'Release candidate must block production document links.');
+assert.match(html,/client\.storage\.from\('bokan-company-documents'\)\.upload\(path, file/,'Release candidate must retain private company document uploads.');
+assert.match(html,/client\.storage\.from\('bokan-company-documents'\)\.createSignedUrl\(d\.file_path, 300\)/,'Release candidate must retain short-lived signed document downloads.');
 assert.doesNotMatch(html,/admin@preview/,'Release candidate must not ship the preview-admin email identity.');
 const phoneFieldCount=[...html.matchAll(/\bphone\s*:\s*['"][^'"]{6,}['"]/gi)].length;
 assert.ok(phoneFieldCount<=2,'Unexpected hard-coded phone fields found; only the two issuer contact fields are currently allowed.');

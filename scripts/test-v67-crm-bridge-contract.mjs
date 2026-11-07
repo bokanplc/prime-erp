@@ -16,9 +16,10 @@ const end=source.indexOf('</script>',start);
 assert.ok(end>start,'CRM bridge script must be closed.');
 const bridge=source.slice(start,end);
 
-for(const table of ['customers','crm_customer_assignments','crm_assignment_events','crm_activities','crm_opportunities','crm_after_sales_tasks']){
+for(const table of ['customers','crm_customer_assignments','crm_activities','crm_opportunities','crm_after_sales_tasks']){
   assert.ok(bridge.includes("'"+table+"'"),`CRM bridge must use canonical table ${table}.`);
 }
+assert.ok(assignmentGuard.includes('insert into public.crm_assignment_events'),'The manager-only reassignment RPC must append an immutable assignment-history event.');
 for(const legacy of ['bokan_customers','bokan_customer_activities','bokan_customer_assignments','bokan_salespeople','bokan_sales_opportunities']){
   assert.ok(!bridge.includes(legacy),`CRM bridge must not reference legacy table ${legacy}.`);
 }
@@ -26,7 +27,9 @@ for(const method of ['listMyCustomers','createCustomer','updateCustomer','listAc
   assert.ok(bridge.includes(method),`CRM bridge method ${method} is missing.`);
 }
 assert.ok(bridge.includes("rpc('bokan_reassign_customer_owner'"),'Customer reassignment must use the manager-only RPC.');
-assert.ok(bridge.includes(".in('role',['sales','staff'])"),'The V6.7 reassignment selector must only offer eligible sales/staff members.');
+assert.ok(bridge.includes(".eq('role','sales')"),'The V6.7 reassignment selector must only offer active sales representatives.');
+assert.ok(bridge.includes("from('profiles')") && bridge.includes(".in('id',userIds)"),'Representative names must be resolved from same-company profiles, not shown as raw UUIDs.');
+assert.ok(bridge.includes("profile?.full_name?.trim()||profile?.email||m.user_id"),'Representative labels must prefer the profile name, then email, with a safe UUID fallback.');
 assert.ok(assignmentGuard.includes("m.role in ('sales','staff')"),'The database must reject customer assignment to non-sales/staff company members.');
 assert.ok(bridge.includes("eq('company_id',company())"),'CRM writes and updates must be scoped to the selected company.');
 assert.ok(bridge.includes('owner_user_id:user.id'),'New opportunities must be owned by the signed-in user.');
@@ -35,6 +38,6 @@ for(const fn of ['async function initSalesPortal()','async function renderCustom
   const i=source.indexOf(fn);assert.ok(i>=0,`Missing V6.7 CRM screen function: ${fn}`);
   assert.ok(source.slice(i,i+5000).includes('BOKAN_CRM_PRODUCTION'),`Screen is not wired to canonical CRM API: ${fn}`);
 }
-assert.ok(source.includes("id === 'crmcontrol' && window.BOKAN_CRM_PRODUCTION?.enabled()"),'CRM dashboard must load live data.');
+assert.ok(source.includes("if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }") && source.includes("window.BOKAN_CRM_UI={refresh,showReviewMode,cancelCustomerEdit}"),'CRM dashboard tab must refresh the canonical production CRM workspace.');
 assert.ok(!bridge.includes('.delete('),'CRM bridge must not hard-delete customer or history records.');
 console.log('PASS: V6.7 CRM bridge uses canonical company-scoped tables, guarded reassignment, append-only activity history, and synchronized full-app staging entry.');

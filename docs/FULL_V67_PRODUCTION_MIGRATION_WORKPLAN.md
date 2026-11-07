@@ -1,94 +1,54 @@
-# BOKAN ERP V6.7 — Full production migration workplan
+# BOKAN ERP V6.7 — Full application migration workplan
 
-**Status:** active engineering plan; staging only. This is not a claim of production readiness.
+**Status:** active integration work on `feature/inventory-costing-and-receiving-audit`; staging/preview only. This is not a production-readiness claim.
 
-## Non-negotiable project scope
+## Controlling owner direction (2026-11-07)
 
-Migrate the existing full BOKAN ERP V6.7 application as one integrated ERP for **BlackRock Investment PLC only**. Prime Investment Group has been decommissioned from this project; do not reintroduce Prime company records, transactions, users, inventory, accounting, or memberships. Proforma is one workflow inside the ERP, not a standalone application or separate release. Withholding is not a required Proforma feature and must not block the full ERP migration.
+Migrate the complete 91-panel V6.7 application and its standard non-stock functionality. The owner will supply fresh, reconciled business data in a later phase. Do not import, reconcile, certify, or use historical stock, sales, purchase, customer, or financial records as acceptance criteria. Preserve all existing live rows as-is.
 
-Keep production mode and the reviewed-module allowlist disabled until each module passes its acceptance gates. Forward-only live schema migrations may be applied when source-controlled, tested, company-scoped and explicitly verified. Do not merge the staging branch into main or deploy a production release as a shortcut.
+The initial release scope excludes HR. Park historical stock balances/swaps, sales stock issue/posting, purchase receiving/stock receipt, inventory costing/valuation/COGS, and landed-cost allocation. Do not expose these actions in the first release. Customer receipts, supplier payments and formal settlement remain in Peachtree, the accounting system of record.
 
-## Verified live foundation
+This scope supersedes earlier workplan text that made historical reconciliation, HR, stock posting, purchasing receipt, or Prime company records prerequisites. Do not change `main`, merge, promote production, alter production allowlists, or distribute an employee link until the release gates pass and the owner explicitly requests that release action.
 
-The connected Supabase project currently has 23 public base tables, all 23 with RLS enabled, 63 public RLS policies, two operational views, and 21 recorded migrations. The live foundation now includes:
-- Multi-company identity and membership, customers and products.
-- Sales documents/items, payments, suppliers, purchase documents/items, stock movements and supplier payments.
-- Company-scoped Proforma settings, bank accounts, custom terms and saved Proformas.
-- Company-scoped CRM assignments, assignment events, activities, opportunities and after-sales tasks.
-- Company-scoped Supply & Logistics inbound shipment plans and delivery controls.
+## Migration status at this checkpoint
 
-Fourteen timestamped SQL files are tracked under `supabase/migrations`; the three newer applied Proforma/CRM SQL bodies are archived under `supabase/candidates`. Four older historical SQL bodies remain unrecovered by choice and must not block forward migration. The existing company-membership model is the tenant and authorization source of truth. Do not replace it with a second profiles/company-code model.
+The full reviewed V6.7 HTML source (91 tab panels) is preserved. A visible panel is not counted as migrated unless its standard in-scope behavior is connected to the canonical company-scoped service or intentionally disabled.
 
-## Work sequence
+### Integrated application paths — source-level implementation present
 
-### 0. Preserve and reconcile the foundation
-- Accept the four historical SQL bodies as an existing source-control gap; do not spend migration time attempting recovery or inventing historical migration bodies.
-- Preserve a clearly labeled current-schema baseline later if it becomes necessary for reproducible environment setup.
-- Compare constraints, indexes, triggers, views, functions, grants, and RLS against the live catalog before any forward migration.
-- Preserve BlackRock operational records and enforce the single active BlackRock company boundary. Keep Prime historical data out of the target ERP.
+- Authentication/company context adapter based on Supabase Auth and active `company_memberships`.
+- CRM customer, activity history, opportunity/pipeline and after-sales task adapters.
+- Sales Orders company-scoped draft creation; approval UI and all stock/payment actions remain gated.
+- Sales Targets company-scoped reads/writes/deletes with manager-only administration.
+- Expenses and transaction-cost list/create paths with active-company scope.
+- Trip Plans, Visit Reports and Notifications company-scoped persistence paths.
+- Proforma company settings and guarded save workflow.
+- Supply/logistics planning bridge for shipment and delivery planning only.
+- Finance read/reporting adapters that do not record receipts/payments or depend on stock costing.
+- Private company document repository and policy handbook paths.
 
-### 1. Identity, company context, and access
-- Test real Supabase Auth sign-in/out, session refresh, company switching, inactive membership denial, and role denial.
-- Derive all access from authenticated user and active company_memberships; localStorage company selection is only a UI hint.
-- Add trusted provisioning and audited membership management before enabling role administration.
-- Keep unsupported roles denied until their complete least-privilege navigation and database policy contracts are approved.
+These are implementation checkpoints, not blanket production approvals. The current persistence matrix records the module-by-module evidence and outstanding checks in `docs/V67_PRODUCTION_PERSISTENCE_MATRIX_2026-11-06.md`.
 
-### 2. Core sales and CRM
-- Keep existing customers/products/sales_documents/sales_document_items as canonical where compatible.
-- Map the V6.7 CRM payloads for customer profiles, activities, salesperson assignments, opportunities, targets, and visit reports.
-- Reconcile legacy customer stores with BOKAN-prefixed stores; do not create duplicate parallel customer masters.
-- Make customer reassignment a single database transaction/RPC that updates the current assignment and writes assignment history atomically.
-- Add company/salesperson foreign keys, RLS, audit fields, and duplicate/cross-company/invalid-payload tests.
-- Validate draft, approval, posting, payment, and document history as one connected sales lifecycle.
+### Remaining work before a staff release
 
-### 3. Procurement, receiving, inventory, and logistics
-- Extend existing suppliers, purchase documents/items, stock movements, and supplier payments rather than creating competing purchasing models.
-- First Supply & Logistics slice is now applied: company-scoped `supply_shipments` and `delivery_orders` persist inbound shipment plans and customer delivery controls with RLS, company membership checks, role-scoped writes, quantity constraints and indexes.
-- The V6.7 Supply & Logistics Control Tower bridge now reads/writes those two live tables using the authenticated active company UUID; production-mode errors do not fall back to local sample data. Sales-demand forecasting, warehouse reservations, goods receipt/stock posting integration, shipment containers and logistics exceptions remain separate work.
-- Make receiving and stock posting atomic, idempotent, reversible through controlled reversal records, and protected against negative/duplicate movement.
-- Verify product, supplier, warehouse, and company ownership at the database boundary.
+1. Complete real authenticated browser tests for sign-in/sign-out/session refresh, active-company selection, role-specific navigation, save/edit/reload, and denied access.
+2. Complete trusted company/user administration and employee invitation/membership lifecycle; verify manager, salesperson and data-entry permissions without creating unrequested accounts.
+3. Finish browser acceptance for CRM ownership, calls/visits/reminders/history, opportunity stage progression, Sales Orders draft workflow, targets, expenses, trip plans, visit reports and notifications.
+4. Verify Proforma PDF/document output and company settings; verify private document upload, signed download, retention and admin/employee boundaries; verify policy handbook read and admin-only print.
+5. Complete in-scope non-stock finance and management reporting screens as safe read-only or operational workflows; no receipt/payment or stock-derived costing workflows.
+6. Audit every remaining V6.7 panel for localStorage/demo-only state. Migrate standard in-scope behavior to company-scoped persistence or keep the unsupported action disabled. Do not shrink or replace the full interface.
+7. Run source guards, schema/RLS tests, role/isolation tests, sanitized release build, and a current-commit Vercel preview. Fix failures and repeat.
+8. Only after all gates pass, review a non-empty source-reviewed production tab allowlist and separately confirm production promotion/release authorization.
 
-### 4. Finance
-- Reconcile AR/AP, receipts/payments, cash/bank, chart of accounts, journal entries, fiscal periods, approvals, reconciliation and close controls into one canonical ledger/subledger model.
-- Require balanced journal posting, period locks, immutable posted records, allocations, and reversal workflows.
-- Do not treat browser-local finance summaries or close flags as accounting records.
-- Proforma is integrated into this lifecycle; no separate standalone Proforma deployment.
+## Release acceptance
 
-### 5. HR and payroll
-- Select one canonical employee, attendance, leave, performance, discipline, payroll, and approval model.
-- Separate employee self-service, manager access, HR administration, payroll preparation, and payroll approval.
-- Payroll calculations and approvals must be server-validated and audited; no trusted payroll state in localStorage.
-- Add sensitive-data and cross-company denial tests before enabling any HR/payroll tab.
+A module is eligible for production only when its screen and payload contract map to the canonical schema; company and role boundaries are enforced server-side; writes are trusted and transactional where needed; anonymous, wrong-role, inactive-membership, cross-company, invalid-input, duplicate and rollback cases are tested; authenticated browser create/edit/reload behavior passes; and production cannot silently fall back to localStorage or demo data.
 
-### 6. Documents, notifications, quality, and controls
-- Implement private Storage buckets and company/category-scoped object policies, metadata lifecycle, and expiring signed downloads.
-- Move shared notifications, exceptions, quality issues, audit events, reconciliation and period-control evidence to server-side records.
-- Keep release checklists and UI-only hints explicitly non-authoritative.
+## Parked / deferred (not blockers for this application phase)
 
-## Module acceptance gate
+- HR and payroll.
+- Historical business-data import or reconciliation.
+- Stock balances/swaps, stock issue/posting, purchase receiving, inventory costing/valuation/COGS and landed-cost allocation.
+- Customer receipts, supplier payments and accounting settlement in ERP.
 
-A module is not production-ready until all are true:
-1. Exact UI payload/read contract and canonical schema are documented.
-2. Forward-only SQL migration is source-controlled and reviewed.
-3. RLS, grants, foreign keys, constraints, and indexes enforce company and role boundaries.
-4. Multi-step operations use trusted transactional RPCs or equivalent atomic server operations.
-5. Tests cover anonymous, wrong-role, inactive membership, cross-company, invalid payload, duplicates, concurrency, and rollback/reversal.
-6. Real Supabase Auth/JWT/Data API and browser create/edit/reload tests pass.
-7. Any existing browser-local data has an explicit export/migration decision.
-8. Sanitized release build and CI checks pass.
-
-## Current stop-ship findings
-
-- The full application still has multiple browser-local modules.
-- The current CRM browser bridge still references `bokan_*` tables while the live database uses the company-scoped `crm_*` contracts; this UI mismatch must be reconciled before CRM activation.
-- Supply & Logistics now has a first live persistence slice, but the full procurement/receiving/reservation/delivery-exception lifecycle is not yet migrated.
-- Finance, HR/payroll, documents, notifications and the remaining operational modules require canonical schema and trusted operations.
-- The four missing historical migration bodies remain a documented source-control gap and are explicitly not a blocker for forward migration.
-- No business module is currently approved for hosted production; the production allowlist remains empty.
-
-## Immediate next engineering tasks
-
-1. Complete real authenticated browser read/write/reload and cross-company denial tests for the new Supply & Logistics slice before enabling its production tab.
-2. Reconcile the CRM UI bridge to the existing `crm_*` live schema and test the manager-only reassignment RPC.
-3. Finance & HR local-data paths have now been mapped in `docs/FINANCE_HR_DATA_PATH_AUDIT_2026-10-31.md`; next design the Finance chart-of-accounts, journal, subledger and period-control contracts around existing approved sales/purchase source documents.
-4. Build the HR employee/attendance/leave/payroll schema with sensitive-data role separation after the Finance foundation; keep all production tabs disabled until each acceptance gate passes.
+No live business data is to be deleted or rewritten as part of this migration phase. Fresh data onboarding is a separate future phase after the owner supplies the reconciled dataset.

@@ -34,7 +34,20 @@ const trackedAppliedMigrations = [
   '20261031124029_align_crm_table_privileges_with_workflow_policies.sql',
   '20261031124815_link_supply_logistics_to_purchase_sales_documents.sql',
   '20261031125430_require_submitted_purchase_order_for_shipment_link.sql',
-  '20261031125554_restrict_crm_assignment_to_sales_members.sql'
+  '20261031125554_restrict_crm_assignment_to_sales_members.sql',
+  '20261106062819_index_uncovered_foreign_keys.sql',
+  '20261106062902_split_finance_read_and_write_rls_policies.sql',
+  '20261106063435_decommission_prime_purchasing_entity.sql',
+  '20261106064054_create_transaction_costs_for_direct_and_landed_costs.sql',
+  '20261106064214_index_transaction_costs_creator_membership_fk.sql',
+  '20261106064931_create_company_policy_documents.sql',
+  '20261106065301_index_company_policy_documents_creator_membership_fk.sql',
+  '20261106075213_create_private_company_document_storage.sql',
+  '20261106151808_harden_public_api_privileges.sql',
+  '20261106151937_move_privileged_rpc_implementations_private.sql',
+  '20261107064845_harden_atomic_purchase_receiving_workflow.sql',
+  '20261107064904_seed_blackrock_opening_stock_61_yellow_plywood.sql',
+  '20261107070044_harden_sales_document_draft_creation.sql'
 ];
 const missingAppliedVersions = [
   '20261025065910',
@@ -43,7 +56,11 @@ const missingAppliedVersions = [
   '20261025124312',
   '20261031080833',
   '20261031081151',
-  '20261031081422'
+  '20261031081422',
+  '20261031132355',
+  '20261031133249',
+  '20261031134003',
+  '20261031134421'
 ];
 
 const allMigrationFiles = fs.readdirSync(migrationDir).filter(name => name.endsWith('.sql')).sort();
@@ -55,7 +72,7 @@ const executableMigrations = allMigrationFiles.filter(name => !supersededDrafts.
 assert.deepEqual(
   executableMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 23 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
+  'Executable migration directory must contain only the 36 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
@@ -64,4 +81,4 @@ for (const version of missingAppliedVersions) {
   assert.ok(gap.includes(version), `Missing applied migration SQL body ${version} must be documented, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
-console.log('PASS: migration source layout matches the 23 tracked live migrations; seven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
+console.log('PASS: migration source layout matches the 36 tracked live migrations; eleven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
