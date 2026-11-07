@@ -14,7 +14,7 @@ DECLARE
   v_product_count integer;
   v_existing public.stock_movements%rowtype;
 BEGIN
-  SELECT count(*), min(c.id)
+  SELECT count(*), min(c.id::text)::uuid
     INTO v_company_count, v_company_id
     FROM public.companies c
    WHERE c.name = 'BlackRock Investment PLC';
@@ -23,7 +23,7 @@ BEGIN
     RAISE EXCEPTION 'Expected exactly one BlackRock Investment PLC company record';
   END IF;
 
-  SELECT count(*), min(p.id)
+  SELECT count(*), min(p.id::text)::uuid
     INTO v_product_count, v_product_id
     FROM public.products p
    WHERE p.company_id = v_company_id
