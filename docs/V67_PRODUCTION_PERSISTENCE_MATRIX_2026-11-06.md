@@ -60,3 +60,12 @@ Priority order:
 ## Release guard
 
 Production remains fail-closed. Do not enable production tabs or issue a staff release link until all in-scope non-stock application workflows have passed authenticated role, RLS, persistence, error-handling and browser checks. Do not reduce the application to a sample or extracted mini-app.
+
+
+## Follow-up implementation — production employee access registry (2026-11-07)
+
+The access-governance screen now has a production-only path that reads employee membership and profile display details from the active company, with company-scoped queries. It does not read or reconcile the legacy browser-local customer list; customer assignment reporting is deferred until the owner supplies the fresh reconciled dataset.
+
+New invitations use the existing authenticated `invite-blackrock-member` Supabase Edge Function, which verifies the caller's active BlackRock owner/admin membership before assigning access. The V6.7 UI limits this initial invitation workflow to `sales` and `staff` (Data Entry), leaving HR and other roles unavailable in the initial release. Local/demo access records are used only when production mode is off.
+
+Direct membership activation/deactivation remains disabled pending a separate audited server-side membership-change workflow. This is intentional fail-closed behavior, not a completed admin lifecycle.
