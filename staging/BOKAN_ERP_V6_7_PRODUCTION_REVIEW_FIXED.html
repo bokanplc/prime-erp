@@ -8935,17 +8935,18 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
     finally{state.busy=false;if(button){button.disabled=false;button.textContent='SAVE OPPORTUNITY';}}
   }
   function activate(){
-    const form=$('sp-form');if(!form||form.dataset.bokanPipelineBridge)return;
-    form.dataset.bokanPipelineBridge='true';
-    if(enabled()){
+    const form=$('sp-form');if(!form)return;
+    if(!form.dataset.bokanPipelineBridge){form.dataset.bokanPipelineBridge='true';}
+    if(enabled()&&!form.dataset.bokanPipelineProduction){
+      form.dataset.bokanPipelineProduction='true';
       toSelect('sp-customer','Select customer');
       if(!$('sp-product')){const input=document.createElement('input');input.id='sp-product';input.required=true;input.placeholder='Product / customer requirement';input.className='w-full border p-2 rounded mb-2 text-xs';$('sp-contact')?.after(input);}
       form.addEventListener('submit',save,true);
       $('sp-search')?.addEventListener('input',render);
-      const client=auth()?.client;
-      if(client&&!state.subscribed){client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session){state.customers=[];state.opportunities=[];render();return;}setTimeout(refresh,0);});state.subscribed=true;}
       refresh();
     }
+    const client=auth()?.client;
+    if(client&&!state.subscribed){client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session){state.customers=[];state.opportunities=[];render();return;}setTimeout(()=>{if(enabled())refresh();},0);});state.subscribed=true;}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activate,{once:true});else activate();
   document.addEventListener('click',e=>{if(e.target.closest('[data-tab="salespipeline"],[data-tab-target="salespipeline"]'))refresh();});
