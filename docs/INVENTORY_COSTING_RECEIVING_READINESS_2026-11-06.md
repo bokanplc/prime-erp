@@ -16,7 +16,7 @@ The live database currently exposes:
   - Exists.
   - `SECURITY INVOKER`.
   - Execute ACL currently lists only `postgres` and `service_role`; `authenticated` is not granted execution.
-- No live `public.receive_purchase_document(uuid,jsonb)` function was returned by the live function-catalog query.
+- `public.receive_purchase_document(uuid,jsonb)` exists, but its live execute ACL currently lists only `postgres` and `service_role`; authenticated ERP users cannot execute it.
 - No corresponding private-schema implementations for these two stock workflows were found.
 
 This differs from the repository migration history, which contains:
@@ -46,7 +46,7 @@ The historical sales-posting implementation inserts `sale_issue` movements with 
    - computes available quantity and carrying value consistently;
    - serializes concurrent movements per company/product;
    - rejects issues that exceed available stock or have no defensible cost basis.
-3. Restore a purchase-receiving RPC with the existing document/line/company checks and actual receipt unit costs.
+3. Harden the existing purchase-receiving RPC with inventory/manager role checks, product-company validation, positive unit-cost validation, and authenticated-only execution.
 4. Replace sales stock posting so each issued line receives the validated cost at posting time, rather than zero.
 5. Make posting idempotent and protect against duplicate line IDs, duplicate issue attempts, and concurrent sales against the same product.
 6. Keep the browser API closed until the implementation and role boundaries pass tests. Only then grant the minimum authenticated execute privileges.
@@ -78,7 +78,7 @@ The historical sales-posting implementation inserts `sale_issue` movements with 
 
 ## Candidate work added on this feature branch
 
-A forward migration candidate now restores `public.receive_purchase_document(uuid,jsonb)` with:
+A forward migration candidate now hardens/replaces the existing `public.receive_purchase_document(uuid,jsonb)` with:
 
 - active inventory-role or company-management authorization;
 - approved/partially received document status checks;
