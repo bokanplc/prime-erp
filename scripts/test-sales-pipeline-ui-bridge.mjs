@@ -4,11 +4,12 @@ import assert from 'node:assert/strict';
 
 const source = fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html', 'utf8');
 const index = fs.readFileSync('staging/index.html', 'utf8');
-const match = source.match(/<script id="bokan-v73-sales-pipeline-production-bridge">([\\s\\S]*?)<\\/script>/);
-assert.ok(match, 'V6.7 production Sales Pipeline bridge must exist');
-new vm.Script(match[1], { filename: 'bokan-v73-sales-pipeline-production-bridge.js' });
-
-const bridge = match[1];
+const marker = '<script id="bokan-v73-sales-pipeline-production-bridge">';
+const start = source.indexOf(marker);
+const end = source.indexOf('</script>', start);
+assert.ok(start >= 0 && end > start, 'V6.7 production Sales Pipeline bridge must exist');
+const bridge = source.slice(start + marker.length, end);
+new vm.Script(bridge, { filename: 'bokan-v73-sales-pipeline-production-bridge.js' });
 for (const [needle, message] of [
   ['window.BOKAN_PRODUCTION_AUTH', 'The bridge must use the production authentication context.'],
   ['window.BOKAN_CRM_PRODUCTION?.enabled?.()', 'The bridge must require the canonical CRM production adapter.'],
