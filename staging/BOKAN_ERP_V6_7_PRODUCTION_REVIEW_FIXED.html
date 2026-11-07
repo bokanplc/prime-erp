@@ -3617,7 +3617,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <input id="so-rep" placeholder="Sales representative" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-product" required placeholder="Product / item" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-qty" type="number" step="0.01" min="0.01" required placeholder="Quantity" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="so-total" type="number" step="0.01" min="0.01" required placeholder="Order value (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="so-total" type="number" step="0.01" min="0.01" required placeholder="Unit selling price (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
       <select id="so-status" class="w-full border p-2 rounded mb-2 text-xs"><option>Draft</option><option>Approved</option><option>Partially Fulfilled</option><option>Fulfilled</option><option>Cancelled</option></select>
       <input id="so-delivery" type="date" class="w-full border p-2 rounded mb-3 text-xs">
       <div id="so-production-status" class="text-xs mb-2" aria-live="polite"></div>
@@ -10074,14 +10074,14 @@ async function enter(user){
     if(!enabled()){status('Sign in with an active BlackRock company account before saving.',true);return;}
     const form=$('so-form');
     const qty=Number($('so-qty')?.value||0);
-    const total=Number($('so-total')?.value||0);
+    const unitPrice=Number($('so-total')?.value||0);
     const customerId=$('so-customer')?.value||null;
     const productId=$('so-product')?.value||null;
     const salespersonId=$('so-rep')?.value||null;
     const product=state.products.find(x=>x.id===productId);
     if(!form?.reportValidity())return;
-    if(!product||!customerId||!salespersonId||qty<=0||total<=0){
-      status('Choose a customer, sales representative and product, then enter a positive quantity and order value.',true);
+    if(!product||!customerId||!salespersonId||qty<=0||unitPrice<=0){
+      status('Choose a customer, sales representative and product, then enter a positive quantity and unit selling price.',true);
       return;
     }
     const localDate=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
@@ -10101,7 +10101,7 @@ async function enter(user){
       description:product.name,
       quantity:qty,
       unit:product.unit||'unit',
-      unit_price:Math.round((total/qty)*100)/100,
+      unit_price:Math.round(unitPrice*100)/100,
       tax_rate:0
     }];
     state.busy=true;
