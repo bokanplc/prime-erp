@@ -4962,8 +4962,11 @@ async function sendTelegramNotification(text) {
 }
 
 async function pushNotification(type, message, meta) {
-  const payload = { type, message, meta: meta || null, read: false, created_by: currentUser?.id || null };
-  await sb.from('notifications').insert([payload]);
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) throw new Error('Select an active company before creating a notification.');
+  const payload = { ...(companyId ? { company_id: companyId } : {}), type, message, meta: meta || null, read: false, created_by: currentUser?.id || null };
+  const { error } = await sb.from('notifications').insert([payload]);
+  if (error) throw error;
   sendTelegramNotification(`[BOKAN ERP] ${message}`);
   if (typeof renderNotifications === 'function') renderNotifications();
 }
@@ -4976,7 +4979,12 @@ async function renderNotifications() {
   const canSee = currentRole === 'admin' || currentRole === 'sales_manager' || currentRole === 'management';
   wrap.classList.toggle('hidden', !canSee);
   if (!canSee) return;
-  const { data } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+  let query = sb.from('notifications').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) return;
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
+  if (error) { console.error('Notifications could not be loaded:', error); return; }
   if (!data || !data.length) { el.innerHTML = '<p class="text-[#8D9096]">No notifications yet.</p>'; return; }
   el.innerHTML = data.map(n => `<div class="flex justify-between items-center border-b border-[#ECEEF1] py-1">
       <span>${NOTIF_ICONS[n.type] || '•'} ${escapeHtml(n.message)}</span>
@@ -6221,9 +6229,11 @@ document.getElementById('tripplan-form').addEventListener('submit', async (e) =>
     }
   }
 
-  const payload = { employee_name: document.getElementById('tp-employee').value, departure_date: document.getElementById('tp-departure').value, return_date: document.getElementById('tp-return').value || null, destination: document.getElementById('tp-destination').value, transportation_mode: document.getElementById('tp-transport-mode').value, purpose: document.getElementById('tp-purpose').value, product_type: document.getElementById('tp-product-type').value, planned_visits: plannedVisits, notes: document.getElementById('tp-notes').value, is_late_exception: !!(isLate && exceptionChecked), late_explanation: (isLate && exceptionChecked) ? explanation : null };
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving a trip plan.'); return; }
+  const payload = { ...(productionCompanyId ? { company_id: productionCompanyId } : {}), employee_name: document.getElementById('tp-employee').value, departure_date: document.getElementById('tp-departure').value, return_date: document.getElementById('tp-return').value || null, destination: document.getElementById('tp-destination').value, transportation_mode: document.getElementById('tp-transport-mode').value, purpose: document.getElementById('tp-purpose').value, product_type: document.getElementById('tp-product-type').value, planned_visits: plannedVisits, notes: document.getElementById('tp-notes').value, is_late_exception: !!(isLate && exceptionChecked), late_explanation: (isLate && exceptionChecked) ? explanation : null };
   let error, tripId = editingTripPlanId;
-  if (editingTripPlanId) { ({ error } = await sb.from('trip_plans').update(payload).eq('id', editingTripPlanId)); }
+  if (editingTripPlanId) { let query = sb.from('trip_plans').update(payload).eq('id', editingTripPlanId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else {
     payload.created_by = currentUser.id;
     const { data: inserted, error: insErr } = await sb.from('trip_plans').insert([payload]).select();
@@ -6259,11 +6269,16 @@ function editTripPlan(id) {
   document.getElementById('tripplan-form').scrollIntoView({ behavior: 'smooth' });
 }
 function cancelTripPlanEdit() { editingTripPlanId = null; document.getElementById('tripplan-submit-btn').textContent = 'Submit Trip Plan'; document.getElementById('tripplan-cancel-btn').classList.add('hidden'); }
-async function deleteTripPlan(id) { if (!confirm('Delete this trip plan?')) return; await sb.from('trip_plans').delete().eq('id', id); loadTripPlans(); refreshPerDiemTripPlanOptions(); }
+async function deleteTripPlan(id) { if (!confirm('Delete this trip plan?')) return; let query = sb.from('trip_plans').delete().eq('id', id); const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null; if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before deleting a trip plan.'); return; } if (companyId) query = query.eq('company_id', companyId); const { error } = await query; if (error) { alert('Trip plan was not deleted: ' + error.message); return; } loadTripPlans(); refreshPerDiemTripPlanOptions(); }
 async function loadTripPlans() {
   const el = document.getElementById('tripplan-list');
   if (!el) return;
-  const { data } = await sb.from('trip_plans').select('*').order('departure_date', { ascending: false }).limit(50);
+  let query = sb.from('trip_plans').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before loading trip plans.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('departure_date', { ascending: false }).limit(50);
+  if (error) { alert('Trip plans could not be loaded: ' + error.message); return; }
   document.getElementById('tripplan-list-title').textContent = 'All Trip Plans';
   tripPlanData = data || [];
   refreshPerDiemTripPlanOptions();
@@ -6316,9 +6331,11 @@ document.getElementById('visitreport-form').addEventListener('submit', async (e)
     alert('This report is overdue — please add a brief explanation before submitting (it will be flagged to Admin/Manager).');
     return;
   }
-  const payload = { employee_name: document.getElementById('vr-employee').value, visit_date: visitDate, customer_name: document.getElementById('vr-customer').value, contact_person: document.getElementById('vr-contact').value, location: document.getElementById('vr-location').value, purpose: document.getElementById('vr-purpose').value, product_type: document.getElementById('vr-product-type').value, outcome: document.getElementById('vr-outcome').value, next_steps: document.getElementById('vr-next-steps').value, follow_up_date: document.getElementById('vr-followup').value || null, is_late: isLate, late_explanation: isLate ? lateExplanation : null };
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving a visit report.'); return; }
+  const payload = { ...(productionCompanyId ? { company_id: productionCompanyId } : {}), employee_name: document.getElementById('vr-employee').value, visit_date: visitDate, customer_name: document.getElementById('vr-customer').value, contact_person: document.getElementById('vr-contact').value, location: document.getElementById('vr-location').value, purpose: document.getElementById('vr-purpose').value, product_type: document.getElementById('vr-product-type').value, outcome: document.getElementById('vr-outcome').value, next_steps: document.getElementById('vr-next-steps').value, follow_up_date: document.getElementById('vr-followup').value || null, is_late: isLate, late_explanation: isLate ? lateExplanation : null };
   let error, reportId = editingVisitReportId;
-  if (editingVisitReportId) { ({ error } = await sb.from('visit_reports').update(payload).eq('id', editingVisitReportId)); }
+  if (editingVisitReportId) { let query = sb.from('visit_reports').update(payload).eq('id', editingVisitReportId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else {
     payload.created_by = currentUser.id;
     const { data: inserted, error: insErr } = await sb.from('visit_reports').insert([payload]).select();
@@ -6354,11 +6371,16 @@ function editVisitReport(id) {
   document.getElementById('visitreport-form').scrollIntoView({ behavior: 'smooth' });
 }
 function cancelVisitReportEdit() { editingVisitReportId = null; document.getElementById('visitreport-submit-btn').textContent = 'Submit Visit Report'; document.getElementById('visitreport-cancel-btn').classList.add('hidden'); }
-async function deleteVisitReport(id) { if (!confirm('Delete this visit report?')) return; await sb.from('visit_reports').delete().eq('id', id); loadVisitReports(); }
+async function deleteVisitReport(id) { if (!confirm('Delete this visit report?')) return; let query = sb.from('visit_reports').delete().eq('id', id); const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null; if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before deleting a visit report.'); return; } if (companyId) query = query.eq('company_id', companyId); const { error } = await query; if (error) { alert('Visit report was not deleted: ' + error.message); return; } loadVisitReports(); }
 async function loadVisitReports() {
   const el = document.getElementById('visitreport-list');
   if (!el) return;
-  const { data } = await sb.from('visit_reports').select('*').order('visit_date', { ascending: false }).limit(50);
+  let query = sb.from('visit_reports').select('*');
+  const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !companyId) { alert('Select an active company before loading visit reports.'); return; }
+  if (companyId) query = query.eq('company_id', companyId);
+  const { data, error } = await query.order('visit_date', { ascending: false }).limit(50);
+  if (error) { alert('Visit reports could not be loaded: ' + error.message); return; }
   document.getElementById('visitreport-list-title').textContent = 'All Visit Reports';  visitReportData = data || [];
   const overdueBanner = document.getElementById('vr-overdue-banner');
   if (overdueBanner) overdueBanner.classList.toggle('hidden', !visitReportData.some(r => r.is_late));
