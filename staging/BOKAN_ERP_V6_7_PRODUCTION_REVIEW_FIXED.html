@@ -5886,7 +5886,10 @@ function updateTargetHierarchyVisibility() {
 
 document.getElementById('target-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  if (window.BOKAN_PRODUCTION_AUTH?.enabled && !productionCompanyId) { alert('Select an active company before saving a sales target.'); return; }
   const payload = {
+    ...(productionCompanyId ? { company_id: productionCompanyId } : {}),
     employee_name: document.getElementById('tg-employee').value,
     period: document.getElementById('tg-period').value,
     target_quantity: parseFloat(document.getElementById('tg-amount').value) || 0,
@@ -5900,7 +5903,7 @@ document.getElementById('target-form').addEventListener('submit', async (e) => {
     flat_rate_unit_label: document.getElementById('tg-flat-unit-label').value || null
   };
   let error;
-  if (editingTargetId) { ({ error } = await sb.from('sales_targets').update(payload).eq('id', editingTargetId)); }
+  if (editingTargetId) { let query = sb.from('sales_targets').update(payload).eq('id', editingTargetId); if (productionCompanyId) query = query.eq('company_id', productionCompanyId); ({ error } = await query); }
   else { payload.created_by = currentUser.id; ({ error } = await sb.from('sales_targets').insert([payload])); }
   if (error) { alert('Error: ' + error.message); return; }
   e.target.reset();
@@ -5931,16 +5934,20 @@ function editTarget(id) {
   document.getElementById('target-form').scrollIntoView({ behavior: 'smooth' });
 }
 function cancelTargetEdit() { editingTargetId = null; document.getElementById('target-submit-btn').textContent = 'Save Target'; document.getElementById('target-cancel-btn').classList.add('hidden'); }
-async function deleteTarget(id) { if (!confirm('Delete this target?')) return; await sb.from('sales_targets').delete().eq('id', id); loadSalesTargets(); }
+async function deleteTarget(id) { if (!confirm('Delete this target?')) return; let query = sb.from('sales_targets').delete().eq('id', id); const companyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null; if (companyId) query = query.eq('company_id', companyId); const { error } = await query; if (error) { alert('Target was not deleted: ' + error.message); return; } loadSalesTargets(); }
 
 async function loadSalesTargets() {
-  document.getElementById('target-form-wrap').classList.remove('hidden');
+  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
+  const role = window.BOKAN_PRODUCTION_AUTH?.profile?.role;
+  const canManageTargets = !window.BOKAN_PRODUCTION_AUTH?.enabled || ['owner','admin','manager'].includes(role);
+  document.getElementById('target-form-wrap').classList.toggle('hidden', !canManageTargets);
   const periodFilter = document.getElementById('target-period-filter').value;
   let tq = sb.from('sales_targets').select('*');
+  if (productionCompanyId) tq = tq.eq('company_id', productionCompanyId);
   if (periodFilter) tq = tq.eq('period', periodFilter);
-  const { data: targets } = await tq;
+  const { data: targets, error: targetError } = await tq;
+  if (targetError) throw targetError;
   salesTargetsData = targets || [];
-  const productionCompanyId = window.BOKAN_PRODUCTION_AUTH?.enabled ? window.BOKAN_PRODUCTION_AUTH.profile?.company_id : null;
   let profiles = [];
   if (productionCompanyId) {
     const { data: salesMembers, error: memberError } = await sb.from('company_memberships').select('user_id').eq('company_id', productionCompanyId).eq('is_active', true).eq('role', 'sales');
