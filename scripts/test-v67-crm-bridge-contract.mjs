@@ -36,6 +36,6 @@ for(const fn of ['async function initSalesPortal()','async function renderCustom
   const i=source.indexOf(fn);assert.ok(i>=0,`Missing V6.7 CRM screen function: ${fn}`);
   assert.ok(source.slice(i,i+5000).includes('BOKAN_CRM_PRODUCTION'),`Screen is not wired to canonical CRM API: ${fn}`);
 }
-assert.ok(source.includes("id === 'crmcontrol' && window.BOKAN_CRM_PRODUCTION?.enabled()"),'CRM dashboard must load live data.');
+assert.ok(source.includes("if (id === 'crmcontrol') { if(window.BOKAN_CRM_UI?.refresh) window.BOKAN_CRM_UI.refresh(); }") && source.includes("window.BOKAN_CRM_UI={refresh,showReviewMode,cancelCustomerEdit}"),'CRM dashboard tab must refresh the canonical production CRM workspace.');
 assert.ok(!bridge.includes('.delete('),'CRM bridge must not hard-delete customer or history records.');
 console.log('PASS: V6.7 CRM bridge uses canonical company-scoped tables, guarded reassignment, append-only activity history, and synchronized full-app staging entry.');
