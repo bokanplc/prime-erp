@@ -151,7 +151,6 @@ GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
 GRANT EXECUTE ON FUNCTION private.can_manage_company(uuid) TO authenticated;
 GRANT SELECT ON public.company_memberships, public.products, public.customers,
   public.sales_documents, public.sales_document_items TO authenticated;
-GRANT INSERT ON public.sales_documents, public.sales_document_items TO authenticated;
 
 INSERT INTO auth.users(id) VALUES
   ('30000000-0000-0000-0000-000000000002'),
@@ -180,6 +179,17 @@ INSERT INTO public.customers(id,company_id,name,assigned_rep) VALUES
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000004',false);
+
+DO $
+BEGIN
+  BEGIN
+    INSERT INTO public.sales_documents(company_id,document_type,document_number,created_by)
+    VALUES ('01350a71-0a93-44cf-b6c9-9bd547c0077a','sales_order','DIRECT-INSERT-BLOCKED','30000000-0000-0000-0000-000000000004');
+    RAISE EXCEPTION 'Expected direct sales document insert to be blocked';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
+END $;
 
 DO $$
 DECLARE
