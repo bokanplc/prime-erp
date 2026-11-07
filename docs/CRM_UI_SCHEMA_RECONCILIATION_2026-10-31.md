@@ -77,3 +77,9 @@ Added company/name and company/status/date indexes. Existing rows were not popul
 - CRM remains disabled in the production allowlist. The review build remains sample-data-only.
 - The first attempt applied the migration under Supabase-generated version `20261031100616`; the repository contains the matching timestamped SQL source. A preliminary draft filename `20261031090000` remains only as an inert comment-only breadcrumb; the source-parity guard explicitly excludes it. The executable applied migration is `20261031100616`.
 - The four historical missing SQL bodies remain intentionally unreconstructed.
+
+## Follow-up implementation — representative display labels (2026-11-07)
+
+The CRM production bridge now resolves active sales membership UUIDs to same-company `profiles` records for display. The query is constrained by the active `company_id` and the exact active sales-member IDs; the label prefers `full_name`, then email, with the UUID retained only as a fallback. This is display metadata only and is never used for authorization. Membership role and active status remain the authority.
+
+The bridge contract test now guards this lookup so CRM assignment and salesperson performance screens display human-readable representatives without broadening access across companies.
