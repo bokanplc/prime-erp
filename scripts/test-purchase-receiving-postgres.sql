@@ -167,7 +167,7 @@ GRANT SELECT ON public.company_memberships, public.products,
 GRANT UPDATE ON public.products, public.purchase_documents, public.purchase_document_items TO authenticated;
 GRANT INSERT ON public.stock_movements TO authenticated;
 
-\ir ../supabase/migrations/20261107070000_restore_atomic_purchase_receiving_workflow.sql
+\ir ../supabase/candidates/20261107070000_restore_atomic_purchase_receiving_workflow.sql
 
 INSERT INTO public.company_memberships(id, company_id, user_id, role)
 VALUES
