@@ -9126,6 +9126,11 @@ window.bokanSalesHub={render,view,activity,openActivity,addOrder,updateOrder,add
   }
   function assignedName(c){return c.sales_rep||c.account_owner||c.owner||c.salesperson||c.rep||''}
   function render(){
+    if(window.BOKAN_PRODUCTION_AUTH?.enabled){
+      if(typeof window.bokanAccessRenderProduction==='function') window.bokanAccessRenderProduction();
+      else {const rows=document.getElementById('b2-user-rows');if(rows)rows.innerHTML='<tr><td colspan="6" class="py-4 text-slate-500">Loading secure company access…</td></tr>';}
+      return;
+    }
     const users=accessUsers(), active=users.filter(x=>x.status==='Active');
     const sales=active.filter(x=>/sales/i.test(x.department||'')).length;
     const inactive=users.filter(x=>x.status!=='Active').length;
@@ -10301,6 +10306,86 @@ async function enter(user){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activate,{once:true});else activate();
   document.addEventListener('click',e=>{if(e.target.closest('[data-tab="salespipeline"],[data-tab-target="salespipeline"]'))refresh();});
   window.BOKAN_SALES_PIPELINE_UI={refresh};
+})();
+</script>
+
+<script id="bokan-v74-production-access-registry">
+(function(){
+  'use strict';
+  const ctx=()=>window.BOKAN_PRODUCTION_AUTH;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const roleLabel=role=>({owner:'Owner',admin:'Administrator',manager:'Manager',sales:'Sales Representative',staff:'Data Entry',accountant:'Accountant',inventory:'Inventory'}[role]||role);
+  let loading=false;
+  async function loadMembers(){
+    const state=ctx(),companyId=state?.profile?.company_id,client=state?.client;
+    if(!state?.enabled||!client||!companyId)throw new Error('Sign in and select the BlackRock company before viewing access.');
+    if(state.profile.role!=='admin')throw new Error('Only a BlackRock owner or administrator can view employee access.');
+    const {data:members,error:memberError}=await client.from('company_memberships')
+      .select('user_id,role,is_active,created_at').eq('company_id',companyId).order('created_at',{ascending:true});
+    if(memberError)throw memberError;
+    const ids=(members||[]).map(m=>m.user_id);
+    let profiles=[];
+    if(ids.length){
+      const {data,error}=await client.from('profiles').select('id,full_name,email,department')
+        .eq('company_id',companyId).in('id',ids);
+      if(error)throw error;
+      profiles=data||[];
+    }
+    const byId=new Map(profiles.map(p=>[p.id,p]));
+    return (members||[]).map(m=>({...m,profile:byId.get(m.user_id)||null,
+      name:byId.get(m.user_id)?.full_name||byId.get(m.user_id)?.email||m.user_id,
+      department:byId.get(m.user_id)?.department||roleLabel(m.role)}));
+  }
+  async function render(){
+    if(loading)return;loading=true;
+    const rows=document.getElementById('b2-user-rows');
+    try{
+      const users=await loadMembers(),active=users.filter(u=>u.is_active),sales=active.filter(u=>u.role==='sales').length;
+      document.getElementById('b2-active-users').textContent=String(active.length);
+      document.getElementById('b2-sales-users').textContent=String(sales);
+      document.getElementById('b2-inactive-users').textContent=String(users.length-active.length);
+      document.getElementById('b2-assigned-accounts').textContent='—';
+      document.getElementById('b2-unassigned-accounts').textContent='—';
+      if(rows)rows.innerHTML=users.map(u=>`<tr class="border-b"><td class="py-2 font-semibold">${esc(u.name)}</td><td>${esc(u.department)}</td><td>${esc(roleLabel(u.role))}</td><td class="text-center">BlackRock</td><td class="text-center"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${u.is_active?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700'}">${u.is_active?'Active':'Inactive'}</span></td><td class="text-right"><span class="text-xs text-slate-500">Admin-controlled</span></td></tr>`).join('')||'<tr><td colspan="6" class="py-4 text-slate-500">No company memberships found.</td></tr>';
+      const accounts=document.getElementById('b2-account-rows');
+      if(accounts)accounts.innerHTML='<tr><td colspan="5" class="py-5 text-slate-500">Customer assignment reporting will be available after the new reconciled customer data is provided and loaded.</td></tr>';
+    }catch(error){
+      if(rows)rows.innerHTML=`<tr><td colspan="6" class="py-4 text-red-700">${esc(error.message||'Employee access could not be loaded.')}</td></tr>`;
+      document.getElementById('b2-assigned-accounts').textContent='—';
+      document.getElementById('b2-unassigned-accounts').textContent='—';
+    }finally{loading=false;}
+  }
+  const reviewAdd=window.bokanAccessAddUser;
+  const reviewToggle=window.bokanAccessToggle;
+  const reviewReconcile=window.bokanAccessReconcileCustomers;
+  window.bokanAccessRenderProduction=render;
+  window.bokanAccessAddUser=async function(){
+    if(!ctx()?.enabled){if(reviewAdd)reviewAdd();return;}
+    if(ctx()?.profile?.role!=='admin'){alert('Only a BlackRock owner or administrator can invite employees.');return;}
+    const fullName=prompt('Employee full name:');if(!fullName)return;
+    const email=prompt('Employee email address:');if(!email)return;
+    const roleInput=prompt('Company role: enter sales or staff (Data Entry).','sales');
+    if(!roleInput)return;
+    const role=roleInput.trim().toLowerCase();
+    if(!['sales','staff'].includes(role)){alert('For this release, invitations are limited to Sales and Data Entry. HR and other roles are not enabled.');return;}
+    try{
+      const {data,error}=await ctx().client.functions.invoke('invite-blackrock-member',{body:{email:email.trim(),full_name:fullName.trim(),role}});
+      if(error)throw error;
+      if(!data?.success)throw new Error(data?.error||'The invitation service did not confirm the request.');
+      alert(data.status==='invited'?'Invitation sent. The employee can complete account setup from their email.':'Existing account assigned to BlackRock.');
+      await render();
+    }catch(error){alert(error.message||'Employee invitation failed. No local access record was created.');}
+  };
+  window.bokanAccessToggle=function(id){
+    if(ctx()?.enabled){alert('Direct activation and deactivation are temporarily disabled until the audited membership-change workflow is completed.');return;}
+    if(reviewToggle)reviewToggle(id);
+  };
+  window.bokanAccessReconcileCustomers=function(){
+    if(ctx()?.enabled){alert('Customer assignment checks are deferred until the new reconciled customer data is supplied.');return;}
+    if(reviewReconcile)reviewReconcile();
+  };
+  document.addEventListener('bokan:company-context-changed',()=>{if(ctx()?.enabled)render();});
+  document.addEventListener('DOMContentLoaded',()=>{if(ctx()?.enabled)render();});
 })();
 </script>
 </body>
