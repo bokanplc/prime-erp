@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION public.create_sales_document_with_items(
 )
 RETURNS uuid
 LANGUAGE plpgsql
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = ''
 AS $function$
 DECLARE
@@ -179,5 +179,7 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.create_sales_document_with_items(jsonb,jsonb)
   FROM PUBLIC, anon;
+REVOKE INSERT ON public.sales_documents, public.sales_document_items
+  FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.create_sales_document_with_items(jsonb,jsonb)
   TO authenticated;
