@@ -11,7 +11,7 @@ on:
       - 'docs/LIVE_MIGRATION_SOURCE_GAP.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
-      - 'supabase/candidates/**'
+      - 'supabase/functions/**'
       - '.github/workflows/erp-source-guards.yml'
   pull_request:
     paths:
@@ -25,6 +25,7 @@ on:
       - 'docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
+      - 'supabase/functions/**'
       - '.github/workflows/erp-source-guards.yml'
   workflow_dispatch:
 
@@ -70,6 +71,8 @@ jobs:
         run: node scripts/test-expense-company-scope.mjs
       - name: Test Sales Activity company scope
         run: node scripts/test-sales-activity-company-scope.mjs
+      - name: Test production employee access and invitation safeguards
+        run: node scripts/test-production-access-registry.mjs
       - name: Test duplicate Proforma save guard behavior
         run: node scripts/test-proforma-save-guard.mjs
       - name: Test actual Proforma calculation helper
