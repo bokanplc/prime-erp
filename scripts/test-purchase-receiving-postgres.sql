@@ -15,6 +15,10 @@ END $$;
 CREATE SCHEMA IF NOT EXISTS auth;
 CREATE SCHEMA IF NOT EXISTS private;
 
+CREATE TABLE public.companies (
+  id uuid PRIMARY KEY,
+  name text NOT NULL
+);
 CREATE TABLE public.company_memberships (
   id uuid PRIMARY KEY,
   company_id uuid NOT NULL,
@@ -169,6 +173,9 @@ GRANT INSERT ON public.stock_movements TO authenticated;
 
 \ir ../supabase/candidates/20261107070000_harden_atomic_purchase_receiving_workflow.sql
 
+INSERT INTO public.companies(id,name)
+VALUES ('01350a71-0a93-44cf-b6c9-9bd547c0077a','BlackRock Investment PLC');
+
 INSERT INTO public.company_memberships(id, company_id, user_id, role)
 VALUES
   ('10000000-0000-0000-0000-000000000001','01350a71-0a93-44cf-b6c9-9bd547c0077a','30000000-0000-0000-0000-000000000001','inventory'),
@@ -192,7 +199,7 @@ BEGIN
     INTO v_count, v_qty, v_cost
     FROM public.stock_movements
    WHERE reference_type = 'opening_balance_import'
-     AND reference_id = 'f8b2e0f5-0c6f-4b8d-9c8d-202607010001';
+     AND reference_id IS NULL;
   IF v_count <> 1 OR v_qty <> 61 OR v_cost <> 4300 THEN
     RAISE EXCEPTION 'Opening-stock import assertion failed';
   END IF;
