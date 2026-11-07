@@ -16,9 +16,10 @@ const end=source.indexOf('</script>',start);
 assert.ok(end>start,'CRM bridge script must be closed.');
 const bridge=source.slice(start,end);
 
-for(const table of ['customers','crm_customer_assignments','crm_assignment_events','crm_activities','crm_opportunities','crm_after_sales_tasks']){
+for(const table of ['customers','crm_customer_assignments','crm_activities','crm_opportunities','crm_after_sales_tasks']){
   assert.ok(bridge.includes("'"+table+"'"),`CRM bridge must use canonical table ${table}.`);
 }
+assert.ok(assignmentGuard.includes('insert into public.crm_assignment_events'),'The manager-only reassignment RPC must append an immutable assignment-history event.');
 for(const legacy of ['bokan_customers','bokan_customer_activities','bokan_customer_assignments','bokan_salespeople','bokan_sales_opportunities']){
   assert.ok(!bridge.includes(legacy),`CRM bridge must not reference legacy table ${legacy}.`);
 }
