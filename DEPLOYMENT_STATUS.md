@@ -777,3 +777,42 @@ currently provide KPI counts rather than full write/approval workflows. Supply
 demand/exception controls and private document upload/download also remain
 incomplete. This is why the 91-section interface cannot yet be equated with 91
 operational modules.
+
+
+## Owner-directed V6.7 application migration checkpoint — 2026-11-07
+
+This checkpoint supersedes the 2026-11-06 historical-reconciliation priorities above. The controlling scope is `docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md`; the current screen-to-persistence state is in `docs/V67_PRODUCTION_PERSISTENCE_MATRIX_2026-11-06.md`.
+
+### Scope now in force
+
+- Migrate the complete 91-panel V6.7 application and standard non-stock functionality.
+- Do not import, reconcile, certify, or use old business records as acceptance criteria. The owner will provide fresh reconciled data later.
+- Preserve existing database records as-is; this scope reset is not a request to truncate or delete live data.
+- Park historical stock balances/swaps, sales stock issue, purchase receiving, inventory costing/valuation/COGS, and landed-cost allocation. Do not expose these actions in the first release.
+- Defer HR from the first production allowlist.
+- Keep customer receipts, supplier payments, and formal accounting settlement workflows outside the operational ERP release; Peachtree remains the accounting system of record.
+
+### Current GitHub and CI state
+
+- The active integration candidate is PR #8, **BOKAN ERP V6.7 full application migration**, targeting `main` from `feature/inventory-costing-and-receiving-audit`. It remains draft and unmerged.
+- PR head at this checkpoint: `bf69ef667446b7cf07fecc78c466f98fc26204fc`.
+- GitHub Actions run `42350955041` completed successfully. All five jobs passed: source guards/release-gate/sanitized build, live-company Proforma/CRM/Supply & Logistics smoke, disposable schema smoke, purchase-receiving candidate smoke, and sales-draft role/company-isolation smoke.
+- The purchase-receiving candidate test passing is not authorization to enable or ship purchase receiving; that workflow remains parked by the owner.
+- Automated source/database checks do not replace real authenticated browser acceptance.
+
+### Hosting and production gate
+
+- Vercel project `prime-erp` is connected. A READY preview exists for an earlier commit on the active feature branch, but the Vercel status check for the current PR head reports a build-rate-limit failure. Therefore there is no verified READY Vercel deployment for the current PR head at this checkpoint.
+- Cloudflare preview failures are not a release criterion; Vercel is the intended host.
+- Production mode and full-data readiness remain false; the enabled production-tab list remains empty. The only source-reviewed production tab remains the non-transactional policy handbook.
+- No merge, production promotion, employee release, or change to `main` was made by this checkpoint.
+
+### Remaining in-scope work
+
+1. Complete authenticated browser testing for sign-in, active-company selection, role-specific navigation, and save/reload behavior.
+2. Finish role-safe user/company administration and test employee invitations and membership lifecycle without creating unrequested accounts.
+3. Verify CRM customer/activity/opportunity/follow-up flows, Sales Pipeline, Sales Orders draft-only workflow, Sales Targets, Expenses, Trip Plans, Visit Reports, Notifications, Proforma, private document repository, policy handbook, and non-stock finance screens.
+4. Audit every remaining V6.7 panel for localStorage/demo-only persistence; migrate its standard non-stock behavior or explicitly keep the action disabled until verified.
+5. Re-run the source audit, sanitized release build, database/RLS suites, and a current-commit Vercel preview; only then reconsider the production allowlist.
+
+Do not treat the 91-panel interface count or passing CI as proof that all modules are production-ready. Keep the release fail-closed until each in-scope workflow is verified.
