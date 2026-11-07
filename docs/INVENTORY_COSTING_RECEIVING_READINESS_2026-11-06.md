@@ -100,3 +100,12 @@ The original workbook's Daily_Data_Entry opening row records BlackRock opening Y
 The live product mapping was verified as BlackRock Investment PLC → Yellow Plywood. The idempotent seed was applied to live Supabase as migration `20261107064904_seed_blackrock_opening_stock_61_yellow_plywood`. It resolved the company and product by unique names, verified the mapping, and inserted one opening movement for 61 pieces at ETB 4,300 each. The live stock balance now shows 61 Yellow Plywood pieces. The disposable PostgreSQL receiving test also checks this seed before testing receipts.
 
 This is a candidate import only. It has not been applied to live Supabase. It must be reconciled with the source workbook and current stock before a controlled data migration.
+
+
+## Sales draft creation workflow
+
+Migration `20261107070044_harden_sales_document_draft_creation` is now live. It adds `sales_documents.salesperson_id` for sales-performance attribution and replaces the draft-creation RPC with a guarded SECURITY DEFINER workflow. Sales reps can create drafts only for themselves; data-entry staff can create drafts for an active sales rep (defaulting from the customer's assigned representative); management/accounting can assign an active sales rep. Only `sales_order` and `invoice` drafts are accepted.
+
+Direct authenticated INSERT on `sales_documents` and `sales_document_items` is revoked so new drafts must pass through the validated RPC. A real authenticated-role transaction test created a zero-value draft for the active admin temporarily mapped to the sales role, verified the assigned salesperson and creator, and rolled back. No test sales document remains. The disposable PostgreSQL test also covers staff assignment, self-assignment, manager assignment, invalid document type, cross-company customer/product, viewer denial, and direct-insert denial.
+
+The V6.7 Sales Orders screen is still localStorage-based and has not yet been wired to this RPC. The backend is ready for the next UI bridge step; no new sales documents have been created in live data.
