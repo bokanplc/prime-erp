@@ -1,3 +1,5 @@
+> **Scope status — 2026-11-07:** This is a historical technical/data audit only. The owner has since directed that stock information, sales stock posting, purchase receiving, inventory costing, and historical data reconciliation be parked. Do not treat this document as an active migration task or release blocker. The current scope is defined in `docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md`.
+
 # Inventory Costing and Receiving Readiness — 2026-11-06
 
 ## Purpose
