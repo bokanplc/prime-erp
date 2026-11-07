@@ -3616,11 +3616,12 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <input id="so-customer" required placeholder="Customer / company" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-rep" placeholder="Sales representative" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-product" required placeholder="Product / item" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="so-qty" type="number" step="0.01" placeholder="Quantity" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="so-total" type="number" step="0.01" placeholder="Order value (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="so-qty" type="number" step="0.01" min="0.01" required placeholder="Quantity" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="so-total" type="number" step="0.01" min="0.01" required placeholder="Unit selling price (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
       <select id="so-status" class="w-full border p-2 rounded mb-2 text-xs"><option>Draft</option><option>Approved</option><option>Partially Fulfilled</option><option>Fulfilled</option><option>Cancelled</option></select>
       <input id="so-delivery" type="date" class="w-full border p-2 rounded mb-3 text-xs">
-      <button class="w-full bg-[#0077C5] hover:bg-[#0065A5] text-white rounded py-2 text-xs font-bold">SAVE SALES ORDER</button>
+      <div id="so-production-status" class="text-xs mb-2" aria-live="polite"></div>
+      <button type="submit" class="w-full bg-[#0077C5] hover:bg-[#0065A5] text-white rounded py-2 text-xs font-bold">SAVE SALES ORDER</button>
     </form>
     <div class="lg:col-span-2 bg-white rounded-lg p-4">
       <h2 class="text-sm font-bold mb-3">ORDER REGISTER</h2>
@@ -9934,5 +9935,221 @@ async function enter(user){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showSignIn,{once:true});else showSignIn();
 })();
 </script>
+
+<script id="bokan-v72-sales-orders-production-bridge">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const auth=()=>window.BOKAN_PRODUCTION_AUTH;
+  const productionConfigured=()=>auth()?.enabled===true;
+  const enabled=()=>!!(productionConfigured()&&auth()?.client&&auth()?.profile?.company_id);
+  const state={customers:[],products:[],reps:[],orders:[],busy:false,subscribed:false};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  function status(message,error){
+    const el=$('so-production-status');
+    if(el){el.textContent=message||'';el.style.color=error?'#B42318':'#526173';}
+  }
+  function toSelect(id,placeholder){
+    const old=$(id);
+    if(!old)return null;
+    if(old.tagName==='SELECT')return old;
+    const el=document.createElement('select');
+    el.id=id;el.name=old.name||id;el.required=true;el.className=old.className;
+    el.setAttribute('aria-label',placeholder);
+    el.innerHTML='<option value="">'+esc(placeholder)+'</option>';
+    old.replaceWith(el);
+    return el;
+  }
+  function setOptions(id,items,placeholder){
+    const el=$(id);if(!el)return;
+    const current=el.value;
+    el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+
+      items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+'</option>').join('');
+    if(items.some(x=>x.id===current))el.value=current;
+  }
+  function clear(){
+    state.customers=[];state.products=[];state.reps=[];state.orders=[];
+    if($('so-table'))$('so-table').innerHTML='';
+    status('');
+  }
+  function renderOrders(){
+    const body=$('so-table');if(!body)return;
+    if(!state.orders.length){
+      body.innerHTML='<tr><td colspan="6" class="p-3 text-center text-slate-500">No sales orders have been created in this company yet.</td></tr>';
+      return;
+    }
+    const customerNames=new Map(state.customers.map(x=>[x.id,x.name]));
+    body.innerHTML=state.orders.map(d=>{
+      const items=d.items||[];
+      const desc=items.map(x=>x.description).join(', ');
+      const qty=items.reduce((n,x)=>n+Number(x.quantity||0),0);
+      return '<tr class="border-t border-[#E4E8ED]">'+
+        '<td class="p-2">'+esc(d.document_number)+'</td>'+
+        '<td class="p-2">'+esc(customerNames.get(d.customer_id)||'—')+'</td>'+
+        '<td class="p-2">'+esc(desc||'—')+'</td>'+
+        '<td class="p-2 text-right">'+qty.toLocaleString()+'</td>'+
+        '<td class="p-2 text-right">'+money(d.grand_total)+'</td>'+
+        '<td class="p-2">'+esc(String(d.status||'draft').toUpperCase())+'</td></tr>';
+    }).join('');
+  }
+  async function loadOptions(){
+    const db=auth().client,companyId=auth().profile.company_id;
+    const [customersRes,productsRes,repsRes]=await Promise.all([
+      db.from('customers').select('id,name,assigned_rep').eq('company_id',companyId).order('name'),
+      db.from('products').select('id,name,unit,sku').eq('company_id',companyId).eq('is_active',true).order('name'),
+      db.from('company_memberships').select('user_id').eq('company_id',companyId).eq('is_active',true).eq('role','sales')
+    ]);
+    if(customersRes.error)throw customersRes.error;
+    if(productsRes.error)throw productsRes.error;
+    if(repsRes.error)throw repsRes.error;
+    state.customers=customersRes.data||[];
+    state.products=productsRes.data||[];
+    const repIds=(repsRes.data||[]).map(x=>x.user_id);
+    let names={};
+    if(repIds.length){
+      const profiles=await db.from('profiles').select('id,full_name').in('id',repIds);
+      if(profiles.error)throw profiles.error;
+      (profiles.data||[]).forEach(x=>names[x.id]=x.full_name||'Sales representative');
+    }
+    state.reps=repIds.map(id=>({id,label:names[id]||'Sales representative'}));
+    const profile=auth().profile;
+    if(profile.role==='sales')state.reps=state.reps.filter(x=>x.id===profile.id||x.id===auth().user?.id);
+    setOptions('so-customer',state.customers.map(x=>({id:x.id,label:x.name})), 'Select customer');
+    setOptions('so-product',state.products.map(x=>({id:x.id,label:x.name+(x.sku?' · '+x.sku:'')})), 'Select product');
+    setOptions('so-rep',state.reps,'Select sales representative');
+    const rep=$('so-rep');
+    const userId=auth().user?.id;
+    if(profile.role==='sales'&&rep){
+      rep.value=userId||'';
+      rep.disabled=true;
+    }else if(rep){
+      rep.disabled=false;
+    }
+    const customer=$('so-customer');
+    if(customer&&!customer.dataset.bokanRepBound){
+      customer.addEventListener('change',()=>{
+        if(auth()?.profile?.role==='sales')return;
+        const item=state.customers.find(x=>x.id===customer.value);
+        if(item?.assigned_rep&&state.reps.some(x=>x.id===item.assigned_rep)&&$('so-rep'))$('so-rep').value=item.assigned_rep;
+      });
+      customer.dataset.bokanRepBound='true';
+    }
+    const statusSelect=$('so-status');
+    if(statusSelect){statusSelect.value='Draft';statusSelect.disabled=true;statusSelect.classList.add('hidden');}
+  }
+  async function loadOrders(){
+    const db=auth().client,companyId=auth().profile.company_id;
+    const docs=await db.from('sales_documents')
+      .select('id,document_number,status,grand_total,customer_id,document_date')
+      .eq('company_id',companyId)
+      .in('document_type',['sales_order','invoice'])
+      .order('document_date',{ascending:false})
+      .limit(100);
+    if(docs.error)throw docs.error;
+    const ids=(docs.data||[]).map(x=>x.id);
+    if(!ids.length){state.orders=[];renderOrders();return;}
+    const lines=await db.from('sales_document_items')
+      .select('document_id,description,quantity,unit')
+      .eq('company_id',companyId)
+      .in('document_id',ids);
+    if(lines.error)throw lines.error;
+    const byDoc={};
+    (lines.data||[]).forEach(x=>(byDoc[x.document_id]||(byDoc[x.document_id]=[])).push(x));
+    state.orders=(docs.data||[]).map(x=>({...x,items:byDoc[x.id]||[]}));
+    renderOrders();
+  }
+  async function refresh(){
+    if(!productionConfigured())return;
+    if(!enabled()){status('Waiting for an authenticated BlackRock company session.');return;}
+    try{
+      status('Loading live sales orders…');
+      await loadOptions();
+      await loadOrders();
+      status('Live sales-order register. New entries are saved as drafts; no stock or payments are posted.');
+    }catch(e){status('Sales orders could not be loaded: '+(e.message||e),true);}
+  }
+  async function saveDraft(){
+    if(state.busy)return;
+    if(!enabled()){status('Sign in with an active BlackRock company account before saving.',true);return;}
+    const form=$('so-form');
+    const qty=Number($('so-qty')?.value||0);
+    const unitPrice=Number($('so-total')?.value||0);
+    const customerId=$('so-customer')?.value||null;
+    const productId=$('so-product')?.value||null;
+    const salespersonId=$('so-rep')?.value||null;
+    const product=state.products.find(x=>x.id===productId);
+    if(!form?.reportValidity())return;
+    if(!product||!customerId||!salespersonId||qty<=0||unitPrice<=0){
+      status('Choose a customer, sales representative and product, then enter a positive quantity and unit selling price.',true);
+      return;
+    }
+    const localDate=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const document={
+      company_id:auth().profile.company_id,
+      customer_id:customerId,
+      salesperson_id:salespersonId,
+      document_type:'sales_order',
+      document_number:$('so-no').value.trim(),
+      document_date:localDate,
+      due_date:$('so-delivery').value||null,
+      currency_code:'ETB',
+      discount_total:0
+    };
+    const items=[{
+      product_id:productId,
+      description:product.name,
+      quantity:qty,
+      unit:product.unit||'unit',
+      unit_price:Math.round(unitPrice*100)/100,
+      tax_rate:0
+    }];
+    state.busy=true;
+    const button=form.querySelector('button[type="submit"]');
+    if(button){button.disabled=true;button.textContent='SAVING DRAFT…';}
+    try{
+      const result=await auth().client.rpc('create_sales_document_with_items',{p_document:document,p_items:items});
+      if(result.error)throw result.error;
+      form.reset();
+      status('Sales order saved as a draft. No stock movement or payment was recorded.');
+      await refresh();
+    }catch(e){status('Sales order was not saved: '+(e.message||e),true);}
+    finally{
+      state.busy=false;
+      if(button){button.disabled=false;button.textContent='SAVE DRAFT SALES ORDER';}
+    }
+  }
+  function activate(){
+    const form=$('so-form');if(!form||form.dataset.bokanSalesBridge)return;
+    form.dataset.bokanSalesBridge='true';
+    const configured=productionConfigured();
+    if(configured){
+      toSelect('so-customer','Select customer');
+      toSelect('so-rep','Select sales representative');
+      toSelect('so-product','Select product');
+      const button=form.querySelector('button[type="submit"]');
+      if(button)button.textContent='SAVE DRAFT SALES ORDER';
+      form.addEventListener('submit',e=>{
+        if(!productionConfigured())return;
+        e.preventDefault();e.stopImmediatePropagation();
+        saveDraft();
+      },true);
+      const client=auth()?.client;
+      if(client&&!state.subscribed){
+        client.auth.onAuthStateChange((event,session)=>{
+          if(event==='SIGNED_OUT'||!session){clear();return;}
+          setTimeout(()=>refresh(),0);
+        });
+        state.subscribed=true;
+      }
+      refresh();
+    }
+  }
+  window.BOKAN_SALES_DOCUMENTS={refresh,clear};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',activate,{once:true});
+  else activate();
+})();
+</script>
+
 </body>
 </html>
