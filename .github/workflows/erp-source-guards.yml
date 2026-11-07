@@ -64,6 +64,8 @@ jobs:
         run: node scripts/test-sales-order-ui-bridge.mjs
       - name: Test Sales Pipeline production bridge
         run: node scripts/test-sales-pipeline-ui-bridge.mjs
+      - name: Test Sales Targets company scope
+        run: node scripts/test-sales-targets-company-scope.mjs
       - name: Test duplicate Proforma save guard behavior
         run: node scripts/test-proforma-save-guard.mjs
       - name: Test actual Proforma calculation helper
