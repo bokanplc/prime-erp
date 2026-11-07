@@ -22,6 +22,7 @@ on:
       - 'docs/INVENTORY_COSTING_RECEIVING_READINESS_2026-11-06.md'
       - 'docs/BLACKROCK_STOCK_SWAP_RECONCILIATION_2026-11-06.md'
       - 'docs/V67_PRODUCTION_PERSISTENCE_MATRIX_2026-11-06.md'
+      - 'docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
       - '.github/workflows/erp-source-guards.yml'
