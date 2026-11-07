@@ -75,3 +75,20 @@ The historical sales-posting implementation inserts `sale_issue` movements with 
 - Do not change live stock quantities or create opening movements from incomplete source data.
 - Do not enable production modules while costing, workflow RPC drift, and authenticated role tests remain unresolved.
 - HR remains excluded from the first-release production tab allowlist per the separate release-scope decision.
+
+## Candidate work added on this feature branch
+
+A forward migration candidate now restores `public.receive_purchase_document(uuid,jsonb)` with:
+
+- active inventory-role or company-management authorization;
+- approved/partially received document status checks;
+- purchase-order/supplier-invoice type checks;
+- company/product ownership checks and row locking;
+- duplicate-line and over-receipt rejection;
+- positive documented purchase unit-cost enforcement;
+- atomic received-quantity updates and purchase-receipt stock movements;
+- authenticated-only RPC execution.
+
+A disposable PostgreSQL integration test and CI job exercise partial/final receipts, over-receipt, duplicate item IDs, zero-cost rejection, unknown lines, non-inventory role denial, and cross-company denial.
+
+This candidate is not applied to the live Supabase project. It must pass CI and review before a separately controlled live migration. It restores the base purchase receipt workflow only; it does not decide the inventory valuation method or allocate landed costs.
