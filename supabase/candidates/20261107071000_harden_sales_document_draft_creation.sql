@@ -58,7 +58,7 @@ BEGIN
     RAISE EXCEPTION 'Sales or data-entry permission required to create a draft';
   END IF;
 
-  IF p_document->>'document_type' NOT IN ('sales_order','invoice') THEN
+  IF coalesce(p_document->>'document_type','') NOT IN ('sales_order','invoice') THEN
     RAISE EXCEPTION 'Only sales orders and invoices can be created through this workflow';
   END IF;
 
