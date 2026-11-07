@@ -11,6 +11,7 @@ on:
       - 'docs/LIVE_MIGRATION_SOURCE_GAP.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
+      - 'supabase/candidates/**'
       - '.github/workflows/erp-source-guards.yml'
   pull_request:
     paths:
@@ -209,3 +210,34 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: purchase_receiving_test
         run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-purchase-receiving-postgres.sql
+
+  postgres-sales-draft-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sales_draft_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sales_draft_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Test sales draft roles, company isolation, and salesperson attribution
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: sales_draft_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-sales-draft-postgres.sql
