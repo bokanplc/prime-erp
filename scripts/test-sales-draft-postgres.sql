@@ -175,7 +175,7 @@ INSERT INTO public.customers(id,company_id,name,assigned_rep) VALUES
   ('70000000-0000-0000-0000-000000000001','01350a71-0a93-44cf-b6c9-9bd547c0077a','Test customer','30000000-0000-0000-0000-000000000002'),
   ('70000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000002','Other company customer','30000000-0000-0000-0000-000000000006');
 
-\ir ../supabase/candidates/20261107071000_harden_sales_document_draft_creation.sql
+\ir ../supabase/migrations/20261107070044_harden_sales_document_draft_creation.sql
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000004',false);
