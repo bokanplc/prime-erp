@@ -61,6 +61,8 @@ jobs:
         run: node scripts/test-v67-crm-bridge-contract.mjs
       - name: Test Sales Orders production bridge
         run: node scripts/test-sales-order-ui-bridge.mjs
+      - name: Test Sales Pipeline production bridge
+        run: node scripts/test-sales-pipeline-ui-bridge.mjs
       - name: Test duplicate Proforma save guard behavior
         run: node scripts/test-proforma-save-guard.mjs
       - name: Test actual Proforma calculation helper
