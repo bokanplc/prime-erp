@@ -44,7 +44,9 @@ const trackedAppliedMigrations = [
   '20261106065301_index_company_policy_documents_creator_membership_fk.sql',
   '20261106075213_create_private_company_document_storage.sql',
   '20261106151808_harden_public_api_privileges.sql',
-  '20261106151937_move_privileged_rpc_implementations_private.sql'
+  '20261106151937_move_privileged_rpc_implementations_private.sql',
+  '20261107064845_harden_atomic_purchase_receiving_workflow.sql',
+  '20261107064904_seed_blackrock_opening_stock_61_yellow_plywood.sql'
 ];
 const missingAppliedVersions = [
   '20261025065910',
@@ -69,7 +71,7 @@ const executableMigrations = allMigrationFiles.filter(name => !supersededDrafts.
 assert.deepEqual(
   executableMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 33 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
+  'Executable migration directory must contain only the 35 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
@@ -78,4 +80,4 @@ for (const version of missingAppliedVersions) {
   assert.ok(gap.includes(version), `Missing applied migration SQL body ${version} must be documented, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
-console.log('PASS: migration source layout matches the 33 tracked live migrations; eleven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
+console.log('PASS: migration source layout matches the 35 tracked live migrations; eleven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
