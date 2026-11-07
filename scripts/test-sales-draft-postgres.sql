@@ -180,7 +180,7 @@ INSERT INTO public.customers(id,company_id,name,assigned_rep) VALUES
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000004',false);
 
-DO $
+DO $$
 BEGIN
   BEGIN
     INSERT INTO public.sales_documents(company_id,document_type,document_number,created_by)
@@ -189,7 +189,7 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN
     NULL;
   END;
-END $;
+END $$;
 
 DO $$
 DECLARE
