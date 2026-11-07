@@ -71,14 +71,14 @@ The historical sales-posting implementation inserts `sale_issue` movements with 
 ## Current release decision
 
 - Do not enable sales posting in the browser.
-- Do not enable purchase receiving in the browser.
-- Do not change live stock quantities or create opening movements from incomplete source data.
-- Do not enable production modules while costing, workflow RPC drift, and authenticated role tests remain unresolved.
+- Do not wire purchase receiving into the browser until its V6.7 screen and authenticated staff workflow are tested.
+- The documented Yellow Plywood opening balance is now seeded; do not seed Green/Morale opening stock or import historical stock swaps until their source exceptions are reconciled.
+- Do not enable production modules while sales costing, stock-swap exceptions, and authenticated browser tests remain unresolved.
 - HR remains excluded from the first-release production tab allowlist per the separate release-scope decision.
 
 ## Candidate work added on this feature branch
 
-A forward migration candidate now hardens/replaces the existing `public.receive_purchase_document(uuid,jsonb)` with:
+The forward migration `20261107064845_harden_atomic_purchase_receiving_workflow` has been applied to live Supabase and source controlled. It hardens the existing `public.receive_purchase_document(uuid,jsonb)` with:
 
 - active inventory-role or company-management authorization;
 - approved/partially received document status checks;
@@ -91,12 +91,12 @@ A forward migration candidate now hardens/replaces the existing `public.receive_
 
 A disposable PostgreSQL integration test and CI job exercise partial/final receipts, over-receipt, duplicate item IDs, zero-cost rejection, unknown lines, non-inventory role denial, and cross-company denial.
 
-This candidate is not applied to the live Supabase project. It must pass CI and review before a separately controlled live migration. It restores the base purchase receipt workflow only; it does not decide the inventory valuation method or allocate landed costs.
+The hardened RPC is now executable by authenticated users. A rollback-only test using the real authenticated admin role successfully approved a draft purchase document, received one unit, verified the update, and rolled the transaction back; the document remains a draft, received quantity remains zero, and no receipt movement was retained. The browser UI is still not wired to this RPC. It does not decide the inventory valuation method or allocate landed costs.
 
 ## Opening stock evidence and candidate seed
 
 The original workbook's Daily_Data_Entry opening row records BlackRock opening Yellow Plywood stock on 2026-07-01 as 61 pieces at ETB 4,300 per piece. This yields a documented opening inventory value of ETB 262,300.
 
-The live product mapping was verified as BlackRock Investment PLC → Yellow Plywood. The live stock movement table currently contains zero rows. A separate idempotent candidate seed has been added at `supabase/candidates/20261107071000_seed_blackrock_opening_stock_61_yellow_plywood.sql`. It uses a stable import reference, verifies the exact product mapping, and refuses to run if any other movement already exists for that product. The disposable PostgreSQL receiving test now applies this seed and checks quantity, unit cost, and source reference before testing receipts.
+The live product mapping was verified as BlackRock Investment PLC → Yellow Plywood. The idempotent seed was applied to live Supabase as migration `20261107064904_seed_blackrock_opening_stock_61_yellow_plywood`. It resolved the company and product by unique names, verified the mapping, and inserted one opening movement for 61 pieces at ETB 4,300 each. The live stock balance now shows 61 Yellow Plywood pieces. The disposable PostgreSQL receiving test also checks this seed before testing receipts.
 
 This is a candidate import only. It has not been applied to live Supabase. It must be reconciled with the source workbook and current stock before a controlled data migration.
