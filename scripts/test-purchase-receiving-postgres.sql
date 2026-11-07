@@ -182,7 +182,7 @@ VALUES
 
 \ir ../supabase/candidates/20261107071000_seed_blackrock_opening_stock_61_yellow_plywood.sql
 
-DO $
+DO $$
 DECLARE
   v_qty numeric;
   v_cost numeric;
@@ -196,7 +196,7 @@ BEGIN
   IF v_count <> 1 OR v_qty <> 61 OR v_cost <> 4300 THEN
     RAISE EXCEPTION 'Opening-stock import assertion failed';
   END IF;
-END $;
+END $$;
 
 INSERT INTO public.purchase_documents(id,company_id,document_type,document_number,status)
 VALUES
