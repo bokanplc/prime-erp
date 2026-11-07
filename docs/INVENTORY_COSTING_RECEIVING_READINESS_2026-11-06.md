@@ -92,3 +92,11 @@ A forward migration candidate now restores `public.receive_purchase_document(uui
 A disposable PostgreSQL integration test and CI job exercise partial/final receipts, over-receipt, duplicate item IDs, zero-cost rejection, unknown lines, non-inventory role denial, and cross-company denial.
 
 This candidate is not applied to the live Supabase project. It must pass CI and review before a separately controlled live migration. It restores the base purchase receipt workflow only; it does not decide the inventory valuation method or allocate landed costs.
+
+## Opening stock evidence and candidate seed
+
+The original workbook's Daily_Data_Entry opening row records BlackRock opening Yellow Plywood stock on 2026-07-01 as 61 pieces at ETB 4,300 per piece. This yields a documented opening inventory value of ETB 262,300.
+
+The live product mapping was verified as BlackRock Investment PLC → Yellow Plywood. The live stock movement table currently contains zero rows. A separate idempotent candidate seed has been added at `supabase/candidates/20261107071000_seed_blackrock_opening_stock_61_yellow_plywood.sql`. It uses a stable import reference, verifies the exact product mapping, and refuses to run if any other movement already exists for that product. The disposable PostgreSQL receiving test now applies this seed and checks quantity, unit cost, and source reference before testing receipts.
+
+This is a candidate import only. It has not been applied to live Supabase. It must be reconciled with the source workbook and current stock before a controlled data migration.
