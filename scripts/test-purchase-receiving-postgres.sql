@@ -81,10 +81,30 @@ AS $$
   )
 $$;
 
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.purchase_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.purchase_document_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY products_select_member
+  ON public.products FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.company_memberships m
+     WHERE m.company_id = products.company_id
+       AND m.user_id = (SELECT auth.uid()) AND m.is_active
+  ));
+CREATE POLICY products_update_inventory
+  ON public.products FOR UPDATE TO authenticated
+  USING (private.can_manage_company(company_id) OR EXISTS (
+    SELECT 1 FROM public.company_memberships m
+     WHERE m.company_id = products.company_id
+       AND m.user_id = (SELECT auth.uid()) AND m.is_active AND m.role = 'inventory'
+  ))
+  WITH CHECK (private.can_manage_company(company_id) OR EXISTS (
+    SELECT 1 FROM public.company_memberships m
+     WHERE m.company_id = products.company_id
+       AND m.user_id = (SELECT auth.uid()) AND m.is_active AND m.role = 'inventory'
+  ));
 CREATE POLICY purchase_documents_select_member
   ON public.purchase_documents FOR SELECT TO authenticated
   USING (EXISTS (
@@ -144,7 +164,7 @@ GRANT EXECUTE ON FUNCTION private.can_manage_company(uuid) TO authenticated;
 GRANT SELECT ON public.company_memberships, public.products,
   public.purchase_documents, public.purchase_document_items, public.stock_movements
   TO authenticated;
-GRANT UPDATE ON public.purchase_documents, public.purchase_document_items TO authenticated;
+GRANT UPDATE ON public.products, public.purchase_documents, public.purchase_document_items TO authenticated;
 GRANT INSERT ON public.stock_movements TO authenticated;
 
 \ir ../supabase/migrations/20261107070000_restore_atomic_purchase_receiving_workflow.sql
