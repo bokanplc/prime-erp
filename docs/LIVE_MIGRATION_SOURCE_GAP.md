@@ -126,3 +126,10 @@ Two additional migrations have now been applied to live Supabase and committed t
 The live migration ledger now contains **46 applied versions**. The repository contains **35 source-controlled executable migrations**, plus two explicitly inert superseded drafts. The same **11 historical applied SQL bodies** remain unrecovered. The migration parity test now expects 35 tracked executable files and documents all 11 missing historical bodies.
 
 A real authenticated-admin role test exercised the hardened purchase-receiving RPC inside a transaction and rolled it back. The original purchase document remains a draft, received quantity remains zero, and no receipt movement was retained. The only live stock movement is the documented opening Yellow Plywood movement.
+
+
+## Additional applied migration — 2026-11-07
+
+Migration `20261107070044_harden_sales_document_draft_creation` is now applied to live Supabase and included in source control. It adds salesperson attribution to sales documents, validates company/customer/product/salesperson ownership, restricts draft creation to sales/data-entry/accounting/management roles, grants the guarded RPC to authenticated users, and revokes direct authenticated INSERT on sales documents and line items.
+
+The live ledger now contains **47 applied versions**. The repository contains **36 source-controlled executable migrations**, plus two inert superseded drafts. The **11 unrecovered historical SQL bodies** remain unchanged. The parity test now expects 36 tracked executable migrations.
