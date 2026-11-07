@@ -171,7 +171,7 @@ GRANT SELECT ON public.company_memberships, public.products,
 GRANT UPDATE ON public.products, public.purchase_documents, public.purchase_document_items TO authenticated;
 GRANT INSERT ON public.stock_movements TO authenticated;
 
-\ir ../supabase/candidates/20261107070000_harden_atomic_purchase_receiving_workflow.sql
+\ir ../supabase/migrations/20261107064845_harden_atomic_purchase_receiving_workflow.sql
 
 INSERT INTO public.companies(id,name)
 VALUES ('01350a71-0a93-44cf-b6c9-9bd547c0077a','BlackRock Investment PLC');
@@ -187,7 +187,7 @@ VALUES
   ('0ed6991c-cfe3-411e-a264-86ac42add7c0','01350a71-0a93-44cf-b6c9-9bd547c0077a','Yellow Plywood'),
   ('40000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000002','Other company product');
 
-\ir ../supabase/candidates/20261107071000_seed_blackrock_opening_stock_61_yellow_plywood.sql
+\ir ../supabase/migrations/20261107064904_seed_blackrock_opening_stock_61_yellow_plywood.sql
 
 DO $$
 DECLARE
