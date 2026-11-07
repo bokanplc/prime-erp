@@ -17,6 +17,8 @@ for(const needle of [
   "['sales','staff']",
   "Only a BlackRock owner or administrator can invite employees.",
   "Direct activation and deactivation are temporarily disabled",
+  "BOKAN_BlackRock_Access_Register.csv",
+  "const reviewExport=window.bokanAccessExport",
   "Customer assignment reporting will be available after the new reconciled customer data",
   "if(!ctx()?.enabled){if(reviewAdd)reviewAdd();return;}"
 ])assert.ok(bridge.includes(needle),`Missing production access safeguard: ${needle}`);
