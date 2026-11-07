@@ -56,7 +56,7 @@ These quantities are not Prime ERP financial records. They are listed here becau
 
 - Live sales documents: 28 drafts; 31 lines; 5,929 pcs; no posted sales stock movements.
 - Live purchase documents: 16 drafts; 5,827 pcs; ETB 28,754,500; no posted purchase receipts.
-- Live stock movements: zero.
+- Live stock movements: one documented opening movement — 61 Yellow Plywood pieces at ETB 4,300 each, dated 2026-07-01; current on-hand is 61 pieces. No purchase receipts or sales issues have been posted.
 - The purchase-receiving workflow and opening-stock seed exist only as isolated candidate SQL and have passed disposable PostgreSQL tests. Neither has been applied to live Supabase.
 - Historical sales and purchase documents remain drafts until the 320-piece sales difference, missing selling prices, and stock-swap exceptions are reconciled.
 
