@@ -1,46 +1,62 @@
-# V6.7 Production Persistence Matrix — 2026-11-06
+# BOKAN ERP V6.7 — Application Persistence Matrix (updated 2026-11-07)
 
-Source audited: `staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html` (879,266 bytes; 9,938 lines; 91 tab panels at the time of audit).
+## Scope authority
 
-This is a source-level inventory of production adapters, not a statement that every module is release-ready.
+The owner-directed scope reset in `docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md` is authoritative. The target remains the complete V6.7 application (91 tab panels in the reviewed source), with standard non-stock functionality migrated. The owner will provide fresh reconciled business data later.
 
-## Production bridge coverage found in source
+Do not treat historical stock, sales, purchase, customer, or financial reconciliation as a prerequisite for application migration. Preserve existing live records; do not import, reconcile, certify, or delete them as part of this phase.
 
-| Area | Source adapter | Current behavior | Remaining gate |
+## Verified production persistence adapters and workflows
+
+| Application area | Current persisted path | Current state | Remaining application work |
 |---|---|---|---|
-| Authentication / company context | `bokan-v61-production-auth` | Supabase Auth, active company membership lookup, role mapping, selected-company context | Real staff sign-in and role-by-role browser verification |
-| CRM | `bokan-v63-crm-production-bridge` | Company-scoped customer, activity, opportunity, after-sales task reads/writes; owner reassignment uses RPC | Confirm all legacy CRM screens consistently use bridge; test real sales memberships, RLS and reminders |
-| Supply & Logistics | `bokan-v64-supply-production-bridge` | Company-scoped shipment and delivery controls; reads linked purchase/sales documents | The hardened purchase-receiving RPC is now present and authenticated-role gated, but no V6.7 browser screen calls it yet; stock-swap and valuation workflows remain unimplemented |
-| Finance | `bokan-v65-finance-production` | Reads ledger, receivable/payable document counts and fiscal periods; journal posting uses RPC | Test journal posting, account/period rules and permissions; receipts/payments intentionally stay in Peachtree |
-| Transaction costs | `bokan-v69-transaction-costs` | Company-scoped transaction-cost list/create | Verify category mapping, direct/landed allocation and edit/audit workflow |
-| Profitability | `bokan-v70-profitability-report` | Reads posted invoices, stock movement costs and transaction costs | COGS cannot be accepted until stock issues carry valid cost and landed-cost allocation is defined |
-| Policy handbook | `bokan-v71-policy-handbook` | Reads active company policy document; admin-only print UI | Verify staff read access and server-side controls for document changes/printing |
+| Authentication / company context | Supabase Auth + active `company_memberships` | Source adapter present; company/role context is derived from active membership | Complete browser sign-in, company switching, and real role-by-role access tests |
+| CRM customers | `customers`, `crm_customer_assignments` | Canonical CRM bridge supports company-scoped customer reads/create/update and guarded reassignment | Verify full legacy customer screens and all role workflows in browser |
+| CRM activity history | `crm_activities` | Bridge supports company-scoped activity creation and history, including calls, visits and follow-up dates | Verify reminder behavior, escalation, salesperson attribution and history screens |
+| CRM pipeline | `crm_opportunities` | Sales Pipeline screen now loads and creates opportunities through the canonical CRM adapter | Verify edit/stage progression and sales-manager assignment workflow |
+| After-sales follow-up | `crm_after_sales_tasks` | Bridge supports task list/create/update | Verify reminders and task ownership in authenticated browser |
+| Sales Orders | `sales_documents`, `sales_document_items`, guarded draft RPC | V6.7 Sales Orders screen loads and creates company-scoped drafts through the RPC | Verify browser workflow and approval UI; stock issue and payment actions remain parked |
+| Sales targets | `sales_targets` | Reads, writes, updates and deletes explicitly scope to active company; administration controls are manager-only in UI and RLS | Verify commission calculations with newly supplied data and authenticated roles |
+| Trip plans | `trip_plans` | Create/update/delete/list paths now include active company context | Verify late-cutoff exception and notifications in browser |
+| Visit reports | `visit_reports` | Create/update/delete/list paths now include active company context | Verify due-date rules and employee/manager visibility in browser |
+| Notifications | `notifications` | Insert and list now include active company context | Verify recipient visibility, read state and notification delivery |
+| Expenses | `expenses` | Entry, update, ledger reads and deletion now explicitly scope to active company | Verify finance-role editing and employee expense-entry workflow |
+| Transaction costs | `transaction_costs` | Company-scoped adapter supports cost list/create | Keep non-stock direct/operating costs distinct; inventory landed-cost allocation is parked |
+| Proforma | `proformas`, company settings and guarded RPCs | Existing company-scoped production adapter and save workflow | Verify final PDF/document output and authenticated company settings |
+| Supply / logistics planning | `supply_shipments`, `delivery_orders` | Company-scoped bridge for shipment and delivery planning | Verify planning-only UI; do not implement purchase receiving or sales stock issue in this phase |
+| Finance | Ledger and fiscal-period reads; journal RPC | Production adapter present | Verify accounting screens without enabling receipts/payments or stock-derived costing |
+| Document repository | Private Storage + company-scoped `documents` | Existing private document upload/list/delete path | Verify upload/download permissions and staff/admin behavior |
+| Policy handbook | `company_policy_documents` | Company-scoped employee read and admin print controls | Verify server-side access and print restrictions |
+| Profitability | Posted invoices, stock movement costs and transaction costs | Source adapter exists but depends on stock costing | Parked until owner supplies fresh data and reopens inventory costing |
 
-## Important source findings
+## Explicitly parked by owner direction
 
-- The source contains a mock Supabase implementation and many legacy `localStorage` stores. These must remain inaccessible in hosted production mode.
-- The production tab review allowlist in the source currently contains only `policyhandbook`. The configuration must not broaden that allowlist until each module is reviewed.
-- The source contains no browser RPC calls for `post_sales_document_stock` or `receive_purchase_document`.
-- Existing RPC calls in the inspected source include proforma operations, CRM owner reassignment, and journal posting. This is not evidence of working sales stock posting or purchase receiving.
-- Legacy dashboards, enterprise control panels, stock ledgers, purchasing screens, finance screens, and HR screens contain local-storage-based state and/or old table access. They are not automatically production-ready because they are visible in the V6.7 interface.
-- The HR bridge exists in source, but HR is explicitly deferred from the first release and must remain outside the enabled production tab allowlist.
+Do not work on or enable the following as release blockers in this application phase:
 
-## First-release work order
+- Historical stock balances and stock-swap reconciliation.
+- Sales stock posting / stock issue.
+- Purchase receiving / stock receipt.
+- Inventory costing, valuation, COGS and landed-cost allocation.
+- Import or reconciliation of old customer, sales, purchase, stock or financial records.
 
-1. Complete canonical purchasing and stock receiving, including a reconciled migration for the missing live RPC.
-2. Agree and implement inventory valuation before enabling any sales stock issue.
-3. Build the sales-document browser bridge around approved create/submit/approve/post RPC contracts; do not use direct browser writes to bypass posting controls.
-4. Reconcile the legacy stock reports and swap screens to the canonical stock movement ledger. Do not silently import old localStorage or sample records.
-5. Verify CRM end-to-end with real users and sales-team membership records.
-6. Complete transaction-cost edit/audit and landed-cost allocation rules; verify both profitability measures.
-7. Verify policy handbook employee read and admin controls.
-8. Exclude HR, payment-entry, and demo/local-storage modules from the initial production allowlist.
+Existing live rows—including the previously seeded 61-piece Yellow Plywood opening-stock row and prior draft documents—remain untouched. They are not the owner's new dataset and must not be used as current operational truth.
+
+## Deferred HR
+
+HR remains outside the initial production allowlist. Preserve source and schema for later, but do not enable HR modules in the first release.
+
+## Remaining full-application work
+
+The 91-tab V6.7 interface is preserved. A visible screen is not considered migrated merely because its markup exists. Remaining work is to inventory every screen's actions and replace localStorage/demo-only behavior with the appropriate company-scoped application service, or clearly disable a function that is outside the current scope.
+
+Priority order:
+
+1. Finish authenticated browser verification for the CRM, Sales Pipeline, Sales Orders draft, Sales Targets, Expenses, Trip Plans, Visit Reports and Notifications paths.
+2. Complete company/user administration, role changes and active-company switching through safe membership workflows.
+3. Complete document repository, proforma, policy handbook and non-stock finance/expense screens.
+4. Audit the remaining V6.7 tabs for localStorage/demo-only state; migrate their standard non-stock behavior or keep them disabled until verified.
+5. Re-run the complete release builder and all source, schema, role, and browser checks.
 
 ## Release guard
 
-No source-level adapter or visible tab should be considered production-ready solely because it has a Supabase client. A module is eligible only after data contract, RLS, role permissions, error handling, and authenticated browser tests pass against the live schema.
-
-
-## Sales Orders draft persistence
-
-A guarded live RPC now supports sales-order/invoice draft creation with explicit salesperson attribution and role/company checks. It is not yet called by the V6.7 Sales Orders screen, which remains localStorage-based. Do not enable the Sales Orders production tab until the screen is wired to the RPC and authenticated browser tests pass. Approval and stock posting remain separate gates; the zero-cost sales stock-posting defect is still unresolved.
+Production remains fail-closed. Do not enable production tabs or issue a staff release link until all in-scope non-stock application workflows have passed authenticated role, RLS, persistence, error-handling and browser checks. Do not reduce the application to a sample or extracted mini-app.
