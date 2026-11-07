@@ -39,8 +39,8 @@ assert.match(source, /window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function\(cfg\
 assert.match(source, /const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(_bokanCfg\) && window\.supabase/, 'Core Supabase client must require full readiness and a reviewed enabled module.');
 assert.match(source, /return \(map\[role\]\|\|\[\]\)\.filter\(tab=>enabled\.has\(tab\)\)/, 'Production navigation must intersect role permissions with the reviewed module allowlist.');
 assert.match(source, /if \(_bokanProdConfigured\) window\.sb = sb;/, 'Configured real Supabase client must be exposed to production bridge modules.');
-assert.match(source, /if \(_bokanProdConfigured\) \{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must remain blocked until private storage is implemented.');
-assert.match(source, /Document downloads are temporarily disabled until private storage and authorized downloads are configured/, 'Production document listing/download links must remain blocked until private signed downloads are implemented.');
+assert.match(source, /client\.storage\.from\('bokan-company-documents'\)\.upload\(path, file/, 'Production document uploads must use the private company Storage bucket.');
+assert.match(source, /client\.storage\.from\('bokan-company-documents'\)\.createSignedUrl\(d\.file_path, 300\)/, 'Production document downloads must use short-lived signed URLs.');
 assert.match(source, /Production role changes are disabled until audited Supabase Auth user provisioning and company-membership management are implemented/, 'Production role changes must remain blocked until trusted provisioning exists.');
 assert.match(source, /Only an authorized administrator or accounting user can request issuer TIN changes/, 'Production issuer TIN edits must be role-restricted.');
 assert.match(source, /Only an authorized administrator or accounting user can request issuer contact changes/, 'Production issuer contact edits must be role-restricted.');
