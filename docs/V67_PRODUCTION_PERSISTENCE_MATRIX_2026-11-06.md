@@ -39,3 +39,8 @@ This is a source-level inventory of production adapters, not a statement that ev
 ## Release guard
 
 No source-level adapter or visible tab should be considered production-ready solely because it has a Supabase client. A module is eligible only after data contract, RLS, role permissions, error handling, and authenticated browser tests pass against the live schema.
+
+
+## Sales Orders draft persistence
+
+A guarded live RPC now supports sales-order/invoice draft creation with explicit salesperson attribution and role/company checks. It is not yet called by the V6.7 Sales Orders screen, which remains localStorage-based. Do not enable the Sales Orders production tab until the screen is wired to the RPC and authenticated browser tests pass. Approval and stock posting remain separate gates; the zero-cost sales stock-posting defect is still unresolved.
