@@ -63,3 +63,13 @@ These quantities are not Prime ERP financial records. They are listed here becau
 ## Implementation recommendation
 
 Implement a BlackRock-scoped stock-swap subledger with a named external counterparty (“Prime Investment Group”) and stock-only movement records. Keep it separate from Prime company membership and accounting records. The ledger should expose borrowed quantity, repayments, owed balance, counterparty availability, and audit notes by product/date. Enforce available counterparty stock on new borrow events; historical negative-stock events should be retained as exceptions, not silently normalized.
+
+## Additional database-only sales lines
+
+The live database's 2026-09-24 sales records include two lines absent from the workbook: 20 Yellow Plywood pieces and 300 Morale Timber pieces. These 320 pieces must be reconciled with the source ledger before any historical ownership or borrowing balance is finalized. The workbook-based negative-stock and closing-balance analysis above excludes those two database-only lines.
+
+## Opening-balance questions
+
+The only explicit BlackRock opening balance in the source register is 61 Yellow Plywood pieces. The register also contains a 242-piece Green Plywood sale before the first recorded Green receipt, and a 300-piece Morale Timber sale before the first recorded Morale receipt. Until the owner confirms whether these products had opening stock (or the sale dates/source are corrected), those historical lines must remain exceptions without a fabricated stock source or COGS value.
+
+No final stock-swap closing balance is certified in this document. The candidate ledger must first incorporate the reconciled sales lines, all stock-only Prime counterparty movements, and confirmed opening balances.
