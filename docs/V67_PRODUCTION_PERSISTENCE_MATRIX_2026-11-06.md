@@ -69,3 +69,13 @@ The access-governance screen now has a production-only path that reads employee 
 New invitations use the existing authenticated `invite-blackrock-member` Supabase Edge Function, which verifies the caller's active BlackRock owner/admin membership before assigning access. The V6.7 UI limits this initial invitation workflow to `sales` and `staff` (Data Entry), leaving HR and other roles unavailable in the initial release. Local/demo access records are used only when production mode is off.
 
 Direct membership activation/deactivation remains disabled pending a separate audited server-side membership-change workflow. This is intentional fail-closed behavior, not a completed admin lifecycle.
+
+## Panel identity integrity checkpoint — 2026-11-10
+
+- The full reviewed source and staging/index.html remain byte-identical.
+- The source contains 91 section panels. Two duplicate DOM IDs were found and corrected: the second tab-periodclose panel (Period Close & Lock) is now tab-periodlock; the second tab-masterdata panel (Master Data Governance) is now tab-masterdatagovernance.
+- The corresponding navigation entries now target their unique panel IDs. The existing duplicate collections navigation entry remains a known legacy duplicate; it still points to the same single panel and is not counted as a second section.
+- scripts/test-live-company-proforma-contract.mjs now guards the 91-panel count, unique section IDs, distinct period/master-data navigation targets, and that navigation IDs resolve to existing panels. This test is part of .github/workflows/erp-source-guards.yml.
+- Static source validation confirms 91 section elements / 91 unique section IDs and byte-identical full source/staging entry. This is not authenticated browser acceptance.
+- Latest implementation checkpoint: c81c5a02d94fedcfe0e21d5d5541f5c526fa0a9e. The Vercel preview for this commit is READY; GitHub Actions has not yet returned a workflow run for this commit.
+- No live Supabase schema/data/Auth/Storage, production settings, production allowlist, main, or employee access were changed.
