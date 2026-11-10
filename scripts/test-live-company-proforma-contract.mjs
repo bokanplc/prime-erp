@@ -7,6 +7,20 @@ const entry = fs.readFileSync('staging/index.html', 'utf8');
 const sql = fs.readFileSync('supabase/candidates/live_company_proforma.sql', 'utf8');
 
 assert.equal(entry, source, 'The full staging entry must match the reviewed full ERP source.');
+
+const panelIds = [...source.matchAll(/<section\\b[^>]*\\bid=["']([^"']+)["'][^>]*>/gi)].map(match => match[1]);
+assert.equal(panelIds.length, 91, 'The reviewed V6.7 source must retain all 91 section panels.');
+assert.equal(new Set(panelIds).size, panelIds.length, 'Every V6.7 section panel must have a unique DOM id.');
+
+const navStart = source.indexOf('const NAV_TREE = [');
+const navEnd = source.indexOf('\\n];', navStart);
+assert.ok(navStart >= 0 && navEnd > navStart, 'The full V6.7 navigation tree must exist.');
+const navIds = [...source.slice(navStart, navEnd).matchAll(/\\{\\s*id:\\s*'([^']+)'/g)].map(match => match[1]);
+assert.ok(navIds.includes('periodlock') && navIds.includes('periodclose'), 'Period Lock and Period Close Management must have distinct navigation targets.');
+assert.ok(navIds.includes('masterdata') && navIds.includes('masterdatagovernance'), 'Master Data Management and Governance must have distinct navigation targets.');
+assert.deepEqual([...new Set(navIds.filter((id, index) => navIds.indexOf(id) !== index))], ['collections'], 'No new duplicate navigation targets may be introduced.');
+for (const id of navIds) assert.ok(panelIds.includes('tab-' + id), 'Navigation target must resolve to exactly one panel: ' + id);
+
 const start = source.indexOf('function bokanProdMapProformaRow(r)');
 const end = source.indexOf('async function bokanProdLoadIssuer(key)', start);
 assert.ok(start >= 0 && end > start, 'Proforma row mapper and issuer loader must exist.');
