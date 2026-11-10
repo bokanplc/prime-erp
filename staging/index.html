@@ -3569,7 +3569,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   <div class="mt-4 bg-white rounded-lg p-4 text-[10px] text-[#6B7280]">Control note: this is a management working view. Final financial statements require controlled account mapping, reconciliations, period close and approved journals.</div>
 </section>
 
-<section id="tab-periodclose" class="tab-panel hidden">
+<section id="tab-periodlock" class="tab-panel hidden">
   <div class="page-head mb-5"><div class="page-eyebrow">GOVERNANCE & CONTROL</div><h1>Period Close & Lock</h1><p>Prevent accidental back-dated changes after management approves a reporting period.</p></div>
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="bg-white rounded-lg p-4"><h2 class="text-sm font-bold mb-3">CLOSE PERIOD</h2><input id="close-period" type="month" class="w-full border p-2 rounded mb-2 text-xs"><input id="close-note" placeholder="Close note / approval reference" class="w-full border p-2 rounded mb-3 text-xs"><button id="close-period-btn" class="w-full bg-[#2CA01C] hover:bg-[#0759A8] text-white rounded py-2 text-xs font-bold">CLOSE & LOCK PERIOD</button></div>
@@ -3916,7 +3916,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
   </div>
 </section>
 
-<section id="tab-masterdata" class="tab-panel hidden">
+<section id="tab-masterdatagovernance" class="tab-panel hidden">
   <div class="page-head mb-5"><div class="page-eyebrow">DATA GOVERNANCE</div><h1>Master Data Governance</h1><p>Maintain controlled reference data and identify records that require review before transactions are processed.</p></div>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
     <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Records</div><div id="md-total" class="text-2xl font-bold mt-1">0</div></div>
@@ -4808,7 +4808,7 @@ const NAV_TREE = [
   { id: 'chartaccounts', label: 'Chart of Accounts', indent: true },
   { id: 'vatcontrol', label: 'VAT & Tax Control', indent: true },
   { id: 'financialstatements', label: 'Financial Statements', indent: true },
-  { id: 'periodclose', label: 'Period Close & Lock', indent: true },
+  { id: 'periodlock', label: 'Period Close & Lock', indent: true },
   { type: 'label', text: 'Sales Control' },
   { id: 'salesdiscipline', label: 'Customer Touch Discipline', indent: true },
   { type: 'label', text: 'Sales Operations' },
@@ -4848,7 +4848,7 @@ const NAV_TREE = [
   { id: 'bankrecon', label: 'Bank Reconciliation', indent: true },
   { id: 'cashforecast', label: 'Cash Forecast', indent: true },
   { id: 'controltower', label: 'Enterprise Control Tower', indent: true },
-  { id: 'masterdata', label: 'Master Data Governance', indent: true },
+  { id: 'masterdatagovernance', label: 'Master Data Governance', indent: true },
   { id: 'monthclose', label: 'Month-End Close Checklist', indent: true }
 ];
 
