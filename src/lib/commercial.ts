@@ -8,6 +8,8 @@ export type CostInput = {
   vatTreatment: VatTreatment;
   recoverableVat?: boolean;
   category?: DirectCostCategory;
+  /** Optional transaction-specific VAT rate, in basis points. */
+  vatBasisPoints?: number;
 };
 
 export type CommercialResultInput = {
@@ -90,10 +92,11 @@ function normalize(
  * Recoverable VAT is excluded; non-recoverable VAT remains part of the cost.
  */
 export function normalizeCommercialCost(input: CostInput, vatBasisPoints = STANDARD_VAT_BASIS_POINTS) {
-  if (!Number.isInteger(vatBasisPoints) || vatBasisPoints < 0 || vatBasisPoints > 100_000) {
+  const effectiveRate = input.vatBasisPoints ?? vatBasisPoints;
+  if (!Number.isInteger(effectiveRate) || effectiveRate < 0 || effectiveRate > 100_000) {
     throw new RangeError("VAT basis points must be a whole number from 0 to 100000.");
   }
-  const normalized = normalize(input.amount, input.vatTreatment, vatBasisPoints, input.recoverableVat ?? false);
+  const normalized = normalize(input.amount, input.vatTreatment, effectiveRate, input.recoverableVat ?? false);
   return {
     expense: normalized.expense,
     recoverableVat: normalized.recoverableVat ? normalized.vat : 0
@@ -115,13 +118,13 @@ export function calculateCommercialResult(input: CommercialResultInput): Commerc
   const landedCost = normalize(
     input.landedPurchaseCost.amount,
     input.landedPurchaseCost.vatTreatment,
-    vatBasisPoints,
+    input.landedPurchaseCost.vatBasisPoints ?? vatBasisPoints,
     input.landedPurchaseCost.recoverableVat ?? false
   );
 
   const directCosts = (input.directCosts ?? []).map((cost) => ({
     category: cost.category ?? "miscellaneous",
-    ...normalize(cost.amount, cost.vatTreatment, vatBasisPoints, cost.recoverableVat ?? false)
+    ...normalize(cost.amount, cost.vatTreatment, cost.vatBasisPoints ?? vatBasisPoints, cost.recoverableVat ?? false)
   }));
 
   const sumMinor = (predicate: (cost: (typeof directCosts)[number]) => boolean) =>
