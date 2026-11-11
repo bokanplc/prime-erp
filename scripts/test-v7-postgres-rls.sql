@@ -135,10 +135,14 @@ begin;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 
-update public.companies set vat_rate_bps=2000 where id='20000000-0000-4000-8000-000000000001';
-if found then
-  raise exception 'Data-entry user unexpectedly changed company VAT settings';
-end if;
+do $data_entry_company_settings$
+begin
+  update public.companies set vat_rate_bps=2000 where id='20000000-0000-4000-8000-000000000001';
+  if found then
+    raise exception 'Data-entry user unexpectedly changed company VAT settings';
+  end if;
+end
+$data_entry_company_settings$;
 
 insert into public.suppliers (company_id, legal_name)
 values ('20000000-0000-4000-8000-000000000001', 'Data Entry Supplier');
