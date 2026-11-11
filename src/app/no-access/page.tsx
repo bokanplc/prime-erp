@@ -7,8 +7,6 @@ type Props = { searchParams: Promise<{ error?: string }> };
 
 export const dynamic = "force-dynamic";
 
-export const dynamic = "force-dynamic";
-
 export default async function NoAccessPage({ searchParams }: Props) {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
