@@ -25,28 +25,42 @@ const nav = [
 
 export default async function Home() {
   const context = await getCompanyContext();
+  const companyId = context.active.companyId;
+  const [{data:customers},{data:leads},{data:sales},{data:purchaseOrders},{data:tasks}] = await Promise.all([
+    context.supabase.from("customers").select("id").eq("company_id",companyId).limit(5000),
+    context.supabase.from("crm_leads").select("id,stage").eq("company_id",companyId).limit(5000),
+    context.supabase.from("sales_documents").select("id,status,grand_total,vat_total").eq("company_id",companyId).limit(5000),
+    context.supabase.from("purchase_orders").select("id,status").eq("company_id",companyId).limit(5000),
+    context.supabase.from("tasks").select("id,status").eq("company_id",companyId).limit(5000)
+  ]);
+  const openLeads = (leads??[]).filter(row=>!["won","lost"].includes(row.stage)).length;
+  const openTasks = (tasks??[]).filter(row=>["open","in_progress"].includes(row.status)).length;
+  const approvedSales = (sales??[]).filter(row=>["approved","sent","accepted"].includes(row.status));
+  const netSales = approvedSales.reduce((sum,row)=>sum+Number(row.grand_total)-Number(row.vat_total),0);
+  const money = new Intl.NumberFormat("en-ET",{style:"currency",currency:"ETB",maximumFractionDigits:0}).format(netSales);
   return (
     <main className="shell">
       <aside className="sidebar">
         <div className="brand"><div className="brand-row"><div className="brand-mark">B</div><div><div className="brand-name">BOKAN ERP</div><div className="brand-sub">COMMERCIAL PLATFORM</div></div></div></div>
         <div><div className="nav-label">Workspace</div><nav className="nav-list">{nav.map(([icon,label,href],i)=><a key={label} className={`nav-item ${i===0?"active":""}`} href={href}><span className="nav-icon">{icon}</span>{label}</a>)}</nav></div>
         <div><div className="nav-label">Management</div><nav className="nav-list"><a className="nav-item" href="/administration"><span className="nav-icon">⚙</span>Administration</a></nav></div>
-        <div className="sidebar-foot">BOKAN ERP V7<br/>New architecture · Preview build<br/>No business data connected.</div>
+        <div className="sidebar-foot">BOKAN ERP V7<br/>New architecture · Preview build<br/>No legacy data imported.</div>
       </aside>
       <section className="main">
         <header className="topbar"><div className="crumb">Workspace <span style={{color:"#c0c9ca"}}>/</span> Overview</div><div className="top-actions"><CompanySwitcher companies={context.companies} activeCompanyId={context.active.companyId} /><div className="avatar">{context.user.email?.slice(0,1).toUpperCase() ?? "B"}</div><SignOutButton /></div></header>
         <div className="content">
           <div className="welcome"><div><div className="eyebrow">Commercial operations · {context.active.displayName}</div><h1>Good morning.</h1><p className="subhead">A clean V7 workspace is taking shape around secure company-aware operations.</p></div><div className="date-chip">BOKAN ERP · VERSION 7</div></div>
-          <div className="notice"><div>◈</div><div><strong>Development environment — not for live transactions</strong>This is the new application foundation. No sample figures or imported business records are displayed. Your active company is isolated by database policies; the new V7 database remains separate from legacy systems.</div></div>
+          <div className="notice"><div>◈</div><div><strong>V7 review environment — not yet approved for live transactions</strong>The new V7 database is connected and company-isolated. This workspace shows only real records in the active company; no legacy data or sample figures have been imported. Continue using Peachtree for receipts, supplier payments and accounting.</div></div>
           <div className="grid-kpi">
-            <div className="kpi"><div className="kpi-label">Application status</div><div className="kpi-value">Building</div><div className="kpi-foot">V7 foundation</div></div>
-            <div className="kpi"><div className="kpi-label">Planned workspaces</div><div className="kpi-value">9</div><div className="kpi-foot">Functional areas defined</div></div>
-            <div className="kpi"><div className="kpi-label">Business data</div><div className="kpi-value">Empty</div><div className="kpi-foot">Fresh data onboarding later</div></div>
+            <div className="kpi"><div className="kpi-label">Customers</div><div className="kpi-value">{customers?.length??0}</div><div className="kpi-foot">Active company directory</div></div>
+            <div className="kpi"><div className="kpi-label">Open opportunities</div><div className="kpi-value">{openLeads}</div><div className="kpi-foot">CRM pipeline</div></div>
+            <div className="kpi"><div className="kpi-label">Approved sales · net VAT</div><div className="kpi-value" style={{fontSize:18}}>{money}</div><div className="kpi-foot">{approvedSales.length} approved / sent / accepted</div></div>
+            <div className="kpi"><div className="kpi-label">Open tasks</div><div className="kpi-value">{openTasks}</div><div className="kpi-foot">{tasks?.length??0} tasks and reminders</div></div>
           </div>
           <div className="section-head"><h2>Application modules</h2><span>Open a workspace to view its implementation scope</span></div>
           <div className="module-grid">{modules.map((m)=><a className="module module-link" href={m.href} key={m.title}><div className="module-icon">{m.icon}</div><h3>{m.title}</h3><p>{m.desc}</p><div className="module-tag">{m.tag} · Open workspace →</div></a>)}</div>
           <div className="bottom-grid">
-            <section className="panel"><h2>Implementation sequence</h2><p className="muted">Build security and workflows before onboarding fresh records.</p><div className="status-list"><div className="status-row"><span>Application shell and workspace routes</span><span className="status-pill">Added</span></div><div className="status-row"><span>Authentication and company access</span><span className="status-pill">Pending</span></div><div className="status-row"><span>CRM and commercial workflows</span><span className="status-pill">Pending</span></div><div className="status-row"><span>Reports, audit and release verification</span><span className="status-pill">Pending</span></div></div></section>
+            <section className="panel"><h2>Implementation sequence</h2><p className="muted">Build security and workflows before onboarding fresh records.</p><div className="status-list"><div className="status-row"><span>Application shell and workspace routes</span><span className="status-pill">Added</span></div><div className="status-row"><span>Authentication and company access</span><span className="status-pill">Active</span></div><div className="status-row"><span>CRM, sales, purchasing and profitability</span><span className="status-pill">Preview build</span></div><div className="status-row"><span>Logistics and management reports</span><span className="status-pill">Preview build</span></div><div className="status-row"><span>Documents, administration and release verification</span><span className="status-pill">In progress</span></div></div></section>
             <section className="panel"><h2>Company access</h2><p className="muted">Your active V7 company is verified against the membership table on the server.</p><div className="status-list">{context.companies.map((company) => <div className="status-row" key={company.companyId}><span>{company.displayName}</span><span className="status-pill">{company.role}</span></div>)}</div></section>
             <section className="panel"><h2>Strict fresh-data policy</h2><p className="muted">V7 starts with zero business records.</p><div className="empty-state">No legacy customers, stock, suppliers, purchases, sales, prices or balances are imported. The existing production database remains untouched.</div></section>
           </div>
