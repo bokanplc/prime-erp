@@ -12,13 +12,14 @@ export default async function PurchaseOrderPage({params}:Props) {
   const context=await getCompanyContext();
   const companyId=context.active.companyId;
   const {data:order,error}=await context.supabase.from("purchase_orders")
-    .select("id,order_number,status,order_date,expected_date,subtotal,vat_treatment,vat_rate_bps,vat_total,grand_total,notes,supplier_id,created_at")
+    .select("id,order_number,status,order_date,expected_date,subtotal,vat_treatment,vat_rate_bps,vat_total,grand_total,notes,supplier_id,purchase_request_id,created_at")
     .eq("id",id).eq("company_id",companyId).maybeSingle();
   if(error||!order)notFound();
 
-  const [{data:supplier},{data:lines}]=await Promise.all([
+  const [{data:supplier},{data:lines},{data:sourceRequest}]=await Promise.all([
     context.supabase.from("suppliers").select("legal_name,contact_name,phone,email,address,tax_number").eq("id",order.supplier_id).eq("company_id",companyId).maybeSingle(),
-    context.supabase.from("purchase_order_lines").select("description,quantity,unit_of_measure,unit_price,line_net").eq("purchase_order_id",order.id).eq("company_id",companyId).order("created_at")
+    context.supabase.from("purchase_order_lines").select("description,quantity,unit_of_measure,unit_price,line_net").eq("purchase_order_id",order.id).eq("company_id",companyId).order("created_at"),
+    order.purchase_request_id ? context.supabase.from("purchase_requests").select("request_number").eq("id",order.purchase_request_id).eq("company_id",companyId).maybeSingle() : Promise.resolve({data:null})
   ]);
   const vatLabel=order.vat_treatment==="exclusive"?"VAT added to prices":order.vat_treatment==="inclusive"?"VAT included in prices":"No VAT";
 
@@ -32,7 +33,7 @@ export default async function PurchaseOrderPage({params}:Props) {
 
       <section className="print-doc-meta">
         <div><span>Supplier</span><strong>{supplier?.legal_name??"Supplier"}</strong>{supplier?.contact_name?<p>{supplier.contact_name}</p>:null}{supplier?.address?<p>{supplier.address}</p>:null}{supplier?.phone?<p>{supplier.phone}</p>:null}{supplier?.email?<p>{supplier.email}</p>:null}{supplier?.tax_number?<p>Tax number: {supplier.tax_number}</p>:null}</div>
-        <div className="print-date-block"><p><span>Order date</span><strong>{new Date(order.order_date+"T00:00:00").toLocaleDateString()}</strong></p><p><span>Expected delivery</span><strong>{order.expected_date?new Date(order.expected_date+"T00:00:00").toLocaleDateString():"—"}</strong></p><p><span>Currency</span><strong>ETB · Ethiopian Birr</strong></p></div>
+        <div className="print-date-block"><p><span>Order date</span><strong>{new Date(order.order_date+"T00:00:00").toLocaleDateString()}</strong></p><p><span>Expected delivery</span><strong>{order.expected_date?new Date(order.expected_date+"T00:00:00").toLocaleDateString():"—"}</strong></p><p><span>Currency</span><strong>ETB · Ethiopian Birr</strong></p>{sourceRequest?<p><span>Source request</span><strong>{sourceRequest.request_number}</strong></p>:null}</div>
       </section>
 
       <table className="print-lines-table"><thead><tr><th>#</th><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Line total</th></tr></thead><tbody>
