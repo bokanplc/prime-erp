@@ -53,6 +53,7 @@ export async function createLead(formData: FormData): Promise<CustomerActionResu
   const email = String(formData.get("email") ?? "").trim();
   const source = String(formData.get("source") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+  const customerId = String(formData.get("customerId") ?? "").trim();
   const nextFollowUpDate = String(formData.get("nextFollowUpDate") ?? "").trim();
   const estimatedValueInput = String(formData.get("estimatedValue") ?? "").trim();
   const estimatedValue = estimatedValueInput ? Number(estimatedValueInput) : null;
@@ -81,6 +82,7 @@ export async function createLead(formData: FormData): Promise<CustomerActionResu
 
   const { error } = await context.supabase.from("crm_leads").insert({
     company_id: context.active.companyId,
+    customer_id: customerId || null,
     title,
     contact_name: contactName || null,
     phone: phone || null,
