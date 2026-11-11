@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateCommercialResult } from "./commercial";
+import { calculateCommercialResult, normalizeCommercialCost } from "./commercial";
 
 test("adds 15% VAT to an exclusive selling price", () => {
   const result = calculateCommercialResult({
