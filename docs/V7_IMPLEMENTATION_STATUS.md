@@ -39,7 +39,7 @@ Last updated: 2026-11-11
 
 ## Database controls
 
-- 30 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
+- 32 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
 - Public business tables have row-level security enabled and forced.
 - Same-company composite foreign keys protect cross-table relationships.
 - Private document storage uses company membership policies.
@@ -53,8 +53,8 @@ Last updated: 2026-11-11
 
 1. Complete the latest CI run after the current changes.
 2. Deploy the latest verified commit to a Vercel Preview deployment and review it.
-3. Create/invite the first account in V7 Supabase Auth.
-4. Run `scripts/v7-initial-admin-bootstrap.sql` with that account's email to create the two company records and grant initial admin access.
+3. Invite the first owner through V7 Supabase Auth and have them accept/verify the invitation.
+4. Sign in to Preview and use the one-time **Initialize both companies as first owner** action.
 5. Add the three sales users and one data-entry user after their V7 Auth accounts exist.
 6. Complete authenticated end-to-end tests for both companies and the four employee roles.
 7. Verify sign-in/session refresh and approved redirect URLs.
