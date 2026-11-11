@@ -187,7 +187,9 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000004', true);
 
 do $manager_member_list$
-declare member_count integer;
+declare
+  member_count integer;
+  notification_count integer;
 begin
   select count(*) into member_count
   from public.list_company_members('20000000-0000-4000-8000-000000000001');
@@ -197,6 +199,10 @@ begin
   select count(*) into member_count from public.audit_events where company_id='20000000-0000-4000-8000-000000000001';
   if member_count < 1 then
     raise exception 'Manager could not read company audit history';
+  end if;
+  select count(*) into notification_count from public.notifications where company_id='20000000-0000-4000-8000-000000000001';
+  if notification_count < 3 then
+    raise exception 'Manager did not receive pending approval notifications';
   end if;
 end
 $manager_member_list$;
