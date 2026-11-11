@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type CompanyMembership = {
@@ -14,7 +15,7 @@ export type CompanyMembership = {
 export async function getCompanyContext() {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) throw new Error("Authentication is required.");
+  if (userError || !user) redirect("/login");
 
   const { data: memberships, error: membershipError } = await supabase
     .from("company_memberships")
@@ -22,8 +23,8 @@ export async function getCompanyContext() {
     .eq("user_id", user.id)
     .eq("is_active", true);
 
-  if (membershipError) throw new Error("Company access could not be verified.");
-  if (!memberships?.length) throw new Error("No active V7 company membership is assigned.");
+  if (membershipError) redirect("/setup");
+  if (!memberships?.length) redirect("/no-access");
 
   const companyIds = memberships.map((membership) => membership.company_id);
   const { data: companies, error: companiesError } = await supabase
@@ -32,7 +33,8 @@ export async function getCompanyContext() {
     .in("id", companyIds)
     .eq("is_active", true);
 
-  if (companiesError || !companies?.length) throw new Error("No active company workspace is available.");
+  if (companiesError) redirect("/setup");
+  if (!companies?.length) redirect("/no-access");
 
   const roleByCompany = new Map(memberships.map((membership) => [membership.company_id, membership.role]));
   const available: CompanyMembership[] = companies.map((company) => ({
