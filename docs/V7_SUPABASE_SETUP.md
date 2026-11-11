@@ -30,6 +30,8 @@ The following V7-only migrations were applied and verified:
 11. `v7_landed_cost_reference_index`
 12. `v7_data_entry_purchasing_permissions`
 13. `v7_database_approval_guards`
+14. `v7_customer_specific_sales_prices`
+15. `v7_customer_price_fk_index`
 
 Verification at setup:
 - 19 public application tables
@@ -39,6 +41,7 @@ Verification at setup:
 - Private document bucket with company-folder Storage RLS and 10 MB file limit
 - Transaction-level landed-cost fields with same-company purchase-line references
 - Database triggers enforce manager-only sales and purchase-order approvals
+- Customer-specific sales price history with company-safe foreign keys
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
