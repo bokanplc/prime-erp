@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import { CustomerForm } from "./customer-form";
 import { ActivityForm, LeadForm } from "./crm-forms";
+import { updateLeadStage } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -39,15 +40,15 @@ export default async function CRMPage() {
       </section>
 
       <section className="workspace-panel">
-        <div className="workspace-panel-heading"><div><h2>Lead pipeline</h2><p>Track new prospects through qualification, proposal and negotiation.</p></div><span className="record-count">{leadOptions.length} leads</span></div>
+        <div className="workspace-panel-heading"><div><h2>Lead pipeline</h2><p>Move opportunities through qualification, proposal, negotiation and close.</p></div><span className="record-count">{leadOptions.length} leads</span></div>
         {leadError ? <div className="workspace-notice"><strong>Lead records are unavailable.</strong>The V7 CRM schema may not yet be installed.</div> : leadOptions.length ? (
-          <div className="table-scroll"><table className="records-table"><thead><tr><th>Opportunity</th><th>Contact</th><th>Stage</th><th>Estimated value</th><th>Next follow-up</th></tr></thead><tbody>{leadOptions.map((lead) => <tr key={lead.id}><td><strong>{lead.title}</strong></td><td>{lead.contact_name || "—"}</td><td><span className="stage-pill">{lead.stage}</span></td><td>{lead.estimated_value == null ? "—" : new Intl.NumberFormat("en-ET", { style: "currency", currency: "ETB", maximumFractionDigits: 2 }).format(lead.estimated_value)}</td><td>{lead.next_follow_up_at ? new Date(lead.next_follow_up_at).toLocaleDateString() : "—"}</td></tr>)}</tbody></table></div>
+          <div className="table-scroll"><table className="records-table"><thead><tr><th>Opportunity</th><th>Contact</th><th>Stage</th><th>Estimated value</th><th>Next follow-up</th></tr></thead><tbody>{leadOptions.map((lead) => <tr key={lead.id}><td><strong>{lead.title}</strong></td><td>{lead.contact_name || "—"}</td><td><form action={updateLeadStage} className="inline-stage-form"><input type="hidden" name="leadId" value={lead.id} /><select name="stage" defaultValue={lead.stage} aria-label={`Stage for ${lead.title}`} disabled={!canCreate}><option value="new">New</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="negotiation">Negotiation</option><option value="won">Won</option><option value="lost">Lost</option></select>{canCreate ? <button type="submit">Update</button> : null}</form></td><td>{lead.estimated_value == null ? "—" : new Intl.NumberFormat("en-ET", { style: "currency", currency: "ETB", maximumFractionDigits: 2 }).format(lead.estimated_value)}</td><td>{lead.next_follow_up_at ? new Date(lead.next_follow_up_at).toLocaleDateString() : "—"}</td></tr>)}</tbody></table></div>
         ) : <div className="workspace-empty"><div className="empty-mark">＋</div><h2>No leads yet</h2><p>New sales opportunities will appear here after the team records them.</p></div>}
       </section>
 
       {canCreate ? <div className="crm-entry-grid">
         <section className="workspace-panel"><h2>Add a customer</h2><p className="panel-hint">Create a new V7 customer record. No legacy customer data is preloaded.</p><CustomerForm /></section>
-        <section className="workspace-panel"><h2>Capture a lead</h2><p className="panel-hint">Record a prospect or commercial opportunity for follow-up.</p><LeadForm /></section>
+        <section className="workspace-panel"><h2>Capture a lead</h2><p className="panel-hint">Record a prospect, estimated value and the next follow-up date.</p><LeadForm /></section>
       </div> : null}
 
       <section className="workspace-panel">
