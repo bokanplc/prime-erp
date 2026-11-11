@@ -233,3 +233,15 @@ h1{font-size:29px;margin:9px 0 8px}
 .request-convert-form{display:grid;gap:6px;min-width:145px}
 .request-convert-form select{width:100%;min-width:0;border:1px solid #dce4e4;border-radius:6px;padding:6px 7px;font:inherit;font-size:10px}
 .request-convert-form button{justify-self:start;border:0;border-radius:6px;background:var(--green-soft);color:var(--green);padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}
+
+.request-estimates{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.request-estimate-card{border:1px solid var(--line);border-radius:9px;padding:12px;margin-top:10px;background:#fbfcfb}
+.request-estimate-card>strong{font-size:11px;margin-right:8px}
+.request-estimate-line{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.6fr) auto;gap:10px;align-items:end;padding:10px 0;border-top:1px solid #e9eeee;margin-top:10px}
+.request-estimate-line>div strong,.request-estimate-line>div small{display:block}
+.request-estimate-line>div strong{font-size:11px}
+.request-estimate-line>div small{font-size:10px;color:var(--muted);margin-top:4px}
+.request-estimate-line label{font-size:10px;color:var(--muted)}
+.request-estimate-line input{display:block;width:100%;margin-top:5px;border:1px solid #dce4e4;border-radius:6px;padding:7px;font:inherit;font-size:11px}
+.request-estimate-line button{border:0;border-radius:6px;background:var(--green-soft);color:var(--green);padding:7px 10px;font-size:10px;font-weight:700;cursor:pointer}
+@media(max-width:560px){.request-estimate-line{grid-template-columns:1fr 1fr}.request-estimate-line>div{grid-column:1/-1}}
