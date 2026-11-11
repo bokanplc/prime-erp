@@ -1,3 +1,6 @@
+import { getCompanyContext } from "@/lib/auth/company-context";
+import { CompanySwitcher } from "@/components/company-switcher";
+
 const modules = [
   { icon: "◎", title: "CRM & Customers", href: "/crm", desc: "Customer records, leads, pipeline, calls, visits, reminders and relationship history.", tag: "Core workspace" },
   { icon: "▤", title: "Sales & Proformas", href: "/sales", desc: "Commercial offers, sales documents, pricing, VAT and approval stages.", tag: "Core workspace" },
@@ -26,10 +29,10 @@ export default function Home() {
         <div className="sidebar-foot">BOKAN ERP V7<br/>New architecture · Preview build<br/>No business data connected.</div>
       </aside>
       <section className="main">
-        <header className="topbar"><div className="crumb">Workspace <span style={{color:"#c0c9ca"}}>/</span> Overview</div><div className="top-actions"><div className="company-select">Company setup · Pending</div><div className="avatar">B</div></div></header>
+        <header className="topbar"><div className="crumb">Workspace <span style={{color:"#c0c9ca"}}>/</span> Overview</div><div className="top-actions"><CompanySwitcher companies={context.companies} activeCompanyId={context.active.companyId} /><div className="avatar">{context.user.email?.slice(0,1).toUpperCase() ?? "B"}</div></div></header>
         <div className="content">
-          <div className="welcome"><div><div className="eyebrow">Commercial operations</div><h1>Good morning.</h1><p className="subhead">A clean V7 workspace is taking shape around secure company-aware operations.</p></div><div className="date-chip">BOKAN ERP · VERSION 7</div></div>
-          <div className="notice"><div>◈</div><div><strong>Development environment — not for live transactions</strong>This is the new application foundation. No sample figures or imported business records are displayed. Sign-in, company access, database persistence and operational workflows will be enabled only after their security checks pass.</div></div>
+          <div className="welcome"><div><div className="eyebrow">Commercial operations · {context.active.displayName}</div><h1>Good morning.</h1><p className="subhead">A clean V7 workspace is taking shape around secure company-aware operations.</p></div><div className="date-chip">BOKAN ERP · VERSION 7</div></div>
+          <div className="notice"><div>◈</div><div><strong>Development environment — not for live transactions</strong>This is the new application foundation. No sample figures or imported business records are displayed. Your active company is isolated by database policies; the new V7 database remains separate from legacy systems.</div></div>
           <div className="grid-kpi">
             <div className="kpi"><div className="kpi-label">Application status</div><div className="kpi-value">Building</div><div className="kpi-foot">V7 foundation</div></div>
             <div className="kpi"><div className="kpi-label">Planned workspaces</div><div className="kpi-value">9</div><div className="kpi-foot">Functional areas defined</div></div>
