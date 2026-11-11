@@ -13,7 +13,7 @@ export type CostInput = {
 export type CommercialResultInput = {
   /** Net or gross sales value, as identified by salesVatTreatment. */
   salesAmount: number;
-  salesVatTreatment: Exclude<VatTreatment, "none">;
+  salesVatTreatment: VatTreatment;
   /** Transaction-level landed purchase cost supplied by the user. */
   landedPurchaseCost: CostInput;
   directCosts?: CostInput[];
@@ -82,6 +82,21 @@ function normalize(
     gross: fromMinorUnits(gross),
     expense: fromMinorUnits(recoverableVat ? net : gross),
     recoverableVat
+  };
+}
+
+
+/** Normalize an entered cost to the amount that belongs in commercial cost.
+ * Recoverable VAT is excluded; non-recoverable VAT remains part of the cost.
+ */
+export function normalizeCommercialCost(input: CostInput, vatBasisPoints = STANDARD_VAT_BASIS_POINTS) {
+  if (!Number.isInteger(vatBasisPoints) || vatBasisPoints < 0 || vatBasisPoints > 100_000) {
+    throw new RangeError("VAT basis points must be a whole number from 0 to 100000.");
+  }
+  const normalized = normalize(input.amount, input.vatTreatment, vatBasisPoints, input.recoverableVat ?? false);
+  return {
+    expense: normalized.expense,
+    recoverableVat: normalized.recoverableVat ? normalized.vat : 0
   };
 }
 
