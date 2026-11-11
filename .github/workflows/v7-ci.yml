@@ -34,3 +34,48 @@ jobs:
 
       - name: Verify isolation, migrations, tests and production build
         run: npm run build
+
+  database-migration-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bokan_v7_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d bokan_v7_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: bokan_v7_test
+    steps:
+      - name: Check out V7 branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Create disposable Supabase Auth stand-in
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/v7-postgres-bootstrap.sql
+
+      - name: Apply only the V7 database migrations
+        run: |
+          for migration in supabase/migrations/*.sql; do
+            echo "Applying ${migration}"
+            psql -X -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+
+      - name: Verify RLS, company isolation and deferred modules
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-v7-postgres-rls.sql
