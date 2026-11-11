@@ -51,3 +51,24 @@ export async function updateCompanyMember(formData: FormData): Promise<void> {
   revalidatePath("/administration");
   redirect("/administration?updated=1");
 }
+
+export async function updateCompanySettings(formData: FormData): Promise<void> {
+  const legalName=String(formData.get("legalName")??"").trim();
+  const displayName=String(formData.get("displayName")??"").trim();
+  const vatRatePercent=Number(formData.get("vatRatePercent"));
+  if(legalName.length<2||legalName.length>200||displayName.length<2||displayName.length>120||!Number.isFinite(vatRatePercent)||vatRatePercent<0||vatRatePercent>100)return;
+
+  const context=await getCompanyContext();
+  if(!["owner","admin"].includes(context.active.role))return;
+
+  const {error}=await context.supabase.from("companies")
+    .update({legal_name:legalName,display_name:displayName,vat_rate_bps:Math.round(vatRatePercent*100)})
+    .eq("id",context.active.companyId);
+  if(error)redirect("/administration?error=settings");
+  revalidatePath("/");
+  revalidatePath("/administration");
+  revalidatePath("/sales");
+  revalidatePath("/purchasing");
+  revalidatePath("/profitability");
+  redirect("/administration?settings=updated");
+}
