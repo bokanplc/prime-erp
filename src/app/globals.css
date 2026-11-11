@@ -141,3 +141,21 @@ h1{font-size:29px;margin:9px 0 8px}
 .activity-item p{font-size:11px;color:var(--muted);margin:4px 0 0;line-height:1.5}
 .activity-item time{font-size:10px;color:var(--muted);text-align:right}
 @media(max-width:850px){.crm-entry-grid{grid-template-columns:1fr}.activity-item{grid-template-columns:75px 1fr}.activity-item time{grid-column:2;text-align:left}}
+
+
+.sales-lines{margin-top:22px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.sales-lines-head{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#f7f9f8;border-bottom:1px solid var(--line);font-size:11px;color:#52636a}
+.sales-lines-head span{color:var(--muted);font-size:10px}
+.sales-line{display:grid;grid-template-columns:2fr .8fr .7fr 1fr 1fr;gap:10px;padding:12px;border-bottom:1px solid var(--line)}
+.sales-line:last-child{border-bottom:0}
+.sales-line label,.sales-terms{display:grid;gap:6px;font-size:10px;color:#53636a;font-weight:600}
+.sales-line input,.sales-terms textarea{min-width:0;width:100%;border:1px solid #dce4e4;border-radius:7px;padding:9px;color:var(--ink);background:white;font:inherit;font-weight:400}
+.sales-terms{margin-top:16px}
+.sales-terms textarea{resize:vertical}
+.inline-stage-form{display:flex;align-items:center;gap:6px}
+.inline-stage-form select{max-width:125px;border:1px solid #dce4e4;border-radius:7px;padding:7px;background:white;font:inherit;font-size:10px}
+.inline-stage-form button{border:0;border-radius:7px;background:var(--green-soft);color:var(--green);padding:7px 9px;font-size:10px;font-weight:700;cursor:pointer}
+.checkbox-label{display:flex;align-items:center;gap:8px;font-size:11px;color:#53636a}
+.checkbox-label input{width:auto}
+@media(max-width:850px){.sales-line{grid-template-columns:repeat(2,minmax(0,1fr))}.sales-lines-head{display:block}.sales-lines-head span{display:block;margin-top:4px}}
+@media(max-width:520px){.sales-line{grid-template-columns:1fr}.inline-stage-form{flex-wrap:wrap}}
