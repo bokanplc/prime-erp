@@ -138,8 +138,8 @@ values ('20000000-0000-4000-8000-000000000001', 'Data Entry Supplier');
 insert into public.products (company_id, name, unit_of_measure)
 values ('20000000-0000-4000-8000-000000000001', 'Data Entry Product', 'pcs');
 
-insert into public.product_prices (company_id, product_id, price_type, unit_price)
-values ('20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', 'purchase', 125);
+insert into public.product_prices (company_id, product_id, supplier_id, price_type, unit_price)
+values ('20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 'purchase', 125);
 
 insert into public.purchase_orders (company_id, order_number, supplier_id, status)
 values ('20000000-0000-4000-8000-000000000001', 'PO-DATA-ENTRY', '30000000-0000-4000-8000-000000000001', 'submitted');
