@@ -20,11 +20,7 @@ export default async function CustomerHistoryPage({ params }: Props) {
     .eq("id", id).eq("company_id", companyId).maybeSingle();
   if (error || !customer) notFound();
 
-  const [{ data: activities }, { data: leads }, { data: salesDocuments }, { data: tasks }] = await Promise.all([
-    context.supabase.from("crm_activities")
-      .select("id,activity_type,subject,details,occurred_at")
-      .eq("company_id", companyId).eq("customer_id", customer.id)
-      .order("occurred_at", { ascending: false }).limit(100),
+  const [{ data: leads }, { data: salesDocuments }, { data: tasks }] = await Promise.all([
     context.supabase.from("crm_leads")
       .select("id,title,stage,estimated_value,next_follow_up_at,created_at")
       .eq("company_id", companyId).eq("customer_id", customer.id)
@@ -38,6 +34,23 @@ export default async function CustomerHistoryPage({ params }: Props) {
       .eq("company_id", companyId).eq("customer_id", customer.id)
       .order("due_at", { ascending: true, nullsFirst: false }).limit(100)
   ]);
+
+  const leadIds = (leads ?? []).map(lead => lead.id);
+  const [{ data: directActivities }, { data: linkedLeadActivities }] = await Promise.all([
+    context.supabase.from("crm_activities")
+      .select("id,activity_type,subject,details,occurred_at")
+      .eq("company_id", companyId).eq("customer_id", customer.id)
+      .order("occurred_at", { ascending: false }).limit(100),
+    leadIds.length
+      ? context.supabase.from("crm_activities")
+          .select("id,activity_type,subject,details,occurred_at")
+          .eq("company_id", companyId).in("lead_id", leadIds)
+          .order("occurred_at", { ascending: false }).limit(100)
+      : Promise.resolve({ data: [] })
+  ]);
+  const activities = [...new Map([...(directActivities ?? []), ...(linkedLeadActivities ?? [])].map(activity => [activity.id, activity])).values()]
+    .sort((a,b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime())
+    .slice(0,100);
 
   const canCreate = ["owner", "admin", "manager", "sales", "data_entry"].includes(context.active.role);
   const customerOptions = [{ id: customer.id, display_name: customer.display_name, legal_name: customer.legal_name }];
