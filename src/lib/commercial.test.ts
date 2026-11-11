@@ -107,3 +107,24 @@ test("does not add VAT to a non-taxable sales amount", () => {
   assert.equal(result.customerInvoiceTotal, 10_000);
   assert.equal(result.landedGrossProfit, 4_000);
 });
+
+test("uses the active company VAT basis points rather than a global rate", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 5_000, vatTreatment: "none" },
+    vatBasisPoints: 500
+  });
+  assert.equal(result.outputVat, 500);
+  assert.equal(result.customerInvoiceTotal, 10_500);
+});
+
+test("normalizes recoverable VAT using the active company rate", () => {
+  const result = normalizeCommercialCost({
+    amount: 10_500,
+    vatTreatment: "inclusive",
+    recoverableVat: true
+  }, 500);
+  assert.equal(result.expense, 10_000);
+  assert.equal(result.recoverableVat, 500);
+});
