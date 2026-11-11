@@ -159,3 +159,5 @@ h1{font-size:29px;margin:9px 0 8px}
 .checkbox-label input{width:auto}
 @media(max-width:850px){.sales-line{grid-template-columns:repeat(2,minmax(0,1fr))}.sales-lines-head{display:block}.sales-lines-head span{display:block;margin-top:4px}}
 @media(max-width:520px){.sales-line{grid-template-columns:1fr}.inline-stage-form{flex-wrap:wrap}}
+
+.subsection-title{font-family:Manrope,sans-serif;font-size:13px;letter-spacing:-.02em;margin:22px 0 10px;color:#304148}
