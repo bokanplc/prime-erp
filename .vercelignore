@@ -1,0 +1,9 @@
+# Do not upload V6.7 archives or old release artifacts to Vercel
+staging/
+dist/
+release/
+workers/
+cloudflare/
+.wrangler/
+wrangler.jsonc
+wrangler.toml
