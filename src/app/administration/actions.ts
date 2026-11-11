@@ -13,7 +13,7 @@ export async function addCompanyMember(formData: FormData): Promise<void> {
 
   const context=await getCompanyContext();
   if(!["owner","admin"].includes(context.active.role))redirect("/administration?error=access");
-  if(context.active.role==="admin"&&!assignableRoles.includes(role))redirect("/administration?error=role");
+  if(context.active.role==="admin"&&![...assignableRoles,"admin"].includes(role))redirect("/administration?error=role");
   if(context.active.role==="owner"&&![...assignableRoles,"owner","admin"].includes(role))redirect("/administration?error=role");
 
   const {data:userId,error:lookupError}=await context.supabase.rpc("find_company_auth_user",{
@@ -41,7 +41,7 @@ export async function updateCompanyMember(formData: FormData): Promise<void> {
 
   const context=await getCompanyContext();
   if(!["owner","admin"].includes(context.active.role))return;
-  if(context.active.role==="admin"&&!assignableRoles.includes(role))return;
+  if(context.active.role==="admin"&&![...assignableRoles,"admin"].includes(role))return;
 
   const {error}=await context.supabase.from("company_memberships")
     .update({role,is_active:isActive})
