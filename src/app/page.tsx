@@ -14,13 +14,14 @@ const modules = [
   { icon: "▧", title: "Documents", href: "/documents", desc: "Secure company documents, attachments, versions and controlled access.", tag: "Operations" },
   { icon: "◷", title: "Tasks & Reminders", href: "/tasks", desc: "Follow-ups, customer commitments, due dates and team work queues.", tag: "Team productivity" },
   { icon: "▥", title: "Reports", href: "/reports", desc: "Sales activity, pipeline health, margins, direct costs and salesperson performance.", tag: "Management" },
+  { icon: "≡", title: "Audit Log", href: "/audit", desc: "Read-only history of company changes, approvals and user actions.", tag: "Governance" },
   { icon: "⚙", title: "Administration", href: "/administration", desc: "Company setup, memberships, roles, access policies and settings.", tag: "Restricted access" }
 ];
 
 const nav = [
   ["⌂", "Overview", "/"], ["◎", "CRM & Customers", "/crm"], ["▤", "Sales & Proformas", "/sales"],
   ["⇄", "Purchasing", "/purchasing"], ["↗", "Profitability", "/profitability"], ["⌁", "Logistics", "/logistics"],
-  ["▧", "Documents", "/documents"], ["◷", "Tasks & Reminders", "/tasks"], ["▥", "Reports", "/reports"]
+  ["▧", "Documents", "/documents"], ["◷", "Tasks & Reminders", "/tasks"], ["▥", "Reports", "/reports"], ["≡", "Audit Log", "/audit"]
 ];
 
 export default async function Home() {
