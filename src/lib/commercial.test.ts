@@ -1,0 +1,67 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { calculateCommercialResult } from "./commercial";
+
+test("adds 15% VAT to an exclusive selling price", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 7_000, vatTreatment: "none" }
+  });
+  assert.equal(result.revenueExcludingVat, 10_000);
+  assert.equal(result.outputVat, 1_500);
+  assert.equal(result.customerInvoiceTotal, 11_500);
+  assert.equal(result.landedGrossProfit, 3_000);
+});
+
+test("extracts VAT from a VAT-inclusive selling price", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 11_500,
+    salesVatTreatment: "inclusive",
+    landedPurchaseCost: { amount: 7_000, vatTreatment: "none" }
+  });
+  assert.equal(result.revenueExcludingVat, 10_000);
+  assert.equal(result.outputVat, 1_500);
+  assert.equal(result.customerInvoiceTotal, 11_500);
+});
+
+test("deducts recoverable VAT from a purchase cost, not from a non-recoverable cost", () => {
+  const recoverable = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 8_050, vatTreatment: "inclusive", recoverableVat: true }
+  });
+  const nonRecoverable = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 8_050, vatTreatment: "inclusive", recoverableVat: false }
+  });
+  assert.equal(recoverable.landedPurchaseCost, 7_000);
+  assert.equal(recoverable.recoverablePurchaseVat, 1_050);
+  assert.equal(nonRecoverable.landedPurchaseCost, 8_050);
+  assert.equal(nonRecoverable.recoverablePurchaseVat, 0);
+});
+
+test("subtracts transport, loading and miscellaneous direct costs", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 20_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 12_000, vatTreatment: "none" },
+    directCosts: [
+      { amount: 500, vatTreatment: "none" },
+      { amount: 250, vatTreatment: "none" },
+      { amount: 150, vatTreatment: "none" }
+    ]
+  });
+  assert.equal(result.landedGrossProfit, 8_000);
+  assert.equal(result.directCosts, 900);
+  assert.equal(result.profitAfterDirectCosts, 7_100);
+});
+
+test("rejects negative monetary values", () => {
+  assert.throws(() => calculateCommercialResult({
+    salesAmount: -1,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 1, vatTreatment: "none" }
+  }), RangeError);
+});
