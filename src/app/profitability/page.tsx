@@ -9,11 +9,11 @@ export default async function ProfitabilityPage() {
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
   const [{data:documents},{data:lines},{data:salesCosts},{data:purchaseOrders},{data:purchaseCosts}] = await Promise.all([
-    context.supabase.from("sales_documents").select("id,document_number,document_type,status,issue_date,grand_total,vat_total,vat_treatment").eq("company_id",companyId).in("status",["approved","sent","accepted"]).order("issue_date",{ascending:false}).limit(500),
+    context.supabase.from("sales_documents").select("id,document_number,document_type,status,issue_date,grand_total,vat_total,vat_treatment,vat_rate_bps").eq("company_id",companyId).in("status",["approved","sent","accepted"]).order("issue_date",{ascending:false}).limit(500),
     context.supabase.from("sales_document_lines").select("id,sales_document_id,description,quantity,unit_of_measure,line_net,landed_unit_cost,landed_cost_reference").eq("company_id",companyId).limit(5000),
-    context.supabase.from("direct_costs").select("id,sales_document_id,category,description,amount,vat_treatment,recoverable_vat,incurred_on").eq("company_id",companyId).not("sales_document_id","is",null).limit(3000),
+    context.supabase.from("direct_costs").select("id,sales_document_id,category,description,amount,vat_treatment,vat_rate_bps,recoverable_vat,incurred_on").eq("company_id",companyId).not("sales_document_id","is",null).limit(3000),
     context.supabase.from("purchase_orders").select("id,order_number,status,order_date,subtotal,vat_total,grand_total").eq("company_id",companyId).in("status",["approved","sent","accepted"]).order("order_date",{ascending:false}).limit(500),
-    context.supabase.from("direct_costs").select("id,purchase_order_id,category,description,amount,vat_treatment,recoverable_vat,incurred_on").eq("company_id",companyId).not("purchase_order_id","is",null).limit(3000)
+    context.supabase.from("direct_costs").select("id,purchase_order_id,category,description,amount,vat_treatment,vat_rate_bps,recoverable_vat,incurred_on").eq("company_id",companyId).not("purchase_order_id","is",null).limit(3000)
   ]);
 
   const lineMap = new Map<string, NonNullable<typeof lines>[number][]>();
@@ -31,12 +31,13 @@ export default async function ProfitabilityPage() {
     const calculation=allCosted?calculateCommercialResult({
       salesAmount,
       salesVatTreatment:salesTreatment,
-      vatBasisPoints:context.active.vatRateBps,
+      vatBasisPoints:Number(doc.vat_rate_bps??context.active.vatRateBps),
       landedPurchaseCost:{amount:landedCost,vatTreatment:"none"},
       directCosts:costs.map(cost=>({
         amount:Number(cost.amount),
         vatTreatment:cost.vat_treatment as VatTreatment,
         recoverableVat:cost.recoverable_vat,
+        vatBasisPoints:Number(cost.vat_rate_bps??doc.vat_rate_bps??context.active.vatRateBps),
         category:cost.category as DirectCostCategory
       }))
     }):null;
@@ -63,6 +64,7 @@ export default async function ProfitabilityPage() {
     amount:Number(cost.amount),
     vatTreatment:cost.vat_treatment as VatTreatment,
     recoverableVat:cost.recoverable_vat,
+    vatBasisPoints:Number(cost.vat_rate_bps??context.active.vatRateBps),
     category:cost.category as DirectCostCategory
   },context.active.vatRateBps).expense,0);
   const purchaseOrderValue=(purchaseOrders??[]).reduce((sum,order)=>sum+Number(order.grand_total),0);
@@ -93,7 +95,7 @@ export default async function ProfitabilityPage() {
           <article className="profit-kpi"><span>Approved purchase order value</span><strong>{money(purchaseOrderValue)}</strong><small>{purchaseOrders?.length??0} approved purchase orders</small></article>
           <article className="profit-kpi"><span>Direct purchase costs</span><strong>{money(purchaseCostTotal)}</strong><small>Transportation, loading and miscellaneous</small></article>
         </div>
-        {purchaseOrders?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Purchase order</th><th>Date</th><th>Order value</th><th>Direct costs</th><th>Status</th></tr></thead><tbody>{purchaseOrders.map(order=>{const orderCosts=(purchaseCosts??[]).filter(c=>c.purchase_order_id===order.id).reduce((sum,cost)=>sum+normalizeCommercialCost({amount:Number(cost.amount),vatTreatment:cost.vat_treatment as VatTreatment,recoverableVat:cost.recoverable_vat,category:cost.category as DirectCostCategory},context.active.vatRateBps).expense,0);return <tr key={order.id}><td><strong>{order.order_number}</strong></td><td>{new Date(order.order_date+"T00:00:00").toLocaleDateString()}</td><td>{money(Number(order.grand_total))}</td><td>{money(orderCosts)}</td><td><span className="stage-pill">{order.status}</span></td></tr>})}</tbody></table></div>:<div className="workspace-empty"><h2>No approved purchase orders</h2><p>Approved purchase commitments and direct purchase costs will be listed here.</p></div>}
+        {purchaseOrders?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Purchase order</th><th>Date</th><th>Order value</th><th>Direct costs</th><th>Status</th></tr></thead><tbody>{purchaseOrders.map(order=>{const orderCosts=(purchaseCosts??[]).filter(c=>c.purchase_order_id===order.id).reduce((sum,cost)=>sum+normalizeCommercialCost({amount:Number(cost.amount),vatTreatment:cost.vat_treatment as VatTreatment,recoverableVat:cost.recoverable_vat,vatBasisPoints:Number(cost.vat_rate_bps??context.active.vatRateBps),category:cost.category as DirectCostCategory},context.active.vatRateBps).expense,0);return <tr key={order.id}><td><strong>{order.order_number}</strong></td><td>{new Date(order.order_date+"T00:00:00").toLocaleDateString()}</td><td>{money(Number(order.grand_total))}</td><td>{money(orderCosts)}</td><td><span className="stage-pill">{order.status}</span></td></tr>})}</tbody></table></div>:<div className="workspace-empty"><h2>No approved purchase orders</h2><p>Approved purchase commitments and direct purchase costs will be listed here.</p></div>}
       </section>
       <p className="profit-footnote">Margin coverage: {coverage}% of approved sales documents have complete landed cost data. Recoverable input VAT is excluded from cost only when explicitly marked recoverable; non-recoverable VAT remains in cost. These are management calculations, not Peachtree accounting entries.</p>
     </main>
