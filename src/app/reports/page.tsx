@@ -13,7 +13,7 @@ export default async function ReportsPage() {
     context.supabase.from("sales_documents").select("id,document_number,status,document_type,grand_total,vat_total,created_by,issue_date").eq("company_id",companyId).order("created_at",{ascending:false}).limit(1000),
     context.supabase.from("purchase_orders").select("id,status,grand_total").eq("company_id",companyId).limit(1000),
     context.supabase.from("tasks").select("id,status,assigned_to,due_at").eq("company_id",companyId).limit(2000),
-    context.supabase.from("customers").select("id",{count:"exact",head:true}).eq("company_id",companyId)
+    context.supabase.from("customers").select("id").eq("company_id",companyId).limit(5000)
   ]);
 
   const stageCounts=new Map<string,number>();
