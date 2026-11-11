@@ -5,7 +5,7 @@ begin;
 
 create extension if not exists pgcrypto;
 
-create type public.company_role as enum ('owner', 'manager', 'sales', 'purchasing', 'operations', 'viewer');
+create type public.company_role as enum ('owner', 'admin', 'manager', 'sales', 'purchasing', 'operations', 'data_entry', 'viewer');
 create type public.crm_lead_stage as enum ('new', 'qualified', 'proposal', 'negotiation', 'won', 'lost');
 create type public.commercial_document_status as enum ('draft', 'submitted', 'approved', 'rejected', 'sent', 'accepted', 'expired', 'cancelled');
 create type public.direct_cost_category as enum ('transportation', 'loading', 'miscellaneous');
@@ -43,6 +43,7 @@ create table public.customers (
   phone text,
   address text,
   tax_number text,
+  tax_id text,
   notes text,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now(),
