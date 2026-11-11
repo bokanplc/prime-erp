@@ -6,21 +6,21 @@ create policy customers_member_read on public.customers
   for select to authenticated using (private.is_company_member(company_id));
 create policy customers_sales_write on public.customers
   for insert to authenticated
-  with check (private.has_company_role(company_id, array['owner','manager','sales']::public.company_role[]));
+  with check (private.has_company_role(company_id, array['owner','admin','manager','sales','data_entry']::public.company_role[]));
 create policy customers_sales_update on public.customers
   for update to authenticated
   using (private.has_company_role(company_id, array['owner','manager','sales']::public.company_role[]))
   with check (private.has_company_role(company_id, array['owner','manager','sales']::public.company_role[]));
 create policy customers_manager_delete on public.customers
   for delete to authenticated
-  using (private.has_company_role(company_id, array['owner','manager']::public.company_role[]));
+  using (private.has_company_role(company_id, array['owner','admin','manager']::public.company_role[]));
 
 drop policy if exists suppliers_member_access on public.suppliers;
 create policy suppliers_member_read on public.suppliers
   for select to authenticated using (private.is_company_member(company_id));
 create policy suppliers_purchasing_write on public.suppliers
   for insert to authenticated
-  with check (private.has_company_role(company_id, array['owner','manager','purchasing']::public.company_role[]));
+  with check (private.has_company_role(company_id, array['owner','admin','manager','purchasing']::public.company_role[]));
 create policy suppliers_purchasing_update on public.suppliers
   for update to authenticated
   using (private.has_company_role(company_id, array['owner','manager','purchasing']::public.company_role[]))
@@ -118,7 +118,7 @@ create policy direct_costs_member_read on public.direct_costs
   for select to authenticated using (private.is_company_member(company_id));
 create policy direct_costs_commercial_write on public.direct_costs
   for insert to authenticated
-  with check (private.has_company_role(company_id, array['owner','manager','sales','purchasing','operations']::public.company_role[]));
+  with check (private.has_company_role(company_id, array['owner','admin','manager','sales','purchasing','operations','data_entry']::public.company_role[]));
 create policy direct_costs_commercial_update on public.direct_costs
   for update to authenticated
   using (private.has_company_role(company_id, array['owner','manager','sales','purchasing','operations']::public.company_role[]))
@@ -132,7 +132,7 @@ create policy delivery_jobs_member_read on public.delivery_jobs
   for select to authenticated using (private.is_company_member(company_id));
 create policy delivery_jobs_operations_write on public.delivery_jobs
   for insert to authenticated
-  with check (private.has_company_role(company_id, array['owner','manager','sales','operations']::public.company_role[]));
+  with check (private.has_company_role(company_id, array['owner','admin','manager','sales','operations','data_entry']::public.company_role[]));
 create policy delivery_jobs_operations_update on public.delivery_jobs
   for update to authenticated
   using (private.has_company_role(company_id, array['owner','manager','sales','operations']::public.company_role[]))
