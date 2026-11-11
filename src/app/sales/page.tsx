@@ -77,7 +77,7 @@ export default async function SalesPage() {
 
       {canCreate ? <section className="workspace-panel">
         <h2>Create quotation / proforma</h2>
-        <p className="panel-hint">Enter up to four lines. Amounts are in ETB. The document is submitted for manager approval when saved. Landed unit cost is optional, manually verified and used only for commercial margin analysis—not stock valuation.</p>
+        <p className="panel-hint">Enter up to four lines. Select a product to use its latest matching customer-specific or general sales price; you can override it. Amounts are in ETB. The document is submitted for manager approval when saved. Landed unit cost is optional, manually verified and used only for commercial margin analysis—not stock valuation.</p>
         {(customers ?? []).length ? <form action={createSalesDocument} className="record-form">
           <div className="form-grid">
             <label>Customer <span>*</span><select name="customerId" required defaultValue=""><option value="" disabled>Select customer</option>{(customers ?? []).map(c => <option key={c.id} value={c.id}>{c.display_name || c.legal_name}</option>)}</select></label>
@@ -89,10 +89,10 @@ export default async function SalesPage() {
           <div className="sales-lines">
             <div className="sales-lines-head"><strong>Document lines</strong><span>Description · Quantity · Unit price · Discount · Verified landed unit cost (optional)</span></div>
             {Array.from({length:4},(_,i)=><div className="sales-line" key={i}>
-              <label>Description<input name="description" maxLength={240} placeholder={i===0?"Product / service description":"Optional line"} required={i===0} /></label>
+              <label>Product (optional)<select name="productId" defaultValue=""><option value="">Custom line</option>{(products??[]).map(product=><option key={product.id} value={product.id}>{product.name}</option>)}</select></label><label>Description<input name="description" maxLength={240} placeholder={i===0?"Product / service description":"Optional line"} required={i===0} /></label>
               <label>Quantity<input name="quantity" type="number" min="0.001" step="0.001" defaultValue={i===0?"1":""} /></label>
-              <label>Unit<input name="unitOfMeasure" maxLength={30} defaultValue="pcs" /></label>
-              <label>Unit price (ETB)<input name="unitPrice" type="number" min="0" step="0.01" defaultValue={i===0?"0":""} /></label>
+              <label>Unit<input name="unitOfMeasure" maxLength={30} placeholder="Uses product unit" /></label>
+              <label>Unit price (ETB)<input name="unitPrice" type="number" min="0" step="0.01" placeholder="Uses customer / general price" /></label>
               <label>Discount (ETB)<input name="discountAmount" type="number" min="0" step="0.01" defaultValue="0" /></label><label>Landed unit cost (ETB)<input name="landedUnitCost" type="number" min="0" step="0.01" placeholder="For margin analysis" /></label><label>Source purchase line<select name="landedPurchaseOrderLineId" defaultValue=""><option value="">No linked purchase line</option>{availableLandedLines.map(line=><option key={line.id} value={line.id}>{purchaseOrderName.get(line.purchase_order_id)} · {line.description} · {money(line.unit_price)}/{line.unit_of_measure}</option>)}</select></label><label>Cost source reference<input name="landedCostReference" maxLength={160} placeholder="Supplier invoice / PO ref" /></label>
             </div>)}
           </div>
