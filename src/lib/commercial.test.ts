@@ -65,3 +65,33 @@ test("rejects negative monetary values", () => {
     landedPurchaseCost: { amount: 1, vatTreatment: "none" }
   }), RangeError);
 });
+
+test("reports direct costs by transportation, loading and miscellaneous category", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 6_000, vatTreatment: "none" },
+    directCosts: [
+      { amount: 300, vatTreatment: "none", category: "transportation" },
+      { amount: 100, vatTreatment: "none", category: "loading" },
+      { amount: 50, vatTreatment: "none", category: "miscellaneous" }
+    ]
+  });
+  assert.equal(result.transportationCosts, 300);
+  assert.equal(result.loadingCosts, 100);
+  assert.equal(result.miscellaneousCosts, 50);
+  assert.equal(result.directCosts, 450);
+});
+
+test("includes recoverable VAT on eligible direct costs separately", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    landedPurchaseCost: { amount: 6_000, vatTreatment: "none" },
+    directCosts: [
+      { amount: 1_150, vatTreatment: "inclusive", recoverableVat: true, category: "transportation" }
+    ]
+  });
+  assert.equal(result.directCosts, 1_000);
+  assert.equal(result.recoverableDirectCostVat, 150);
+});
