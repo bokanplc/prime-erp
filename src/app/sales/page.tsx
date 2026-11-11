@@ -11,16 +11,21 @@ const money = (value: number | null) => new Intl.NumberFormat("en-ET", {
 export default async function SalesPage() {
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
-  const [{ data: customers }, { data: documents }, { data: lines }, { data: costs }, { data: products }, { data: salesPrices }] = await Promise.all([
+  const [{ data: customers }, { data: documents }, { data: lines }, { data: costs }, { data: products }, { data: salesPrices }, { data: purchaseOrders }, { data: purchaseOrderLines }] = await Promise.all([
     context.supabase.from("customers").select("id, legal_name, display_name").eq("company_id", companyId).order("display_name").limit(500),
     context.supabase.from("sales_documents").select("id, document_number, document_type, status, issue_date, valid_until, subtotal, discount_total, vat_treatment, vat_total, grand_total, customer_id, created_at").eq("company_id", companyId).order("created_at", { ascending: false }).limit(100),
-    context.supabase.from("sales_document_lines").select("id, sales_document_id, description, quantity, unit_of_measure, unit_price, discount_amount, line_net, landed_unit_cost, landed_cost_reference").eq("company_id", companyId).limit(1000),
+    context.supabase.from("sales_document_lines").select("id, sales_document_id, description, quantity, unit_of_measure, unit_price, discount_amount, line_net, landed_unit_cost, landed_cost_reference, landed_purchase_order_line_id").eq("company_id", companyId).limit(1000),
     context.supabase.from("direct_costs").select("id, sales_document_id, category, description, amount, incurred_on").eq("company_id", companyId).not("sales_document_id", "is", null).order("incurred_on", { ascending: false }).limit(500),
     context.supabase.from("products").select("id, name, sku, unit_of_measure").eq("company_id", companyId).eq("is_active", true).order("name").limit(500),
-    context.supabase.from("product_prices").select("id, product_id, unit_price, vat_treatment, effective_from, created_at").eq("company_id", companyId).eq("price_type", "sales").order("effective_from", { ascending: false }).limit(1000)
+    context.supabase.from("product_prices").select("id, product_id, unit_price, vat_treatment, effective_from, created_at").eq("company_id", companyId).eq("price_type", "sales").order("effective_from", { ascending: false }).limit(1000),
+    context.supabase.from("purchase_orders").select("id, order_number").eq("company_id", companyId).in("status", ["approved", "sent", "accepted"]).order("order_date", { ascending: false }).limit(500),
+    context.supabase.from("purchase_order_lines").select("id, purchase_order_id, description, unit_price, unit_of_measure").eq("company_id", companyId).limit(2000)
   ]);
 
   const customerName = new Map((customers ?? []).map(c => [c.id, c.display_name || c.legal_name]));
+  const purchaseOrderName = new Map((purchaseOrders ?? []).map(order => [order.id, order.order_number]));
+  const approvedPurchaseOrderIds = new Set((purchaseOrders ?? []).map(order => order.id));
+  const availableLandedLines = (purchaseOrderLines ?? []).filter(line => approvedPurchaseOrderIds.has(line.purchase_order_id));
   const latestSalesPrice = new Map<string, NonNullable<typeof salesPrices>[number]>();
   for (const price of salesPrices ?? []) if (!latestSalesPrice.has(price.product_id)) latestSalesPrice.set(price.product_id, price);
   const linesByDocument = new Map<string, NonNullable<typeof lines>[number][]>();
@@ -79,13 +84,13 @@ export default async function SalesPage() {
             <label>VAT treatment <span>*</span><select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">15% VAT added (exclusive)</option><option value="inclusive">Price includes 15% VAT (inclusive)</option><option value="none">No VAT</option></select></label>
           </div>
           <div className="sales-lines">
-            <div className="sales-lines-head"><strong>Document lines</strong><span>Description · Quantity · Unit price · Discount · Landed unit cost (optional)</span></div>
+            <div className="sales-lines-head"><strong>Document lines</strong><span>Description · Quantity · Unit price · Discount · Verified landed unit cost (optional)</span></div>
             {Array.from({length:4},(_,i)=><div className="sales-line" key={i}>
               <label>Description<input name="description" maxLength={240} placeholder={i===0?"Product / service description":"Optional line"} required={i===0} /></label>
               <label>Quantity<input name="quantity" type="number" min="0.001" step="0.001" defaultValue={i===0?"1":""} /></label>
               <label>Unit<input name="unitOfMeasure" maxLength={30} defaultValue="pcs" /></label>
               <label>Unit price (ETB)<input name="unitPrice" type="number" min="0" step="0.01" defaultValue={i===0?"0":""} /></label>
-              <label>Discount (ETB)<input name="discountAmount" type="number" min="0" step="0.01" defaultValue="0" /></label><label>Landed unit cost (ETB)<input name="landedUnitCost" type="number" min="0" step="0.01" placeholder="For margin analysis" /></label><label>Cost source reference<input name="landedCostReference" maxLength={160} placeholder="Supplier invoice / PO ref" /></label>
+              <label>Discount (ETB)<input name="discountAmount" type="number" min="0" step="0.01" defaultValue="0" /></label><label>Landed unit cost (ETB)<input name="landedUnitCost" type="number" min="0" step="0.01" placeholder="For margin analysis" /></label><label>Source purchase line<select name="landedPurchaseOrderLineId" defaultValue=""><option value="">No linked purchase line</option>{availableLandedLines.map(line=><option key={line.id} value={line.id}>{purchaseOrderName.get(line.purchase_order_id)} · {line.description} · {money(line.unit_price)}/{line.unit_of_measure}</option>)}</select></label><label>Cost source reference<input name="landedCostReference" maxLength={160} placeholder="Supplier invoice / PO ref" /></label>
             </div>)}
           </div>
           <label className="sales-terms">Terms and conditions<textarea name="terms" rows={3} maxLength={3000} /></label>
