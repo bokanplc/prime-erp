@@ -52,7 +52,7 @@ The following V7-only migrations were applied and verified:
 Verification at setup:
 - 20 public application tables
 - Row Level Security enabled on all 20 tables
-- 73 RLS policies
+- 74 RLS policies
 - 0 unindexed foreign keys (including landed-cost, customer/supplier pricing and notification references)
 - Private document bucket with company-folder Storage RLS and 10 MB file limit
 - Transaction-level landed-cost fields with same-company purchase-line references
