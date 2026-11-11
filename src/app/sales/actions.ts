@@ -209,7 +209,7 @@ export async function addSalesDirectCost(formData: FormData): Promise<void> {
     description,
     amount: roundMoney(amount),
     vat_treatment: vatTreatment,
-    vat_rate_bps: 1500,
+    vat_rate_bps: context.active.vatRateBps,
     recoverable_vat: recoverableVat,
     incurred_on: incurredOn || new Date().toISOString().slice(0,10),
     created_by: context.user.id
@@ -242,7 +242,7 @@ export async function recordSalesPrice(formData: FormData): Promise<void> {
     unit_price: roundMoney(unitPrice),
     currency_code: "ETB",
     vat_treatment: vatTreatment,
-    vat_rate_bps: 1500,
+    vat_rate_bps: context.active.vatRateBps,
     effective_from: effectiveFrom || new Date().toISOString().slice(0,10),
     notes: notes || null,
     created_by: context.user.id
