@@ -40,6 +40,16 @@ declare
   company_count integer;
   owner_count integer;
 begin
+  if (select p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname='bootstrap_initial_companies') then
+    raise exception 'Public bootstrap API must be SECURITY INVOKER';
+  end if;
+  if not (select p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname='bootstrap_initial_companies') then
+    raise exception 'Private bootstrap implementation must be SECURITY DEFINER';
+  end if;
+  if has_function_privilege('anon','public.bootstrap_initial_companies()','EXECUTE') then
+    raise exception 'Anonymous role unexpectedly has bootstrap execute permission';
+  end if;
+
   prime_id := public.bootstrap_initial_companies();
   select count(*) into company_count from public.companies;
   select count(*) into owner_count from public.company_memberships
