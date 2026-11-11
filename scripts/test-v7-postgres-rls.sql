@@ -44,6 +44,9 @@ select '60000000-0000-4000-8000-000000000001', company_id, 'PRO-TEST-APPROVAL', 
 from public.customers
 where company_id = '20000000-0000-4000-8000-000000000001' and legal_name = 'Customer One';
 
+insert into public.purchase_requests (id,company_id,request_number,status,requested_by)
+values ('70000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','PR-TEST-APPROVAL','submitted','10000000-0000-4000-8000-000000000003');
+
 
 do $$
 declare
@@ -160,6 +163,15 @@ begin
   exception
     when insufficient_privilege then null;
   end;
+
+  begin
+    update public.purchase_requests
+    set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000003', approved_at = now()
+    where id = '70000000-0000-4000-8000-000000000001';
+    raise exception 'Data-entry user unexpectedly approved a purchase request';
+  exception
+    when insufficient_privilege then null;
+  end;
 end
 $data_entry_test$;
 rollback;
@@ -187,6 +199,10 @@ where id = '50000000-0000-4000-8000-000000000001';
 update public.sales_documents
 set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000004', approved_at = now()
 where id = '60000000-0000-4000-8000-000000000001';
+
+update public.purchase_requests
+set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000004', approved_at = now()
+where id = '70000000-0000-4000-8000-000000000001';
 
 rollback;
 
