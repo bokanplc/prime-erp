@@ -204,6 +204,22 @@ update public.purchase_requests
 set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000004', approved_at = now()
 where id = '70000000-0000-4000-8000-000000000001';
 
+insert into public.purchase_orders (
+  id,company_id,order_number,supplier_id,purchase_request_id,status,created_by
+) values (
+  '80000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  'PO-TEST-REQUEST-CONVERSION',
+  '30000000-0000-4000-8000-000000000001',
+  '70000000-0000-4000-8000-000000000001',
+  'submitted',
+  '10000000-0000-4000-8000-000000000004'
+);
+
+update public.purchase_requests
+set status = 'converted'
+where id = '70000000-0000-4000-8000-000000000001';
+
 rollback;
 
 
