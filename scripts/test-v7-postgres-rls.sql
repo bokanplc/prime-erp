@@ -1,9 +1,11 @@
 -- Test-only synthetic rows in disposable PostgreSQL; never production data.
-insert into auth.users (id) values
-  ('10000000-0000-4000-8000-000000000001'),
-  ('10000000-0000-4000-8000-000000000002'),
-  ('10000000-0000-4000-8000-000000000003'),
-  ('10000000-0000-4000-8000-000000000004');
+insert into auth.users (id, email) values
+  ('10000000-0000-4000-8000-000000000001','sales-one@example.test'),
+  ('10000000-0000-4000-8000-000000000002','sales-two@example.test'),
+  ('10000000-0000-4000-8000-000000000003','data-entry@example.test'),
+  ('10000000-0000-4000-8000-000000000004','manager@example.test'),
+  ('10000000-0000-4000-8000-000000000005','owner@example.test'),
+  ('10000000-0000-4000-8000-000000000006','new-member@example.test');
 
 insert into public.companies (id, legal_name, display_name)
 values
@@ -15,7 +17,8 @@ values
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'sales'),
   ('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', 'sales'),
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'data_entry'),
-  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000004', 'manager');
+  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000004', 'manager'),
+  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000005', 'owner');
 
 insert into public.customers (company_id, legal_name, display_name)
 values
@@ -176,4 +179,36 @@ where id = '60000000-0000-4000-8000-000000000001';
 
 rollback;
 
-select 'V7 migration smoke test passed: schema, tenant isolation, private storage, data-entry permissions, manager approvals and excluded modules verified.' as result;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
+do $sales_membership_read$
+begin
+  begin
+    perform * from public.list_company_members('20000000-0000-4000-8000-000000000001');
+    raise exception 'Sales user unexpectedly listed company memberships';
+  exception when insufficient_privilege then null;
+  end;
+end
+$sales_membership_read$;
+rollback;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000005', true);
+do $owner_membership_add$
+declare
+  found_user uuid;
+begin
+  found_user := public.find_company_auth_user('20000000-0000-4000-8000-000000000001','new-member@example.test');
+  if found_user <> '10000000-0000-4000-8000-000000000006'::uuid then
+    raise exception 'Owner email lookup did not return the expected existing Auth user';
+  end if;
+  insert into public.company_memberships (company_id,user_id,role)
+  values ('20000000-0000-4000-8000-000000000001',found_user,'sales');
+end
+$owner_membership_add$;
+rollback;
+
+select 'V7 migration smoke test passed: schema, tenant isolation, private storage, data-entry permissions, manager approvals and guarded membership administration verified.' as result;
