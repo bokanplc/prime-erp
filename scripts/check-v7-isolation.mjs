@@ -36,7 +36,7 @@ async function walk(dir) {
 
 const targets = [...files, ...(await Promise.all(roots.map(walk))).flat()];
 const violations = [];
-for (const file of targets) {\n  if (file.endsWith("scripts/check-v7-isolation.mjs")) continue;
+for (const file of targets) {
   let content;
   try { content = await readFile(file, "utf8"); }
   catch (error) { if (error.code === "ENOENT") continue; throw error; }
