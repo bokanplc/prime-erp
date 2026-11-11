@@ -41,6 +41,7 @@ The following V7-only migrations were applied and verified:
 22. `v7_approval_attribution_guard`
 23. `v7_purchase_request_approval_guard`
 24. `v7_purchase_request_conversion`
+25. `v7_supplier_specific_purchase_prices`
 
 Verification at setup:
 - 19 public application tables
@@ -57,6 +58,7 @@ Verification at setup:
 - Consolidated safe-delete policies avoid duplicate permissive-policy warnings
 - Commercial status transitions and approval attribution are database-guarded
 - Purchase requests have manager-only approval enforcement and controlled conversion to linked supplier orders
+- Supplier-specific purchase prices have same-company references and lookup indexes
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
