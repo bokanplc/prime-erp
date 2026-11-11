@@ -126,3 +126,5 @@ h1{font-size:29px;margin:9px 0 8px}
 
 .sign-out-button{border:1px solid var(--line);border-radius:8px;background:white;color:#53636a;padding:9px 11px;font-size:11px;cursor:pointer}
 .sign-out-button:hover{border-color:#b6cfc4;color:var(--green)}
+
+.signout-button{border:1px solid var(--line);background:white;border-radius:8px;padding:9px 12px;color:#43545a;font-size:11px;cursor:pointer}.signout-button:hover{border-color:#b6cfc4;color:var(--green)}
