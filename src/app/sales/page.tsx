@@ -52,7 +52,7 @@ export default async function SalesPage() {
       <Link className="back-link" href="/">← BOKAN ERP overview</Link>
       <div className="eyebrow">Commercial transactions · {context.active.displayName}</div>
       <h1>Sales & Proformas</h1>
-      <p className="workspace-description">Prepare quotations and proformas with customer-specific commercial terms, line discounts and Ethiopia’s standard 15% VAT calculation. This is not a payment or accounting module.</p>
+      <p className="workspace-description">Prepare quotations and proformas with customer-specific commercial terms, line discounts and the active company’s configured {context.active.vatRateBps/100}% VAT rate. This is not a payment or accounting module.</p>
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Sales document register</h2><p>Submitted commercial documents for the active company.</p></div><span className="record-count">{documents?.length ?? 0} documents</span></div>
@@ -84,7 +84,7 @@ export default async function SalesPage() {
             <label>Document type <span>*</span><select name="documentType" defaultValue="proforma"><option value="quotation">Quotation</option><option value="proforma">Proforma invoice</option><option value="sales_order">Sales order</option></select></label>
             <label>Issue date<input type="date" name="issueDate" /></label>
             <label>Valid until<input type="date" name="validUntil" /></label>
-            <label>VAT treatment <span>*</span><select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">15% VAT added (exclusive)</option><option value="inclusive">Price includes 15% VAT (inclusive)</option><option value="none">No VAT</option></select></label>
+            <label>VAT treatment <span>*</span><select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">{context.active.vatRateBps/100}% VAT added (exclusive)</option><option value="inclusive">Price includes {context.active.vatRateBps/100}% VAT (inclusive)</option><option value="none">No VAT</option></select></label>
           </div>
           <div className="sales-lines">
             <div className="sales-lines-head"><strong>Document lines</strong><span>Description · Quantity · Unit price · Discount · Verified landed unit cost (optional)</span></div>
