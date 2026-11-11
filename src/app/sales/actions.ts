@@ -190,3 +190,32 @@ export async function addSalesDirectCost(formData: FormData): Promise<void> {
   revalidatePath("/sales");
   revalidatePath("/profitability");
 }
+
+export async function recordSalesPrice(formData: FormData): Promise<void> {
+  const productId = String(formData.get("productId") ?? "").trim();
+  const unitPrice = Number(formData.get("unitPrice"));
+  const vatTreatment = String(formData.get("vatTreatment") ?? "exclusive");
+  const effectiveFrom = String(formData.get("effectiveFrom") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+
+  if (!productId || !Number.isFinite(unitPrice) || unitPrice < 0) return;
+  if (!["exclusive", "inclusive", "none"].includes(vatTreatment)) return;
+  if (effectiveFrom && !/^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom)) return;
+
+  const context = await getCompanyContext();
+  if (!["owner", "admin", "manager", "sales"].includes(context.active.role)) return;
+
+  await context.supabase.from("product_prices").insert({
+    company_id: context.active.companyId,
+    product_id: productId,
+    price_type: "sales",
+    unit_price: roundMoney(unitPrice),
+    currency_code: "ETB",
+    vat_treatment: vatTreatment,
+    vat_rate_bps: 1500,
+    effective_from: effectiveFrom || new Date().toISOString().slice(0,10),
+    notes: notes || null,
+    created_by: context.user.id
+  });
+  revalidatePath("/sales");
+}
