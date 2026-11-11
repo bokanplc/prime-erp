@@ -123,3 +123,6 @@ h1{font-size:29px;margin:9px 0 8px}
 .form-error,.form-success{font-size:11px;margin:12px 0 0}
 .form-error{color:#a54e39}.form-success{color:var(--green)}
 @media(max-width:720px){.company-switcher select{max-width:150px}.form-grid{grid-template-columns:1fr}.form-wide{grid-column:auto}.workspace-panel-heading{align-items:flex-start}}
+
+.sign-out-button{border:1px solid var(--line);border-radius:8px;background:white;color:#53636a;padding:9px 11px;font-size:11px;cursor:pointer}
+.sign-out-button:hover{border-color:#b6cfc4;color:var(--green)}
