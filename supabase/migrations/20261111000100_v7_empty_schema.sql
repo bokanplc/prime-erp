@@ -38,6 +38,7 @@ create table public.customers (
   company_id uuid not null references public.companies(id),
   customer_code text,
   legal_name text not null,
+  display_name text not null,
   contact_name text,
   email text,
   phone text,
