@@ -10,6 +10,7 @@ export type CompanyMembership = {
   displayName: string;
   legalName: string;
   currencyCode: string;
+  vatRateBps: number;
 };
 
 export async function getCompanyContext() {
@@ -29,7 +30,7 @@ export async function getCompanyContext() {
   const companyIds = memberships.map((membership) => membership.company_id);
   const { data: companies, error: companiesError } = await supabase
     .from("companies")
-    .select("id, display_name, legal_name, currency_code")
+    .select("id, display_name, legal_name, currency_code, vat_rate_bps")
     .in("id", companyIds)
     .eq("is_active", true);
 
@@ -42,7 +43,8 @@ export async function getCompanyContext() {
     role: roleByCompany.get(company.id) ?? "viewer",
     displayName: company.display_name,
     legalName: company.legal_name,
-    currencyCode: company.currency_code
+    currencyCode: company.currency_code,
+    vatRateBps: company.vat_rate_bps
   }));
 
   const cookieStore = await cookies();
