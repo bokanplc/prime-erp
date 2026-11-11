@@ -195,6 +195,7 @@ export async function addSalesDirectCost(formData: FormData): Promise<void> {
 
 export async function recordSalesPrice(formData: FormData): Promise<void> {
   const productId = String(formData.get("productId") ?? "").trim();
+  const customerId = String(formData.get("customerId") ?? "").trim();
   const unitPrice = Number(formData.get("unitPrice"));
   const vatTreatment = String(formData.get("vatTreatment") ?? "exclusive");
   const effectiveFrom = String(formData.get("effectiveFrom") ?? "").trim();
@@ -210,6 +211,7 @@ export async function recordSalesPrice(formData: FormData): Promise<void> {
   await context.supabase.from("product_prices").insert({
     company_id: context.active.companyId,
     product_id: productId,
+    customer_id: customerId || null,
     price_type: "sales",
     unit_price: roundMoney(unitPrice),
     currency_code: "ETB",
