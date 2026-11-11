@@ -169,6 +169,17 @@ begin;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000004', true);
 
+do $manager_member_list$
+declare member_count integer;
+begin
+  select count(*) into member_count
+  from public.list_company_members('20000000-0000-4000-8000-000000000001');
+  if member_count <> 4 then
+    raise exception 'Manager membership view expected 4 members, received %', member_count;
+  end if;
+end
+$manager_member_list$;
+
 update public.purchase_orders
 set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000004', approved_at = now()
 where id = '50000000-0000-4000-8000-000000000001';
