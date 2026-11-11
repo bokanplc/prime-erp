@@ -76,8 +76,8 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
     const quantity=Number(quantityInput);
     const customerPrice=productId?currentPriceMap.get(`${productId}:${customerId}`):undefined;
     const generalPrice=productId?currentPriceMap.get(`${productId}:general`):undefined;
-    const suggestedPrice=customerPrice??generalPrice;
-    const unitPrice=priceInput?Number(priceInput):suggestedPrice?.vat_treatment===vatTreatment?suggestedPrice.unit_price:Number.NaN;
+    const suggestedPrice=[customerPrice,generalPrice].find(price=>price?.vat_treatment===vatTreatment);
+    const unitPrice=priceInput?Number(priceInput):suggestedPrice?.unit_price??Number.NaN;
     const discount=Number(discountInput||0);
     const landedCost=landedInput?Number(landedInput):null;
     if (description.length>240 || !Number.isFinite(quantity) || quantity<=0 || quantity>1_000_000) {hasInvalidLine=true;return;}
