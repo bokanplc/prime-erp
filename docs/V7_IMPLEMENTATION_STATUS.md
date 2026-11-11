@@ -17,14 +17,14 @@ Last updated: 2026-11-11
 | Area | Implemented capability |
 |---|---|
 | Dashboard | Live company-scoped customer, pipeline, approved sales and task metrics |
-| CRM | Customer directory, leads, pipeline stages, estimated value, follow-up dates, calls, visits, meetings and reminders |
+| CRM | Editable customer profiles, linked sales history, leads, pipeline stages, estimated value, follow-up dates, calls, visits, meetings and reminders |
 | Sales | Quotations, proformas, sales orders, customer-specific and general product prices, line discounts, 15% VAT, manager approval, direct sales costs and A4 print/PDF view |
 | Purchasing | Suppliers, products, general and supplier-specific purchase-price history, purchase requests, manager approval and conversion to linked purchase orders, printable purchase orders and direct purchase costs |
 | Profitability | VAT-normalized revenue, transaction-level landed gross profit, direct-cost deductions and purchase-side cost visibility |
 | Logistics | Delivery planning, carrier/vehicle details, dispatch, delivery confirmation and exception status |
 | Tasks | Company-scoped tasks and reminders with due dates and status updates |
 | Documents | Private company-folder storage, upload metadata, business-record links and expiring signed downloads |
-| Reports | Live CRM, sales document, activity, purchasing and task summaries |
+| Reports | Live CRM, sales document, activity, purchasing, task and salesperson performance summaries |
 | Audit log | Read-only, company-scoped history of business changes and approvals |
 | Notifications | Recipient-only in-app alerts for pending approvals, approvals and request conversion; unread state is immutable except for marking read |
 | Administration | Company identity and VAT settings, company membership list, existing-account assignment, role management and member activation/deactivation |
