@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCompanyContext } from "@/lib/auth/company-context";
 
@@ -18,7 +19,7 @@ export async function WorkspacePage({ eyebrow, title, description, capabilities 
 
   return (
     <main className="workspace-page">
-      <a className="back-link" href="/">← BOKAN ERP overview</a>
+      <Link className="back-link" href="/">← BOKAN ERP overview</Link>
       <div className="eyebrow">{eyebrow} · {context.active.displayName}</div>
       <h1>{title}</h1>
       <p className="workspace-description">{description}</p>
