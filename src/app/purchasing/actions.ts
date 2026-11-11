@@ -71,7 +71,7 @@ export async function createProduct(formData: FormData): Promise<void> {
       unit_price: roundMoney(purchasePrice),
       currency_code: "ETB",
       vat_treatment: "exclusive",
-      vat_rate_bps: 1500,
+      vat_rate_bps: context.active.vatRateBps,
       created_by: context.user.id
     });
     if (priceError) {
@@ -111,7 +111,7 @@ export async function recordProductPrice(formData: FormData): Promise<void> {
     unit_price: roundMoney(unitPrice),
     currency_code: "ETB",
     vat_treatment: vatTreatment,
-    vat_rate_bps: 1500,
+    vat_rate_bps: context.active.vatRateBps,
     effective_from: effectiveFrom || new Date().toISOString().slice(0,10),
     notes: notes || null,
     created_by: context.user.id
@@ -319,7 +319,7 @@ export async function addPurchaseDirectCost(formData: FormData): Promise<void> {
     description,
     amount: roundMoney(amount),
     vat_treatment: vatTreatment,
-    vat_rate_bps: 1500,
+    vat_rate_bps: context.active.vatRateBps,
     recoverable_vat: recoverableVat,
     created_by: context.user.id
   });
