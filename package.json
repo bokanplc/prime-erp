@@ -31,6 +31,9 @@
   },
   "overrides": {
     "postcss": "8.5.32",
-    "minimatch": "11.0.7"
+    "minimatch@^7.0.0": "11.0.7",
+    "minimatch@^8.0.0": "11.0.7",
+    "minimatch@^9.0.0": "11.0.7",
+    "minimatch@^10.0.0": "11.0.7"
   }
 }
