@@ -17,7 +17,7 @@ export default async function SalesPage() {
     context.supabase.from("sales_document_lines").select("id, sales_document_id, description, quantity, unit_of_measure, unit_price, discount_amount, line_net, landed_unit_cost, landed_cost_reference, landed_purchase_order_line_id").eq("company_id", companyId).limit(1000),
     context.supabase.from("direct_costs").select("id, sales_document_id, category, description, amount, incurred_on").eq("company_id", companyId).not("sales_document_id", "is", null).order("incurred_on", { ascending: false }).limit(500),
     context.supabase.from("products").select("id, name, sku, unit_of_measure").eq("company_id", companyId).eq("is_active", true).order("name").limit(500),
-    context.supabase.from("product_prices").select("id, product_id, unit_price, vat_treatment, effective_from, created_at").eq("company_id", companyId).eq("price_type", "sales").order("effective_from", { ascending: false }).limit(1000),
+    context.supabase.from("product_prices").select("id, product_id, customer_id, unit_price, vat_treatment, effective_from, created_at").eq("company_id", companyId).eq("price_type", "sales").order("effective_from", { ascending: false }).limit(1000),
     context.supabase.from("purchase_orders").select("id, order_number").eq("company_id", companyId).in("status", ["approved", "sent", "accepted"]).order("order_date", { ascending: false }).limit(500),
     context.supabase.from("purchase_order_lines").select("id, purchase_order_id, description, unit_price, unit_of_measure").eq("company_id", companyId).limit(2000)
   ]);
@@ -27,7 +27,8 @@ export default async function SalesPage() {
   const approvedPurchaseOrderIds = new Set((purchaseOrders ?? []).map(order => order.id));
   const availableLandedLines = (purchaseOrderLines ?? []).filter(line => approvedPurchaseOrderIds.has(line.purchase_order_id));
   const latestSalesPrice = new Map<string, NonNullable<typeof salesPrices>[number]>();
-  for (const price of salesPrices ?? []) if (!latestSalesPrice.has(price.product_id)) latestSalesPrice.set(price.product_id, price);
+  for (const price of salesPrices ?? []) if (!price.customer_id && !latestSalesPrice.has(price.product_id)) latestSalesPrice.set(price.product_id, price);
+  const customerSpecificPrices = (salesPrices ?? []).filter(price => price.customer_id);
   const linesByDocument = new Map<string, NonNullable<typeof lines>[number][]>();
   for (const line of lines ?? []) {
     const group = linesByDocument.get(line.sales_document_id) ?? [];
@@ -62,9 +63,11 @@ export default async function SalesPage() {
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Sales price catalogue</h2><p>Current sales prices by product. Price changes are stored with effective dates and VAT treatment.</p></div><span className="record-count">{products?.length ?? 0} products</span></div>
-        {products?.length ? <div className="table-scroll"><table className="records-table"><thead><tr><th>SKU</th><th>Product</th><th>Unit</th><th>Current sales price</th><th>Effective from</th></tr></thead><tbody>{products.map(product => { const price = latestSalesPrice.get(product.id); return <tr key={product.id}><td>{product.sku ?? "—"}</td><td><strong>{product.name}</strong></td><td>{product.unit_of_measure}</td><td>{price ? money(price.unit_price) : "—"}</td><td>{price ? new Date(price.effective_from + "T00:00:00").toLocaleDateString() : "—"}</td></tr>; })}</tbody></table></div> : <div className="workspace-empty"><h2>No products in the catalogue</h2><p>Add new products through Purchasing before recording sales prices.</p></div>}
+        {products?.length ? <div className="table-scroll"><table className="records-table"><thead><tr><th>SKU</th><th>Product</th><th>Unit</th><th>General sales price</th><th>Effective from</th></tr></thead><tbody>{products.map(product => { const price = latestSalesPrice.get(product.id); return <tr key={product.id}><td>{product.sku ?? "—"}</td><td><strong>{product.name}</strong></td><td>{product.unit_of_measure}</td><td>{price ? money(price.unit_price) : "—"}</td><td>{price ? new Date(price.effective_from + "T00:00:00").toLocaleDateString() : "—"}</td></tr>; })}</tbody></table></div> : <div className="workspace-empty"><h2>No products in the catalogue</h2><p>Add new products through Purchasing before recording sales prices.</p></div>}
+        {customerSpecificPrices.length ? <><h3 className="subsection-title">Customer-specific price history</h3><div className="table-scroll"><table className="records-table"><thead><tr><th>Customer</th><th>Product</th><th>Price</th><th>VAT treatment</th><th>Effective from</th></tr></thead><tbody>{customerSpecificPrices.map(price=><tr key={price.id}><td>{customers?.find(customer=>customer.id===price.customer_id)?.display_name||customers?.find(customer=>customer.id===price.customer_id)?.legal_name||"—"}</td><td>{products?.find(product=>product.id===price.product_id)?.name??"—"}</td><td>{money(price.unit_price)}</td><td>{price.vat_treatment}</td><td>{new Date(price.effective_from+"T00:00:00").toLocaleDateString()}</td></tr>)}</tbody></table></div></> : null}
         {canSetSalesPrice && products?.length ? <form action={recordSalesPrice} className="record-form"><h3 className="subsection-title">Record sales price</h3><div className="form-grid">
           <label>Product <span>*</span><select name="productId" required defaultValue=""><option value="" disabled>Select product</option>{products.map(product => <option key={product.id} value={product.id}>{product.name} ({product.unit_of_measure})</option>)}</select></label>
+          <label>Customer (optional)<select name="customerId" defaultValue=""><option value="">General price</option>{customers?.map(customer=><option key={customer.id} value={customer.id}>{customer.display_name||customer.legal_name}</option>)}</select></label>
           <label>Unit sales price (ETB) <span>*</span><input name="unitPrice" type="number" min="0" step="0.01" required /></label>
           <label>VAT treatment<select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">VAT exclusive</option><option value="inclusive">VAT inclusive</option><option value="none">No VAT</option></select></label>
           <label>Effective from<input name="effectiveFrom" type="date" /></label>
