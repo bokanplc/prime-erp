@@ -35,6 +35,7 @@ The following V7-only migrations were applied and verified:
 16. `v7_creator_rollback_policies`
 17. `v7_membership_administration`
 18. `v7_membership_admin_rpc`
+19. `v7_admin_role_assignment`
 
 Verification at setup:
 - 19 public application tables
@@ -47,6 +48,7 @@ Verification at setup:
 - Customer-specific sales price history with company-safe foreign keys
 - Creator-scoped cleanup policies for incomplete first-save transactions
 - Company-scoped membership management with owner/admin boundaries
+- Admins can assign other admins; owner role remains owner-controlled
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
