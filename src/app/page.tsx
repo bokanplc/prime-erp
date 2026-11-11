@@ -15,24 +15,26 @@ const modules = [
   { icon: "◷", title: "Tasks & Reminders", href: "/tasks", desc: "Follow-ups, customer commitments, due dates and team work queues.", tag: "Team productivity" },
   { icon: "▥", title: "Reports", href: "/reports", desc: "Sales activity, pipeline health, margins, direct costs and salesperson performance.", tag: "Management" },
   { icon: "≡", title: "Audit Log", href: "/audit", desc: "Read-only history of company changes, approvals and user actions.", tag: "Governance" },
+  { icon: "♧", title: "Notifications", href: "/notifications", desc: "Private approval alerts and purchasing workflow updates.", tag: "Team productivity" },
   { icon: "⚙", title: "Administration", href: "/administration", desc: "Company setup, memberships, roles, access policies and settings.", tag: "Restricted access" }
 ];
 
 const nav = [
   ["⌂", "Overview", "/"], ["◎", "CRM & Customers", "/crm"], ["▤", "Sales & Proformas", "/sales"],
   ["⇄", "Purchasing", "/purchasing"], ["↗", "Profitability", "/profitability"], ["⌁", "Logistics", "/logistics"],
-  ["▧", "Documents", "/documents"], ["◷", "Tasks & Reminders", "/tasks"], ["▥", "Reports", "/reports"], ["≡", "Audit Log", "/audit"]
+  ["▧", "Documents", "/documents"], ["◷", "Tasks & Reminders", "/tasks"], ["▥", "Reports", "/reports"], ["≡", "Audit Log", "/audit"], ["♧", "Notifications", "/notifications"]
 ];
 
 export default async function Home() {
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
-  const [{data:customers},{data:leads},{data:sales},{data:purchaseOrders},{data:tasks}] = await Promise.all([
+  const [{data:customers},{data:leads},{data:sales},{data:purchaseOrders},{data:tasks},{count:unreadNotifications}] = await Promise.all([
     context.supabase.from("customers").select("id").eq("company_id",companyId).limit(5000),
     context.supabase.from("crm_leads").select("id,stage").eq("company_id",companyId).limit(5000),
     context.supabase.from("sales_documents").select("id,status,grand_total,vat_total").eq("company_id",companyId).limit(5000),
     context.supabase.from("purchase_orders").select("id,status").eq("company_id",companyId).limit(5000),
-    context.supabase.from("tasks").select("id,status").eq("company_id",companyId).limit(5000)
+    context.supabase.from("tasks").select("id,status").eq("company_id",companyId).limit(5000),
+    context.supabase.from("notifications").select("id",{count:"exact",head:true}).eq("company_id",companyId).is("read_at",null)
   ]);
   const openLeads = (leads??[]).filter(row=>!["won","lost"].includes(row.stage)).length;
   const openTasks = (tasks??[]).filter(row=>["open","in_progress"].includes(row.status)).length;
@@ -43,7 +45,7 @@ export default async function Home() {
     <main className="shell">
       <aside className="sidebar">
         <div className="brand"><div className="brand-row"><div className="brand-mark">B</div><div><div className="brand-name">BOKAN ERP</div><div className="brand-sub">COMMERCIAL PLATFORM</div></div></div></div>
-        <div><div className="nav-label">Workspace</div><nav className="nav-list">{nav.map(([icon,label,href],i)=><a key={label} className={`nav-item ${i===0?"active":""}`} href={href}><span className="nav-icon">{icon}</span>{label}</a>)}</nav></div>
+        <div><div className="nav-label">Workspace</div><nav className="nav-list">{nav.map(([icon,label,href],i)=><a key={label} className={`nav-item ${i===0?"active":""}`} href={href}><span className="nav-icon">{icon}</span>{label}{href==="/notifications"&&unreadNotifications?<span className="nav-count">{unreadNotifications}</span>:null}</a>)}</nav></div>
         <div><div className="nav-label">Management</div><nav className="nav-list"><a className="nav-item" href="/administration"><span className="nav-icon">⚙</span>Administration</a></nav></div>
         <div className="sidebar-foot">BOKAN ERP V7<br/>New architecture · Preview build<br/>No legacy data imported.</div>
       </aside>
