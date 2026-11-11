@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+import { getCompanyContext } from "@/lib/auth/company-context";
+
 type WorkspacePageProps = {
   eyebrow: string;
   title: string;
@@ -5,16 +8,23 @@ type WorkspacePageProps = {
   capabilities: string[];
 };
 
-export function WorkspacePage({ eyebrow, title, description, capabilities }: WorkspacePageProps) {
+export async function WorkspacePage({ eyebrow, title, description, capabilities }: WorkspacePageProps) {
+  let context;
+  try {
+    context = await getCompanyContext();
+  } catch {
+    redirect("/login");
+  }
+
   return (
     <main className="workspace-page">
       <a className="back-link" href="/">← BOKAN ERP overview</a>
-      <div className="eyebrow">{eyebrow}</div>
+      <div className="eyebrow">{eyebrow} · {context.active.displayName}</div>
       <h1>{title}</h1>
       <p className="workspace-description">{description}</p>
       <section className="workspace-notice" role="status">
-        <strong>Workspace foundation — setup not yet connected</strong>
-        This area is being implemented. No business records have been imported or created. Records and actions will become available only after secure sign-in, company access and the isolated V7 database pass verification.
+        <strong>Workspace foundation — secure company access verified</strong>
+        This area is being implemented. No business records have been imported or created. The workspace is scoped to the active V7 company; fresh, reconciled data will be onboarded later through a separately approved process.
       </section>
       <section className="workspace-panel">
         <h2>Planned capabilities</h2>
