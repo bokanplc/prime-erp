@@ -25,15 +25,13 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "20"
+          cache: npm
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run unit tests
-        run: npm test
-
       - name: Lint
         run: npm run lint
 
-      - name: Build
-        run: npx next build
+      - name: Verify isolation, migrations, tests and production build
+        run: npm run build
