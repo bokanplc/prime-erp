@@ -1,16 +1,54 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { initializeFirstOwnerWorkspace } from "./actions";
 
-export default function SetupPage() {
+type Props = { searchParams: Promise<{ error?: string }> };
+
+export const dynamic = "force-dynamic";
+
+export default async function SetupPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: memberships } = await supabase
+      .from("company_memberships")
+      .select("company_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .limit(1);
+    if (memberships?.length) redirect("/");
+  }
+
+  const errorMessage = params.error === "invite"
+    ? "The first owner account must be invited and email-verified by the Supabase project administrator."
+    : params.error === "failed"
+      ? "Workspace initialization could not be completed. Confirm that this is the invited first-owner account and try again."
+      : null;
+
   return (
     <main className="auth-shell">
       <section className="auth-card">
-        <div className="brand-mark">B</div>
-        <div className="eyebrow">BOKAN ERP · V7</div>
-        <h1>Secure setup required</h1>
-        <p>This deployment is not connected to an isolated V7 authentication and database environment yet.</p>
-        <div className="auth-alert">Access to business workspaces is blocked until the V7 Supabase URL and public client key are configured and the V7 schema, row-level security and company-access policies have been reviewed.</div>
-        <p className="auth-footnote">No legacy database is connected. No business records have been loaded. Do not enter live business information in this environment.</p>
-        <Link className="auth-link" href="https://supabase.com/docs/guides/auth/server-side/nextjs">Supabase secure Next.js setup guide ↗</Link>
+        <Link className="auth-brand" href="/"><span className="auth-mark">B</span><span>BOKAN ERP</span></Link>
+        <div className="eyebrow">BOKAN ERP · V7 first-time setup</div>
+        <h1>Initialize your workspace</h1>
+        <p className="auth-copy">The V7 database is isolated and empty. This one-time step creates the two company workspaces and assigns the verified first owner account as owner of both.</p>
+        <div className="auth-alert">No customers, suppliers, products, stock, sales, purchases, prices or historical business records will be created or imported.</div>
+        {errorMessage ? <p className="auth-error" role="alert">{errorMessage}</p> : null}
+        {user ? (
+          <form action={initializeFirstOwnerWorkspace} className="auth-form">
+            <p>Signed in as <strong>{user.email}</strong>.</p>
+            <button type="submit">Create the two company workspaces</button>
+          </form>
+        ) : (
+          <div className="auth-form">
+            <p>Sign in with the invited and verified first-owner account to continue.</p>
+            <Link className="auth-link" href="/sign-in">Go to secure sign in →</Link>
+          </div>
+        )}
+        <p className="auth-foot">This is a one-time owner bootstrap. Public self-registration is disabled.</p>
       </section>
     </main>
   );
