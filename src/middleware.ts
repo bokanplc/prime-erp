@@ -1,35 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabasePublicEnv } from "./lib/supabase/env";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
+import { updateSession } from "@/lib/supabase/update-session";
 
-const publicPaths = ["/login", "/setup", "/no-access", "/auth/callback"];
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/_next") || pathname === "/favicon.ico") return NextResponse.next();
 
   if (!getSupabasePublicEnv()) {
     if (pathname === "/setup") return NextResponse.next();
     return NextResponse.redirect(new URL("/setup", request.url));
   }
 
-  if (publicPaths.some((path) => pathname === path || pathname.startsWith(path + "/"))) {
-    return NextResponse.next();
-  }
-
-  // Cookie presence is only a routing hint, never proof of identity.
-  // Every protected server page/action verifies the session with Supabase Auth
-  // and checks company membership before it reads or writes business records.
-  const hasSessionCookie = request.cookies.getAll().some(({ name }) =>
-    /^sb-.+-auth-token(?:\.\d+)?$/.test(name)
-  );
-
-  if (!hasSessionCookie) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return NextResponse.next();
+  // Refresh the Supabase cookie session. Protected server pages/actions still
+  // verify the user with auth.getUser() and enforce company membership/RLS.
+  return updateSession(request);
 }
 
 export const config = {
