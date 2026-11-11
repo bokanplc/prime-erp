@@ -27,12 +27,13 @@ The following V7-only migrations were applied and verified:
 8. `v7_private_document_storage`
 9. `v7_harden_document_storage_policies`
 10. `v7_document_upload_cleanup_policy`
+11. `v7_landed_cost_reference_index`
 
 Verification at setup:
 - 19 public application tables
 - Row Level Security enabled on all 19 tables
 - 68 RLS policies
-- 0 unindexed foreign keys
+- 0 unindexed foreign keys (including the landed-cost purchase-line reference)
 - Private document bucket with company-folder Storage RLS and 10 MB file limit
 - Transaction-level landed-cost fields with same-company purchase-line references
 - 0 business rows, users, stock records, or imported historical data
