@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCompanyContext } from "@/lib/auth/company-context";
-import { addCompanyMember, updateCompanyMember } from "./actions";
+import { addCompanyMember, updateCompanyMember, updateCompanySettings } from "./actions";
 
 export const dynamic="force-dynamic";
-type Props={searchParams:Promise<{error?:string;added?:string;updated?:string}>};
+type Props={searchParams:Promise<{error?:string;added?:string;updated?:string;settings?:string}>};
 type CompanyMember={user_id:string;email:string|null;role:string;is_active:boolean;created_at:string};
 
 const errorMessages:Record<string,string>={
@@ -14,6 +14,7 @@ const errorMessages:Record<string,string>={
   "user-not-found":"No existing V7 Auth account matches that email. Invite or create the account in Supabase Auth first.",
   "already-member":"That account already has a membership in this company.",
   add:"The membership could not be added. Check company access and try again.",
+  settings:"Company settings could not be saved. Check your role and values.",
   update:"The membership could not be updated. Check your permission level."
 };
 
@@ -37,6 +38,10 @@ export default async function AdministrationPage({searchParams}:Props) {
       {params.error?<div className="workspace-notice"><strong>Action not completed.</strong>{errorMessages[params.error]??"Please check your access and try again."}</div>:null}
       {params.added?<div className="workspace-success" role="status">Company membership added.</div>:null}
       {params.updated?<div className="workspace-success" role="status">Membership updated.</div>:null}
+      {params.settings?<div className="workspace-success" role="status">Company settings saved.</div>:null}
+
+
+      {canManage?<section className="workspace-panel"><h2>Company settings</h2><p className="panel-hint">These values apply only to {context.active.displayName}. VAT changes affect new commercial documents; historical documents retain their saved rate.</p><form action={updateCompanySettings} className="record-form"><div className="form-grid"><label>Legal company name <span>*</span><input name="legalName" required maxLength={200} defaultValue={context.active.legalName}/></label><label>Display name <span>*</span><input name="displayName" required maxLength={120} defaultValue={context.active.displayName}/></label><label>VAT rate (%) <span>*</span><input name="vatRatePercent" type="number" min="0" max="100" step="0.01" required defaultValue={(context.active.vatRateBps/100).toFixed(2)}/></label><label>Base currency<input value={context.active.currencyCode} readOnly/></label></div><div className="form-actions"><button type="submit">Save company settings</button></div></form></section>:null}
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Company members</h2><p>Existing V7 accounts and their active role in this company.</p></div><span className="record-count">{memberRows.length} members</span></div>
