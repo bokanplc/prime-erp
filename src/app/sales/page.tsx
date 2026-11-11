@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCompanyContext } from "@/lib/auth/company-context";
-import { addSalesDirectCost, approveSalesDocument, createSalesDocument } from "./actions";
+import { addSalesDirectCost, approveSalesDocument, createSalesDocument, recordSalesPrice } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +11,18 @@ const money = (value: number | null) => new Intl.NumberFormat("en-ET", {
 export default async function SalesPage() {
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
-  const [{ data: customers }, { data: documents }, { data: lines }, { data: costs }] = await Promise.all([
+  const [{ data: customers }, { data: documents }, { data: lines }, { data: costs }, { data: products }, { data: salesPrices }] = await Promise.all([
     context.supabase.from("customers").select("id, legal_name, display_name").eq("company_id", companyId).order("display_name").limit(500),
     context.supabase.from("sales_documents").select("id, document_number, document_type, status, issue_date, valid_until, subtotal, discount_total, vat_treatment, vat_total, grand_total, customer_id, created_at").eq("company_id", companyId).order("created_at", { ascending: false }).limit(100),
     context.supabase.from("sales_document_lines").select("id, sales_document_id, description, quantity, unit_of_measure, unit_price, discount_amount, line_net, landed_unit_cost, landed_cost_reference").eq("company_id", companyId).limit(1000),
-    context.supabase.from("direct_costs").select("id, sales_document_id, category, description, amount, incurred_on").eq("company_id", companyId).not("sales_document_id", "is", null).order("incurred_on", { ascending: false }).limit(500)
+    context.supabase.from("direct_costs").select("id, sales_document_id, category, description, amount, incurred_on").eq("company_id", companyId).not("sales_document_id", "is", null).order("incurred_on", { ascending: false }).limit(500),
+    context.supabase.from("products").select("id, name, sku, unit_of_measure").eq("company_id", companyId).eq("is_active", true).order("name").limit(500),
+    context.supabase.from("product_prices").select("id, product_id, unit_price, vat_treatment, effective_from, created_at").eq("company_id", companyId).eq("price_type", "sales").order("effective_from", { ascending: false }).limit(1000)
   ]);
 
   const customerName = new Map((customers ?? []).map(c => [c.id, c.display_name || c.legal_name]));
+  const latestSalesPrice = new Map<string, NonNullable<typeof salesPrices>[number]>();
+  for (const price of salesPrices ?? []) if (!latestSalesPrice.has(price.product_id)) latestSalesPrice.set(price.product_id, price);
   const linesByDocument = new Map<string, NonNullable<typeof lines>[number][]>();
   for (const line of lines ?? []) {
     const group = linesByDocument.get(line.sales_document_id) ?? [];
@@ -35,6 +39,7 @@ export default async function SalesPage() {
 
   const canCreate = ["owner", "admin", "manager", "sales", "data_entry"].includes(context.active.role);
   const canApprove = ["owner", "admin", "manager"].includes(context.active.role);
+  const canSetSalesPrice = ["owner", "admin", "manager", "sales"].includes(context.active.role);
 
   return (
     <main className="workspace-page">
@@ -48,6 +53,18 @@ export default async function SalesPage() {
         {documents?.length ? <div className="table-scroll"><table className="records-table"><thead><tr><th>Document</th><th>Lines</th><th>Direct costs</th><th>Customer</th><th>Date</th><th>Net before VAT</th><th>VAT</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>
           {documents.map(doc => <tr key={doc.id}><td><strong>{doc.document_number}</strong><small>{doc.document_type.replace("_", " ")}</small></td><td>{linesByDocument.get(doc.id)?.length ?? 0}</td><td>{money((costsByDocument.get(doc.id) ?? []).reduce((sum, cost) => sum + Number(cost.amount), 0))}</td><td>{customerName.get(doc.customer_id) ?? "—"}</td><td>{new Date(doc.issue_date + "T00:00:00").toLocaleDateString()}</td><td>{money((doc.grand_total ?? 0) - (doc.vat_total ?? 0))}</td><td>{money(doc.vat_total)}</td><td><strong>{money(doc.grand_total)}</strong></td><td><span className="stage-pill">{doc.status}</span></td><td>{canApprove && doc.status === "submitted" ? <form action={approveSalesDocument} className="inline-stage-form"><input type="hidden" name="documentId" value={doc.id} /><button type="submit">Approve</button></form> : "—"}</td></tr>)}
         </tbody></table></div> : <div className="workspace-empty"><div className="empty-mark">＋</div><h2>No sales documents</h2><p>Create your first quotation or proforma below. Nothing has been imported from the previous system.</p></div>}
+      </section>
+
+      <section className="workspace-panel">
+        <div className="workspace-panel-heading"><div><h2>Sales price catalogue</h2><p>Current sales prices by product. Price changes are stored with effective dates and VAT treatment.</p></div><span className="record-count">{products?.length ?? 0} products</span></div>
+        {products?.length ? <div className="table-scroll"><table className="records-table"><thead><tr><th>SKU</th><th>Product</th><th>Unit</th><th>Current sales price</th><th>Effective from</th></tr></thead><tbody>{products.map(product => { const price = latestSalesPrice.get(product.id); return <tr key={product.id}><td>{product.sku ?? "—"}</td><td><strong>{product.name}</strong></td><td>{product.unit_of_measure}</td><td>{price ? money(price.unit_price) : "—"}</td><td>{price ? new Date(price.effective_from + "T00:00:00").toLocaleDateString() : "—"}</td></tr>; })}</tbody></table></div> : <div className="workspace-empty"><h2>No products in the catalogue</h2><p>Add new products through Purchasing before recording sales prices.</p></div>}
+        {canSetSalesPrice && products?.length ? <form action={recordSalesPrice} className="record-form"><h3 className="subsection-title">Record sales price</h3><div className="form-grid">
+          <label>Product <span>*</span><select name="productId" required defaultValue=""><option value="" disabled>Select product</option>{products.map(product => <option key={product.id} value={product.id}>{product.name} ({product.unit_of_measure})</option>)}</select></label>
+          <label>Unit sales price (ETB) <span>*</span><input name="unitPrice" type="number" min="0" step="0.01" required /></label>
+          <label>VAT treatment<select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">VAT exclusive</option><option value="inclusive">VAT inclusive</option><option value="none">No VAT</option></select></label>
+          <label>Effective from<input name="effectiveFrom" type="date" /></label>
+          <label className="form-wide">Notes<input name="notes" maxLength={500} /></label>
+        </div><div className="form-actions"><button type="submit">Save sales price</button></div></form> : null}
       </section>
 
       {canCreate ? <section className="workspace-panel">
