@@ -37,11 +37,11 @@ Last updated: 2026-11-11
 
 ## Database controls
 
-- 20 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
+- 22 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
 - Public business tables have row-level security enabled and forced.
 - Same-company composite foreign keys protect cross-table relationships.
 - Private document storage uses company membership policies.
-- Database triggers enforce manager-only approval of sales documents and purchase orders.
+- Database triggers enforce manager-only approval of sales documents and purchase orders and protect issued-document status transitions.
 - Data-entry users can record purchasing source data but cannot approve commercial documents.
 - Creator-scoped cleanup policies allow safe rollback of incomplete first-save records.
 - Commercial VAT and margin calculations have unit tests.
