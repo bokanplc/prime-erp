@@ -86,12 +86,14 @@ export async function createProduct(formData: FormData): Promise<void> {
 export async function recordProductPrice(formData: FormData): Promise<void> {
   const productId = String(formData.get("productId") ?? "").trim();
   const priceType = String(formData.get("priceType") ?? "");
+  const supplierId = String(formData.get("supplierId") ?? "").trim();
   const unitPrice = Number(formData.get("unitPrice"));
   const vatTreatment = String(formData.get("vatTreatment") ?? "exclusive");
   const effectiveFrom = String(formData.get("effectiveFrom") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!productId || !["purchase", "sales"].includes(priceType)) return;
+  if (priceType === "sales" && supplierId) return;
   if (!Number.isFinite(unitPrice) || unitPrice < 0 || !["exclusive", "inclusive", "none"].includes(vatTreatment)) return;
   if (effectiveFrom && !/^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom)) return;
 
@@ -104,6 +106,7 @@ export async function recordProductPrice(formData: FormData): Promise<void> {
   await context.supabase.from("product_prices").insert({
     company_id: context.active.companyId,
     product_id: productId,
+    supplier_id: supplierId || null,
     price_type: priceType,
     unit_price: roundMoney(unitPrice),
     currency_code: "ETB",
