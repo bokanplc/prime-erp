@@ -118,7 +118,7 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
   const subtotal=roundMoney(lines.reduce((sum,line)=>sum+line.quantity*line.unit_price,0));
   const discountTotal=roundMoney(lines.reduce((sum,line)=>sum+line.discount_amount,0));
   const taxableBase=roundMoney(subtotal-discountTotal);
-  const vatRateBps=1500;
+  const vatRateBps=context.active.vatRateBps;
   let vatTotal=0;
   let grandTotal=taxableBase;
   if(vatTreatment==="exclusive"){
