@@ -95,3 +95,15 @@ test("includes recoverable VAT on eligible direct costs separately", () => {
   assert.equal(result.directCosts, 1_000);
   assert.equal(result.recoverableDirectCostVat, 150);
 });
+
+test("does not add VAT to a non-taxable sales amount", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "none",
+    landedPurchaseCost: { amount: 6_000, vatTreatment: "none" }
+  });
+  assert.equal(result.revenueExcludingVat, 10_000);
+  assert.equal(result.outputVat, 0);
+  assert.equal(result.customerInvoiceTotal, 10_000);
+  assert.equal(result.landedGrossProfit, 4_000);
+});
