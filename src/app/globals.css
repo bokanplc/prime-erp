@@ -170,3 +170,7 @@ h1{font-size:29px;margin:9px 0 8px}
 .profit-footnote{font-size:10px;color:var(--muted);line-height:1.7;margin:18px 2px}
 @media(max-width:900px){.profit-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.profit-kpi-grid,.profit-kpi-grid-two{grid-template-columns:1fr}}
+
+.delivery-update-form{display:grid;gap:5px;min-width:145px}
+.delivery-update-form select,.delivery-update-form input{width:100%;border:1px solid #dce4e4;border-radius:6px;padding:6px 7px;font:inherit;font-size:10px;min-width:0}
+.delivery-update-form button{justify-self:start;border:0;border-radius:6px;background:var(--green-soft);color:var(--green);padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}
