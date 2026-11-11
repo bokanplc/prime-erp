@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import { CustomerForm } from "./customer-form";
 import { ActivityForm, LeadForm } from "./crm-forms";
@@ -23,7 +24,7 @@ export default async function CRMPage() {
 
   return (
     <main className="workspace-page">
-      <a className="back-link" href="/">← BOKAN ERP overview</a>
+      <Link className="back-link" href="/">← BOKAN ERP overview</Link>
       <div className="eyebrow">Customer relationships · {context.active.displayName}</div>
       <h1>CRM & Customers</h1>
       <p className="workspace-description">Manage the customer directory, new opportunities and the sales team's calls, visits and follow-up history.</p>
