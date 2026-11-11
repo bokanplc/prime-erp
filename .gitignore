@@ -6,3 +6,6 @@ dist/release/
 node_modules/
 .DS_Store
 Thumbs.db
+
+# Compiled unit-test output
+.test-dist/
