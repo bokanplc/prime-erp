@@ -174,3 +174,46 @@ h1{font-size:29px;margin:9px 0 8px}
 .delivery-update-form{display:grid;gap:5px;min-width:145px}
 .delivery-update-form select,.delivery-update-form input{width:100%;border:1px solid #dce4e4;border-radius:6px;padding:6px 7px;font:inherit;font-size:10px;min-width:0}
 .delivery-update-form button{justify-self:start;border:0;border-radius:6px;background:var(--green-soft);color:var(--green);padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}
+
+.document-link{display:inline-block;color:var(--green);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.document-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.print-button{border:0;border-radius:8px;background:var(--green);color:white;padding:11px 16px;font-size:11px;font-weight:700;cursor:pointer}
+.print-document{max-width:980px;margin:28px auto;background:white;border:1px solid var(--line);padding:42px 48px;min-height:100vh;color:#26363c}
+.print-doc-header{display:flex;justify-content:space-between;gap:24px;padding-bottom:24px;border-bottom:2px solid #183f39}
+.print-brand-mark{width:42px;height:42px;border-radius:10px;background:#d4ad70;color:#142b29;display:grid;place-items:center;font-family:Manrope,sans-serif;font-size:23px;font-weight:800}
+.print-brand-name{font-family:Manrope,sans-serif;font-size:19px;font-weight:800;letter-spacing:.04em;margin-top:10px}
+.print-company-name{font-size:11px;color:var(--muted);margin-top:4px}
+.print-doc-title{text-align:right}
+.print-doc-title h1{font-size:22px;margin:7px 0}
+.print-doc-title>strong{display:block;font-size:13px;letter-spacing:.04em;margin-bottom:8px}
+.print-doc-meta{display:grid;grid-template-columns:1.3fr 1fr;gap:32px;padding:26px 0}
+.print-doc-meta span,.print-date-block span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px}
+.print-doc-meta strong{font-size:13px}
+.print-doc-meta p{font-size:10px;color:#59696e;margin:5px 0;line-height:1.5}
+.print-date-block{border-left:1px solid var(--line);padding-left:24px}
+.print-date-block p{margin:0 0 12px}
+.print-lines-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}
+.print-lines-table th{background:#f3f6f4;text-align:left;padding:11px 9px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#52636a}
+.print-lines-table td{padding:12px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+.print-lines-table td:nth-child(n+3){white-space:nowrap}
+.print-totals{width:min(100%,360px);margin:24px 0 0 auto}
+.print-totals>div{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line);font-size:11px}
+.print-totals>div span{color:#64737a}
+.print-totals .print-grand-total{border-top:2px solid #183f39;border-bottom:0;margin-top:7px;padding-top:13px;font-size:14px}
+.print-grand-total strong{font-size:17px;color:#183f39}
+.print-terms{margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.print-terms h2{font-size:13px;margin:0 0 8px}
+.print-terms p{font-size:10px;line-height:1.7;white-space:pre-wrap}
+.print-doc-footer{display:flex;justify-content:space-between;gap:18px;margin-top:50px;padding-top:12px;border-top:1px solid var(--line);font-size:9px;color:#839096}
+@media(max-width:700px){.print-document{margin:0;padding:24px 18px;border:0}.print-doc-header{flex-direction:column}.print-doc-title{text-align:left}.print-doc-meta{grid-template-columns:1fr}.print-date-block{border-left:0;border-top:1px solid var(--line);padding:18px 0 0}.print-doc-footer{flex-direction:column}}
+@media print{
+  @page{size:A4;margin:14mm}
+  html,body{background:white!important}
+  .print-document{max-width:none;min-height:0;margin:0;padding:0;border:0}
+  .no-print{display:none!important}
+  .print-doc-header{break-inside:avoid}
+  .print-lines-table{break-inside:auto}
+  .print-lines-table tr{break-inside:avoid;break-after:auto}
+  .print-totals,.print-terms{break-inside:avoid}
+  .print-doc-footer{position:relative}
+}
