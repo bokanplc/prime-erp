@@ -398,3 +398,27 @@ export async function convertPurchaseRequestToOrder(formData: FormData): Promise
   revalidatePath("/profitability");
   redirect(`/purchasing?converted=${encodeURIComponent(orderNumber)}`);
 }
+
+export async function updatePurchaseRequestEstimate(formData: FormData): Promise<void> {
+  const requestId=String(formData.get("requestId")??"").trim();
+  const lineId=String(formData.get("lineId")??"").trim();
+  const priceInput=String(formData.get("estimatedUnitPrice")??"").trim();
+  const price=Number(priceInput);
+  if(!requestId||!lineId||!priceInput||!Number.isFinite(price)||price<0)return;
+
+  const context=await getCompanyContext();
+  if(!["owner","admin","manager","purchasing"].includes(context.active.role))return;
+
+  const [{data:request},{data:line}]=await Promise.all([
+    context.supabase.from("purchase_requests").select("id,status").eq("id",requestId).eq("company_id",context.active.companyId).in("status",["submitted","approved"]).maybeSingle(),
+    context.supabase.from("purchase_request_lines").select("id").eq("id",lineId).eq("purchase_request_id",requestId).eq("company_id",context.active.companyId).maybeSingle()
+  ]);
+  if(!request||!line)return;
+
+  const {error}=await context.supabase.from("purchase_request_lines")
+    .update({estimated_unit_price:roundMoney(price)})
+    .eq("id",lineId).eq("purchase_request_id",requestId).eq("company_id",context.active.companyId);
+  if(error)redirect("/purchasing?error=estimate");
+  revalidatePath("/purchasing");
+  redirect("/purchasing?estimated=1");
+}
