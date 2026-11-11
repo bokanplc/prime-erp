@@ -20,7 +20,7 @@ export default async function CustomerHistoryPage({ params }: Props) {
     .eq("id", id).eq("company_id", companyId).maybeSingle();
   if (error || !customer) notFound();
 
-  const [{ data: leads }, { data: salesDocuments }, { data: tasks }] = await Promise.all([
+  const [{ data: leads }, { data: salesDocuments }] = await Promise.all([
     context.supabase.from("crm_leads")
       .select("id,title,stage,estimated_value,next_follow_up_at,created_at")
       .eq("company_id", companyId).eq("customer_id", customer.id)
@@ -28,14 +28,29 @@ export default async function CustomerHistoryPage({ params }: Props) {
     context.supabase.from("sales_documents")
       .select("id,document_number,document_type,status,issue_date,grand_total,vat_total")
       .eq("company_id", companyId).eq("customer_id", customer.id)
-      .order("created_at", { ascending: false }).limit(100),
-    context.supabase.from("tasks")
-      .select("id,title,details,status,due_at")
-      .eq("company_id", companyId).eq("customer_id", customer.id)
-      .order("due_at", { ascending: true, nullsFirst: false }).limit(100)
+      .order("created_at", { ascending: false }).limit(100)
   ]);
 
   const leadIds = (leads ?? []).map(lead => lead.id);
+  const [{ data: directTasks }, { data: linkedLeadTasks }] = await Promise.all([
+    context.supabase.from("tasks")
+      .select("id,title,details,status,due_at")
+      .eq("company_id", companyId).eq("customer_id", customer.id)
+      .order("due_at", { ascending: true, nullsFirst: false }).limit(100),
+    leadIds.length
+      ? context.supabase.from("tasks")
+          .select("id,title,details,status,due_at")
+          .eq("company_id", companyId).in("lead_id", leadIds)
+          .order("due_at", { ascending: true, nullsFirst: false }).limit(100)
+      : Promise.resolve({ data: [] })
+  ]);
+  const tasks = [...new Map([...(directTasks ?? []), ...(linkedLeadTasks ?? [])].map(task => [task.id, task])).values()]
+    .sort((a,b) => {
+      if(!a.due_at) return 1;
+      if(!b.due_at) return -1;
+      return new Date(a.due_at).getTime() - new Date(b.due_at).getTime();
+    })
+    .slice(0,100);
   const [{ data: directActivities }, { data: linkedLeadActivities }] = await Promise.all([
     context.supabase.from("crm_activities")
       .select("id,activity_type,subject,details,occurred_at")
