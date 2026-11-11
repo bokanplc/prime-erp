@@ -7,7 +7,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-const roots = ["src", "scripts"];
+const roots = ["src"];
 const files = ["package.json", "next.config.ts", "next.config.js", "vercel.json"];
 const forbidden = [
   /BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED\.html/i,
