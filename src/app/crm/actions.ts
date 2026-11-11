@@ -5,6 +5,9 @@ import { getCompanyContext } from "@/lib/auth/company-context";
 
 export type CustomerActionResult = { ok: boolean; message: string };
 
+const crmWriters = ["owner", "admin", "manager", "sales", "data_entry"];
+const leadStages = ["new", "qualified", "proposal", "negotiation", "won", "lost"];
+
 export async function createCustomer(formData: FormData): Promise<CustomerActionResult> {
   const legalName = String(formData.get("legalName") ?? "").trim();
   const displayName = String(formData.get("displayName") ?? "").trim();
@@ -22,7 +25,7 @@ export async function createCustomer(formData: FormData): Promise<CustomerAction
   }
 
   const context = await getCompanyContext();
-  if (!["owner", "admin", "manager", "sales", "data_entry"].includes(context.active.role)) {
+  if (!crmWriters.includes(context.active.role)) {
     return { ok: false, message: "Your role does not allow customer creation." };
   }
 
@@ -50,18 +53,31 @@ export async function createLead(formData: FormData): Promise<CustomerActionResu
   const email = String(formData.get("email") ?? "").trim();
   const source = String(formData.get("source") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+  const nextFollowUpDate = String(formData.get("nextFollowUpDate") ?? "").trim();
+  const estimatedValueInput = String(formData.get("estimatedValue") ?? "").trim();
+  const estimatedValue = estimatedValueInput ? Number(estimatedValueInput) : null;
 
   if (title.length < 2 || title.length > 180) {
     return { ok: false, message: "Enter a lead or opportunity name between 2 and 180 characters." };
   }
-  if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: "Enter a valid email address." };
+  }
+  if (estimatedValue !== null && (!Number.isFinite(estimatedValue) || estimatedValue < 0)) {
+    return { ok: false, message: "Estimated value must be a non-negative amount in ETB." };
+  }
+  if (nextFollowUpDate && !/^\d{4}-\d{2}-\d{2}$/.test(nextFollowUpDate)) {
+    return { ok: false, message: "Enter a valid next follow-up date." };
   }
 
   const context = await getCompanyContext();
-  if (!["owner", "admin", "manager", "sales", "data_entry"].includes(context.active.role)) {
+  if (!crmWriters.includes(context.active.role)) {
     return { ok: false, message: "Your role does not allow lead creation." };
   }
+
+  const nextFollowUpAt = nextFollowUpDate
+    ? new Date(`${nextFollowUpDate}T06:00:00.000Z`).toISOString()
+    : null;
 
   const { error } = await context.supabase.from("crm_leads").insert({
     company_id: context.active.companyId,
@@ -71,6 +87,8 @@ export async function createLead(formData: FormData): Promise<CustomerActionResu
     email: email || null,
     source: source || null,
     notes: notes || null,
+    estimated_value: estimatedValue,
+    next_follow_up_at: nextFollowUpAt,
     assigned_to: context.user.id,
     created_by: context.user.id
   });
@@ -80,12 +98,28 @@ export async function createLead(formData: FormData): Promise<CustomerActionResu
   return { ok: true, message: "Lead saved." };
 }
 
+export async function updateLeadStage(formData: FormData): Promise<void> {
+  const leadId = String(formData.get("leadId") ?? "").trim();
+  const stage = String(formData.get("stage") ?? "").trim();
+  if (!leadId || !leadStages.includes(stage)) return;
+
+  const context = await getCompanyContext();
+  if (!crmWriters.includes(context.active.role)) return;
+
+  await context.supabase.from("crm_leads")
+    .update({ stage })
+    .eq("id", leadId)
+    .eq("company_id", context.active.companyId);
+  revalidatePath("/crm");
+}
+
 export async function recordCrmActivity(formData: FormData): Promise<CustomerActionResult> {
   const activityType = String(formData.get("activityType") ?? "");
   const subject = String(formData.get("subject") ?? "").trim();
   const details = String(formData.get("details") ?? "").trim();
   const customerId = String(formData.get("customerId") ?? "").trim();
   const leadId = String(formData.get("leadId") ?? "").trim();
+  const dueDate = String(formData.get("dueDate") ?? "").trim();
 
   if (!["call", "visit", "meeting", "email", "note", "reminder"].includes(activityType)) {
     return { ok: false, message: "Select a valid activity type." };
@@ -93,10 +127,31 @@ export async function recordCrmActivity(formData: FormData): Promise<CustomerAct
   if (subject.length < 2 || subject.length > 180 || (!customerId && !leadId)) {
     return { ok: false, message: "Choose a customer or lead and enter an activity subject." };
   }
+  if (activityType === "reminder" && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    return { ok: false, message: "Choose a due date for this reminder." };
+  }
 
   const context = await getCompanyContext();
-  if (!["owner", "admin", "manager", "sales", "data_entry"].includes(context.active.role)) {
+  if (!crmWriters.includes(context.active.role)) {
     return { ok: false, message: "Your role does not allow CRM activity entry." };
+  }
+
+  if (activityType === "reminder") {
+    const { error } = await context.supabase.from("tasks").insert({
+      company_id: context.active.companyId,
+      title: subject,
+      details: details || null,
+      due_at: new Date(`${dueDate}T06:00:00.000Z`).toISOString(),
+      status: "open",
+      customer_id: customerId || null,
+      lead_id: leadId || null,
+      assigned_to: context.user.id,
+      created_by: context.user.id
+    });
+    if (error) return { ok: false, message: "Reminder could not be saved. Check the selected record and your access." };
+    revalidatePath("/crm");
+    revalidatePath("/tasks");
+    return { ok: true, message: "Reminder created in Tasks & Reminders." };
   }
 
   const { error } = await context.supabase.from("crm_activities").insert({
