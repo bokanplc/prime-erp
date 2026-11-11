@@ -146,7 +146,7 @@ h1{font-size:29px;margin:9px 0 8px}
 .sales-lines{margin-top:22px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .sales-lines-head{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#f7f9f8;border-bottom:1px solid var(--line);font-size:11px;color:#52636a}
 .sales-lines-head span{color:var(--muted);font-size:10px}
-.sales-line{display:grid;grid-template-columns:2fr .8fr .7fr 1fr 1fr;gap:10px;padding:12px;border-bottom:1px solid var(--line)}
+.sales-line{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px;border-bottom:1px solid var(--line)}
 .sales-line:last-child{border-bottom:0}
 .sales-line label,.sales-terms{display:grid;gap:6px;font-size:10px;color:#53636a;font-weight:600}
 .sales-line input,.sales-terms textarea{min-width:0;width:100%;border:1px solid #dce4e4;border-radius:7px;padding:9px;color:var(--ink);background:white;font:inherit;font-weight:400}
