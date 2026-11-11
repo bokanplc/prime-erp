@@ -78,7 +78,7 @@ export default async function CustomerHistoryPage({ params }: Props) {
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Calls, visits & interaction history</h2><p>Chronological record of customer contact and follow-up.</p></div><span className="record-count">{activities?.length ?? 0} activities</span></div>
-        {canCreate ? <ActivityForm customers={customerOptions} leads={leadOptions} /> : <p className="panel-hint">Your role is read-only for customer activity.</p>}
+        {canCreate ? <ActivityForm customers={customerOptions} leads={leadOptions} defaultCustomerId={customer.id} /> : <p className="panel-hint">Your role is read-only for customer activity.</p>}
         {activities?.length ? <div className="activity-list">{activities.map(activity => <article className="activity-item" key={activity.id}><span className="activity-type">{activity.activity_type}</span><div><strong>{activity.subject}</strong><p>{activity.details || "No additional details"}</p></div><time>{new Date(activity.occurred_at).toLocaleString()}</time></article>)}</div> : <div className="workspace-empty"><h2>No recorded interactions</h2><p>Calls, visits, meetings and notes will appear here.</p></div>}
       </section>
 
