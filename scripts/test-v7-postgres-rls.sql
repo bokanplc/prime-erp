@@ -47,6 +47,9 @@ where company_id = '20000000-0000-4000-8000-000000000001' and legal_name = 'Cust
 insert into public.purchase_requests (id,company_id,request_number,status,requested_by)
 values ('70000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','PR-TEST-APPROVAL','submitted','10000000-0000-4000-8000-000000000003');
 
+insert into public.audit_events (company_id,actor_user_id,action,entity_table,entity_id)
+values ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','test_seed','customers','test-customer-one');
+
 
 do $$
 declare
@@ -191,6 +194,10 @@ begin
   if member_count <> 4 then
     raise exception 'Manager membership view expected 4 members, received %', member_count;
   end if;
+  select count(*) into member_count from public.audit_events where company_id='20000000-0000-4000-8000-000000000001';
+  if member_count < 1 then
+    raise exception 'Manager could not read company audit history';
+  end if;
 end
 $manager_member_list$;
 
@@ -229,12 +236,17 @@ begin;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
 do $sales_membership_read$
+declare audit_count integer;
 begin
   begin
     perform * from public.list_company_members('20000000-0000-4000-8000-000000000001');
     raise exception 'Sales user unexpectedly listed company memberships';
   exception when insufficient_privilege then null;
   end;
+  select count(*) into audit_count from public.audit_events where company_id='20000000-0000-4000-8000-000000000001';
+  if audit_count <> 0 then
+    raise exception 'Sales user unexpectedly read % audit events', audit_count;
+  end if;
 end
 $sales_membership_read$;
 rollback;
