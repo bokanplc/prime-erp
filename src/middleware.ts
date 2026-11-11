@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getPublicSupabaseEnv } from "./lib/supabase/env";
+import { getSupabasePublicEnv } from "./lib/supabase/env";
 
 const publicPaths = ["/login", "/setup", "/auth/callback"];
 
@@ -8,14 +8,14 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/_next") || pathname === "/favicon.ico") return NextResponse.next();
 
-  const env = getPublicSupabaseEnv();
+  const env = getSupabasePublicEnv();
   if (!env) {
     if (pathname === "/setup") return NextResponse.next();
     return NextResponse.redirect(new URL("/setup", request.url));
   }
 
   let response = NextResponse.next({ request });
-  const supabase = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+  const supabase = createServerClient(env.url, env.publishableKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookiesToSet) {
