@@ -5,7 +5,66 @@ insert into auth.users (id, email) values
   ('10000000-0000-4000-8000-000000000003','data-entry@example.test'),
   ('10000000-0000-4000-8000-000000000004','manager@example.test'),
   ('10000000-0000-4000-8000-000000000005','owner@example.test'),
-  ('10000000-0000-4000-8000-000000000006','new-member@example.test');
+  ('10000000-0000-4000-8000-000000000006','new-member@example.test'),
+  ('10000000-0000-4000-8000-000000000007','initial-owner@example.test','2026-11-11 12:00:00+00','2026-11-11 12:00:00+00'),
+  ('10000000-0000-4000-8000-000000000008','uninvited@example.test',null,'2026-11-11 12:00:00+00');
+
+
+-- First-owner bootstrap must be invitation-gated, atomic and one-time.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000008', true);
+
+do $bootstrap_invite_gate$
+begin
+  begin
+    perform public.bootstrap_initial_companies();
+    raise exception 'Uninvited user unexpectedly initialized the companies';
+  exception
+    when insufficient_privilege then null;
+  end;
+  if exists (select 1 from public.companies) or exists (select 1 from public.company_memberships) then
+    raise exception 'Rejected bootstrap attempt left company or membership rows behind';
+  end if;
+end
+$bootstrap_invite_gate$;
+rollback;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000007', true);
+
+do $bootstrap_invited_owner$
+declare
+  prime_id uuid;
+  company_count integer;
+  owner_count integer;
+begin
+  prime_id := public.bootstrap_initial_companies();
+  select count(*) into company_count from public.companies;
+  select count(*) into owner_count from public.company_memberships
+    where user_id='10000000-0000-4000-8000-000000000007' and role='owner' and is_active;
+
+  if company_count <> 2 or owner_count <> 2 then
+    raise exception 'First-owner bootstrap expected 2 companies and 2 owner memberships; received % and %', company_count, owner_count;
+  end if;
+  if not exists (select 1 from public.companies where id=prime_id and legal_name='Prime Investment Group') then
+    raise exception 'Bootstrap did not return the Prime Investment Group company id';
+  end if;
+  if not exists (select 1 from public.companies where legal_name='BlackRock Investment PLC') then
+    raise exception 'Bootstrap did not create BlackRock Investment PLC';
+  end if;
+
+  begin
+    perform public.bootstrap_initial_companies();
+    raise exception 'Second bootstrap unexpectedly succeeded';
+  exception
+    when sqlstate '55000' then null;
+  end;
+end
+$bootstrap_invited_owner$;
+rollback;
+
 
 insert into public.companies (id, legal_name, display_name)
 values
