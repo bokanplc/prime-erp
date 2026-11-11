@@ -22,7 +22,6 @@ export default async function PurchasingPage() {
     context.supabase.from("direct_costs").select("id,purchase_order_id,category,description,amount,incurred_on").eq("company_id",companyId).not("purchase_order_id","is",null).order("incurred_on",{ascending:false}).limit(500)
   ]);
   const supplierName = new Map((suppliers??[]).map(s=>[s.id,s.legal_name]));
-  const productName = new Map((products??[]).map(p=>[p.id,p.name]));
   const requestLineCount = new Map<string,number>();
   for(const line of requestLines??[]) requestLineCount.set(line.purchase_request_id,(requestLineCount.get(line.purchase_request_id)??0)+1);
   const orderLineCount = new Map<string,number>();
