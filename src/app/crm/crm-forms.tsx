@@ -48,6 +48,8 @@ export function LeadForm() {
         <label>Phone<input name="phone" maxLength={40} /></label>
         <label>Email<input name="email" type="email" maxLength={254} /></label>
         <label>Lead source<input name="source" placeholder="Referral, walk-in, cold call…" maxLength={80} /></label>
+        <label>Estimated value (ETB)<input name="estimatedValue" type="number" min="0" step="0.01" /></label>
+        <label>Next follow-up date<input name="nextFollowUpDate" type="date" /></label>
         <label className="form-wide">Notes<textarea name="notes" rows={2} maxLength={2000} /></label>
       </div>
     </ActionForm>
@@ -65,6 +67,7 @@ export function ActivityForm({ customers, leads }: {
         <label>Customer<select name="customerId" defaultValue=""><option value="">Select customer (optional)</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.display_name || customer.legal_name}</option>)}</select></label>
         <label>Lead<select name="leadId" defaultValue=""><option value="">Select lead (optional)</option>{leads.map((lead) => <option key={lead.id} value={lead.id}>{lead.title}</option>)}</select></label>
         <label>Subject <span>*</span><input name="subject" required maxLength={180} /></label>
+        <label>Reminder due date <span>(required for reminders)</span><input name="dueDate" type="date" /></label>
         <label className="form-wide">Details<textarea name="details" rows={2} maxLength={3000} /></label>
       </div>
     </ActionForm>
