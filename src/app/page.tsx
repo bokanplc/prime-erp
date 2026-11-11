@@ -28,11 +28,10 @@ const nav = [
 export default async function Home() {
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
-  const [{data:customers},{data:leads},{data:sales},{data:purchaseOrders},{data:tasks},{count:unreadNotifications}] = await Promise.all([
+  const [{data:customers},{data:leads},{data:sales},{data:tasks},{count:unreadNotifications}] = await Promise.all([
     context.supabase.from("customers").select("id").eq("company_id",companyId).limit(5000),
     context.supabase.from("crm_leads").select("id,stage").eq("company_id",companyId).limit(5000),
     context.supabase.from("sales_documents").select("id,status,grand_total,vat_total").eq("company_id",companyId).limit(5000),
-    context.supabase.from("purchase_orders").select("id,status").eq("company_id",companyId).limit(5000),
     context.supabase.from("tasks").select("id,status").eq("company_id",companyId).limit(5000),
     context.supabase.from("notifications").select("id",{count:"exact",head:true}).eq("company_id",companyId).is("read_at",null)
   ]);
