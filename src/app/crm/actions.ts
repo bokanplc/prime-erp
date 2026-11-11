@@ -59,7 +59,7 @@ export async function updateCustomer(formData: FormData): Promise<CustomerAction
   if (!customerId || legalName.length < 2 || legalName.length > 200) {
     return { ok: false, message: "Enter a customer legal name between 2 and 200 characters." };
   }
-  if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: "Enter a valid email address." };
   }
 
