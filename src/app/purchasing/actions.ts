@@ -177,75 +177,106 @@ export async function createPurchaseRequest(formData: FormData): Promise<void> {
 }
 
 export async function createPurchaseOrder(formData: FormData): Promise<void> {
-  const supplierId = String(formData.get("supplierId") ?? "").trim();
-  const orderDate = String(formData.get("orderDate") ?? "").trim();
-  const expectedDate = String(formData.get("expectedDate") ?? "").trim();
-  const vatTreatment = String(formData.get("vatTreatment") ?? "exclusive");
-  const notes = String(formData.get("notes") ?? "").trim();
-  const descriptions = formData.getAll("description").map(v => String(v).trim());
-  const quantities = formData.getAll("quantity").map(v => Number(v));
-  const units = formData.getAll("unitOfMeasure").map(v => String(v).trim());
-  const prices = formData.getAll("unitPrice").map(v => Number(v));
+  const supplierId=String(formData.get("supplierId")??"").trim();
+  const orderDate=String(formData.get("orderDate")??"").trim();
+  const expectedDate=String(formData.get("expectedDate")??"").trim();
+  const vatTreatment=String(formData.get("vatTreatment")??"exclusive");
+  const notes=String(formData.get("notes")??"").trim();
 
-  if (!supplierId || !["exclusive", "inclusive", "none"].includes(vatTreatment)) return;
-  if (orderDate && !/^\d{4}-\d{2}-\d{2}$/.test(orderDate)) return;
-  if (expectedDate && !/^\d{4}-\d{2}-\d{2}$/.test(expectedDate)) return;
-  if (orderDate && expectedDate && expectedDate < orderDate) return;
+  if(!supplierId||!["exclusive","inclusive","none"].includes(vatTreatment))return;
+  if(orderDate&&!/^\d{4}-\d{2}-\d{2}$/.test(orderDate))return;
+  if(expectedDate&&!/^\d{4}-\d{2}-\d{2}$/.test(expectedDate))return;
+  if(orderDate&&expectedDate&&expectedDate<orderDate)return;
 
-  const lines = descriptions.map((description, i) => ({
-    description,
-    quantity: quantities[i],
-    unit_of_measure: units[i] || "pcs",
-    unit_price: prices[i],
-    line_net: roundMoney(quantities[i] * prices[i])
-  })).filter(line => line.description);
+  const context=await getCompanyContext();
+  if(!purchasingWriters.includes(context.active.role))return;
 
-  if (!lines.length || lines.length > 12 || lines.some(line =>
-    line.description.length > 240 || !Number.isFinite(line.quantity) || line.quantity <= 0 ||
-    !Number.isFinite(line.unit_price) || line.unit_price < 0 || line.unit_of_measure.length > 30
-  )) return;
+  const descriptions=formData.getAll("description").map(v=>String(v).trim());
+  const quantities=formData.getAll("quantity").map(v=>String(v).trim());
+  const units=formData.getAll("unitOfMeasure").map(v=>String(v).trim());
+  const prices=formData.getAll("unitPrice").map(v=>String(v).trim());
+  const productIds=formData.getAll("productId").map(v=>String(v).trim());
+  const selectedProductIds=[...new Set(productIds.filter(Boolean))];
+  const productMap=new Map<string,{name:string;unit_of_measure:string}>();
+  const currentPrices=new Map<string,{unit_price:number;vat_treatment:string}>();
 
-  const context = await getCompanyContext();
-  if (!purchasingWriters.includes(context.active.role)) return;
-
-  const subtotal = roundMoney(lines.reduce((sum, line) => sum + line.line_net, 0));
-  const vatRateBps = 1500;
-  let vatTotal = 0;
-  let grandTotal = subtotal;
-  if (vatTreatment === "exclusive") {
-    vatTotal = roundMoney(subtotal * vatRateBps / 10000);
-    grandTotal = roundMoney(subtotal + vatTotal);
-  } else if (vatTreatment === "inclusive") {
-    const net = roundMoney(subtotal / (1 + vatRateBps / 10000));
-    vatTotal = roundMoney(subtotal - net);
+  if(selectedProductIds.length){
+    const [{data:productRows},{data:priceRows}]=await Promise.all([
+      context.supabase.from("products").select("id,name,unit_of_measure").eq("company_id",context.active.companyId).eq("is_active",true).in("id",selectedProductIds),
+      context.supabase.from("product_prices").select("product_id,supplier_id,unit_price,vat_treatment,effective_from").eq("company_id",context.active.companyId).eq("price_type","purchase").in("product_id",selectedProductIds).lte("effective_from",orderDate||new Date().toISOString().slice(0,10)).order("effective_from",{ascending:false}).limit(2000)
+    ]);
+    for(const product of productRows??[])productMap.set(product.id,{name:product.name,unit_of_measure:product.unit_of_measure});
+    for(const price of priceRows??[]){
+      const key=`${price.product_id}:${price.supplier_id||"general"}`;
+      if(!currentPrices.has(key))currentPrices.set(key,{unit_price:Number(price.unit_price),vat_treatment:price.vat_treatment});
+    }
   }
 
-  const orderNumber = `PO-${new Date().toISOString().slice(0,10).replaceAll("-", "")}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
-  const { data: order, error } = await context.supabase.from("purchase_orders").insert({
-    company_id: context.active.companyId,
-    order_number: orderNumber,
-    supplier_id: supplierId,
-    status: "submitted",
-    order_date: orderDate || new Date().toISOString().slice(0,10),
-    expected_date: expectedDate || null,
-    currency_code: "ETB",
+  const lines:Array<{product_id:string|null;description:string;quantity:number;unit_of_measure:string;unit_price:number;line_net:number}>=[];
+  let invalid=false;
+  descriptions.forEach((descriptionInput,index)=>{
+    const productId=productIds[index]||"";
+    const product=productId?productMap.get(productId):undefined;
+    const description=descriptionInput||product?.name||"";
+    const quantityInput=quantities[index]??"";
+    const priceInput=prices[index]??"";
+    if(!description&&!productId){
+      if(quantityInput||priceInput)invalid=true;
+      return;
+    }
+    if(productId&&!product){invalid=true;return;}
+    const supplierPrice=productId?currentPrices.get(`${productId}:${supplierId}`):undefined;
+    const generalPrice=productId?currentPrices.get(`${productId}:general`):undefined;
+    const suggestedPrice=[supplierPrice,generalPrice].find(price=>price?.vat_treatment===vatTreatment);
+    const quantity=Number(quantityInput);
+    const unitPrice=priceInput?Number(priceInput):suggestedPrice?.unit_price??Number.NaN;
+    if(description.length>240||!Number.isFinite(quantity)||quantity<=0||quantity>1_000_000||!Number.isFinite(unitPrice)||unitPrice<0||unitPrice>1_000_000_000){invalid=true;return;}
+    lines.push({
+      product_id:productId||null,
+      description,
+      quantity,
+      unit_of_measure:units[index]?.slice(0,30)||product?.unit_of_measure||"pcs",
+      unit_price:roundMoney(unitPrice),
+      line_net:roundMoney(quantity*unitPrice)
+    });
+  });
+
+  if(invalid||!lines.length||lines.length>12)return;
+
+  const subtotal=roundMoney(lines.reduce((sum,line)=>sum+line.line_net,0));
+  const vatRateBps=1500;
+  let vatTotal=0;
+  let grandTotal=subtotal;
+  if(vatTreatment==="exclusive"){
+    vatTotal=roundMoney(subtotal*vatRateBps/10000);
+    grandTotal=roundMoney(subtotal+vatTotal);
+  }else if(vatTreatment==="inclusive"){
+    const net=roundMoney(subtotal/(1+vatRateBps/10000));
+    vatTotal=roundMoney(subtotal-net);
+  }
+
+  const orderNumber=`PO-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
+  const {data:order,error}=await context.supabase.from("purchase_orders").insert({
+    company_id:context.active.companyId,
+    order_number:orderNumber,
+    supplier_id:supplierId,
+    status:"submitted",
+    order_date:orderDate||new Date().toISOString().slice(0,10),
+    expected_date:expectedDate||null,
+    currency_code:"ETB",
     subtotal,
-    vat_treatment: vatTreatment,
-    vat_rate_bps: vatRateBps,
-    vat_total: vatTotal,
-    grand_total: grandTotal,
-    notes: notes || null,
-    created_by: context.user.id
+    vat_treatment:vatTreatment,
+    vat_rate_bps:vatRateBps,
+    vat_total:vatTotal,
+    grand_total:grandTotal,
+    notes:notes||null,
+    created_by:context.user.id
   }).select("id").single();
 
-  if (error || !order) redirect("/purchasing?error=order");
-  const { error: lineError } = await context.supabase.from("purchase_order_lines").insert(lines.map(line => ({
-    ...line,
-    company_id: context.active.companyId,
-    purchase_order_id: order.id
-  })));
-  if (lineError) {
-    await context.supabase.from("purchase_orders").delete().eq("id", order.id).eq("company_id", context.active.companyId);
+  if(error||!order)redirect("/purchasing?error=order");
+  const {error:lineError}=await context.supabase.from("purchase_order_lines").insert(lines.map(line=>({...line,company_id:context.active.companyId,purchase_order_id:order.id})));
+  if(lineError){
+    await context.supabase.from("purchase_orders").delete().eq("id",order.id).eq("company_id",context.active.companyId);
     redirect("/purchasing?error=order-lines");
   }
   revalidatePath("/purchasing");
