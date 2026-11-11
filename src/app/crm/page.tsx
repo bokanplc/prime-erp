@@ -27,7 +27,7 @@ export default async function CRMPage() {
       <Link className="back-link" href="/">← BOKAN ERP overview</Link>
       <div className="eyebrow">Customer relationships · {context.active.displayName}</div>
       <h1>CRM & Customers</h1>
-      <p className="workspace-description">Manage the customer directory, new opportunities and the sales team's calls, visits and follow-up history.</p>
+      <p className="workspace-description">Manage the customer directory, new opportunities and the sales team calls, visits and follow-up history.</p>
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Customer directory</h2><p>Only records belonging to the active company are shown.</p></div><span className="record-count">{customerOptions.length} records</span></div>
