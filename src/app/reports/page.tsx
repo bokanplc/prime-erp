@@ -32,6 +32,11 @@ export default async function ReportsPage() {
   const activeLeads=(leads??[]).filter(lead=>!["won","lost"].includes(lead.stage)).length;
   const pipelineValue=(leads??[]).filter(lead=>!["won","lost"].includes(lead.stage)).reduce((sum,lead)=>sum+Number(lead.estimated_value??0),0);
   const memberActivity=[...activityByMember.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const canSeeMemberNames=["owner","admin","manager"].includes(context.active.role);
+  const {data:members}=canSeeMemberNames
+    ? await context.supabase.rpc("list_company_members",{target_company_id:companyId})
+    : {data:[]};
+  const memberNameMap=new Map(((members??[]) as Array<{user_id:string;email:string|null}>).map(member=>[member.user_id,member.email||member.user_id]));
 
   return (
     <main className="workspace-page">
@@ -67,7 +72,7 @@ export default async function ReportsPage() {
       <section className="workspace-panel">
         <h2>Sales activity mix</h2>
         {activities?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Activity type</th><th>Recorded</th></tr></thead><tbody>{["call","visit","meeting","email","note","reminder"].map(type=><tr key={type}><td>{type}</td><td>{activityCounts.get(type)??0}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No recorded activities</h2><p>Calls and visits recorded in CRM will appear here.</p></div>}
-        {memberActivity.length?<><h3 className="subsection-title">Activity by assigned team account</h3><div className="table-scroll"><table className="records-table"><thead><tr><th>Assigned account</th><th>Activities</th></tr></thead><tbody>{memberActivity.map(([id,count])=><tr key={id}><td>{id.slice(0,8)}…</td><td>{count}</td></tr>)}</tbody></table></div><p className="panel-hint">Display names will replace account references after the employee directory is provisioned.</p></>:null}
+        {memberActivity.length?<><h3 className="subsection-title">Activity by assigned team account</h3><div className="table-scroll"><table className="records-table"><thead><tr><th>Assigned account</th><th>Activities</th></tr></thead><tbody>{memberActivity.map(([id,count])=><tr key={id}><td>{canSeeMemberNames?memberNameMap.get(id)??id.slice(0,8)+"…":id===context.user.id?"You":"Team member"}</td><td>{count}</td></tr>)}</tbody></table></div><p className="panel-hint">Management roles see company member emails here; other roles see their own activity as “You” and other activity as “Team member”.</p></>:null}
       </section>
 
       <section className="workspace-panel">
@@ -77,7 +82,7 @@ export default async function ReportsPage() {
           <article className="profit-kpi"><span>Completed tasks</span><strong>{(tasks??[]).filter(task=>task.status==="completed").length}</strong><small>{tasks?.length??0} total tasks and reminders</small></article>
         </div>
       </section>
-      <p className="profit-footnote">For landed gross profit and profit after direct costs, use the <Link href="/profitability">Profitability workspace</Link>. User and salesperson names require the secure V7 employee directory; reports do not expose account emails or personal details.</p>
+      <p className="profit-footnote">For landed gross profit and profit after direct costs, use the <Link href="/profitability">Profitability workspace</Link>. Only owners, admins and managers see company member email labels; other roles do not see colleagues’ account details.</p>
     </main>
   );
 }
