@@ -1,5 +1,78 @@
-import { WorkspacePage } from "@/components/workspace-page";
+import Link from "next/link";
+import { getCompanyContext } from "@/lib/auth/company-context";
+import {
+  addPurchaseDirectCost, approvePurchaseOrder, createProduct, createPurchaseOrder,
+  createPurchaseRequest, createSupplier, recordProductPrice
+} from "./actions";
 
-export default function PurchasingPage() {
-  return <WorkspacePage eyebrow="Supplier operations" title="Purchasing" description="Organize supplier information, purchase requests, orders and purchase price records." capabilities={["Supplier directory and contacts","Purchase requests","Purchase orders and approval stages","Purchase price capture","Purchase document history","No supplier payment processing"]} />;
+export const dynamic = "force-dynamic";
+const money = (value: number | null) => new Intl.NumberFormat("en-ET", {style:"currency",currency:"ETB",minimumFractionDigits:2,maximumFractionDigits:2}).format(value ?? 0);
+
+export default async function PurchasingPage() {
+  const context = await getCompanyContext();
+  const companyId = context.active.companyId;
+  const [{data:suppliers},{data:products},{data:prices},{data:requests},{data:requestLines},{data:orders},{data:orderLines},{data:costs}] = await Promise.all([
+    context.supabase.from("suppliers").select("id,legal_name,contact_name,phone,email").eq("company_id",companyId).order("legal_name").limit(500),
+    context.supabase.from("products").select("id,sku,name,unit_of_measure,description,is_active").eq("company_id",companyId).order("name").limit(500),
+    context.supabase.from("product_prices").select("id,product_id,price_type,unit_price,vat_treatment,effective_from,created_at").eq("company_id",companyId).eq("price_type","purchase").order("effective_from",{ascending:false}).limit(1000),
+    context.supabase.from("purchase_requests").select("id,request_number,status,requested_date,required_by,supplier_id,reason").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+    context.supabase.from("purchase_request_lines").select("id,purchase_request_id,description,requested_quantity,unit_of_measure,estimated_unit_price").eq("company_id",companyId).limit(1000),
+    context.supabase.from("purchase_orders").select("id,order_number,status,order_date,expected_date,supplier_id,subtotal,vat_treatment,vat_total,grand_total").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+    context.supabase.from("purchase_order_lines").select("id,purchase_order_id,description,quantity,unit_of_measure,unit_price,line_net").eq("company_id",companyId).limit(1000),
+    context.supabase.from("direct_costs").select("id,purchase_order_id,category,description,amount,incurred_on").eq("company_id",companyId).not("purchase_order_id","is",null).order("incurred_on",{ascending:false}).limit(500)
+  ]);
+  const supplierName = new Map((suppliers??[]).map(s=>[s.id,s.legal_name]));
+  const productName = new Map((products??[]).map(p=>[p.id,p.name]));
+  const requestLineCount = new Map<string,number>();
+  for(const line of requestLines??[]) requestLineCount.set(line.purchase_request_id,(requestLineCount.get(line.purchase_request_id)??0)+1);
+  const orderLineCount = new Map<string,number>();
+  for(const line of orderLines??[]) orderLineCount.set(line.purchase_order_id,(orderLineCount.get(line.purchase_order_id)??0)+1);
+  const purchaseCostTotals = new Map<string,number>();
+  for(const cost of costs??[]) if(cost.purchase_order_id) purchaseCostTotals.set(cost.purchase_order_id,(purchaseCostTotals.get(cost.purchase_order_id)??0)+Number(cost.amount));
+
+  const canPurchase = ["owner","admin","manager","purchasing"].includes(context.active.role);
+  const canManageProducts = ["owner","admin","manager","purchasing","sales","data_entry"].includes(context.active.role);
+  const canApprove = ["owner","admin","manager"].includes(context.active.role);
+
+  return (
+    <main className="workspace-page">
+      <Link className="back-link" href="/">← BOKAN ERP overview</Link>
+      <div className="eyebrow">Supplier operations · {context.active.displayName}</div>
+      <h1>Purchasing</h1>
+      <p className="workspace-description">Manage suppliers, product master data, purchase price history, internal purchase requests and supplier purchase orders. Receiving, stock posting and supplier payments are deliberately excluded.</p>
+
+      <section className="workspace-panel">
+        <div className="workspace-panel-heading"><div><h2>Supplier directory</h2><p>Supplier contacts for the active company.</p></div><span className="record-count">{suppliers?.length??0} suppliers</span></div>
+        {suppliers?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Supplier</th><th>Contact</th><th>Phone</th><th>Email</th></tr></thead><tbody>{suppliers.map(s=><tr key={s.id}><td><strong>{s.legal_name}</strong></td><td>{s.contact_name??"—"}</td><td>{s.phone??"—"}</td><td>{s.email??"—"}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No suppliers yet</h2><p>Add suppliers from your fresh master data when ready.</p></div>}
+        {canPurchase?<form action={createSupplier} className="record-form"><h3 className="subsection-title">Add supplier</h3><div className="form-grid">
+          <label>Legal name <span>*</span><input name="legalName" required maxLength={200}/></label><label>Contact person<input name="contactName" maxLength={120}/></label><label>Phone<input name="phone" maxLength={50}/></label><label>Email<input name="email" type="email" maxLength={254}/></label><label>Tax number<input name="taxNumber" maxLength={80}/></label><label>Address<input name="address" maxLength={300}/></label>
+        </div><div className="form-actions"><button type="submit">Save supplier</button></div></form>:null}
+      </section>
+
+      <section className="workspace-panel">
+        <div className="workspace-panel-heading"><div><h2>Product catalogue & purchase prices</h2><p>Product definitions and dated purchase price history only; no quantities or stock balances.</p></div><span className="record-count">{products?.length??0} products</span></div>
+        {products?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>SKU</th><th>Product</th><th>Unit</th><th>Latest purchase price</th><th>Effective from</th></tr></thead><tbody>{products.map(p=>{const latest=(prices??[]).find(x=>x.product_id===p.id);return <tr key={p.id}><td>{p.sku??"—"}</td><td><strong>{p.name}</strong></td><td>{p.unit_of_measure}</td><td>{latest?money(latest.unit_price):"—"}</td><td>{latest?new Date(latest.effective_from+"T00:00:00").toLocaleDateString():"—"}</td></tr>})}</tbody></table></div>:<div className="workspace-empty"><h2>No products yet</h2><p>New product master data can be added here. No legacy stock or inventory history is present.</p></div>}
+        {canManageProducts?<><form action={createProduct} className="record-form"><h3 className="subsection-title">Add product</h3><div className="form-grid"><label>Product name <span>*</span><input name="name" required maxLength={180}/></label><label>SKU / code<input name="sku" maxLength={80}/></label><label>Unit of measure <span>*</span><input name="unitOfMeasure" required maxLength={30} placeholder="pcs, pack, bundle, m3…"/></label><label>Initial purchase price (ETB)<input name="purchasePrice" type="number" min="0" step="0.01"/></label><label className="form-wide">Description<input name="description" maxLength={500}/></label></div><div className="form-actions"><button type="submit">Save product</button></div></form>
+        {(products??[]).length?<form action={recordProductPrice} className="record-form"><h3 className="subsection-title">Record purchase price update</h3><div className="form-grid"><label>Product <span>*</span><select name="productId" required defaultValue=""><option value="" disabled>Select product</option>{(products??[]).map(p=><option key={p.id} value={p.id}>{p.name} ({p.unit_of_measure})</option>)}</select></label><label>Unit price (ETB) <span>*</span><input name="unitPrice" type="number" min="0" step="0.01" required/></label><label>VAT treatment<select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">VAT exclusive</option><option value="inclusive">VAT inclusive</option><option value="none">No VAT</option></select></label><label>Effective from<input name="effectiveFrom" type="date"/></label><label className="form-wide">Notes<input name="notes" maxLength={500}/></label></div><input type="hidden" name="priceType" value="purchase"/><div className="form-actions"><button type="submit">Save price history</button></div></form>:null}</>:null}
+      </section>
+
+      <section className="workspace-panel">
+        <div className="workspace-panel-heading"><div><h2>Purchase requests</h2><p>Internal requests before supplier commitment.</p></div><span className="record-count">{requests?.length??0} requests</span></div>
+        {requests?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Request</th><th>Supplier</th><th>Requested</th><th>Required by</th><th>Lines</th><th>Status</th></tr></thead><tbody>{requests.map(r=><tr key={r.id}><td><strong>{r.request_number}</strong></td><td>{r.supplier_id?supplierName.get(r.supplier_id):"To be selected"}</td><td>{new Date(r.requested_date+"T00:00:00").toLocaleDateString()}</td><td>{r.required_by?new Date(r.required_by+"T00:00:00").toLocaleDateString():"—"}</td><td>{requestLineCount.get(r.id)??0}</td><td><span className="stage-pill">{r.status}</span></td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No purchase requests</h2><p>Raise an internal request when products or services need to be purchased.</p></div>}
+        {canPurchase?<form action={createPurchaseRequest} className="record-form"><h3 className="subsection-title">Create purchase request</h3><div className="form-grid"><label>Preferred supplier<select name="supplierId" defaultValue=""><option value="">Not selected yet</option>{(suppliers??[]).map(s=><option key={s.id} value={s.id}>{s.legal_name}</option>)}</select></label><label>Requested date<input name="requestedDate" type="date"/></label><label>Required by<input name="requiredBy" type="date"/></label><label>Reason<input name="reason" maxLength={500}/></label></div><div className="sales-lines"><div className="sales-lines-head"><strong>Requested items</strong><span>Description · Quantity · Unit · Estimated unit price</span></div>{Array.from({length:4},(_,i)=><div className="sales-line" key={i}><label>Description<input name="description" required={i===0} maxLength={240}/></label><label>Quantity<input name="quantity" type="number" min="0.001" step="0.001" defaultValue={i===0?"1":""}/></label><label>Unit<input name="unitOfMeasure" defaultValue="pcs" maxLength={30}/></label><label>Est. price<input name="estimatedUnitPrice" type="number" min="0" step="0.01"/></label></div>)}</div><div className="form-actions"><button type="submit">Submit purchase request</button></div></form>:null}
+      </section>
+
+      <section className="workspace-panel">
+        <div className="workspace-panel-heading"><div><h2>Purchase orders</h2><p>Supplier commitments and purchase price history. No goods receipt, inventory posting or payments.</p></div><span className="record-count">{orders?.length??0} orders</span></div>
+        {orders?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Order</th><th>Supplier</th><th>Date</th><th>Lines</th><th>Subtotal</th><th>VAT</th><th>Total</th><th>Direct costs</th><th>Status</th><th>Action</th></tr></thead><tbody>{orders.map(o=><tr key={o.id}><td><strong>{o.order_number}</strong></td><td>{supplierName.get(o.supplier_id)??"—"}</td><td>{new Date(o.order_date+"T00:00:00").toLocaleDateString()}</td><td>{orderLineCount.get(o.id)??0}</td><td>{money(o.subtotal)}</td><td>{money(o.vat_total)}</td><td><strong>{money(o.grand_total)}</strong></td><td>{money(purchaseCostTotals.get(o.id)??0)}</td><td><span className="stage-pill">{o.status}</span></td><td>{canApprove&&o.status==="submitted"?<form action={approvePurchaseOrder} className="inline-stage-form"><input type="hidden" name="orderId" value={o.id}/><button type="submit">Approve</button></form>:"—"}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No purchase orders</h2><p>Purchase orders appear here after they are created and submitted for approval.</p></div>}
+        {canPurchase?(suppliers??[]).length?<form action={createPurchaseOrder} className="record-form"><h3 className="subsection-title">Create purchase order</h3><div className="form-grid"><label>Supplier <span>*</span><select name="supplierId" required defaultValue=""><option value="" disabled>Select supplier</option>{(suppliers??[]).map(s=><option key={s.id} value={s.id}>{s.legal_name}</option>)}</select></label><label>Order date<input name="orderDate" type="date"/></label><label>Expected date<input name="expectedDate" type="date"/></label><label>VAT treatment<select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">15% VAT added</option><option value="inclusive">Price includes 15% VAT</option><option value="none">No VAT</option></select></label><label className="form-wide">Notes<input name="notes" maxLength={1000}/></label></div><div className="sales-lines"><div className="sales-lines-head"><strong>Order lines</strong><span>Description · Quantity · Unit · Unit price</span></div>{Array.from({length:4},(_,i)=><div className="sales-line" key={i}><label>Description<input name="description" required={i===0} maxLength={240}/></label><label>Quantity<input name="quantity" type="number" min="0.001" step="0.001" defaultValue={i===0?"1":""}/></label><label>Unit<input name="unitOfMeasure" defaultValue="pcs" maxLength={30}/></label><label>Unit price (ETB)<input name="unitPrice" type="number" min="0" step="0.01" defaultValue={i===0?"0":""}/></label></div>)}</div><div className="form-actions"><button type="submit">Save and submit purchase order</button></div></form>:<div className="workspace-notice"><strong>Add a supplier first.</strong>Purchase orders require a supplier record.</div>:null}
+      </section>
+
+      <section className="workspace-panel">
+        <h2>Direct purchase costs</h2><p className="panel-hint">Attach transport, loading or miscellaneous transaction costs to a purchase order. Recoverable VAT is excluded from cost only when documented.</p>
+        {canPurchase&&orders?.length?<form action={addPurchaseDirectCost} className="record-form"><div className="form-grid"><label>Purchase order <span>*</span><select name="purchaseOrderId" required defaultValue=""><option value="" disabled>Select purchase order</option>{(orders??[]).map(o=><option key={o.id} value={o.id}>{o.order_number} · {supplierName.get(o.supplier_id)}</option>)}</select></label><label>Category<select name="category" defaultValue="transportation"><option value="transportation">Transportation</option><option value="loading">Loading</option><option value="miscellaneous">Miscellaneous</option></select></label><label>Description<input name="description" required maxLength={240}/></label><label>Amount (ETB)<input name="amount" type="number" min="0.01" step="0.01" required/></label><label>VAT treatment<select name="vatTreatment" defaultValue="none"><option value="none">No VAT / not specified</option><option value="exclusive">VAT exclusive</option><option value="inclusive">VAT inclusive</option></select></label><label className="checkbox-label"><input type="checkbox" name="recoverableVat"/> Recoverable input VAT (documented)</label></div><div className="form-actions"><button type="submit">Save purchase cost</button></div></form>:<div className="workspace-empty"><h2>No purchase orders available</h2><p>Create a purchase order before attaching transaction costs.</p></div>}
+        {costs?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Order</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody>{costs.map(c=><tr key={c.id}><td>{orders?.find(o=>o.id===c.purchase_order_id)?.order_number??"—"}</td><td>{c.category}</td><td>{c.description}</td><td>{money(c.amount)}</td></tr>)}</tbody></table></div>:null}
+      </section>
+    </main>
+  );
 }
