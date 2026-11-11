@@ -46,6 +46,7 @@ The following V7-only migrations were applied and verified:
 27. `v7_recipient_notifications`
 28. `v7_submission_notifications`
 29. `v7_notification_fk_indexes`
+30. `v7_company_settings_permissions`
 
 Verification at setup:
 - 20 public application tables
@@ -63,6 +64,7 @@ Verification at setup:
 - Commercial status transitions and approval attribution are database-guarded
 - Purchase requests have manager-only approval enforcement and controlled conversion to linked supplier orders
 - Supplier-specific purchase prices have same-company references and lookup indexes
+- Company owners/admins can update company names and VAT basis points
 - Audit history is readable only by company management roles
 - Recipient-only in-app notifications are generated for approvals, submissions and purchase-request conversion
 - 0 business rows, users, stock records, or imported historical data
