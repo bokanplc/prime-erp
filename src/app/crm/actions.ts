@@ -20,6 +20,9 @@ export async function createCustomer(formData: FormData): Promise<CustomerAction
   if (legalName.length < 2 || legalName.length > 200) {
     return { ok: false, message: "Enter a customer legal name between 2 and 200 characters." };
   }
+  if (displayName.length > 120 || phone.length > 50 || email.length > 254 || taxId.length > 80 || address.length > 300 || notes.length > 2000) {
+    return { ok: false, message: "One or more customer fields exceed the allowed length." };
+  }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: "Enter a valid email address." };
   }
@@ -58,6 +61,9 @@ export async function updateCustomer(formData: FormData): Promise<CustomerAction
 
   if (!customerId || legalName.length < 2 || legalName.length > 200) {
     return { ok: false, message: "Enter a customer legal name between 2 and 200 characters." };
+  }
+  if (displayName.length > 120 || phone.length > 50 || email.length > 254 || taxId.length > 80 || address.length > 300 || notes.length > 2000) {
+    return { ok: false, message: "One or more customer fields exceed the allowed length." };
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: "Enter a valid email address." };
@@ -101,6 +107,9 @@ export async function createLead(formData: FormData): Promise<CustomerActionResu
 
   if (title.length < 2 || title.length > 180) {
     return { ok: false, message: "Enter a lead or opportunity name between 2 and 180 characters." };
+  }
+  if (contactName.length > 120 || phone.length > 40 || email.length > 254 || source.length > 80 || notes.length > 2000) {
+    return { ok: false, message: "One or more lead fields exceed the allowed length." };
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, message: "Enter a valid email address." };
