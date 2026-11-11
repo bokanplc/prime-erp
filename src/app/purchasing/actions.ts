@@ -329,7 +329,14 @@ export async function convertPurchaseRequestToOrder(formData: FormData): Promise
     context.supabase.from("purchase_orders").select("id,order_number").eq("purchase_request_id",request.id).eq("company_id",context.active.companyId).maybeSingle()
   ]);
   if(!supplier)redirect("/purchasing?error=request-supplier");
-  if(existingOrder)redirect(`/purchasing?converted=${encodeURIComponent(existingOrder.order_number)}`);
+  if(existingOrder){
+    const {error:repairError}=await context.supabase.from("purchase_requests")
+      .update({status:"converted"})
+      .eq("id",request.id).eq("company_id",context.active.companyId).eq("status","approved");
+    if(repairError)redirect(`/purchasing?error=convert-status&order=${encodeURIComponent(existingOrder.order_number)}`);
+    revalidatePath("/purchasing");
+    redirect(`/purchasing?converted=${encodeURIComponent(existingOrder.order_number)}`);
+  }
   if(!requestLines?.length||requestLines.some(line=>line.estimated_unit_price===null))redirect("/purchasing?error=request-estimates");
 
   const lines=requestLines.map(line=>({
