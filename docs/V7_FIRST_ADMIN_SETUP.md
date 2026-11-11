@@ -18,6 +18,6 @@ This is a one-time manual step because the V7 project is deliberately isolated a
 - Do not enable unrestricted public signup.
 - This script is for the isolated V7 project only; never run it against the V6.7 Supabase project.
 - It creates company setup and membership records only. It does not import customers, suppliers, products, stock, transactions, documents or accounting data.
-- Admin can add manager, sales, purchasing, operations, data-entry and viewer memberships. Only an owner can assign another owner or admin.
+- Admin can add other admins and manager, sales, purchasing, operations, data-entry and viewer memberships. Only an owner can assign another owner.
 - Commercial approval is enforced by database triggers. Data-entry users cannot approve sales documents or purchase orders.
 - Keep the V6.7 project untouched until V7 is reviewed, authenticated, backed up and accepted.
