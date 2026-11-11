@@ -32,6 +32,7 @@ The following V7-only migrations were applied and verified:
 13. `v7_database_approval_guards`
 14. `v7_customer_specific_sales_prices`
 15. `v7_customer_price_fk_index`
+16. `v7_creator_rollback_policies`
 
 Verification at setup:
 - 19 public application tables
@@ -42,6 +43,7 @@ Verification at setup:
 - Transaction-level landed-cost fields with same-company purchase-line references
 - Database triggers enforce manager-only sales and purchase-order approvals
 - Customer-specific sales price history with company-safe foreign keys
+- Creator-scoped cleanup policies for incomplete first-save transactions
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
