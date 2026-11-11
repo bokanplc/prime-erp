@@ -1,26 +1,23 @@
 export const STANDARD_VAT_BASIS_POINTS = 1_500;
 
 export type VatTreatment = "exclusive" | "inclusive" | "none";
+export type DirectCostCategory = "transportation" | "loading" | "miscellaneous";
 
 export type CostInput = {
   amount: number;
   vatTreatment: VatTreatment;
   recoverableVat?: boolean;
+  category?: DirectCostCategory;
 };
 
 export type CommercialResultInput = {
+  /** Net or gross sales value, as identified by salesVatTreatment. */
   salesAmount: number;
   salesVatTreatment: Exclude<VatTreatment, "none">;
+  /** Transaction-level landed purchase cost supplied by the user. */
   landedPurchaseCost: CostInput;
   directCosts?: CostInput[];
   vatBasisPoints?: number;
-};
-
-export type NormalizedAmount = {
-  net: number;
-  vat: number;
-  gross: number;
-  expense: number;
 };
 
 export type CommercialResult = {
@@ -32,6 +29,9 @@ export type CommercialResult = {
   landedPurchaseCost: number;
   recoverablePurchaseVat: number;
   landedGrossProfit: number;
+  transportationCosts: number;
+  loadingCosts: number;
+  miscellaneousCosts: number;
   directCosts: number;
   recoverableDirectCostVat: number;
   profitAfterDirectCosts: number;
@@ -55,7 +55,7 @@ function normalize(
   treatment: VatTreatment,
   vatBasisPoints: number,
   recoverableVat = false
-): { net: number; vat: number; gross: number; expense: number } {
+) {
   const entered = toMinorUnits(amount);
   const divisor = 10_000 + vatBasisPoints;
   let net: number;
@@ -80,18 +80,17 @@ function normalize(
     net: fromMinorUnits(net),
     vat: fromMinorUnits(vat),
     gross: fromMinorUnits(gross),
-    expense: fromMinorUnits(recoverableVat ? net : gross)
+    expense: fromMinorUnits(recoverableVat ? net : gross),
+    recoverableVat
   };
 }
 
 /**
- * Pure commercial calculation only. This does not post accounting entries,
+ * Commercial reporting calculation only. It does not post accounting entries,
  * record receipts/payments, value inventory, or create a stock balance.
  * Amounts are ETB; VAT is calculated in integer cents to avoid float drift.
  */
-export function calculateCommercialResult(
-  input: CommercialResultInput
-): CommercialResult {
+export function calculateCommercialResult(input: CommercialResultInput): CommercialResult {
   const vatBasisPoints = input.vatBasisPoints ?? STANDARD_VAT_BASIS_POINTS;
   if (!Number.isInteger(vatBasisPoints) || vatBasisPoints < 0 || vatBasisPoints > 100_000) {
     throw new RangeError("VAT basis points must be a whole number from 0 to 100000.");
@@ -105,13 +104,20 @@ export function calculateCommercialResult(
     input.landedPurchaseCost.recoverableVat ?? false
   );
 
-  const directCosts = (input.directCosts ?? []).map((cost) =>
-    normalize(cost.amount, cost.vatTreatment, vatBasisPoints, cost.recoverableVat ?? false)
-  );
+  const directCosts = (input.directCosts ?? []).map((cost) => ({
+    category: cost.category ?? "miscellaneous",
+    ...normalize(cost.amount, cost.vatTreatment, vatBasisPoints, cost.recoverableVat ?? false)
+  }));
 
-  const directCostMinor = directCosts.reduce((sum, cost) => sum + toMinorUnits(cost.expense), 0);
+  const sumMinor = (predicate: (cost: (typeof directCosts)[number]) => boolean) =>
+    directCosts.reduce((sum, cost) => sum + (predicate(cost) ? toMinorUnits(cost.expense) : 0), 0);
+
+  const transportationMinor = sumMinor((cost) => cost.category === "transportation");
+  const loadingMinor = sumMinor((cost) => cost.category === "loading");
+  const miscellaneousMinor = sumMinor((cost) => cost.category === "miscellaneous");
+  const directCostMinor = transportationMinor + loadingMinor + miscellaneousMinor;
   const recoverableDirectVatMinor = directCosts.reduce(
-    (sum, cost) => sum + toMinorUnits(cost.vat * ((cost.expense === cost.net) ? 1 : 0)),
+    (sum, cost) => sum + (cost.recoverableVat ? toMinorUnits(cost.vat) : 0),
     0
   );
 
@@ -127,8 +133,11 @@ export function calculateCommercialResult(
     outputVat: revenue.vat,
     customerInvoiceTotal: revenue.gross,
     landedPurchaseCost: landedCost.expense,
-    recoverablePurchaseVat: input.landedPurchaseCost.recoverableVat ? landedCost.vat : 0,
+    recoverablePurchaseVat: landedCost.recoverableVat ? landedCost.vat : 0,
     landedGrossProfit: fromMinorUnits(grossProfitMinor),
+    transportationCosts: fromMinorUnits(transportationMinor),
+    loadingCosts: fromMinorUnits(loadingMinor),
+    miscellaneousCosts: fromMinorUnits(miscellaneousMinor),
     directCosts: fromMinorUnits(directCostMinor),
     recoverableDirectCostVat: fromMinorUnits(recoverableDirectVatMinor),
     profitAfterDirectCosts: fromMinorUnits(afterDirectCostsMinor),
