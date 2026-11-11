@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "noEmit": false,
+    "outDir": ".test-dist",
+    "rootDir": "./src",
+    "incremental": false,
+    "plugins": []
+  },
+  "include": ["src/lib/commercial.ts", "src/lib/commercial.test.ts"],
+  "exclude": ["node_modules", ".next", ".test-dist"]
+}
