@@ -168,7 +168,9 @@ begin
     update public.purchase_requests
     set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000003', approved_at = now()
     where id = '70000000-0000-4000-8000-000000000001';
-    raise exception 'Data-entry user unexpectedly approved a purchase request';
+    if found then
+      raise exception 'Data-entry user unexpectedly approved a purchase request';
+    end if;
   exception
     when insufficient_privilege then null;
   end;
