@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Report dependency security advisories
+        run: |
+          npm audit --json > .npm-audit.json || true
+          node -e 'const a=require("./.npm-audit.json"); console.log("Dependency audit summary:", JSON.stringify(a.metadata?.vulnerabilities ?? {})); for (const [name, v] of Object.entries(a.vulnerabilities ?? {})) console.log(name + ": " + v.severity + "; direct=" + v.isDirect + "; range=" + v.range + "; fix=" + JSON.stringify(v.fixAvailable));'
+
       - name: Lint
         run: npm run lint
 
