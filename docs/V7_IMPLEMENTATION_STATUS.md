@@ -25,6 +25,7 @@ Last updated: 2026-11-11
 | Tasks | Company-scoped tasks and reminders with due dates and status updates |
 | Documents | Private company-folder storage, upload metadata, business-record links and expiring signed downloads |
 | Reports | Live CRM, sales document, activity, purchasing and task summaries |
+| Audit log | Read-only, company-scoped history of business changes and approvals |
 | Administration | Company membership list, existing-account assignment, role management and member activation/deactivation |
 
 ## Explicitly excluded
