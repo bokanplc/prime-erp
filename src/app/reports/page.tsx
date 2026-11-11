@@ -38,6 +38,54 @@ export default async function ReportsPage() {
     : {data:[]};
   const memberNameMap=new Map(((members??[]) as Array<{user_id:string;email:string|null}>).map(member=>[member.user_id,member.email||member.user_id]));
 
+  type Performance = {
+    leadsAssigned:number;
+    wonLeads:number;
+    openPipelineValue:number;
+    activities:number;
+    documentsPrepared:number;
+    approvedDocumentValue:number;
+    tasksCompleted:number;
+    overdueTasks:number;
+  };
+  const performanceByMember=new Map<string,Performance>();
+  const performanceFor=(userId:string) => {
+    const current=performanceByMember.get(userId)??{
+      leadsAssigned:0,wonLeads:0,openPipelineValue:0,activities:0,
+      documentsPrepared:0,approvedDocumentValue:0,tasksCompleted:0,overdueTasks:0
+    };
+    performanceByMember.set(userId,current);
+    return current;
+  };
+  for(const member of members??[])performanceFor(member.user_id);
+  for(const lead of leads??[]){
+    if(!lead.assigned_to)continue;
+    const row=performanceFor(lead.assigned_to);
+    row.leadsAssigned++;
+    if(lead.stage==="won")row.wonLeads++;
+    if(!["won","lost"].includes(lead.stage))row.openPipelineValue+=Number(lead.estimated_value??0);
+  }
+  for(const activity of activities??[])if(activity.assigned_to)performanceFor(activity.assigned_to).activities++;
+  for(const document of sales??[]){
+    if(!document.created_by)continue;
+    const row=performanceFor(document.created_by);
+    row.documentsPrepared++;
+    if(["approved","sent","accepted"].includes(document.status)){
+      row.approvedDocumentValue+=Number(document.grand_total)-Number(document.vat_total);
+    }
+  }
+  const now=Date.now();
+  for(const task of tasks??[]){
+    if(!task.assigned_to)continue;
+    const row=performanceFor(task.assigned_to);
+    if(task.status==="completed")row.tasksCompleted++;
+    if(["open","in_progress"].includes(task.status)&&task.due_at&&new Date(task.due_at).getTime()<now)row.overdueTasks++;
+  }
+  if(!canSeeMemberNames)performanceFor(context.user.id);
+  const performanceRows=[...performanceByMember.entries()]
+    .filter(([userId])=>canSeeMemberNames||userId===context.user.id)
+    .sort((a,b)=>b[1].approvedDocumentValue-a[1].approvedDocumentValue||b[1].wonLeads-a[1].wonLeads||b[1].activities-a[1].activities);
+
   return (
     <main className="workspace-page">
       <Link className="back-link" href="/">← BOKAN ERP overview</Link>
@@ -73,6 +121,12 @@ export default async function ReportsPage() {
         <h2>Sales activity mix</h2>
         {activities?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Activity type</th><th>Recorded</th></tr></thead><tbody>{["call","visit","meeting","email","note","reminder"].map(type=><tr key={type}><td>{type}</td><td>{activityCounts.get(type)??0}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No recorded activities</h2><p>Calls and visits recorded in CRM will appear here.</p></div>}
         {memberActivity.length?<><h3 className="subsection-title">Activity by assigned team account</h3><div className="table-scroll"><table className="records-table"><thead><tr><th>Assigned account</th><th>Activities</th></tr></thead><tbody>{memberActivity.map(([id,count])=><tr key={id}><td>{canSeeMemberNames?memberNameMap.get(id)??id.slice(0,8)+"…":id===context.user.id?"You":"Team member"}</td><td>{count}</td></tr>)}</tbody></table></div><p className="panel-hint">Management roles see company member emails here; other roles see their own activity as “You” and other activity as “Team member”.</p></>:null}
+      </section>
+
+      <section className="workspace-panel">
+        <div className="workspace-panel-heading"><div><h2>Sales team performance</h2><p>Lead ownership, follow-up activity and commercial documents prepared by each account.</p></div><span className="record-count">{canSeeMemberNames?"Management view":"Personal view"}</span></div>
+        {performanceRows.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Team account</th><th>Leads</th><th>Won</th><th>Open pipeline estimate</th><th>Activities</th><th>Documents prepared</th><th>Approved document value · net VAT</th><th>Tasks done</th><th>Overdue tasks</th></tr></thead><tbody>{performanceRows.map(([userId,row])=><tr key={userId}><td><strong>{canSeeMemberNames?memberNameMap.get(userId)??userId.slice(0,8)+"…": "You"}</strong></td><td>{row.leadsAssigned}</td><td>{row.wonLeads}</td><td>{money(row.openPipelineValue)}</td><td>{row.activities}</td><td>{row.documentsPrepared}</td><td>{money(row.approvedDocumentValue)}</td><td>{row.tasksCompleted}</td><td>{row.overdueTasks}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No team performance activity yet</h2><p>Assigned leads, CRM interactions, sales documents and tasks will build this report as the team uses V7.</p></div>}
+        <p className="panel-hint">Management can compare all company accounts. Other roles see only their own row. Document value is attributed to the account that prepared the document; it is not a payment or accounting revenue figure.</p>
       </section>
 
       <section className="workspace-panel">
