@@ -96,7 +96,7 @@ export async function recordProductPrice(formData: FormData): Promise<void> {
 
   const context = await getCompanyContext();
   const allowed = priceType === "purchase"
-    ? ["owner", "admin", "manager", "purchasing"].includes(context.active.role)
+    ? ["owner", "admin", "manager", "purchasing", "data_entry"].includes(context.active.role)
     : ["owner", "admin", "manager", "sales"].includes(context.active.role);
   if (!allowed) return;
 
