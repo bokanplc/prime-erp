@@ -232,8 +232,9 @@ where id = '70000000-0000-4000-8000-000000000001';
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
 
 do $notification_recipient_test$
-declare notification_count integer;
-declare notification_id uuid;
+declare
+  notification_count integer;
+  notification_id uuid;
 begin
   select count(*) into notification_count from public.notifications
   where company_id='20000000-0000-4000-8000-000000000001';
