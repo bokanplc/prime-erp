@@ -18,6 +18,11 @@ values
   ('20000000-0000-4000-8000-000000000001', 'Customer One', 'Customer One'),
   ('20000000-0000-4000-8000-000000000002', 'Customer Two', 'Customer Two');
 
+insert into storage.objects (bucket_id, name, owner_id)
+values
+  ('bokan-erp-documents', '20000000-0000-4000-8000-000000000001/tenant-one.pdf', '10000000-0000-4000-8000-000000000001'),
+  ('bokan-erp-documents', '20000000-0000-4000-8000-000000000002/tenant-two.pdf', '10000000-0000-4000-8000-000000000002');
+
 do $$
 declare
   public_tables_without_rls integer;
@@ -31,6 +36,14 @@ begin
 
   if public_tables_without_rls <> 0 then
     raise exception 'RLS is disabled on % public tables', public_tables_without_rls;
+  end if;
+
+  if not exists (select 1 from storage.buckets where id = 'bokan-erp-documents' and public = false) then
+    raise exception 'Private company document bucket is missing or public';
+  end if;
+
+  if not (select relrowsecurity from pg_class where oid = 'storage.objects'::regclass) then
+    raise exception 'Storage object RLS is disabled';
   end if;
 
   if to_regclass('public.stock_entries') is not null
@@ -52,9 +65,11 @@ do $$
 declare
   visible_customers integer;
   visible_companies integer;
+  visible_files integer;
 begin
   select count(*) into visible_customers from public.customers;
   select count(*) into visible_companies from public.companies;
+  select count(*) into visible_files from storage.objects where bucket_id = 'bokan-erp-documents';
 
   if visible_customers <> 1 then
     raise exception 'Tenant isolation failed: user can see % customer rows', visible_customers;
@@ -62,6 +77,18 @@ begin
   if visible_companies <> 1 then
     raise exception 'Tenant isolation failed: user can see % company rows', visible_companies;
   end if;
+  if visible_files <> 1 then
+    raise exception 'Storage tenant isolation failed: user can see % files', visible_files;
+  end if;
+
+  begin
+    insert into storage.objects (bucket_id, name, owner_id)
+    values ('bokan-erp-documents', '20000000-0000-4000-8000-000000000002/unauthorized.pdf', '10000000-0000-4000-8000-000000000001');
+    raise exception 'Cross-company storage upload unexpectedly succeeded';
+  exception
+    when insufficient_privilege then
+      null;
+  end;
 
   begin
     insert into public.customers (company_id, legal_name, display_name)
