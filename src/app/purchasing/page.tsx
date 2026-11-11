@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import {
-  addPurchaseDirectCost, approvePurchaseOrder, approvePurchaseRequest, createProduct, createPurchaseOrder,
+  addPurchaseDirectCost, approvePurchaseOrder, approvePurchaseRequest, convertPurchaseRequestToOrder, createProduct, createPurchaseOrder,
   createPurchaseRequest, createSupplier, recordProductPrice
 } from "./actions";
 
 export const dynamic = "force-dynamic";
 const money = (value: number | null) => new Intl.NumberFormat("en-ET", {style:"currency",currency:"ETB",minimumFractionDigits:2,maximumFractionDigits:2}).format(value ?? 0);
 
-export default async function PurchasingPage() {
+type Props={searchParams:Promise<{error?:string;converted?:string;order?:string}>};
+
+export default async function PurchasingPage({searchParams}:Props) {
+  const params=await searchParams;
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
   const [{data:suppliers},{data:products},{data:prices},{data:requests},{data:requestLines},{data:orders},{data:orderLines},{data:costs}] = await Promise.all([
@@ -17,13 +20,20 @@ export default async function PurchasingPage() {
     context.supabase.from("product_prices").select("id,product_id,price_type,unit_price,vat_treatment,effective_from,created_at").eq("company_id",companyId).eq("price_type","purchase").order("effective_from",{ascending:false}).limit(1000),
     context.supabase.from("purchase_requests").select("id,request_number,status,requested_date,required_by,supplier_id,reason").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
     context.supabase.from("purchase_request_lines").select("id,purchase_request_id,description,requested_quantity,unit_of_measure,estimated_unit_price").eq("company_id",companyId).limit(1000),
-    context.supabase.from("purchase_orders").select("id,order_number,status,order_date,expected_date,supplier_id,subtotal,vat_treatment,vat_total,grand_total").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+    context.supabase.from("purchase_orders").select("id,order_number,status,order_date,expected_date,supplier_id,purchase_request_id,subtotal,vat_treatment,vat_total,grand_total").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
     context.supabase.from("purchase_order_lines").select("id,purchase_order_id,description,quantity,unit_of_measure,unit_price,line_net").eq("company_id",companyId).limit(1000),
     context.supabase.from("direct_costs").select("id,purchase_order_id,category,description,amount,incurred_on").eq("company_id",companyId).not("purchase_order_id","is",null).order("incurred_on",{ascending:false}).limit(500)
   ]);
   const supplierName = new Map((suppliers??[]).map(s=>[s.id,s.legal_name]));
   const requestLineCount = new Map<string,number>();
-  for(const line of requestLines??[]) requestLineCount.set(line.purchase_request_id,(requestLineCount.get(line.purchase_request_id)??0)+1);
+  const requestLinesById = new Map<string,NonNullable<typeof requestLines>[number][]>();
+  for(const line of requestLines??[]) {
+    requestLineCount.set(line.purchase_request_id,(requestLineCount.get(line.purchase_request_id)??0)+1);
+    const rows=requestLinesById.get(line.purchase_request_id)??[];
+    rows.push(line);
+    requestLinesById.set(line.purchase_request_id,rows);
+  }
+  const orderByRequest = new Map((orders??[]).filter(order=>order.purchase_request_id).map(order=>[order.purchase_request_id,order]));
   const orderLineCount = new Map<string,number>();
   for(const line of orderLines??[]) orderLineCount.set(line.purchase_order_id,(orderLineCount.get(line.purchase_order_id)??0)+1);
   const purchaseCostTotals = new Map<string,number>();
@@ -32,6 +42,7 @@ export default async function PurchasingPage() {
   const canPurchase = ["owner","admin","manager","purchasing","data_entry"].includes(context.active.role);
   const canManageProducts = ["owner","admin","manager","purchasing","sales","data_entry"].includes(context.active.role);
   const canApprove = ["owner","admin","manager"].includes(context.active.role);
+  const canConvert = ["owner","admin","manager","purchasing"].includes(context.active.role);
 
   return (
     <main className="workspace-page">
@@ -40,6 +51,8 @@ export default async function PurchasingPage() {
       <h1>Purchasing</h1>
       <p className="workspace-description">Manage suppliers, product master data, purchase price history, internal purchase requests and supplier purchase orders. Receiving, stock posting and supplier payments are deliberately excluded.</p>
 
+      {params.error?<div className="workspace-notice"><strong>Action not completed.</strong>{params.error==="request-not-approved"?"Only an approved purchase request can be converted.":params.error==="request-supplier"?"Choose a valid supplier for this request.":params.error==="request-estimates"?"Every request line needs an estimated unit price before conversion.":params.error==="convert-status"?"The purchase order was created, but the request status could not be updated. Check the linked order before retrying.":"The purchasing action could not be completed. Check the record and your access."}</div>:null}
+      {params.converted?<div className="workspace-success" role="status">Purchase request converted to purchase order {params.converted}.</div>:null}
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Supplier directory</h2><p>Supplier contacts for the active company.</p></div><span className="record-count">{suppliers?.length??0} suppliers</span></div>
         {suppliers?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Supplier</th><th>Contact</th><th>Phone</th><th>Email</th></tr></thead><tbody>{suppliers.map(s=><tr key={s.id}><td><strong>{s.legal_name}</strong></td><td>{s.contact_name??"—"}</td><td>{s.phone??"—"}</td><td>{s.email??"—"}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No suppliers yet</h2><p>Add suppliers from your fresh master data when ready.</p></div>}
@@ -57,7 +70,7 @@ export default async function PurchasingPage() {
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Purchase requests</h2><p>Internal requests before supplier commitment.</p></div><span className="record-count">{requests?.length??0} requests</span></div>
-        {requests?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Request</th><th>Supplier</th><th>Requested</th><th>Required by</th><th>Lines</th><th>Status</th><th>Action</th></tr></thead><tbody>{requests.map(r=><tr key={r.id}><td><strong>{r.request_number}</strong></td><td>{r.supplier_id?supplierName.get(r.supplier_id):"To be selected"}</td><td>{new Date(r.requested_date+"T00:00:00").toLocaleDateString()}</td><td>{r.required_by?new Date(r.required_by+"T00:00:00").toLocaleDateString():"—"}</td><td>{requestLineCount.get(r.id)??0}</td><td><span className="stage-pill">{r.status}</span></td><td>{canApprove&&r.status==="submitted"?<form action={approvePurchaseRequest} className="inline-stage-form"><input type="hidden" name="requestId" value={r.id}/><button type="submit">Approve</button></form>:"—"}</td></tr>)}</tbody></table></div>:<div className="workspace-empty"><h2>No purchase requests</h2><p>Raise an internal request when products or services need to be purchased.</p></div>}
+        {requests?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Request</th><th>Supplier</th><th>Requested</th><th>Required by</th><th>Lines</th><th>Status</th><th>Action</th></tr></thead><tbody>{requests.map(r=>{const rLines=requestLinesById.get(r.id)??[];const completeEstimates=rLines.length>0&&rLines.every(line=>line.estimated_unit_price!==null);const linkedOrder=orderByRequest.get(r.id);return <tr key={r.id}><td><strong>{r.request_number}</strong></td><td>{r.supplier_id?supplierName.get(r.supplier_id):"To be selected"}</td><td>{new Date(r.requested_date+"T00:00:00").toLocaleDateString()}</td><td>{r.required_by?new Date(r.required_by+"T00:00:00").toLocaleDateString():"—"}</td><td>{requestLineCount.get(r.id)??0}</td><td><span className="stage-pill">{r.status}</span></td><td>{linkedOrder?<Link className="document-link" href={`/purchasing/${linkedOrder.id}`}>{linkedOrder.order_number}</Link>:canApprove&&r.status==="submitted"?<form action={approvePurchaseRequest} className="inline-stage-form"><input type="hidden" name="requestId" value={r.id}/><button type="submit">Approve</button></form>:canConvert&&r.status==="approved"&&completeEstimates?<form action={convertPurchaseRequestToOrder} className="request-convert-form"><input type="hidden" name="requestId" value={r.id}/>{!r.supplier_id?<select name="supplierId" required defaultValue=""><option value="" disabled>Choose supplier</option>{(suppliers??[]).map(s=><option key={s.id} value={s.id}>{s.legal_name}</option>)}</select>:null}<select name="vatTreatment" defaultValue="exclusive" aria-label="Purchase order VAT treatment"><option value="exclusive">VAT exclusive</option><option value="inclusive">VAT inclusive</option><option value="none">No VAT</option></select><button type="submit">Convert to PO</button></form>:r.status==="approved"&&!completeEstimates?<small>Estimated prices required</small>:"—"}</td></tr>;})}</tbody></table></div>:<div className="workspace-empty"><h2>No purchase requests</h2><p>Raise an internal request when products or services need to be purchased.</p></div>}
         {canPurchase?<form action={createPurchaseRequest} className="record-form"><h3 className="subsection-title">Create purchase request</h3><div className="form-grid"><label>Preferred supplier<select name="supplierId" defaultValue=""><option value="">Not selected yet</option>{(suppliers??[]).map(s=><option key={s.id} value={s.id}>{s.legal_name}</option>)}</select></label><label>Requested date<input name="requestedDate" type="date"/></label><label>Required by<input name="requiredBy" type="date"/></label><label>Reason<input name="reason" maxLength={500}/></label></div><div className="sales-lines"><div className="sales-lines-head"><strong>Requested items</strong><span>Description · Quantity · Unit · Estimated unit price</span></div>{Array.from({length:4},(_,i)=><div className="sales-line" key={i}><label>Description<input name="description" required={i===0} maxLength={240}/></label><label>Quantity<input name="quantity" type="number" min="0.001" step="0.001" defaultValue={i===0?"1":""}/></label><label>Unit<input name="unitOfMeasure" defaultValue="pcs" maxLength={30}/></label><label>Est. price<input name="estimatedUnitPrice" type="number" min="0" step="0.01"/></label></div>)}</div><div className="form-actions"><button type="submit">Submit purchase request</button></div></form>:null}
       </section>
 
