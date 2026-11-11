@@ -245,3 +245,8 @@ h1{font-size:29px;margin:9px 0 8px}
 .request-estimate-line input{display:block;width:100%;margin-top:5px;border:1px solid #dce4e4;border-radius:6px;padding:7px;font:inherit;font-size:11px}
 .request-estimate-line button{border:0;border-radius:6px;background:var(--green-soft);color:var(--green);padding:7px 10px;font-size:10px;font-weight:700;cursor:pointer}
 @media(max-width:560px){.request-estimate-line{grid-template-columns:1fr 1fr}.request-estimate-line>div{grid-column:1/-1}}
+
+.audit-details{min-width:120px}
+.audit-details summary{font-size:10px;font-weight:700;color:var(--green);cursor:pointer}
+.audit-details pre{max-width:340px;max-height:220px;overflow:auto;margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:6px;background:#f7f9f8;font-size:9px;white-space:pre-wrap;overflow-wrap:anywhere}
+.audit-details small{display:block;font-size:9px;color:var(--muted)}
