@@ -3,6 +3,8 @@ import { getCompanyContext } from "@/lib/auth/company-context";
 import { CustomerForm } from "./customer-form";
 import { ActivityForm, LeadForm } from "./crm-forms";
 
+export const dynamic = "force-dynamic";
+
 export default async function CRMPage() {
   const context = await getCompanyContext();
   const companyId = context.active.companyId;
