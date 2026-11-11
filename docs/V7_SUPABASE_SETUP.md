@@ -33,6 +33,8 @@ The following V7-only migrations were applied and verified:
 14. `v7_customer_specific_sales_prices`
 15. `v7_customer_price_fk_index`
 16. `v7_creator_rollback_policies`
+17. `v7_membership_administration`
+18. `v7_membership_admin_rpc`
 
 Verification at setup:
 - 19 public application tables
@@ -44,6 +46,7 @@ Verification at setup:
 - Database triggers enforce manager-only sales and purchase-order approvals
 - Customer-specific sales price history with company-safe foreign keys
 - Creator-scoped cleanup policies for incomplete first-save transactions
+- Company-scoped membership management with owner/admin boundaries
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
