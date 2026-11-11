@@ -306,3 +306,88 @@ export async function approvePurchaseRequest(formData: FormData): Promise<void> 
   }).eq("id", requestId).eq("company_id", context.active.companyId).eq("status", "submitted");
   revalidatePath("/purchasing");
 }
+
+export async function convertPurchaseRequestToOrder(formData: FormData): Promise<void> {
+  const requestId=String(formData.get("requestId")??"").trim();
+  const supplierIdInput=String(formData.get("supplierId")??"").trim();
+  const vatTreatment=String(formData.get("vatTreatment")??"exclusive");
+  if(!requestId||!["exclusive","inclusive","none"].includes(vatTreatment))return;
+
+  const context=await getCompanyContext();
+  if(!["owner","admin","manager","purchasing"].includes(context.active.role))return;
+
+  const {data:request}=await context.supabase.from("purchase_requests")
+    .select("id,request_number,status,supplier_id,required_by,reason")
+    .eq("id",requestId).eq("company_id",context.active.companyId).eq("status","approved").maybeSingle();
+  if(!request)redirect("/purchasing?error=request-not-approved");
+
+  const supplierId=request.supplier_id||supplierIdInput;
+  if(!supplierId)redirect("/purchasing?error=request-supplier");
+  const [{data:supplier},{data:requestLines},{data:existingOrder}]=await Promise.all([
+    context.supabase.from("suppliers").select("id").eq("id",supplierId).eq("company_id",context.active.companyId).maybeSingle(),
+    context.supabase.from("purchase_request_lines").select("id,product_id,description,requested_quantity,unit_of_measure,estimated_unit_price").eq("purchase_request_id",request.id).eq("company_id",context.active.companyId).order("created_at"),
+    context.supabase.from("purchase_orders").select("id,order_number").eq("purchase_request_id",request.id).eq("company_id",context.active.companyId).maybeSingle()
+  ]);
+  if(!supplier)redirect("/purchasing?error=request-supplier");
+  if(existingOrder)redirect(`/purchasing?converted=${encodeURIComponent(existingOrder.order_number)}`);
+  if(!requestLines?.length||requestLines.some(line=>line.estimated_unit_price===null))redirect("/purchasing?error=request-estimates");
+
+  const lines=requestLines.map(line=>({
+    product_id:line.product_id,
+    description:line.description,
+    quantity:Number(line.requested_quantity),
+    unit_of_measure:line.unit_of_measure,
+    unit_price:roundMoney(Number(line.estimated_unit_price)),
+    line_net:roundMoney(Number(line.requested_quantity)*Number(line.estimated_unit_price))
+  }));
+  const subtotal=roundMoney(lines.reduce((sum,line)=>sum+line.line_net,0));
+  const vatRateBps=1500;
+  let vatTotal=0;
+  let grandTotal=subtotal;
+  if(vatTreatment==="exclusive"){
+    vatTotal=roundMoney(subtotal*vatRateBps/10000);
+    grandTotal=roundMoney(subtotal+vatTotal);
+  }else if(vatTreatment==="inclusive"){
+    const net=roundMoney(subtotal/(1+vatRateBps/10000));
+    vatTotal=roundMoney(subtotal-net);
+  }
+
+  const orderNumber=`PO-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
+  const {data:order,error}=await context.supabase.from("purchase_orders").insert({
+    company_id:context.active.companyId,
+    order_number:orderNumber,
+    supplier_id:supplierId,
+    purchase_request_id:request.id,
+    status:"submitted",
+    order_date:new Date().toISOString().slice(0,10),
+    expected_date:request.required_by,
+    currency_code:"ETB",
+    subtotal,
+    vat_treatment:vatTreatment,
+    vat_rate_bps:vatRateBps,
+    vat_total:vatTotal,
+    grand_total:grandTotal,
+    notes:`Converted from ${request.request_number}. ${request.reason||""}`.trim(),
+    created_by:context.user.id
+  }).select("id").single();
+  if(error||!order)redirect("/purchasing?error=convert-order");
+
+  const {error:lineError}=await context.supabase.from("purchase_order_lines").insert(lines.map(line=>({
+    ...line,
+    company_id:context.active.companyId,
+    purchase_order_id:order.id
+  })));
+  if(lineError){
+    await context.supabase.from("purchase_orders").delete().eq("id",order.id).eq("company_id",context.active.companyId);
+    redirect("/purchasing?error=convert-lines");
+  }
+
+  const {error:requestError}=await context.supabase.from("purchase_requests")
+    .update({status:"converted"})
+    .eq("id",request.id).eq("company_id",context.active.companyId).eq("status","approved");
+  if(requestError)redirect(`/purchasing?error=convert-status&order=${encodeURIComponent(orderNumber)}`);
+
+  revalidatePath("/purchasing");
+  revalidatePath("/profitability");
+  redirect(`/purchasing?converted=${encodeURIComponent(orderNumber)}`);
+}
