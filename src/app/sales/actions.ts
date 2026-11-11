@@ -32,10 +32,11 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
   const discounts = formData.getAll("discountAmount").map(v => String(v).trim());
   const landedCosts = formData.getAll("landedUnitCost").map(v => String(v).trim());
   const landedReferences = formData.getAll("landedCostReference").map(v => String(v).trim());
+  const landedPurchaseLines = formData.getAll("landedPurchaseOrderLineId").map(v => String(v).trim());
 
   const lines: Array<{
     description: string; quantity: number; unit_of_measure: string; unit_price: number;
-    discount_amount: number; line_net: number; landed_unit_cost: number | null; landed_cost_reference: string | null;
+    discount_amount: number; line_net: number; landed_unit_cost: number | null; landed_cost_reference: string | null; landed_purchase_order_line_id: string | null;
   }> = [];
   let hasInvalidLine = false;
 
@@ -65,7 +66,8 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
       discount_amount: roundMoney(discount),
       line_net: roundMoney(quantity * unitPrice - discount),
       landed_unit_cost: landedCost === null ? null : roundMoney(landedCost),
-      landed_cost_reference: landedReferences[index]?.trim().slice(0, 160) || null
+      landed_cost_reference: landedReferences[index]?.trim().slice(0, 160) || null,
+      landed_purchase_order_line_id: landedPurchaseLines[index] || null
     });
   });
 
