@@ -128,3 +128,19 @@ test("normalizes recoverable VAT using the active company rate", () => {
   assert.equal(result.expense, 10_000);
   assert.equal(result.recoverableVat, 500);
 });
+
+test("uses each direct cost's saved VAT rate when it differs from the document rate", () => {
+  const result = calculateCommercialResult({
+    salesAmount: 10_000,
+    salesVatTreatment: "exclusive",
+    vatBasisPoints: 1_500,
+    landedPurchaseCost: { amount: 5_000, vatTreatment: "none" },
+    directCosts: [
+      { amount: 1_150, vatTreatment: "inclusive", recoverableVat: true, vatBasisPoints: 1_500, category: "transportation" },
+      { amount: 1_050, vatTreatment: "inclusive", recoverableVat: true, vatBasisPoints: 500, category: "loading" }
+    ]
+  });
+  assert.equal(result.outputVat, 1_500);
+  assert.equal(result.directCosts, 2_000);
+  assert.equal(result.recoverableDirectCostVat, 200);
+});
