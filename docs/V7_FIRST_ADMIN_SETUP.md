@@ -1,23 +1,26 @@
-# BOKAN ERP V7 — First administrator setup
+# BOKAN ERP V7 — First owner setup
 
-This is a one-time manual step because the V7 project is deliberately isolated and has no seeded users, companies, sample transactions or public first-admin signup.
+The V7 first-owner setup is invitation-gated and runs inside the application. Do not run a manual SQL bootstrap script.
 
 ## Steps
 
 1. Open the V7 Supabase project: https://supabase.com/dashboard/project/thfzvtltmaieesjulggr
-2. Open **Authentication → Users** and invite/create the first administrator account.
-3. Confirm the account has been created in V7 Auth.
-4. Open **SQL Editor** and run `scripts/v7-initial-admin-bootstrap.sql` after replacing `REPLACE-WITH-FIRST-ADMIN-EMAIL` with that account's exact email.
-5. The script creates (or reuses) the two approved companies and grants that existing account the `admin` role in each:
-   - Prime Investment Group
-   - BlackRock Investment PLC
-6. Sign in to the V7 app. Use Administration to add the three sales users and one data-entry user after they have been invited/created in V7 Auth.
+2. Open **Authentication → Users** and invite the intended first owner by email.
+3. The first owner accepts the invitation and confirms the email.
+4. Open the V7 Vercel Preview deployment and sign in using that invited account.
+5. The account will reach **Company access pending**. Select **Initialize both companies as first owner**.
+6. The one-time bootstrap creates Prime Investment Group and BlackRock Investment PLC.
+7. It assigns the invited account the `owner` role in both companies, with ETB and 15% VAT defaults.
+8. The owner can then invite/create the three sales users and one data-entry user in V7 Supabase Auth, and grant each account access to the correct company from Administration.
 
 ## Security notes
 
+- The bootstrap requires a signed-in, email-verified account with a non-null Supabase Auth `invited_at` timestamp.
+- It runs only while both company and membership tables are empty. A transaction-level advisory lock prevents two users from racing to become first owner.
+- The exposed RPC is a `SECURITY INVOKER` wrapper. The privileged implementation resides in the private schema.
+- Ordinary public self-signups cannot initialize the companies.
+- The bootstrap creates only the two company shells and the first owner's memberships. It imports no legacy users, customers, suppliers, products, prices, stock, transactions, documents or accounting data.
 - Do not enable unrestricted public signup.
-- This script is for the isolated V7 project only; never run it against the V6.7 Supabase project.
-- It creates company setup and membership records only. It does not import customers, suppliers, products, stock, transactions, documents or accounting data.
-- Admin can add other admins and manager, sales, purchasing, operations, data-entry and viewer memberships. Only an owner can assign another owner.
+- This flow is for the isolated V7 project only. Never run it against V6.7.
 - Commercial approval is enforced by database triggers. Data-entry users cannot approve sales documents or purchase orders.
-- Keep the V6.7 project untouched until V7 is reviewed, authenticated, backed up and accepted.
+- Keep V6.7 untouched until V7 is reviewed, authenticated, backed up and accepted.
