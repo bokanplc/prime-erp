@@ -27,7 +27,7 @@ Last updated: 2026-11-11
 | Reports | Live CRM, sales document, activity, purchasing and task summaries |
 | Audit log | Read-only, company-scoped history of business changes and approvals |
 | Notifications | Recipient-only in-app alerts for pending approvals, approvals and request conversion; unread state is immutable except for marking read |
-| Administration | Company membership list, existing-account assignment, role management and member activation/deactivation |
+| Administration | Company identity and VAT settings, company membership list, existing-account assignment, role management and member activation/deactivation |
 
 ## Explicitly excluded
 
@@ -39,7 +39,7 @@ Last updated: 2026-11-11
 
 ## Database controls
 
-- 29 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
+- 30 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
 - Public business tables have row-level security enabled and forced.
 - Same-company composite foreign keys protect cross-table relationships.
 - Private document storage uses company membership policies.
