@@ -39,6 +39,20 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
   const landedPurchaseLines = formData.getAll("landedPurchaseOrderLineId").map(v => String(v).trim());
 
   const selectedProductIds = [...new Set(productIds.filter(Boolean))];
+  const selectedPurchaseLineIds = [...new Set(landedPurchaseLines.filter(Boolean))];
+  const approvedPurchaseLineIds = new Set<string>();
+  if (selectedPurchaseLineIds.length) {
+    const {data:sourceLines} = await context.supabase.from("purchase_order_lines")
+      .select("id,purchase_order_id")
+      .eq("company_id",context.active.companyId)
+      .in("id",selectedPurchaseLineIds);
+    const sourceOrderIds = [...new Set((sourceLines??[]).map(line=>line.purchase_order_id))];
+    const {data:sourceOrders} = sourceOrderIds.length
+      ? await context.supabase.from("purchase_orders").select("id").eq("company_id",context.active.companyId).in("id",sourceOrderIds).in("status",["approved","sent","accepted"])
+      : {data:[]};
+    const approvedOrderIds = new Set((sourceOrders??[]).map(order=>order.id));
+    for (const line of sourceLines??[]) if (approvedOrderIds.has(line.purchase_order_id)) approvedPurchaseLineIds.add(line.id);
+  }
   const productMap = new Map<string, {name:string;unit_of_measure:string}>();
   const currentPriceMap = new Map<string, {unit_price:number;vat_treatment:string}>();
   if (selectedProductIds.length) {
@@ -73,6 +87,7 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
       return;
     }
     if (productId&&!product) { hasInvalidLine=true; return; }
+    if (landedPurchaseLines[index]&&!approvedPurchaseLineIds.has(landedPurchaseLines[index])) { hasInvalidLine=true; return; }
     const quantity=Number(quantityInput);
     const customerPrice=productId?currentPriceMap.get(`${productId}:${customerId}`):undefined;
     const generalPrice=productId?currentPriceMap.get(`${productId}:general`):undefined;
