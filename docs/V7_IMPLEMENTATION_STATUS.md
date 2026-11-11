@@ -19,7 +19,7 @@ Last updated: 2026-11-11
 | Dashboard | Live company-scoped customer, pipeline, approved sales and task metrics |
 | CRM | Customer directory, leads, pipeline stages, estimated value, follow-up dates, calls, visits, meetings and reminders |
 | Sales | Quotations, proformas, sales orders, customer-specific and general product prices, line discounts, 15% VAT, manager approval, direct sales costs and A4 print/PDF view |
-| Purchasing | Suppliers, products, purchase-price history, purchase requests, purchase orders, manager approval and direct purchase costs |
+| Purchasing | Suppliers, products, purchase-price history, purchase requests, purchase orders, manager approval, printable purchase orders and direct purchase costs |
 | Profitability | VAT-normalized revenue, transaction-level landed gross profit, direct-cost deductions and purchase-side cost visibility |
 | Logistics | Delivery planning, carrier/vehicle details, dispatch, delivery confirmation and exception status |
 | Tasks | Company-scoped tasks and reminders with due dates and status updates |
