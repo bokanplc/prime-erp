@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-export default function LoginPage() {
+function LoginForm() {
   const search = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,20 +29,28 @@ export default function LoginPage() {
   }
 
   return (
+    <form onSubmit={submit} className="auth-form">
+      <label htmlFor="email">Work email</label>
+      <input id="email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} />
+      <label htmlFor="password">Password</label>
+      <input id="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+      {error ? <div className="auth-alert" role="alert">{error}</div> : null}
+      <button type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in securely"}</button>
+    </form>
+  );
+}
+
+export default function LoginPage() {
+  return (
     <main className="auth-shell">
       <section className="auth-card">
         <div className="brand-mark">B</div>
         <div className="eyebrow">BOKAN ERP · V7</div>
         <h1>Sign in</h1>
         <p>Use an account explicitly provisioned for the new V7 environment.</p>
-        <form onSubmit={submit} className="auth-form">
-          <label htmlFor="email">Work email</label>
-          <input id="email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} />
-          <label htmlFor="password">Password</label>
-          <input id="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
-          {error ? <div className="auth-alert" role="alert">{error}</div> : null}
-          <button type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in securely"}</button>
-        </form>
+        <Suspense fallback={<div className="auth-alert">Preparing secure sign-in…</div>}>
+          <LoginForm />
+        </Suspense>
         <p className="auth-footnote">V7 credentials are separate. Legacy application accounts are not copied automatically.</p>
       </section>
     </main>
