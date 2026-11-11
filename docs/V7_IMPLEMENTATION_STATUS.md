@@ -19,7 +19,7 @@ Last updated: 2026-11-11
 | Dashboard | Live company-scoped customer, pipeline, approved sales and task metrics |
 | CRM | Customer directory, leads, pipeline stages, estimated value, follow-up dates, calls, visits, meetings and reminders |
 | Sales | Quotations, proformas, sales orders, customer-specific and general product prices, line discounts, 15% VAT, manager approval, direct sales costs and A4 print/PDF view |
-| Purchasing | Suppliers, products, purchase-price history, purchase requests, purchase orders, manager approval, printable purchase orders and direct purchase costs |
+| Purchasing | Suppliers, products, purchase-price history, purchase requests, manager approval and conversion to linked purchase orders, printable purchase orders and direct purchase costs |
 | Profitability | VAT-normalized revenue, transaction-level landed gross profit, direct-cost deductions and purchase-side cost visibility |
 | Logistics | Delivery planning, carrier/vehicle details, dispatch, delivery confirmation and exception status |
 | Tasks | Company-scoped tasks and reminders with due dates and status updates |
@@ -37,7 +37,7 @@ Last updated: 2026-11-11
 
 ## Database controls
 
-- 23 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
+- 24 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
 - Public business tables have row-level security enabled and forced.
 - Same-company composite foreign keys protect cross-table relationships.
 - Private document storage uses company membership policies.
