@@ -110,13 +110,16 @@ email-verified V7 Auth account with a non-null Supabase `invited_at` timestamp.
 It can run only while both the company and membership tables are empty, and creates
 the two company shells plus owner memberships for that invited user in one transaction.
 
-1. In Supabase Dashboard → Authentication → Users, invite the intended first owner by email.
-2. The invited owner accepts the email invitation and signs in to the V7 review deployment.
-3. On the Company access pending screen, the invited first owner selects
+1. In Supabase Dashboard → Authentication → Settings, disable public user sign-ups so accounts are created only through administrator invitations.
+2. In Supabase Dashboard → Authentication → Users, invite the intended first owner by email.
+3. The invited owner accepts the email invitation and signs in to the V7 review deployment.
+4. On the Company access pending screen, the invited first owner selects
    **Initialize both companies as first owner**.
-4. The bootstrap creates Prime Investment Group and BlackRock Investment PLC,
+5. The bootstrap creates Prime Investment Group and BlackRock Investment PLC,
    each with ETB and 15% VAT defaults, and grants the first owner membership in both.
-5. The owner can then add other existing V7 Auth accounts separately to each company.
+6. Invite each employee through Supabase Auth, then grant the appropriate role in
+   Administration separately for each company. The ERP membership form deliberately
+   accepts existing V7 Auth accounts only; it does not create credentials or send invitations.
 
 The public bootstrap RPC is a SECURITY INVOKER wrapper; its SECURITY DEFINER implementation
 lives in the private schema. It rejects ordinary self-signups, unverified accounts and
