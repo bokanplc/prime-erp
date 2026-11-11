@@ -161,3 +161,12 @@ h1{font-size:29px;margin:9px 0 8px}
 @media(max-width:520px){.sales-line{grid-template-columns:1fr}.inline-stage-form{flex-wrap:wrap}}
 
 .subsection-title{font-family:Manrope,sans-serif;font-size:13px;letter-spacing:-.02em;margin:22px 0 10px;color:#304148}
+
+.profit-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 20px}
+.profit-kpi-grid-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.profit-kpi{border:1px solid var(--line);border-radius:9px;padding:15px;background:#fbfcfb;min-width:0}
+.profit-kpi span,.profit-kpi small{display:block;color:var(--muted);font-size:10px;line-height:1.5}
+.profit-kpi strong{display:block;font-family:Manrope,sans-serif;font-size:19px;letter-spacing:-.03em;margin:8px 0;color:#24383c;overflow-wrap:anywhere}
+.profit-footnote{font-size:10px;color:var(--muted);line-height:1.7;margin:18px 2px}
+@media(max-width:900px){.profit-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.profit-kpi-grid,.profit-kpi-grid-two{grid-template-columns:1fr}}
