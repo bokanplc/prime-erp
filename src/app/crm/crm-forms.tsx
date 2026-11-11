@@ -39,11 +39,14 @@ function ActionForm({ action, children, buttonLabel }: {
   );
 }
 
-export function LeadForm() {
+export function LeadForm({ customers }: {
+  customers: Array<{ id: string; display_name: string; legal_name: string }>;
+}) {
   return (
     <ActionForm action={createLead} buttonLabel="Save lead">
       <div className="form-grid">
         <label>Opportunity / lead name <span>*</span><input name="title" required maxLength={180} /></label>
+        <label>Existing customer (optional)<select name="customerId" defaultValue=""><option value="">New prospect / not linked</option>{customers.map(customer => <option key={customer.id} value={customer.id}>{customer.display_name || customer.legal_name}</option>)}</select></label>
         <label>Contact person<input name="contactName" maxLength={120} /></label>
         <label>Phone<input name="phone" maxLength={40} /></label>
         <label>Email<input name="email" type="email" maxLength={254} /></label>
