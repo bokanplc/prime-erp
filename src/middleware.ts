@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicEnv } from "./lib/supabase/env";
 
-const publicPaths = ["/login", "/setup", "/auth/callback"];
+const publicPaths = ["/login", "/setup", "/no-access", "/auth/callback"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -34,7 +34,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname === "/login") return NextResponse.redirect(new URL("/", request.url));
+  // A valid login is not sufficient: a user must have an active V7 company
+  // membership before any workspace route can be opened.
+  const { data: memberships, error: membershipError } = await supabase
+    .from("company_memberships")
+    .select("company_id")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (membershipError) return NextResponse.redirect(new URL("/setup", request.url));
+  if (!memberships?.length) {
+    if (pathname === "/no-access") return response;
+    return NextResponse.redirect(new URL("/no-access", request.url));
+  }
+
+  if (pathname === "/login" || pathname === "/no-access") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
   return response;
 }
 
