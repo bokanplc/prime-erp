@@ -1,3 +1,0 @@
--- SUPERSEDED DRAFT: this file is intentionally inert.
--- The applied migration is 20261031100616_extend_crm_for_v67_sales_workflow.sql.
--- Retained as a source-control breadcrumb; do not apply or rename this file.

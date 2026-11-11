@@ -1,3 +1,0 @@
--- SUPERSEDED DRAFT: this filename timestamp does not match the applied Supabase migration ledger.
--- The applied migration source is 20261031115029_fix_reversal_posted_entry_immutability.sql.
--- This file is intentionally inert and must never be applied.
