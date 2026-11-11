@@ -38,7 +38,7 @@ Last updated: 2026-11-11
 
 ## Database controls
 
-- 25 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
+- 26 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
 - Public business tables have row-level security enabled and forced.
 - Same-company composite foreign keys protect cross-table relationships.
 - Private document storage uses company membership policies.
