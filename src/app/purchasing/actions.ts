@@ -50,6 +50,7 @@ export async function createProduct(formData: FormData): Promise<void> {
 
   const context = await getCompanyContext();
   if (!["owner", "admin", "manager", "purchasing", "sales", "data_entry"].includes(context.active.role)) return;
+  if (purchasePrice !== null && !purchasingWriters.includes(context.active.role)) return;
 
   const { data: product, error } = await context.supabase.from("products").insert({
     company_id: context.active.companyId,
