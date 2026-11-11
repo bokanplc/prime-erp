@@ -244,7 +244,7 @@ export async function createPurchaseOrder(formData: FormData): Promise<void> {
   if(invalid||!lines.length||lines.length>12)return;
 
   const subtotal=roundMoney(lines.reduce((sum,line)=>sum+line.line_net,0));
-  const vatRateBps=1500;
+  const vatRateBps=context.active.vatRateBps;
   let vatTotal=0;
   let grandTotal=subtotal;
   if(vatTreatment==="exclusive"){
@@ -382,7 +382,7 @@ export async function convertPurchaseRequestToOrder(formData: FormData): Promise
     line_net:roundMoney(Number(line.requested_quantity)*Number(line.estimated_unit_price))
   }));
   const subtotal=roundMoney(lines.reduce((sum,line)=>sum+line.line_net,0));
-  const vatRateBps=1500;
+  const vatRateBps=context.active.vatRateBps;
   let vatTotal=0;
   let grandTotal=subtotal;
   if(vatTreatment==="exclusive"){
