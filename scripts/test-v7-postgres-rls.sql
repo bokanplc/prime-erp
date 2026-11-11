@@ -1,11 +1,11 @@
 -- Test-only synthetic rows in disposable PostgreSQL; never production data.
-insert into auth.users (id, email) values
-  ('10000000-0000-4000-8000-000000000001','sales-one@example.test'),
-  ('10000000-0000-4000-8000-000000000002','sales-two@example.test'),
-  ('10000000-0000-4000-8000-000000000003','data-entry@example.test'),
-  ('10000000-0000-4000-8000-000000000004','manager@example.test'),
-  ('10000000-0000-4000-8000-000000000005','owner@example.test'),
-  ('10000000-0000-4000-8000-000000000006','new-member@example.test'),
+insert into auth.users (id, email, invited_at, email_confirmed_at) values
+  ('10000000-0000-4000-8000-000000000001','sales-one@example.test',null,null),
+  ('10000000-0000-4000-8000-000000000002','sales-two@example.test',null,null),
+  ('10000000-0000-4000-8000-000000000003','data-entry@example.test',null,null),
+  ('10000000-0000-4000-8000-000000000004','manager@example.test',null,null),
+  ('10000000-0000-4000-8000-000000000005','owner@example.test',null,null),
+  ('10000000-0000-4000-8000-000000000006','new-member@example.test',null,null),
   ('10000000-0000-4000-8000-000000000007','initial-owner@example.test','2026-11-11 12:00:00+00','2026-11-11 12:00:00+00'),
   ('10000000-0000-4000-8000-000000000008','uninvited@example.test',null,'2026-11-11 12:00:00+00');
 
