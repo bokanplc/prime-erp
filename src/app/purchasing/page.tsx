@@ -30,7 +30,7 @@ export default async function PurchasingPage() {
   const purchaseCostTotals = new Map<string,number>();
   for(const cost of costs??[]) if(cost.purchase_order_id) purchaseCostTotals.set(cost.purchase_order_id,(purchaseCostTotals.get(cost.purchase_order_id)??0)+Number(cost.amount));
 
-  const canPurchase = ["owner","admin","manager","purchasing"].includes(context.active.role);
+  const canPurchase = ["owner","admin","manager","purchasing","data_entry"].includes(context.active.role);
   const canManageProducts = ["owner","admin","manager","purchasing","sales","data_entry"].includes(context.active.role);
   const canApprove = ["owner","admin","manager"].includes(context.active.role);
 
