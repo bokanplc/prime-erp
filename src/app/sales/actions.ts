@@ -30,31 +30,46 @@ export async function createSalesDocument(formData: FormData): Promise<void> {
   const units = formData.getAll("unitOfMeasure").map(v => String(v).trim());
   const prices = formData.getAll("unitPrice").map(v => String(v).trim());
   const discounts = formData.getAll("discountAmount").map(v => String(v).trim());
+  const landedCosts = formData.getAll("landedUnitCost").map(v => String(v).trim());
+  const landedReferences = formData.getAll("landedCostReference").map(v => String(v).trim());
 
-  const lines = descriptions.map((description, index) => {
-    const quantity = Number(quantities[index]);
-    const unitPrice = Number(prices[index]);
-    const discount = Number(discounts[index] || 0);
-    if (!description) return null;
-    if (description.length > 240 || !Number.isFinite(quantity) || quantity <= 0 || quantity > 1_000_000) return null;
-    if (!Number.isFinite(unitPrice) || unitPrice < 0 || unitPrice > 1_000_000_000) return null;
-    if (!Number.isFinite(discount) || discount < 0) return null;
-    const gross = roundMoney(quantity * unitPrice);
-    if (discount > gross) return null;
-    return {
+  const lines: Array<{
+    description: string; quantity: number; unit_of_measure: string; unit_price: number;
+    discount_amount: number; line_net: number; landed_unit_cost: number | null; landed_cost_reference: string | null;
+  }> = [];
+  let hasInvalidLine = false;
+
+  descriptions.forEach((description, index) => {
+    const quantityInput = quantities[index] ?? "";
+    const priceInput = prices[index] ?? "";
+    const discountInput = discounts[index] ?? "";
+    const landedInput = landedCosts[index] ?? "";
+    if (!description) {
+      if (quantityInput || priceInput || (discountInput && discountInput !== "0") || landedInput) hasInvalidLine = true;
+      return;
+    }
+    const quantity = Number(quantityInput);
+    const unitPrice = Number(priceInput);
+    const discount = Number(discountInput || 0);
+    const landedCost = landedInput ? Number(landedInput) : null;
+    if (description.length > 240 || !Number.isFinite(quantity) || quantity <= 0 || quantity > 1_000_000) { hasInvalidLine = true; return; }
+    if (!Number.isFinite(unitPrice) || unitPrice < 0 || unitPrice > 1_000_000_000) { hasInvalidLine = true; return; }
+    if (!Number.isFinite(discount) || discount < 0) { hasInvalidLine = true; return; }
+    if (discount > roundMoney(quantity * unitPrice)) { hasInvalidLine = true; return; }
+    if (landedCost !== null && (!Number.isFinite(landedCost) || landedCost < 0 || landedCost > 1_000_000_000)) { hasInvalidLine = true; return; }
+    lines.push({
       description,
       quantity,
       unit_of_measure: units[index]?.slice(0, 30) || "pcs",
       unit_price: roundMoney(unitPrice),
       discount_amount: roundMoney(discount),
-      line_net: roundMoney(gross - discount)
-    };
-  }).filter((line): line is NonNullable<typeof line> => line !== null);
+      line_net: roundMoney(quantity * unitPrice - discount),
+      landed_unit_cost: landedCost === null ? null : roundMoney(landedCost),
+      landed_cost_reference: landedReferences[index]?.trim().slice(0, 160) || null
+    });
+  });
 
-  const hasInvalidPopulatedLine = descriptions.some((description, index) =>
-    Boolean(description) && !lines.some(line => line.description === description && line.quantity === Number(quantities[index]))
-  );
-  if (hasInvalidPopulatedLine || lines.length === 0 || lines.length > 12) return;
+  if (hasInvalidLine || lines.length === 0 || lines.length > 12) return;
 
   const context = await getCompanyContext();
   if (!salesWriters.includes(context.active.role)) return;
