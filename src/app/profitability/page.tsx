@@ -29,7 +29,6 @@ export default async function ProfitabilityPage() {
 
   const results=(documents??[]).map(doc=>{
     const docLines=lineMap.get(doc.id)??[];
-    const lineBase=docLines.reduce((sum,line)=>sum+Number(line.line_net),0);
     const revenue=round(Number(doc.grand_total)-Number(doc.vat_total));
     const allCosted=docLines.length>0&&docLines.every(line=>line.landed_unit_cost!==null);
     const landedCost=round(docLines.reduce((sum,line)=>sum+(line.landed_unit_cost===null?0:Number(line.quantity)*Number(line.landed_unit_cost)),0));
