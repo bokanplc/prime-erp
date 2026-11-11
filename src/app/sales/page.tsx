@@ -77,7 +77,7 @@ export default async function SalesPage() {
 
       {canCreate ? <section className="workspace-panel">
         <h2>Create quotation / proforma</h2>
-        <p className="panel-hint">Enter up to four lines. Select a product to use its latest matching customer-specific or general sales price; you can override it. Amounts are in ETB. The document is submitted for manager approval when saved. Landed unit cost is optional, manually verified and used only for commercial margin analysis—not stock valuation.</p>
+        <p className="panel-hint">Enter up to four lines. Select a product to use its latest matching customer-specific or general sales price; you can override it. Amounts are in ETB. The document is submitted for manager approval when saved. Landed unit cost is optional and manually verified. For accurate margin reporting, include allocated purchase transport/loading/miscellaneous costs and non-recoverable VAT, and exclude recoverable VAT. It is not stock valuation.</p>
         {(customers ?? []).length ? <form action={createSalesDocument} className="record-form">
           <div className="form-grid">
             <label>Customer <span>*</span><select name="customerId" required defaultValue=""><option value="" disabled>Select customer</option>{(customers ?? []).map(c => <option key={c.id} value={c.id}>{c.display_name || c.legal_name}</option>)}</select></label>
