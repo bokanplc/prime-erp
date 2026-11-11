@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run check:v7-isolation && npm run test && next build",
+    "build": "npm run check:v7-isolation && npm run check:v7-migrations && npm run test && next build",
     "start": "next start",
     "lint": "eslint .",
     "test": "tsc -p tsconfig.test.json && node --test .test-dist/lib/commercial.test.js",
-    "check:v7-isolation": "node scripts/check-v7-isolation.mjs"
+    "check:v7-isolation": "node scripts/check-v7-isolation.mjs",
+    "check:v7-migrations": "node scripts/check-v7-migrations.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.7.0",
