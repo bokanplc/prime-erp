@@ -45,12 +45,13 @@ The following V7-only migrations were applied and verified:
 26. `v7_audit_read_restriction`
 27. `v7_recipient_notifications`
 28. `v7_submission_notifications`
+29. `v7_notification_fk_indexes`
 
 Verification at setup:
-- 19 public application tables
-- Row Level Security enabled on all 19 tables
-- 68 RLS policies
-- 0 unindexed foreign keys (including the landed-cost purchase-line reference)
+- 20 public application tables
+- Row Level Security enabled on all 20 tables
+- 73 RLS policies
+- 0 unindexed foreign keys (including landed-cost, customer/supplier pricing and notification references)
 - Private document bucket with company-folder Storage RLS and 10 MB file limit
 - Transaction-level landed-cost fields with same-company purchase-line references
 - Database triggers enforce manager-only sales and purchase-order approvals
