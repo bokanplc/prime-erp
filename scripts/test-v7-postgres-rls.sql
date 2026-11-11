@@ -36,11 +36,11 @@ values ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-00000000
 insert into public.products (id, company_id, name, unit_of_measure)
 values ('40000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Test Product','pcs');
 
-insert into public.purchase_orders (id, company_id, order_number, supplier_id, status)
-values ('50000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','PO-TEST-APPROVAL','30000000-0000-4000-8000-000000000001','submitted');
+insert into public.purchase_orders (id, company_id, order_number, supplier_id, status, created_by)
+values ('50000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','PO-TEST-APPROVAL','30000000-0000-4000-8000-000000000001','submitted','10000000-0000-4000-8000-000000000003');
 
-insert into public.sales_documents (id, company_id, document_number, customer_id, document_type, status)
-select '60000000-0000-4000-8000-000000000001', company_id, 'PRO-TEST-APPROVAL', id, 'proforma', 'submitted'
+insert into public.sales_documents (id, company_id, document_number, customer_id, document_type, status, created_by)
+select '60000000-0000-4000-8000-000000000001', company_id, 'PRO-TEST-APPROVAL', id, 'proforma', 'submitted', '10000000-0000-4000-8000-000000000003'
 from public.customers
 where company_id = '20000000-0000-4000-8000-000000000001' and legal_name = 'Customer One';
 
@@ -228,6 +228,43 @@ insert into public.purchase_orders (
 update public.purchase_requests
 set status = 'converted'
 where id = '70000000-0000-4000-8000-000000000001';
+
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000003', true);
+
+do $notification_recipient_test$
+declare notification_count integer;
+declare notification_id uuid;
+begin
+  select count(*) into notification_count from public.notifications
+  where company_id='20000000-0000-4000-8000-000000000001';
+  if notification_count <> 4 then
+    raise exception 'Expected 4 recipient notifications, received %', notification_count;
+  end if;
+
+  select id into notification_id from public.notifications
+  where company_id='20000000-0000-4000-8000-000000000001'
+  order by created_at limit 1;
+
+  update public.notifications set read_at=now() where id=notification_id;
+  begin
+    update public.notifications set title='Tampered notification' where id=notification_id;
+    raise exception 'Notification content unexpectedly changed';
+  exception when insufficient_privilege then null;
+  end;
+end
+$notification_recipient_test$;
+
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
+do $notification_privacy_test$
+declare notification_count integer;
+begin
+  select count(*) into notification_count from public.notifications
+  where company_id='20000000-0000-4000-8000-000000000001';
+  if notification_count <> 0 then
+    raise exception 'Another employee unexpectedly read % notifications', notification_count;
+  end if;
+end
+$notification_privacy_test$;
 
 rollback;
 
