@@ -59,29 +59,25 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      PGHOST: localhost
-      PGPORT: 5432
-      PGUSER: postgres
-      PGPASSWORD: postgres
-      PGDATABASE: bokan_v7_test
+      POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
     steps:
       - name: Check out V7 branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
 
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Copy SQL test suite into disposable PostgreSQL container
+        run: |
+          docker cp scripts/v7-postgres-bootstrap.sql "$POSTGRES_CONTAINER_ID":/tmp/v7-postgres-bootstrap.sql
+          docker cp supabase/migrations "$POSTGRES_CONTAINER_ID":/tmp/v7-migrations
+          docker cp scripts/test-v7-postgres-rls.sql "$POSTGRES_CONTAINER_ID":/tmp/test-v7-postgres-rls.sql
 
       - name: Create disposable Supabase Auth stand-in
-        run: psql -X -v ON_ERROR_STOP=1 -f scripts/v7-postgres-bootstrap.sql
+        run: docker exec "$POSTGRES_CONTAINER_ID" psql -X -U postgres -d bokan_v7_test -v ON_ERROR_STOP=1 -f /tmp/v7-postgres-bootstrap.sql
 
       - name: Apply only the V7 database migrations
         run: |
-          for migration in supabase/migrations/*.sql; do
-            echo "Applying ${migration}"
-            psql -X -v ON_ERROR_STOP=1 -f "${migration}"
-          done
+          docker exec "$POSTGRES_CONTAINER_ID" sh -lc 'for migration in /tmp/v7-migrations/*.sql; do echo "Applying $migration"; psql -X -U postgres -d bokan_v7_test -v ON_ERROR_STOP=1 -f "$migration"; done'
 
       - name: Verify RLS, company isolation and deferred modules
-        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-v7-postgres-rls.sql
+        run: docker exec "$POSTGRES_CONTAINER_ID" psql -X -U postgres -d bokan_v7_test -v ON_ERROR_STOP=1 -f /tmp/test-v7-postgres-rls.sql
