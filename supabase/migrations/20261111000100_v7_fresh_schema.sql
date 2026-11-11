@@ -5,7 +5,7 @@
 
 begin;
 
-create extension if not exists pgcrypto with schema extensions;
+create schema if not exists extensions;
 
 create table if not exists public.companies (
   id uuid primary key default gen_random_uuid(),
@@ -72,6 +72,20 @@ create table if not exists public.suppliers (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (company_id, supplier_code)
+);
+
+create table if not exists public.product_prices (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies(id) on delete restrict,
+  product_id uuid not null,
+  price_type text not null check (price_type in ('sales','purchase')),
+  unit_price numeric(14,2) not null check (unit_price >= 0),
+  currency_code text not null default 'ETB' check (currency_code = 'ETB'),
+  vat_rate numeric(5,2) not null default 15 check (vat_rate >= 0 and vat_rate <= 100),
+  effective_from date not null default current_date,
+  effective_until date,
+  created_at timestamptz not null default now(),
+  check (effective_until is null or effective_until >= effective_from)
 );
 
 create table if not exists public.products (
@@ -329,6 +343,7 @@ alter table public.customers enable row level security;
 alter table public.customer_contacts enable row level security;
 alter table public.suppliers enable row level security;
 alter table public.products enable row level security;
+alter table public.product_prices enable row level security;
 alter table public.leads enable row level security;
 alter table public.crm_activities enable row level security;
 alter table public.tasks enable row level security;
@@ -389,6 +404,15 @@ create policy products_update on public.products for update to authenticated
 using (public.has_company_role(company_id, array['owner','admin','manager','sales','purchasing','data_entry']))
 with check (public.has_company_role(company_id, array['owner','admin','manager','sales','purchasing','data_entry']));
 create policy products_delete on public.products for delete to authenticated
+using (public.has_company_role(company_id, array['owner','admin','manager']));
+
+create policy product_prices_select on public.product_prices for select to authenticated using (public.is_company_member(company_id));
+create policy product_prices_insert on public.product_prices for insert to authenticated
+with check (public.has_company_role(company_id, array['owner','admin','manager','sales','purchasing','data_entry']));
+create policy product_prices_update on public.product_prices for update to authenticated
+using (public.has_company_role(company_id, array['owner','admin','manager','sales','purchasing','data_entry']))
+with check (public.has_company_role(company_id, array['owner','admin','manager','sales','purchasing','data_entry']));
+create policy product_prices_delete on public.product_prices for delete to authenticated
 using (public.has_company_role(company_id, array['owner','admin','manager']));
 
 create policy leads_select on public.leads for select to authenticated using (public.is_company_member(company_id));
@@ -493,6 +517,7 @@ with check (actor_user_id = auth.uid() and public.is_company_member(company_id))
 create index if not exists memberships_user_company_idx on public.company_memberships(user_id, company_id) where is_active;
 create index if not exists customers_company_name_idx on public.customers(company_id, legal_name);
 create index if not exists suppliers_company_name_idx on public.suppliers(company_id, legal_name);
+create index if not exists product_prices_company_product_idx on public.product_prices(company_id, product_id, price_type, effective_from desc);
 create index if not exists leads_company_stage_idx on public.leads(company_id, stage, created_at desc);
 create index if not exists activities_company_time_idx on public.crm_activities(company_id, occurred_at desc);
 create index if not exists tasks_company_due_idx on public.tasks(company_id, due_at) where status in ('open','in_progress');
@@ -501,5 +526,83 @@ create index if not exists purchase_orders_company_date_idx on public.purchase_o
 create index if not exists direct_costs_company_date_idx on public.transaction_direct_costs(company_id, incurred_on desc);
 create index if not exists deliveries_company_status_idx on public.deliveries(company_id, status, planned_for);
 create index if not exists audit_events_company_time_idx on public.audit_events(company_id, occurred_at desc);
+
+
+-- Enforce same-company relationships at the database boundary; a valid UUID
+-- from another tenant must never be attachable to this tenant's row.
+alter table public.customers add constraint customers_company_id_id_uniq unique (company_id, id);
+alter table public.suppliers add constraint suppliers_company_id_id_uniq unique (company_id, id);
+alter table public.products add constraint products_company_id_id_uniq unique (company_id, id);
+alter table public.leads add constraint leads_company_id_id_uniq unique (company_id, id);
+alter table public.quotations add constraint quotations_company_id_id_uniq unique (company_id, id);
+alter table public.purchase_orders add constraint purchase_orders_company_id_id_uniq unique (company_id, id);
+
+alter table public.product_prices add constraint product_prices_product_company_fk
+  foreign key (company_id, product_id) references public.products(company_id, id) on delete cascade;
+
+alter table public.customer_contacts drop constraint if exists customer_contacts_customer_id_fkey;
+alter table public.customer_contacts add constraint customer_contacts_customer_company_fk
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete cascade;
+
+alter table public.leads drop constraint if exists leads_customer_id_fkey;
+alter table public.leads add constraint leads_customer_company_fk
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete set null;
+
+alter table public.crm_activities drop constraint if exists crm_activities_customer_id_fkey;
+alter table public.crm_activities drop constraint if exists crm_activities_lead_id_fkey;
+alter table public.crm_activities add constraint crm_activities_customer_company_fk
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete cascade;
+alter table public.crm_activities add constraint crm_activities_lead_company_fk
+  foreign key (company_id, lead_id) references public.leads(company_id, id) on delete cascade;
+
+alter table public.tasks drop constraint if exists tasks_customer_id_fkey;
+alter table public.tasks drop constraint if exists tasks_lead_id_fkey;
+alter table public.tasks add constraint tasks_customer_company_fk
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete set null;
+alter table public.tasks add constraint tasks_lead_company_fk
+  foreign key (company_id, lead_id) references public.leads(company_id, id) on delete set null;
+
+alter table public.quotations drop constraint if exists quotations_customer_id_fkey;
+alter table public.quotations add constraint quotations_customer_company_fk
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete restrict;
+
+alter table public.quotation_lines drop constraint if exists quotation_lines_quotation_id_fkey;
+alter table public.quotation_lines drop constraint if exists quotation_lines_product_id_fkey;
+alter table public.quotation_lines add constraint quotation_lines_quotation_company_fk
+  foreign key (company_id, quotation_id) references public.quotations(company_id, id) on delete cascade;
+alter table public.quotation_lines add constraint quotation_lines_product_company_fk
+  foreign key (company_id, product_id) references public.products(company_id, id) on delete set null;
+
+alter table public.purchase_orders drop constraint if exists purchase_orders_supplier_id_fkey;
+alter table public.purchase_orders add constraint purchase_orders_supplier_company_fk
+  foreign key (company_id, supplier_id) references public.suppliers(company_id, id) on delete restrict;
+
+alter table public.purchase_order_lines drop constraint if exists purchase_order_lines_purchase_order_id_fkey;
+alter table public.purchase_order_lines drop constraint if exists purchase_order_lines_product_id_fkey;
+alter table public.purchase_order_lines add constraint purchase_lines_order_company_fk
+  foreign key (company_id, purchase_order_id) references public.purchase_orders(company_id, id) on delete cascade;
+alter table public.purchase_order_lines add constraint purchase_lines_product_company_fk
+  foreign key (company_id, product_id) references public.products(company_id, id) on delete set null;
+
+alter table public.transaction_direct_costs drop constraint if exists transaction_direct_costs_quotation_id_fkey;
+alter table public.transaction_direct_costs drop constraint if exists transaction_direct_costs_purchase_order_id_fkey;
+alter table public.transaction_direct_costs add constraint direct_costs_quotation_company_fk
+  foreign key (company_id, quotation_id) references public.quotations(company_id, id) on delete cascade;
+alter table public.transaction_direct_costs add constraint direct_costs_purchase_company_fk
+  foreign key (company_id, purchase_order_id) references public.purchase_orders(company_id, id) on delete cascade;
+
+alter table public.deliveries drop constraint if exists deliveries_quotation_id_fkey;
+alter table public.deliveries add constraint deliveries_quotation_company_fk
+  foreign key (company_id, quotation_id) references public.quotations(company_id, id) on delete set null;
+
+alter table public.documents drop constraint if exists documents_customer_id_fkey;
+alter table public.documents drop constraint if exists documents_quotation_id_fkey;
+alter table public.documents drop constraint if exists documents_purchase_order_id_fkey;
+alter table public.documents add constraint documents_customer_company_fk
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete set null;
+alter table public.documents add constraint documents_quotation_company_fk
+  foreign key (company_id, quotation_id) references public.quotations(company_id, id) on delete set null;
+alter table public.documents add constraint documents_purchase_company_fk
+  foreign key (company_id, purchase_order_id) references public.purchase_orders(company_id, id) on delete set null;
 
 commit;
