@@ -1,3 +1,4 @@
+import { SignOutButton } from "@/components/sign-out-button";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import { CompanySwitcher } from "@/components/company-switcher";
 
@@ -29,7 +30,7 @@ export default function Home() {
         <div className="sidebar-foot">BOKAN ERP V7<br/>New architecture · Preview build<br/>No business data connected.</div>
       </aside>
       <section className="main">
-        <header className="topbar"><div className="crumb">Workspace <span style={{color:"#c0c9ca"}}>/</span> Overview</div><div className="top-actions"><CompanySwitcher companies={context.companies} activeCompanyId={context.active.companyId} /><div className="avatar">{context.user.email?.slice(0,1).toUpperCase() ?? "B"}</div></div></header>
+        <header className="topbar"><div className="crumb">Workspace <span style={{color:"#c0c9ca"}}>/</span> Overview</div><div className="top-actions"><CompanySwitcher companies={context.companies} activeCompanyId={context.active.companyId} /><div className="avatar">{context.user.email?.slice(0,1).toUpperCase() ?? "B"}</div><SignOutButton /></div></header>
         <div className="content">
           <div className="welcome"><div><div className="eyebrow">Commercial operations · {context.active.displayName}</div><h1>Good morning.</h1><p className="subhead">A clean V7 workspace is taking shape around secure company-aware operations.</p></div><div className="date-chip">BOKAN ERP · VERSION 7</div></div>
           <div className="notice"><div>◈</div><div><strong>Development environment — not for live transactions</strong>This is the new application foundation. No sample figures or imported business records are displayed. Your active company is isolated by database policies; the new V7 database remains separate from legacy systems.</div></div>
