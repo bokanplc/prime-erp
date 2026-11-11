@@ -136,7 +136,7 @@ values ('20000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-0000000
 insert into public.purchase_orders (company_id, order_number, supplier_id, status)
 values ('20000000-0000-4000-8000-000000000001', 'PO-DATA-ENTRY', '30000000-0000-4000-8000-000000000001', 'submitted');
 
-do $
+do $data_entry_test$
 begin
   begin
     update public.purchase_orders
@@ -156,7 +156,7 @@ begin
     when insufficient_privilege then null;
   end;
 end
-$;
+$data_entry_test$;
 rollback;
 
 select 'V7 migration smoke test passed: schema, tenant isolation, private storage, approval guards and excluded modules verified.' as result;
