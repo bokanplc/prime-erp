@@ -40,6 +40,7 @@ The following V7-only migrations were applied and verified:
 21. `v7_lock_commercial_status_transitions`
 22. `v7_approval_attribution_guard`
 23. `v7_purchase_request_approval_guard`
+24. `v7_purchase_request_conversion`
 
 Verification at setup:
 - 19 public application tables
@@ -55,7 +56,7 @@ Verification at setup:
 - Admins can assign other admins; owner role remains owner-controlled
 - Consolidated safe-delete policies avoid duplicate permissive-policy warnings
 - Commercial status transitions and approval attribution are database-guarded
-- Purchase requests have manager-only approval enforcement
+- Purchase requests have manager-only approval enforcement and controlled conversion to linked supplier orders
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
