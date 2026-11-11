@@ -2,7 +2,8 @@
 insert into auth.users (id) values
   ('10000000-0000-4000-8000-000000000001'),
   ('10000000-0000-4000-8000-000000000002'),
-  ('10000000-0000-4000-8000-000000000003');
+  ('10000000-0000-4000-8000-000000000003'),
+  ('10000000-0000-4000-8000-000000000004');
 
 insert into public.companies (id, legal_name, display_name)
 values
@@ -13,7 +14,8 @@ insert into public.company_memberships (company_id, user_id, role)
 values
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'sales'),
   ('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', 'sales'),
-  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'data_entry');
+  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'data_entry'),
+  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000004', 'manager');
 
 insert into public.customers (company_id, legal_name, display_name)
 values
@@ -159,4 +161,19 @@ end
 $data_entry_test$;
 rollback;
 
-select 'V7 migration smoke test passed: schema, tenant isolation, private storage, approval guards and excluded modules verified.' as result;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000004', true);
+
+update public.purchase_orders
+set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000004', approved_at = now()
+where id = '50000000-0000-4000-8000-000000000001';
+
+update public.sales_documents
+set status = 'approved', approved_by = '10000000-0000-4000-8000-000000000004', approved_at = now()
+where id = '60000000-0000-4000-8000-000000000001';
+
+rollback;
+
+select 'V7 migration smoke test passed: schema, tenant isolation, private storage, data-entry permissions, manager approvals and excluded modules verified.' as result;
