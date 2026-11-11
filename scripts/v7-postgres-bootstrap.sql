@@ -4,7 +4,8 @@ create role anon nologin;
 create role authenticated nologin;
 create schema auth;
 create table auth.users (
-  id uuid primary key
+  id uuid primary key,
+  email text unique
 );
 create or replace function auth.uid()
 returns uuid
