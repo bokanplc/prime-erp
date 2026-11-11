@@ -2,6 +2,8 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import { CompanySwitcher } from "@/components/company-switcher";
 
+export const dynamic = "force-dynamic";
+
 
 const modules = [
   { icon: "◎", title: "CRM & Customers", href: "/crm", desc: "Customer records, leads, pipeline, calls, visits, reminders and relationship history.", tag: "Core workspace" },
