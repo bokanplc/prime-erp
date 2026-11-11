@@ -1,0 +1,64 @@
+# BOKAN ERP V7 — Supabase environment
+
+## Isolated project
+
+- Project: BOKAN ERP V7
+- Supabase project reference: `thfzvtltmaieesjulggr`
+- Region: `eu-central-2`
+- API URL: `https://thfzvtltmaieesjulggr.supabase.co`
+- Organization: BlackRock Investment
+- Plan at creation: Free
+- Quoted recurring project cost at creation: USD 0/month
+
+This is a separate Supabase project. Do not point V7 at the legacy BOKAN ERP project
+(`kafiwnuynjemufnankvi`) or the WeHaul project.
+
+## Applied migrations
+
+The following V7-only migrations were applied and verified:
+
+1. `v7_initial_schema`
+2. `v7_role_policies`
+3. `v7_tenant_integrity`
+4. `v7_product_purchase_workflows`
+5. `v7_audit_triggers`
+6. `v7_foreign_key_performance_indexes`
+
+Verification at setup:
+- 19 public application tables
+- Row Level Security enabled on all 19 tables
+- 68 RLS policies
+- 0 unindexed foreign keys
+- 0 business rows, users, stock records, or imported historical data
+- Security and health advisors returned no findings
+
+The performance advisor subsequently reports newly created indexes as unused because
+the database has no live workload yet. Reassess after real application traffic rather
+than removing those indexes prematurely.
+
+## Vercel preview configuration
+
+The Vercel project `bokan-erp-v7` has the following preview-only environment
+variables scoped to branch `rebuild/bokan-erp-v7`:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
+The publishable key is a public client credential, not a service-role secret.
+No service-role key is configured in the browser environment.
+
+Production environment variables are intentionally not configured until V7 has
+passed review and a production release is explicitly prepared.
+
+## Fresh onboarding
+
+No company, employee, customer, supplier, product, price, or transaction data has
+been seeded. Create the initial company and administrator through the approved
+V7 onboarding flow after the application review. Add fresh reconciled business
+data only when the user supplies it.
+
+## Legacy V6.7
+
+Keep the old project intact until V7 is fully reviewed, authenticated, deployed,
+and the user confirms that the new system is ready. Then take a final backup/export,
+verify any retention obligations, and only then consider deleting the old project.
