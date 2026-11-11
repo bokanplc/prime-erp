@@ -43,6 +43,8 @@ The following V7-only migrations were applied and verified:
 24. `v7_purchase_request_conversion`
 25. `v7_supplier_specific_purchase_prices`
 26. `v7_audit_read_restriction`
+27. `v7_recipient_notifications`
+28. `v7_submission_notifications`
 
 Verification at setup:
 - 19 public application tables
@@ -61,6 +63,7 @@ Verification at setup:
 - Purchase requests have manager-only approval enforcement and controlled conversion to linked supplier orders
 - Supplier-specific purchase prices have same-company references and lookup indexes
 - Audit history is readable only by company management roles
+- Recipient-only in-app notifications are generated for approvals, submissions and purchase-request conversion
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
