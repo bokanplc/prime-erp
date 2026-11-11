@@ -243,7 +243,7 @@ create table if not exists public.transaction_direct_costs (
   incurred_on date not null default current_date,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  check ((quotation_id is not null)::integer + (purchase_order_id is not null)::integer = 1)
+  check ((quotation_id is null) <> (purchase_order_id is null))
 );
 
 create table if not exists public.deliveries (
@@ -546,7 +546,7 @@ alter table public.customer_contacts add constraint customer_contacts_customer_c
 
 alter table public.leads drop constraint if exists leads_customer_id_fkey;
 alter table public.leads add constraint leads_customer_company_fk
-  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete set null;
+  foreign key (company_id, customer_id) references public.customers(company_id, id) on delete restrict;
 
 alter table public.crm_activities drop constraint if exists crm_activities_customer_id_fkey;
 alter table public.crm_activities drop constraint if exists crm_activities_lead_id_fkey;
