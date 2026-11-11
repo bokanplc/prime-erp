@@ -28,6 +28,8 @@ The following V7-only migrations were applied and verified:
 9. `v7_harden_document_storage_policies`
 10. `v7_document_upload_cleanup_policy`
 11. `v7_landed_cost_reference_index`
+12. `v7_data_entry_purchasing_permissions`
+13. `v7_database_approval_guards`
 
 Verification at setup:
 - 19 public application tables
@@ -36,6 +38,7 @@ Verification at setup:
 - 0 unindexed foreign keys (including the landed-cost purchase-line reference)
 - Private document bucket with company-folder Storage RLS and 10 MB file limit
 - Transaction-level landed-cost fields with same-company purchase-line references
+- Database triggers enforce manager-only sales and purchase-order approvals
 - 0 business rows, users, stock records, or imported historical data
 - Security and health advisors returned no findings
 
