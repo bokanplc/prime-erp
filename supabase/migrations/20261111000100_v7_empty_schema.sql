@@ -327,56 +327,8 @@ create policy memberships_self_or_manager_read on public.company_memberships
     or private.has_company_role(company_id, array['owner','manager']::public.company_role[])
   );
 
--- CRUD access for business workspaces is membership-gated. Role-specific write
--- restrictions are tightened in follow-on policies before the production release.
-create policy customers_member_access on public.customers
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy suppliers_member_access on public.suppliers
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy leads_member_access on public.crm_leads
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy crm_activities_member_access on public.crm_activities
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy sales_documents_member_access on public.sales_documents
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy sales_document_lines_member_access on public.sales_document_lines
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy purchase_orders_member_access on public.purchase_orders
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy purchase_order_lines_member_access on public.purchase_order_lines
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy direct_costs_member_access on public.direct_costs
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy delivery_jobs_member_access on public.delivery_jobs
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy tasks_member_access on public.tasks
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
-create policy documents_member_access on public.documents
-  for all to authenticated
-  using (private.is_company_member(company_id))
-  with check (private.is_company_member(company_id));
+-- Business tables intentionally have no access policies in this base migration.
+-- The next migration grants only role-specific, least-privilege access.
 create policy audit_events_member_read on public.audit_events
   for select to authenticated using (private.is_company_member(company_id));
 
