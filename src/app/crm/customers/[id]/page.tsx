@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import { ActivityForm } from "../../crm-forms";
+import { CustomerEditForm } from "../../customer-form";
 
 type Props = { params: Promise<{ id: string }> };
 export const dynamic = "force-dynamic";
@@ -62,6 +63,8 @@ export default async function CustomerHistoryPage({ params }: Props) {
           <p><strong>Notes</strong><span>{customer.notes || "—"}</span></p>
         </div>
       </section>
+
+      {canCreate ? <section className="workspace-panel"><h2>Edit customer details</h2><p className="panel-hint">Changes apply only to this company’s customer record.</p><CustomerEditForm customer={customer} /></section> : null}
 
       <section className="workspace-panel">
         <div className="workspace-panel-heading"><div><h2>Opportunities & pipeline</h2><p>Leads linked to this customer.</p></div><span className="record-count">{leads?.length ?? 0} leads</span></div>
