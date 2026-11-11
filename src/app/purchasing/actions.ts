@@ -292,3 +292,17 @@ export async function addPurchaseDirectCost(formData: FormData): Promise<void> {
   revalidatePath("/purchasing");
   revalidatePath("/profitability");
 }
+
+export async function approvePurchaseRequest(formData: FormData): Promise<void> {
+  const requestId = String(formData.get("requestId") ?? "").trim();
+  if (!requestId) return;
+  const context = await getCompanyContext();
+  if (!approvers.includes(context.active.role)) return;
+
+  await context.supabase.from("purchase_requests").update({
+    status: "approved",
+    approved_by: context.user.id,
+    approved_at: new Date().toISOString()
+  }).eq("id", requestId).eq("company_id", context.active.companyId).eq("status", "submitted");
+  revalidatePath("/purchasing");
+}
