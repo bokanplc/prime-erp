@@ -2,6 +2,8 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { getCompanyContext } from "@/lib/auth/company-context";
 import { CompanySwitcher } from "@/components/company-switcher";
 
+import { getAuthorizedCompanies } from "@/lib/company-context";
+
 const modules = [
   { icon: "◎", title: "CRM & Customers", href: "/crm", desc: "Customer records, leads, pipeline, calls, visits, reminders and relationship history.", tag: "Core workspace" },
   { icon: "▤", title: "Sales & Proformas", href: "/sales", desc: "Commercial offers, sales documents, pricing, VAT and approval stages.", tag: "Core workspace" },
@@ -20,7 +22,8 @@ const nav = [
   ["▧", "Documents", "/documents"], ["◷", "Tasks & Reminders", "/tasks"], ["▥", "Reports", "/reports"]
 ];
 
-export default function Home() {
+export default async function Home() {
+  const companies = await getAuthorizedCompanies();
   return (
     <main className="shell">
       <aside className="sidebar">
@@ -43,6 +46,7 @@ export default function Home() {
           <div className="module-grid">{modules.map((m)=><a className="module module-link" href={m.href} key={m.title}><div className="module-icon">{m.icon}</div><h3>{m.title}</h3><p>{m.desc}</p><div className="module-tag">{m.tag} · Open workspace →</div></a>)}</div>
           <div className="bottom-grid">
             <section className="panel"><h2>Implementation sequence</h2><p className="muted">Build security and workflows before onboarding fresh records.</p><div className="status-list"><div className="status-row"><span>Application shell and workspace routes</span><span className="status-pill">Added</span></div><div className="status-row"><span>Authentication and company access</span><span className="status-pill">Pending</span></div><div className="status-row"><span>CRM and commercial workflows</span><span className="status-pill">Pending</span></div><div className="status-row"><span>Reports, audit and release verification</span><span className="status-pill">Pending</span></div></div></section>
+            <section className="panel"><h2>Company access</h2><p className="muted">Company names and roles appear only after a V7 administrator creates an authorized membership.</p><div className="status-list">{companies.length ? companies.map((company) => <div className="status-row" key={company.id}><span>{company.display_name}</span><span className="status-pill">{company.role}</span></div>) : <div className="empty-state">No company membership has been provisioned for this V7 account. Company setup is intentionally empty and must be completed through the secure bootstrap process.</div>}</div></section>
             <section className="panel"><h2>Strict fresh-data policy</h2><p className="muted">V7 starts with zero business records.</p><div className="empty-state">No legacy customers, stock, suppliers, purchases, sales, prices or balances are imported. The existing production database remains untouched.</div></section>
           </div>
           <div className="footer"><span>© BOKAN ERP · Commercial operations platform</span><span>Fresh database · Secure by design</span></div>
