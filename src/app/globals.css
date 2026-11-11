@@ -128,3 +128,16 @@ h1{font-size:29px;margin:9px 0 8px}
 .sign-out-button:hover{border-color:#b6cfc4;color:var(--green)}
 
 .signout-button{border:1px solid var(--line);background:white;border-radius:8px;padding:9px 12px;color:#43545a;font-size:11px;cursor:pointer}.signout-button:hover{border-color:#b6cfc4;color:var(--green)}
+
+.crm-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.crm-entry-grid .workspace-panel{margin-top:0}
+.form-grid select{width:100%;border:1px solid #dce4e4;border-radius:8px;padding:11px 12px;color:var(--ink);background:white;font:inherit;font-weight:400;outline:none}
+.form-grid select:focus{border-color:var(--green);box-shadow:0 0 0 3px #176b5715}
+.stage-pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#edf3f0;color:var(--green);font-size:10px;text-transform:capitalize}
+.activity-list{display:grid;gap:0;margin-top:18px}
+.activity-item{display:grid;grid-template-columns:90px 1fr 150px;gap:14px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+.activity-type{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);font-weight:700;background:var(--green-soft);padding:5px 7px;border-radius:6px;text-align:center}
+.activity-item strong{font-size:12px;color:var(--ink)}
+.activity-item p{font-size:11px;color:var(--muted);margin:4px 0 0;line-height:1.5}
+.activity-item time{font-size:10px;color:var(--muted);text-align:right}
+@media(max-width:850px){.crm-entry-grid{grid-template-columns:1fr}.activity-item{grid-template-columns:75px 1fr}.activity-item time{grid-column:2;text-align:left}}
