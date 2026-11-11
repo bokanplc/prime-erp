@@ -47,6 +47,7 @@ The following V7-only migrations were applied and verified:
 28. `v7_submission_notifications`
 29. `v7_notification_fk_indexes`
 30. `v7_company_settings_permissions`
+31. `v7_invited_first_owner_bootstrap`
 
 Verification at setup:
 - 20 public application tables
@@ -91,9 +92,23 @@ passed review and a production release is explicitly prepared.
 ## Fresh onboarding
 
 No company, employee, customer, supplier, product, price, or transaction data has
-been seeded. Create the initial company and administrator through the approved
-V7 onboarding flow after the application review. Add fresh reconciled business
-data only when the user supplies it.
+been seeded. The first-owner bootstrap is invitation-gated: it requires a signed-in,
+email-verified V7 Auth account with a non-null Supabase `invited_at` timestamp.
+It can run only while both the company and membership tables are empty, and creates
+the two company shells plus owner memberships for that invited user in one transaction.
+
+1. In Supabase Dashboard → Authentication → Users, invite the intended first owner by email.
+2. The invited owner accepts the email invitation and signs in to the V7 review deployment.
+3. On the Company access pending screen, the invited first owner selects
+   **Initialize both companies as first owner**.
+4. The bootstrap creates Prime Investment Group and BlackRock Investment PLC,
+   each with ETB and 15% VAT defaults, and grants the first owner membership in both.
+5. The owner can then add other existing V7 Auth accounts separately to each company.
+
+The bootstrap RPC rejects ordinary self-signups, unverified accounts and all calls
+after the first successful initialization. It does not create Auth users, send invites,
+or import legacy users, customers, products, stock, prices, transactions or balances.
+Add fresh reconciled business data only when the user supplies it.
 
 ## Legacy V6.7
 
