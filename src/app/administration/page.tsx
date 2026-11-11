@@ -5,6 +5,7 @@ import { addCompanyMember, updateCompanyMember } from "./actions";
 
 export const dynamic="force-dynamic";
 type Props={searchParams:Promise<{error?:string;added?:string;updated?:string}>};
+type CompanyMember={user_id:string;email:string|null;role:string;is_active:boolean;created_at:string};
 
 const errorMessages:Record<string,string>={
   email:"Enter a valid email address.",
@@ -21,6 +22,7 @@ export default async function AdministrationPage({searchParams}:Props) {
   if(!["owner","admin","manager"].includes(context.active.role))redirect("/");
   const params=await searchParams;
   const {data:members,error}=await context.supabase.rpc("list_company_members",{target_company_id:context.active.companyId});
+  const memberRows=(members??[]) as CompanyMember[];
   const canManage=["owner","admin"].includes(context.active.role);
   const canAssignElevated=context.active.role==="owner";
 
@@ -36,8 +38,8 @@ export default async function AdministrationPage({searchParams}:Props) {
       {params.updated?<div className="workspace-success" role="status">Membership updated.</div>:null}
 
       <section className="workspace-panel">
-        <div className="workspace-panel-heading"><div><h2>Company members</h2><p>Existing V7 accounts and their active role in this company.</p></div><span className="record-count">{members?.length??0} members</span></div>
-        {error?<div className="workspace-notice"><strong>Membership list unavailable.</strong>The member directory function or your company permission needs attention.</div>:members?.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Member since</th><th>Manage</th></tr></thead><tbody>{members.map(member=>{
+        <div className="workspace-panel-heading"><div><h2>Company members</h2><p>Existing V7 accounts and their active role in this company.</p></div><span className="record-count">{memberRows.length} members</span></div>
+        {error?<div className="workspace-notice"><strong>Membership list unavailable.</strong>The member directory function or your company permission needs attention.</div>:memberRows.length?<div className="table-scroll"><table className="records-table"><thead><tr><th>Account</th><th>Role</th><th>Status</th><th>Member since</th><th>Manage</th></tr></thead><tbody>{memberRows.map(member=>{
           const isSelf=member.user_id===context.user.id;
           const canEdit=canManage&&!isSelf&&(context.active.role==="owner"||!["owner","admin"].includes(member.role));
           return <tr key={member.user_id}><td><strong>{member.email||"Email unavailable"}</strong>{isSelf?<small>Your current account</small>:null}</td><td>{member.role}</td><td><span className="stage-pill">{member.is_active?"Active":"Inactive"}</span></td><td>{new Date(member.created_at).toLocaleDateString()}</td><td>{canEdit?<div className="member-controls">
