@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCompanyContext } from "@/lib/auth/company-context";
 
-const purchasingWriters = ["owner", "admin", "manager", "purchasing"];
+const purchasingWriters = ["owner", "admin", "manager", "purchasing", "data_entry"];
 const approvers = ["owner", "admin", "manager"];
 
 function roundMoney(value: number) {
