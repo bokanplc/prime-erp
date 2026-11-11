@@ -14,7 +14,7 @@ export default async function SalesPage() {
   const [{ data: customers }, { data: documents }, { data: lines }, { data: costs }] = await Promise.all([
     context.supabase.from("customers").select("id, legal_name, display_name").eq("company_id", companyId).order("display_name").limit(500),
     context.supabase.from("sales_documents").select("id, document_number, document_type, status, issue_date, valid_until, subtotal, discount_total, vat_treatment, vat_total, grand_total, customer_id, created_at").eq("company_id", companyId).order("created_at", { ascending: false }).limit(100),
-    context.supabase.from("sales_document_lines").select("id, sales_document_id, description, quantity, unit_of_measure, unit_price, discount_amount, line_net").eq("company_id", companyId).limit(1000),
+    context.supabase.from("sales_document_lines").select("id, sales_document_id, description, quantity, unit_of_measure, unit_price, discount_amount, line_net, landed_unit_cost, landed_cost_reference").eq("company_id", companyId).limit(1000),
     context.supabase.from("direct_costs").select("id, sales_document_id, category, description, amount, incurred_on").eq("company_id", companyId).not("sales_document_id", "is", null).order("incurred_on", { ascending: false }).limit(500)
   ]);
 
@@ -52,7 +52,7 @@ export default async function SalesPage() {
 
       {canCreate ? <section className="workspace-panel">
         <h2>Create quotation / proforma</h2>
-        <p className="panel-hint">Enter up to four lines. Amounts are in ETB. The document is submitted for manager approval when saved.</p>
+        <p className="panel-hint">Enter up to four lines. Amounts are in ETB. The document is submitted for manager approval when saved. Landed unit cost is optional, manually verified and used only for commercial margin analysis—not stock valuation.</p>
         {(customers ?? []).length ? <form action={createSalesDocument} className="record-form">
           <div className="form-grid">
             <label>Customer <span>*</span><select name="customerId" required defaultValue=""><option value="" disabled>Select customer</option>{(customers ?? []).map(c => <option key={c.id} value={c.id}>{c.display_name || c.legal_name}</option>)}</select></label>
@@ -62,13 +62,13 @@ export default async function SalesPage() {
             <label>VAT treatment <span>*</span><select name="vatTreatment" defaultValue="exclusive"><option value="exclusive">15% VAT added (exclusive)</option><option value="inclusive">Price includes 15% VAT (inclusive)</option><option value="none">No VAT</option></select></label>
           </div>
           <div className="sales-lines">
-            <div className="sales-lines-head"><strong>Document lines</strong><span>Description · Quantity · Unit price · Discount</span></div>
+            <div className="sales-lines-head"><strong>Document lines</strong><span>Description · Quantity · Unit price · Discount · Landed unit cost (optional)</span></div>
             {Array.from({length:4},(_,i)=><div className="sales-line" key={i}>
               <label>Description<input name="description" maxLength={240} placeholder={i===0?"Product / service description":"Optional line"} required={i===0} /></label>
               <label>Quantity<input name="quantity" type="number" min="0.001" step="0.001" defaultValue={i===0?"1":""} /></label>
               <label>Unit<input name="unitOfMeasure" maxLength={30} defaultValue="pcs" /></label>
               <label>Unit price (ETB)<input name="unitPrice" type="number" min="0" step="0.01" defaultValue={i===0?"0":""} /></label>
-              <label>Discount (ETB)<input name="discountAmount" type="number" min="0" step="0.01" defaultValue="0" /></label>
+              <label>Discount (ETB)<input name="discountAmount" type="number" min="0" step="0.01" defaultValue="0" /></label><label>Landed unit cost (ETB)<input name="landedUnitCost" type="number" min="0" step="0.01" placeholder="For margin analysis" /></label><label>Cost source reference<input name="landedCostReference" maxLength={160} placeholder="Supplier invoice / PO ref" /></label>
             </div>)}
           </div>
           <label className="sales-terms">Terms and conditions<textarea name="terms" rows={3} maxLength={3000} /></label>
