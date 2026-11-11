@@ -48,6 +48,7 @@ The following V7-only migrations were applied and verified:
 29. `v7_notification_fk_indexes`
 30. `v7_company_settings_permissions`
 31. `v7_invited_first_owner_bootstrap`
+32. `v7_private_first_owner_bootstrap`
 
 Verification at setup:
 - 20 public application tables
@@ -105,8 +106,9 @@ the two company shells plus owner memberships for that invited user in one trans
    each with ETB and 15% VAT defaults, and grants the first owner membership in both.
 5. The owner can then add other existing V7 Auth accounts separately to each company.
 
-The bootstrap RPC rejects ordinary self-signups, unverified accounts and all calls
-after the first successful initialization. It does not create Auth users, send invites,
+The public bootstrap RPC is a SECURITY INVOKER wrapper; its SECURITY DEFINER implementation
+lives in the private schema. It rejects ordinary self-signups, unverified accounts and
+all calls after the first successful initialization. It does not create Auth users, send invites,
 or import legacy users, customers, products, stock, prices, transactions or balances.
 Add fresh reconciled business data only when the user supplies it.
 
