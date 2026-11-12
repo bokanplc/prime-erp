@@ -9725,7 +9725,7 @@ async function enter(user){
 \n<script id="bokan-v65-finance-production">(function(){
   // Production adapter aligned to the live public schema. Receipts and supplier
   // payments remain in Peachtree; this module deliberately does not write them.
-  const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
+  const prod=false; // V7 excludes accounting ledgers and journal posting; Peachtree remains the accounting system.
   const companyCode=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';
   async function companyId(){
     const {data,error}=await window.sb.from('companies').select('id').eq('code',companyCode()).eq('is_active',true).single();
@@ -9754,11 +9754,11 @@ async function enter(user){
         count('fiscal_periods',q=>q.eq('company_id',cid).eq('status','open'))
       ]);
       ['v65-gl','v65-ar','v65-ap','v65-periods'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.textContent=[gl,ar,ap,periods][i]});
-      if(status)status.textContent='Live finance records loaded for '+companyCode()+'. Sales and supplier documents are tracked here; customer receipts and supplier payments remain in Peachtree.';
+      if(status)status.textContent='Finance posting is parked in V7. General ledger, journals, receivables, payables, bank/cash and payment records remain in Peachtree.';
     }catch(e){if(status)status.textContent='Finance production data could not be read: '+(e.message||e);}
   }
   async function postJournal(payload){
-    if(!prod)throw new Error('Production mode is not configured');
+    if(!prod)throw new Error('Accounting and journal posting are outside BOKAN ERP V7 scope; use Peachtree.');
     const cid=await companyId();
     const {data,error}=await window.sb.rpc('post_journal_entry',{
       p_company_id:cid,
@@ -9786,7 +9786,7 @@ async function enter(user){
   window.BOKAN_FINANCE_PRODUCTION={enabled:()=>prod,refresh,postJournal,createJournal:postJournal,listPeriods,listAccounts};
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,250));
 })();</script>\n<script id="bokan-v66-hr-production">(function(){
-  const prod=!!window.BOKAN_CRM_PRODUCTION_MODE && !!window.sb && typeof window.sb.from==='function';
+  const prod=false; // HR and Payroll are benched for the V7 employee release.
   const companyCode=()=>document.body.dataset.company||window.BOKAN_ACTIVE_COMPANY||'BLACKROCK';
   async function companyId(){
     const {data,error}=await window.sb.from('companies').select('id').eq('code',companyCode()).eq('is_active',true).single();
@@ -9802,7 +9802,7 @@ async function enter(user){
   }
   async function refresh(){
     const mode=document.getElementById('v66-mode'),status=document.getElementById('v66-status');
-    if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='Review mode: Supabase production configuration is not active. HR and Payroll data remains in the existing review layer.';return;}
+    if(!prod){if(mode)mode.textContent='Review';if(status)status.textContent='HR and Payroll are benched for V7. No HR production reads or writes are enabled in this release.';return;}
     if(mode)mode.textContent='Production';
     try{
       const cid=await companyId();
