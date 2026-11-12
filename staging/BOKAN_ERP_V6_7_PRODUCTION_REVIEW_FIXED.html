@@ -3619,7 +3619,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
       <input id="so-rep" placeholder="Sales representative" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-product" required placeholder="Product / item" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="so-qty" type="number" step="0.01" min="0.01" required placeholder="Quantity" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="so-total" type="number" step="0.01" min="0.01" required placeholder="Unit selling price (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
+      <input id="so-total" type="number" step="0.01" min="0.01" required placeholder="Unit selling price before VAT (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
+      <select id="so-tax-rate" class="w-full border p-2 rounded mb-2 text-xs" aria-label="Sales VAT rate"><option value="0.15" selected>VAT 15%</option><option value="0">VAT exempt (0%)</option></select>
       <select id="so-status" class="w-full border p-2 rounded mb-2 text-xs"><option>Draft</option><option>Approved</option><option>Partially Fulfilled</option><option>Fulfilled</option><option>Cancelled</option></select>
       <input id="so-delivery" type="date" class="w-full border p-2 rounded mb-3 text-xs">
       <div id="so-production-status" class="text-xs mb-2" aria-live="polite"></div>
@@ -3633,6 +3634,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
 </section>
 
 <section id="tab-collections" class="tab-panel hidden">
+  <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><strong>V7 scope notice — Peachtree remains the payment ledger.</strong><p class="mt-1">Customer receipts, supplier payments, collections posting and payment balances are not recorded in BOKAN ERP. Use Peachtree for those functions. This legacy collection-entry panel is parked for V7.</p></div>
   <div class="page-head mb-5"><div class="page-eyebrow">RECEIVABLES</div><h1>Collections Control</h1><p>Track customer balances, promised payments and collection actions.</p></div>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
     <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Open Receivables</div><div id="col-open" class="text-xl font-bold mt-1">ETB 0.00</div></div>
@@ -3641,7 +3643,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Promises Pending</div><div id="col-promises" class="text-xl font-bold mt-1">0</div></div>
   </div>
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-    <form id="col-form" class="bg-white rounded-lg p-4">
+    <div class="bg-white rounded-lg p-4 opacity-60" aria-disabled="true"><p class="text-xs text-slate-600 mb-2">Collection entry is disabled in V7. Payment records remain in Peachtree.</p><form id="col-form" class="hidden" aria-hidden="true">
       <h2 class="text-sm font-bold mb-3">ADD RECEIVABLE</h2>
       <input id="col-invoice" required placeholder="Invoice number" class="w-full border p-2 rounded mb-2 text-xs">
       <input id="col-customer" required placeholder="Customer / company" class="w-full border p-2 rounded mb-2 text-xs">
@@ -10186,7 +10188,7 @@ async function enter(user){
       quantity:qty,
       unit:product.unit||'unit',
       unit_price:Math.round(unitPrice*100)/100,
-      tax_rate:0
+      tax_rate:Number($('so-tax-rate')?.value??0.15)
     }];
     state.busy=true;
     const button=form.querySelector('button[type="submit"]');
