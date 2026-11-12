@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const config=fs.readFileSync('staging/config/config.js','utf8');
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+assert.equal(source,fs.readFileSync('staging/index.html','utf8'),'Source and staging entry must match.');
+assert.match(config,/V7_SUPABASE_AUTH_ONLY:\s*true/,'V7 must declare Supabase-only authentication.');
+const start=source.indexOf('<script id="prime-production-adapter">'),end=source.indexOf('</script>',start);
+assert.ok(start>=0&&end>start,'Legacy adapter wrapper must exist for compatibility.');
+const adapter=source.slice(start,end);
+assert.ok(adapter.includes('cfg.V7_SUPABASE_AUTH_ONLY===true'),'The retired API adapter must exit before any /api request or localStorage sync.');
+assert.ok(adapter.indexOf('cfg.V7_SUPABASE_AUTH_ONLY===true')<adapter.indexOf('async function api('),'The V7 bypass must run before the legacy API helper is defined or called.');
+assert.ok(source.includes('<script id="bokan-v61-production-auth">'),'Supabase Auth production bridge must remain available to V7.');
+console.log('PASS: V7 bypasses retired Cloudflare /api auth and storage synchronization; Supabase Auth remains the only hosted path.');
