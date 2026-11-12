@@ -47,6 +47,8 @@ jobs:
         run: node scripts/test-erp-source-guards.mjs
       - name: Test V7 benched modules
         run: node scripts/test-v7-benched-modules.mjs
+      - name: Test V7 employee role workspaces
+        run: node scripts/test-v7-employee-role-workspaces.mjs
       - name: Test reviewed production module allowlist
         run: node scripts/test-production-module-allowlist.mjs
       - name: Test core proforma schema draft
