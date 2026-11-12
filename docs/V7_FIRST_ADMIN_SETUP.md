@@ -8,9 +8,9 @@ The V7 first-owner setup is invitation-gated and runs inside the application. Do
 2. Open **Authentication → Users** and invite the intended first owner by email.
 3. The first owner accepts the invitation and confirms the email.
 4. Open the V7 Vercel Preview deployment and sign in using that invited account.
-5. The account will reach **Company access pending**. Select **Initialize both companies as first owner**.
-6. The one-time bootstrap creates Prime Investment Group and BlackRock Investment PLC.
-7. It assigns the invited account the `owner` role in both companies, with ETB and 15% VAT defaults.
+5. The account will reach **Company access pending**. Select **Initialize BlackRock workspace as first owner**.
+6. The one-time bootstrap creates BlackRock Investment PLC only.
+7. It assigns the invited account the `owner` role in BlackRock Investment PLC, with ETB and 15% VAT defaults.
 8. The owner can then invite/create the three sales users and one data-entry user in V7 Supabase Auth, and grant each account access to the correct company from Administration.
 
 ## Security notes
