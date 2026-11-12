@@ -9602,7 +9602,16 @@ async function enter(user){
     $('crm-opportunity-rows').innerHTML=rows.length?rows.map(o=>'<tr class="border-b"><td class="py-2 font-semibold">'+esc(customerName(o.customer_id))+'<div class="text-slate-500">'+esc(o.product_description)+'</div></td><td>'+money(o.estimated_value)+'</td><td><select data-crm-stage="'+esc(o.id)+'" class="min-w-24"><option value="lead" '+(o.stage==='lead'?'selected':'')+'>Lead</option><option value="qualified" '+(o.stage==='qualified'?'selected':'')+'>Qualified</option><option value="quotation" '+(o.stage==='quotation'?'selected':'')+'>Quotation</option><option value="negotiation" '+(o.stage==='negotiation'?'selected':'')+'>Negotiation</option><option value="won" '+(o.stage==='won'?'selected':'')+'>Won</option><option value="lost" '+(o.stage==='lost'?'selected':'')+'>Lost</option><option value="on_hold" '+(o.stage==='on_hold'?'selected':'')+'>On hold</option></select></td><td>'+esc(o.next_action||'—')+(o.next_action_date?'<div class="text-slate-500">'+fmtDate(o.next_action_date)+'</div>':'')+'</td></tr>').join(''):'<tr><td colspan="4" class="py-3 text-center text-slate-500">No pipeline opportunities recorded yet.</td></tr>';
   }
   function renderTasks(){
-    $('crm-task-rows').innerHTML=state.tasks.length?state.tasks.map(t=>'<tr class="border-b"><td class="py-2 font-semibold">'+esc(t.task_type)+'<div class="text-slate-500">'+esc(t.notes||'')+'</div></td><td>'+esc(customerName(t.customer_id))+'</td><td>'+fmtDate(t.due_date)+'</td><td>'+esc(t.status)+'</td><td class="whitespace-nowrap">'+(t.status==='open'?'<button type="button" class="text-blue-700 mr-2" data-crm-task="completed" data-id="'+esc(t.id)+'">Complete</button><button type="button" class="text-red-700" data-crm-task="cancelled" data-id="'+esc(t.id)+'">Cancel</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="5" class="py-3 text-center text-slate-500">No after-sales tasks recorded yet.</td></tr>';
+    const now=new Date();
+    const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+    $('crm-task-rows').innerHTML=state.tasks.length?state.tasks.map(t=>{
+      const overdue=t.status==='open'&&!!t.due_date&&t.due_date<today;
+      const dueToday=t.status==='open'&&t.due_date===today;
+      const dueLabel=overdue?'Overdue':dueToday?'Due today':'';
+      const dueClass=overdue?'text-red-700':dueToday?'text-amber-700':'text-slate-500';
+      const rowClass=overdue?'bg-red-50':dueToday?'bg-amber-50':'';
+      return '<tr class="border-b '+rowClass+'"><td class="py-2 font-semibold">'+esc(t.task_type)+'<div class="text-slate-500">'+esc(t.notes||'')+'</div></td><td>'+esc(customerName(t.customer_id))+'</td><td>'+fmtDate(t.due_date)+(dueLabel?'<div class="text-xs font-semibold '+dueClass+'">'+dueLabel+'</div>':'')+'</td><td>'+esc(t.status)+'</td><td class="whitespace-nowrap">'+(t.status==='open'?'<button type="button" class="text-blue-700 mr-2" data-crm-task="completed" data-id="'+esc(t.id)+'">Complete</button><button type="button" class="text-red-700" data-crm-task="cancelled" data-id="'+esc(t.id)+'">Cancel</button>':'—')+'</td></tr>';
+    }).join(''):'<tr><td colspan="5" class="py-3 text-center text-slate-500">No after-sales tasks recorded yet.</td></tr>';
   }
   function renderHistory(customerId){
     const rows=state.activities.filter(a=>a.customer_id===customerId).sort((a,b)=>String(b.activity_at).localeCompare(String(a.activity_at)));
