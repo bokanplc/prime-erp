@@ -8090,7 +8090,7 @@ renderSP();renderSO();renderCOL();renderLV();renderPR();renderPF();
   const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
   const money=n=>'ETB '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const today=()=>new Date().toISOString().slice(0,10);
+  const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
 
   function refreshProc(){
     const c={req:0,po:0,receipt:0,bill:0,pay:0};
