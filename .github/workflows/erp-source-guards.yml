@@ -69,6 +69,8 @@ jobs:
         run: node scripts/test-sales-targets-company-scope.mjs
       - name: Test Expense company scope
         run: node scripts/test-expense-company-scope.mjs
+      - name: Test transaction-cost classification
+        run: node scripts/test-transaction-cost-classification.mjs
       - name: Test Sales Activity company scope
         run: node scripts/test-sales-activity-company-scope.mjs
       - name: Test production employee access and invitation safeguards
