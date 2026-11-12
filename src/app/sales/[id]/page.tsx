@@ -92,7 +92,7 @@ export default async function SalesDocumentPage({ params }: Props) {
       <section className="classic-lower">
         <div className="classic-terms">
           <h2>TERMS &amp; CONDITIONS</h2>
-          <ul>{terms.split(/\r?\n/).filter(Boolean).map((term, index) => <li key={index}>{term.replace(/^[-•]\s*/, "")}</li>)}</ul>
+          <ul>{terms.split(/\r?\n/).filter(Boolean).map((term: string, index: number) => <li key={index}>{term.replace(/^[-•]\s*/, "")}</li>)}</ul>
         </div>
         <div className="classic-totals">
           <div><span>Subtotal Before VAT</span><strong>ETB {money(beforeVatTotal)}</strong></div>
