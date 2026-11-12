@@ -1351,6 +1351,8 @@ body:not(.force-admin) #proforma-admin-queue{ }
     <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Landed Gross Profit</div><div id="pbi-landed-gp" class="text-xl font-bold text-[#10284A]">—</div></div>
     <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Direct Sales Costs</div><div id="pbi-direct-sales" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
     <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Profit After Direct Sales Costs</div><div id="pbi-after-direct" class="text-xl font-bold text-[#10284A]">—</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Landed Gross Margin</div><div id="pbi-landed-margin" class="text-xl font-bold text-[#10284A]">—</div></div>
+    <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Margin After Direct Sales Costs</div><div id="pbi-after-direct-margin" class="text-xl font-bold text-[#10284A]">—</div></div>
     <div class="rounded-lg border border-[#C8D3E0] p-3"><div class="text-xs text-slate-500">Operating Expenses (separate)</div><div id="pbi-opex" class="text-xl font-bold text-[#10284A]">ETB 0.00</div></div>
   </div>
 </div></section>
@@ -9938,7 +9940,7 @@ async function enter(user){
   const $=id=>document.getElementById(id);
   const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   function status(t,error){const el=$('profitability-status');if(el){el.textContent=t;el.style.color=error?'#B42318':'#526173';}}
-  function pending(){['pbi-revenue','pbi-cogs','pbi-landed-gp','pbi-after-direct'].forEach(id=>{if($(id))$(id).textContent='—';});status('Review mode: live profitability data is not enabled. No sample figures are displayed.');}
+  function pending(){['pbi-revenue','pbi-cogs','pbi-landed-gp','pbi-after-direct','pbi-landed-margin','pbi-after-direct-margin'].forEach(id=>{if($(id))$(id).textContent='—';});status('Review mode: live profitability data is not enabled. No sample figures are displayed.');}
   async function refresh(){
     if(!enabled()){pending();return;}
     status('Loading posted BlackRock sales, stock movements and transaction costs…');
@@ -9962,10 +9964,14 @@ async function enter(user){
       const hasCostBasis=(sales.data||[]).length>0&&issues.length>0&&issues.every(r=>Number(r.unit_cost)>0);
       if(hasCostBasis){
         const gross=revenue-cogs-landed;
-        $('pbi-revenue').textContent=money(revenue);$('pbi-cogs').textContent=money(cogs);$('pbi-landed-gp').textContent=money(gross);$('pbi-after-direct').textContent=money(gross-direct);
+        const afterDirect=gross-direct;
+        const landedMargin=revenue>0?(gross/revenue)*100:0;
+        const afterDirectMargin=revenue>0?(afterDirect/revenue)*100:0;
+        $('pbi-revenue').textContent=money(revenue);$('pbi-cogs').textContent=money(cogs);$('pbi-landed-gp').textContent=money(gross);$('pbi-after-direct').textContent=money(afterDirect);
+        $('pbi-landed-margin').textContent=landedMargin.toFixed(2)+'%';$('pbi-after-direct-margin').textContent=afterDirectMargin.toFixed(2)+'%';
         status('Posted sales invoices: '+sales.data.length+' · Stock issues: '+issues.length+' · Customer returns: '+returns.length+' · Transaction costs: '+costRows.length+'. Landed gross profit and profit after direct sales costs are calculated from posted records only.');
       }else{
-        $('pbi-revenue').textContent=(sales.data||[]).length?money(revenue):'—';$('pbi-cogs').textContent=issues.length?money(cogs):'—';$('pbi-landed-gp').textContent='Pending';$('pbi-after-direct').textContent='Pending';
+        $('pbi-revenue').textContent=(sales.data||[]).length?money(revenue):'—';$('pbi-cogs').textContent=issues.length?money(cogs):'—';$('pbi-landed-gp').textContent='Pending';$('pbi-after-direct').textContent='Pending';$('pbi-landed-margin').textContent='Pending';$('pbi-after-direct-margin').textContent='Pending';
         status('Profit metrics are pending: both posted sales invoices and fully costed stock issue movements are required. Draft historical documents and unposted stock are excluded. Transaction-cost totals are shown separately.');
       }
     }catch(e){status('Profitability data could not be loaded: '+(e.message||e),true);}
