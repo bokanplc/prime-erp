@@ -49,6 +49,7 @@ try {
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
   assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 27/,'Readiness audit must detect the current incomplete schema.');
+  assert.match(disabledOutput,/Legacy Cloudflare API groups parked in V7: login, change-password, logout, bootstrap, store/,'Retired Cloudflare API groups must be reported as parked, not as V7 release blockers.');
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/PASS: production remains disabled/,'Disabled candidate should be reported safely.');
 
