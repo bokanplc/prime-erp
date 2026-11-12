@@ -117,7 +117,7 @@ const reviewedTabs = reviewedTabsMatch ? [...reviewedTabsMatch[1].matchAll(/['\"
 const unreviewedEnabledTabs = enabledTabs.filter(tab=>!reviewedTabs.includes(tab));
 const blockers = [];
 if(missing.length) blockers.push('Missing source-controlled DDL for referenced table names ('+missing.length+'/'+referenced.length+'): '+missing.join(', '));
-if(!/V7_SUPABASE_AUTH_ONLY:\\s*true/.test(config)) blockers.push('V7 must bypass the retired Cloudflare /api adapter and use Supabase Auth only.');
+if(!/V7_SUPABASE_AUTH_ONLY:\s*true/.test(config)) blockers.push('V7 must bypass the retired Cloudflare /api adapter and use Supabase Auth only.');
 if(rawHtmlSinks.length) blockers.push('Known unescaped data-driven HTML sinks remain: '+rawHtmlSinks.join(', ')+'.');
 if(!/SUPABASE_URL\s*:\s*""/.test(config) || !/SUPABASE_ANON_KEY\s*:\s*""/.test(config)) {
   // A configured browser key is not a release approval; the full readiness gate must still be satisfied.
