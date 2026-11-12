@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+assert.equal(source,fs.readFileSync('staging/index.html','utf8'),'Source and staging entry must remain identical.');
+const start=source.indexOf('<script id="bokan-v73-sales-pipeline-production-bridge">');
+const end=source.indexOf('</script>',start);
+assert.ok(start>=0&&end>start,'Sales pipeline bridge must exist.');
+const moduleSource=source.slice(start,end);
+assert.ok(moduleSource.includes("const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};"),'Pipeline due counts must use local calendar dates rather than UTC date rollover.');
+assert.ok(!moduleSource.includes("new Date().toISOString().slice(0,10)"),'UTC date slicing must not drive CRM follow-up due state.');
+console.log('PASS: sales pipeline due counts use the user local calendar date.');
