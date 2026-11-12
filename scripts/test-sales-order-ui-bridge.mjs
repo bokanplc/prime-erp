@@ -19,7 +19,7 @@ for (const [needle, message] of [
   ["toSelect('so-product','Select product')", 'The bridge must use a canonical product selection.'],
   ["toSelect('so-rep','Select sales representative')", 'The bridge must use an active sales representative selection.'],
   ['No stock movement or payment was recorded.', 'Draft creation must not post stock or payments.'],
-  ['Unit selling price (ETB)', 'The form must capture unit selling price, not divide an order total into rounded unit costs.']
+  ['Unit selling price before VAT (ETB)', 'The form must capture a VAT-exclusive unit selling price, not divide an order total into rounded unit costs.']
 ]) assert.ok(source.includes(needle) || bridge.includes(needle), message);
 
 assert.ok(bridge.includes("document_type:'sales_order'"), 'New sales orders must be created as drafts of type sales_order.');
