@@ -45,6 +45,8 @@ jobs:
           node-version: '22'
       - name: Test startup and staging guards
         run: node scripts/test-erp-source-guards.mjs
+      - name: Test V7 benched modules
+        run: node scripts/test-v7-benched-modules.mjs
       - name: Test reviewed production module allowlist
         run: node scripts/test-production-module-allowlist.mjs
       - name: Test core proforma schema draft
