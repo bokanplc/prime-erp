@@ -34,13 +34,13 @@ export default async function SetupPage({ searchParams }: Props) {
         <Link className="auth-brand" href="/"><span className="auth-mark">B</span><span>BOKAN ERP</span></Link>
         <div className="eyebrow">BOKAN ERP · V7 first-time setup</div>
         <h1>Initialize your workspace</h1>
-        <p className="auth-copy">The V7 database is isolated and empty. This one-time step creates the two company workspaces and assigns the verified first owner account as owner of both.</p>
+        <p className="auth-copy">The V7 database is isolated and empty. This one-time step creates the BlackRock Investment PLC workspace and assigns the verified first owner account as its owner.</p>
         <div className="auth-alert">No customers, suppliers, products, stock, sales, purchases, prices or historical business records will be created or imported.</div>
         {errorMessage ? <p className="auth-error" role="alert">{errorMessage}</p> : null}
         {user ? (
           <form action={initializeFirstOwnerWorkspace} className="auth-form">
             <p>Signed in as <strong>{user.email}</strong>.</p>
-            <button type="submit">Create the two company workspaces</button>
+            <button type="submit">Create the BlackRock workspace</button>
           </form>
         ) : (
           <div className="auth-form">
