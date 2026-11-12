@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-const migration=fs.readFileSync('supabase/candidates/limit_sales_draft_creation_to_sales_and_data_entry.sql','utf8');
+const migration=fs.readFileSync('supabase/migrations/20261112090000_limit_sales_draft_creation_to_sales_and_data_entry.sql','utf8');
 assert.match(migration,/SECURITY DEFINER/,'RPC must retain its reviewed privilege model.');
 assert.match(migration,/SET search_path = ''/,'SECURITY DEFINER RPC must pin an empty search_path.');
 assert.match(migration,/m\.user_id = \(SELECT auth\.uid\(\)\)/,'RPC must verify the authenticated caller membership.');
