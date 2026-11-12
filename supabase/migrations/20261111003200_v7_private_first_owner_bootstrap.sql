@@ -14,7 +14,6 @@ declare
   actor_id uuid := (select auth.uid());
   actor_invited_at timestamptz;
   actor_email_confirmed_at timestamptz;
-  prime_company_id uuid;
   blackrock_company_id uuid;
 begin
   if actor_id is null then
@@ -39,19 +38,13 @@ begin
   end if;
 
   insert into public.companies (legal_name, display_name, currency_code, vat_rate_bps)
-  values ('Prime Investment Group', 'Prime Investment Group', 'ETB', 1500)
-  returning id into prime_company_id;
-
-  insert into public.companies (legal_name, display_name, currency_code, vat_rate_bps)
   values ('BlackRock Investment PLC', 'BlackRock Investment PLC', 'ETB', 1500)
   returning id into blackrock_company_id;
 
   insert into public.company_memberships (company_id, user_id, role, is_active)
-  values
-    (prime_company_id, actor_id, 'owner', true),
-    (blackrock_company_id, actor_id, 'owner', true);
+  values (blackrock_company_id, actor_id, 'owner', true);
 
-  return prime_company_id;
+  return blackrock_company_id;
 end;
 $$;
 
