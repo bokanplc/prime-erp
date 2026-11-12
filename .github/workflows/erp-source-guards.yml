@@ -8,16 +8,24 @@ on:
       - 'staging/**'
       - 'scripts/**'
       - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
+      - 'docs/LIVE_MIGRATION_SOURCE_GAP.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
+      - 'supabase/functions/**'
       - '.github/workflows/erp-source-guards.yml'
   pull_request:
     paths:
       - 'staging/**'
       - 'scripts/**'
       - 'docs/CORE_PROFORMA_MVP_SCHEMA_DRAFT.sql'
+      - 'docs/LIVE_MIGRATION_SOURCE_GAP.md'
+      - 'docs/INVENTORY_COSTING_RECEIVING_READINESS_2026-11-06.md'
+      - 'docs/BLACKROCK_STOCK_SWAP_RECONCILIATION_2026-11-06.md'
+      - 'docs/V67_PRODUCTION_PERSISTENCE_MATRIX_2026-11-06.md'
+      - 'docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md'
       - 'supabase/migrations/**'
       - 'supabase/candidates/**'
+      - 'supabase/functions/**'
       - '.github/workflows/erp-source-guards.yml'
   workflow_dispatch:
 
@@ -37,6 +45,12 @@ jobs:
           node-version: '22'
       - name: Test startup and staging guards
         run: node scripts/test-erp-source-guards.mjs
+      - name: Test V7 benched modules
+        run: node scripts/test-v7-benched-modules.mjs
+      - name: Test V7 Supabase-only auth
+        run: node scripts/test-v7-supabase-auth-only.mjs
+      - name: Test V7 employee role workspaces
+        run: node scripts/test-v7-employee-role-workspaces.mjs
       - name: Test reviewed production module allowlist
         run: node scripts/test-production-module-allowlist.mjs
       - name: Test core proforma schema draft
@@ -53,6 +67,30 @@ jobs:
         run: node scripts/test-supply-logistics-contract.mjs
       - name: Test V6.7 canonical CRM bridge and screen integration
         run: node scripts/test-v67-crm-bridge-contract.mjs
+      - name: Test CRM after-sales reminder due states
+        run: node scripts/test-crm-task-reminder-ui.mjs
+      - name: Test Sales Orders production bridge
+        run: node scripts/test-sales-order-ui-bridge.mjs
+      - name: Test Sales Order VAT breakdown
+        run: node scripts/test-sales-order-vat-breakdown.mjs
+      - name: Test sales draft RPC role policy
+        run: node scripts/test-sales-draft-rpc-role-policy.mjs
+      - name: Test Sales Pipeline production bridge
+        run: node scripts/test-sales-pipeline-ui-bridge.mjs
+      - name: Test Sales Pipeline local date
+        run: node scripts/test-sales-pipeline-local-date.mjs
+      - name: Test Sales Targets company scope
+        run: node scripts/test-sales-targets-company-scope.mjs
+      - name: Test Expense company scope
+        run: node scripts/test-expense-company-scope.mjs
+      - name: Test transaction-cost classification
+        run: node scripts/test-transaction-cost-classification.mjs
+      - name: Test profitability margin KPIs
+        run: node scripts/test-profitability-margin-kpis.mjs
+      - name: Test Sales Activity company scope
+        run: node scripts/test-sales-activity-company-scope.mjs
+      - name: Test production employee access and invitation safeguards
+        run: node scripts/test-production-access-registry.mjs
       - name: Test duplicate Proforma save guard behavior
         run: node scripts/test-proforma-save-guard.mjs
       - name: Test actual Proforma calculation helper
@@ -173,3 +211,65 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: live_company_test
         run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-supply-logistics-postgres.sql
+
+  postgres-purchase-receiving-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: purchase_receiving_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d purchase_receiving_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Test atomic purchase receiving, cost validation, RLS and company isolation
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: purchase_receiving_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-purchase-receiving-postgres.sql
+
+  postgres-sales-draft-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sales_draft_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sales_draft_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Test sales draft roles, company isolation, and salesperson attribution
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: sales_draft_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/test-sales-draft-postgres.sql

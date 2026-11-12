@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+assert.equal(source,fs.readFileSync('staging/index.html','utf8'),'Source and staging entry must remain identical.');
+const so=source.slice(source.indexOf('<script id="bokan-v72-sales-orders-production-bridge">'),source.indexOf('</script>',source.indexOf('<script id="bokan-v72-sales-orders-production-bridge">')));
+assert.ok(source.includes('id="so-tax-rate"'),'Sales order form must expose VAT selection.');
+assert.ok(source.includes('<option value="0.15" selected>VAT 15%</option>'),'15% VAT must be the default sales VAT rate.');
+assert.ok(so.includes("tax_rate:Number($('so-tax-rate')?.value??0.15)"),'Sales-order RPC payload must send the selected VAT fraction.');
+assert.ok(source.includes('Unit selling price before VAT (ETB)'),'Sales price entry must make the VAT-exclusive input basis clear.');
+const collections=source.slice(source.indexOf('<section id="tab-collections"'),source.indexOf('</section>',source.indexOf('<section id="tab-collections"')));
+assert.ok(collections.includes('Customer receipts, supplier payments')&&collections.includes('parked in V7'),'Collections must be explicitly parked under the Peachtree payment boundary.');
+assert.ok(!collections.includes('id="col-form"')&&!collections.includes('id="col-paid"'),'Legacy collection and receipt input controls must not exist in V7.');
+assert.ok(!collections.includes('id="col-table"'),'Legacy customer balance register must not be rendered in V7.');
+console.log('PASS: sales drafts default to 15% VAT with an explicit exemption option; collections/payment entry remains parked for Peachtree.');

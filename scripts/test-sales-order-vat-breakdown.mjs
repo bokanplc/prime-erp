@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+assert.equal(source,fs.readFileSync('staging/index.html','utf8'),'Source and staging entry must remain identical.');
+const start=source.indexOf('<script id="bokan-v72-sales-orders-production-bridge">');
+const end=source.indexOf('</script>',start);
+const bridge=source.slice(start,end);
+assert.ok(bridge.includes(".select('id,document_number,status,grand_total,subtotal,tax_total,customer_id,document_date')"),'Sales-order register must load subtotal and VAT totals.');
+assert.ok(bridge.includes("money(d.subtotal)")&&bridge.includes("money(d.tax_total)")&&bridge.includes("money(d.grand_total)"),'Sales-order register must display subtotal, VAT and total.');
+assert.ok(source.includes('>VAT</th>')&&source.includes('Total incl. VAT'),'Sales-order register must label the tax breakdown clearly.');
+console.log('PASS: sales-order register displays the subtotal, VAT and VAT-inclusive total.');

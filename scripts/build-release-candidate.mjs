@@ -19,9 +19,9 @@ assert.equal(entry,source,'Staging entry point must match reviewed source before
 assert.ok(config.includes('PRODUCTION_MODE: false'),'Production mode must remain disabled in the release template.');
 assert.ok(config.includes('FULL_ERP_DATA_READY: false'),'Full ERP readiness must remain disabled in the release template.');
 assert.ok(config.includes('ENABLED_PRODUCTION_TABS: []'),'No production tabs may be enabled in the release template.');
-// Cloudflare's staging branch publishes a sample-data-only review build; all other branches use the sanitized candidate.
+// The dedicated staging and V7 integration-preview branches publish a sample-data-only review build; main and release branches use the sanitized candidate.
 const deploymentBranch = process.env.VERCEL_GIT_COMMIT_REF || process.env.WORKERS_CI_BRANCH || process.env.CF_PAGES_BRANCH || '';
-if (deploymentBranch === 'deploy/secure-staging') {
+if (deploymentBranch === 'deploy/secure-staging' || deploymentBranch === 'feature/inventory-costing-and-receiving-audit') {
   assert.ok(config.includes('DEMO_REVIEW_MODE: true'),'Staging review build must explicitly enable demo mode.');
   assert.ok(config.includes('SUPABASE_URL: ""') && config.includes('SUPABASE_ANON_KEY: ""'),'Staging review build must not contain Supabase credentials.');
   mkdirSync(dirname(outputPath),{recursive:true});
@@ -34,7 +34,7 @@ if (deploymentBranch === 'deploy/secure-staging') {
   process.exit(0);
 }
 
-assert.ok(source.includes('window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze([])'),'No module is source-approved for production in the release candidate.');
+assert.ok(source.includes("window.BOKAN_REVIEWED_PRODUCTION_TABS = Object.freeze(['policyhandbook']);"),'The company policy handbook is the only source-reviewed production module; config still enables no production tabs.');
 const replacements={
   prime_v40_transactions:'[]',
   bokan_customer_call_log_v2:'[]',

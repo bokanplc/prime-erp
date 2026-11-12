@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const migration=fs.readFileSync('supabase/migrations/20261112065242_limit_sales_draft_creation_to_sales_and_data_entry.sql','utf8');
+assert.match(migration,/SECURITY DEFINER/,'RPC must retain its reviewed privilege model.');
+assert.match(migration,/SET search_path = ''/,'SECURITY DEFINER RPC must pin an empty search_path.');
+assert.match(migration,/m\.user_id = \(SELECT auth\.uid\(\)\)/,'RPC must verify the authenticated caller membership.');
+assert.match(migration,/m\.company_id = v_company_id[\s\S]{0,120}m\.is_active/,'RPC must verify active membership in the requested company.');
+assert.match(migration,/v_role NOT IN \('sales','staff'\)/,'Only sales/data-entry roles or authorized company managers may create drafts.');
+assert.doesNotMatch(migration,/v_role NOT IN \('sales','staff','accountant'\)/,'Accountants must not receive ERP sales-entry permission.');
+assert.match(migration,/REVOKE ALL ON FUNCTION public\.create_sales_document_with_items\(jsonb,jsonb\)[\s\S]*FROM PUBLIC, anon/,'Anonymous and public execution must remain revoked.');
+assert.match(migration,/GRANT EXECUTE ON FUNCTION public\.create_sales_document_with_items\(jsonb,jsonb\)[\s\S]*TO authenticated/,'Only authenticated callers may invoke the RPC.');
+assert.match(migration,/p\.company_id = v_company_id/,'Product IDs must remain company-scoped.');
+assert.match(migration,/c\.company_id = v_company_id/,'Customer IDs must remain company-scoped.');
+console.log('PASS: sales-draft RPC is pinned, company-scoped, authenticated-only, and excludes accountant role.');

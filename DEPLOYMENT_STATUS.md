@@ -777,3 +777,66 @@ currently provide KPI counts rather than full write/approval workflows. Supply
 demand/exception controls and private document upload/download also remain
 incomplete. This is why the 91-section interface cannot yet be equated with 91
 operational modules.
+
+
+## Owner-directed V6.7 application migration checkpoint — 2026-11-07
+
+This checkpoint supersedes the 2026-11-06 historical-reconciliation priorities above. The controlling scope is `docs/V67_APPLICATION_MIGRATION_SCOPE_2026-11-07.md`; the current screen-to-persistence state is in `docs/V67_PRODUCTION_PERSISTENCE_MATRIX_2026-11-06.md`.
+
+### Scope now in force
+
+- Migrate the complete 91-panel V6.7 application and standard non-stock functionality.
+- Do not import, reconcile, certify, or use old business records as acceptance criteria. The owner will provide fresh reconciled data later.
+- Preserve existing database records as-is; this scope reset is not a request to truncate or delete live data.
+- Park historical stock balances/swaps, sales stock issue, purchase receiving, inventory costing/valuation/COGS, and landed-cost allocation. Do not expose these actions in the first release.
+- Defer HR from the first production allowlist.
+- Keep customer receipts, supplier payments, and formal accounting settlement workflows outside the operational ERP release; Peachtree remains the accounting system of record.
+
+### Current GitHub and CI state
+
+- The active integration candidate is PR #8, **BOKAN ERP V6.7 full application migration**, targeting `main` from `feature/inventory-costing-and-receiving-audit`. It remains draft and unmerged.
+- PR head at this checkpoint: `bf69ef667446b7cf07fecc78c466f98fc26204fc`.
+- GitHub Actions run `42350955041` completed successfully. All five jobs passed: source guards/release-gate/sanitized build, live-company Proforma/CRM/Supply & Logistics smoke, disposable schema smoke, purchase-receiving candidate smoke, and sales-draft role/company-isolation smoke.
+- The purchase-receiving candidate test passing is not authorization to enable or ship purchase receiving; that workflow remains parked by the owner.
+- Automated source/database checks do not replace real authenticated browser acceptance.
+
+### Hosting and production gate
+
+- Vercel project `prime-erp` is connected. A READY preview exists for an earlier commit on the active feature branch, but the Vercel status check for the current PR head reports a build-rate-limit failure. Therefore there is no verified READY Vercel deployment for the current PR head at this checkpoint.
+- Cloudflare preview failures are not a release criterion; Vercel is the intended host.
+- Production mode and full-data readiness remain false; the enabled production-tab list remains empty. The only source-reviewed production tab remains the non-transactional policy handbook.
+- No merge, production promotion, employee release, or change to `main` was made by this checkpoint.
+
+### Remaining in-scope work
+
+1. Complete authenticated browser testing for sign-in, active-company selection, role-specific navigation, and save/reload behavior.
+2. Finish role-safe user/company administration and test employee invitations and membership lifecycle without creating unrequested accounts.
+3. Verify CRM customer/activity/opportunity/follow-up flows, Sales Pipeline, Sales Orders draft-only workflow, Sales Targets, Expenses, Trip Plans, Visit Reports, Notifications, Proforma, private document repository, policy handbook, and non-stock finance screens.
+4. Audit every remaining V6.7 panel for localStorage/demo-only persistence; migrate its standard non-stock behavior or explicitly keep the action disabled until verified.
+5. Re-run the source audit, sanitized release build, database/RLS suites, and a current-commit Vercel preview; only then reconsider the production allowlist.
+
+Do not treat the 91-panel interface count or passing CI as proof that all modules are production-ready. Keep the release fail-closed until each in-scope workflow is verified.
+
+
+## Owner-directed V6.7 migration checkpoint (2026-11-07)
+
+- Active integration branch: `feature/inventory-costing-and-receiving-audit`; integration PR #8 remains draft and unmerged. `main` is unchanged.
+- Current reviewed source remains the complete V6.7 interface with 91 tab panels. This checkpoint does not count a visible panel as migrated unless its in-scope behavior has a production persistence path or is explicitly disabled.
+- Scope is the full standard non-stock application. HR is deferred. Historical business-data imports/reconciliation, stock issue/posting, purchase receiving, inventory costing/valuation/COGS and landed-cost allocation remain parked. Customer receipts and supplier payments remain in Peachtree. Existing live rows are preserved and are not acceptance criteria.
+- CRM production bridge now resolves active salesperson UUIDs to profile names using company-scoped profile reads; the display label is not an authorization source.
+- Production employee access registry now reads active/inactive memberships and profile details from the selected BlackRock company. Invitations call the authenticated `invite-blackrock-member` Edge Function. Initial invitations are limited to `sales` and `staff` (Data Entry). The function requires a valid JWT and verifies the caller is an active BlackRock owner/admin before assigning membership. HR invitations are rejected by the deployed function version 2.
+- Production access export now exports live company memberships; it does not export local preview seed data. Direct activation/deactivation remains disabled until an audited membership-change workflow is implemented. Customer assignment reconciliation in this panel is deferred until the owner supplies the fresh dataset.
+- Current commit at checkpoint: `be9c4c6c73edd129188cd8e3fffdcb8c1bb58fbd`. GitHub source guards and all four disposable PostgreSQL smoke jobs passed. Vercel generated a READY preview for the same feature branch/commit; it is not a production deployment.
+- Supabase security advisor still reports leaked-password protection disabled and a generic warning for the authenticated sales-draft SECURITY DEFINER RPC. The RPC currently verifies `auth.uid()`, active company membership, allowed role, company ownership of customer/products, and salesperson attribution; this warning requires continued review but does not by itself mean anonymous access is allowed. The live function ACL check returned anonymous EXECUTE=false and authenticated EXECUTE=true.
+- Production remains fail-closed: `PRODUCTION_MODE=false`, `FULL_ERP_DATA_READY=false`, Supabase browser credentials blank, and production enabled-tab list empty. No authenticated browser acceptance has been completed. Do not distribute the preview URL as an employee production link.
+- Remaining priority: audited membership activation/deactivation and invitation lifecycle tests; authenticated browser sign-in/company-switch/role tests; complete CRM and Sales Orders/targets/expense/visit/trip/notification workflows; Proforma output; private document upload/signed-download permissions; remaining non-stock finance/reporting panels; full 91-panel localStorage/demo-only audit; final release build and acceptance gates.
+
+## Owner-directed migration continuation — 2026-11-10
+
+- Current active integration remains PR #8 from feature/inventory-costing-and-receiving-audit; head is c81c5a02d94fedcfe0e21d5d5541f5c526fa0a9e, base main at a74f22bd6b9cb12215538b260e9a76a10bee3d28. The branch is 126 commits ahead and 0 behind. PR remains open/draft/unmerged; GitHub currently reports mergeable=false, so investigate mergeability before any future review/merge. No merge was attempted.
+- Corrected two duplicate section IDs in both the reviewed full V6.7 source and staging/index.html: Period Close & Lock now targets tab-periodlock; Master Data Governance now targets tab-masterdatagovernance. The source and staging entry are byte-identical, with 91 section elements and 91 unique IDs.
+- Added regression assertions to scripts/test-live-company-proforma-contract.mjs, which is invoked by .github/workflows/erp-source-guards.yml. The test enforces 91 panels, unique section IDs, separate navigation targets and valid panel targets. Static inspection passed; a GitHub Actions workflow run for the latest head has not yet been returned, so CI is not claimed as passed for this commit.
+- Vercel preview for the exact head is READY: https://prime-htqbib0b1-bokanplc-3642.vercel.app. Deployment: dpl_3z3GHzMEBRDg4u55fix6H3cfmdaT. Build logs show sanitized release candidate generation, preview-admin fallback removal and production mode disabled. This is preview build acceptance only, not authenticated browser acceptance or production readiness.
+- Existing duplicate collections navigation item remains a legacy duplicate pointing to one section; customer receipts remain outside the ERP scope and in Peachtree.
+- Scope remains full non-stock V6.7; HR deferred; old business data import/reconciliation and stock receiving/posting/costing/valuation parked; no customer receipts or supplier payments.
+- No live business data, Supabase schema, Auth/Storage, production allowlist, main, PR merge state, or production deployment was changed. No employee release link was distributed.

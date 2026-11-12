@@ -34,13 +34,13 @@ const autoBoot = source.slice(autoStart, autoEnd);
 assert.match(autoBoot, /app-view['"]\)\?\.classList\.add\(['"]hidden['"]\)/, 'Startup failure must hide the app.');
 assert.doesNotMatch(autoBoot, /app-view['"]\)\?\.classList\.remove\(['"]hidden['"]\)/, 'Startup failure must never reveal the app.');
 
-assert.match(source, /window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\[\]\)/, 'No module is currently approved for production.');
+assert.match(source, /window\.BOKAN_REVIEWED_PRODUCTION_TABS = Object\.freeze\(\['policyhandbook'\]\)/, 'Only the policy handbook is source-reviewed; all operational modules remain unapproved.');
 assert.match(source, /window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB = function\(cfg\)/, 'Production activation must require an explicit reviewed module.');
 assert.match(source, /const _bokanProdConfigured = !!\(_bokanCfg\.PRODUCTION_MODE===true && _bokanCfg\.FULL_ERP_DATA_READY===true && window\.BOKAN_HAS_REVIEWED_PRODUCTION_TAB\(_bokanCfg\) && window\.supabase/, 'Core Supabase client must require full readiness and a reviewed enabled module.');
 assert.match(source, /return \(map\[role\]\|\|\[\]\)\.filter\(tab=>enabled\.has\(tab\)\)/, 'Production navigation must intersect role permissions with the reviewed module allowlist.');
 assert.match(source, /if \(_bokanProdConfigured\) window\.sb = sb;/, 'Configured real Supabase client must be exposed to production bridge modules.');
-assert.match(source, /if \(_bokanProdConfigured\) \{\s*alert\('Document uploads are temporarily disabled/, 'Production document uploads must remain blocked until private storage is implemented.');
-assert.match(source, /Document downloads are temporarily disabled until private storage and authorized downloads are configured/, 'Production document listing/download links must remain blocked until private signed downloads are implemented.');
+assert.match(source, /client\.storage\.from\('bokan-company-documents'\)\.upload\(path, file/, 'Production document uploads must use the private company Storage bucket.');
+assert.match(source, /client\.storage\.from\('bokan-company-documents'\)\.createSignedUrl\(d\.file_path, 300\)/, 'Production document downloads must use short-lived signed URLs.');
 assert.match(source, /Production role changes are disabled until audited Supabase Auth user provisioning and company-membership management are implemented/, 'Production role changes must remain blocked until trusted provisioning exists.');
 assert.match(source, /Only an authorized administrator or accounting user can request issuer TIN changes/, 'Production issuer TIN edits must be role-restricted.');
 assert.match(source, /Only an authorized administrator or accounting user can request issuer contact changes/, 'Production issuer contact edits must be role-restricted.');
@@ -66,7 +66,7 @@ assert.match(source, /const demoReview = cfg\.DEMO_REVIEW_MODE === true && cfg\.
 assert.match(source, /const localPreview=location\.protocol==='file:'\|\|\['localhost','127\.0\.0\.1','::1'\]\.includes\(location\.hostname\); const cfg=window\.BOKAN_CONFIG\|\|\{\}; const demoReview=cfg\.DEMO_REVIEW_MODE===true && cfg\.PRODUCTION_MODE!==true; const DEV_BYPASS=localPreview\|\|demoReview;/, 'Legacy API bypass must be restricted to local preview or the explicit staging-only demo review mode.');
 assert.doesNotMatch(source, /#prime-prod-gate\{display:none!important\}/, 'Production gate must not be force-hidden by CSS.');
 assert.match(source, /Server-backed modules are unavailable\. Sign-in requires the configured application API\./, 'Hosted legacy adapter failure must remain fail-closed.');
-assert.match(source, /if\(DEV_BYPASS\|\|window\.BOKAN_PRODUCTION_AUTH\?\.enabled\)\{gate\.style\.display='none';top\.style\.display='none';return;\}/, 'The legacy API login overlay must be hidden only for local/staging review or when Supabase Auth is enabled.');
+assert.match(source, /if\(DEV_BYPASS\|\|cfg\.V7_SUPABASE_AUTH_ONLY===true\|\|window\.BOKAN_PRODUCTION_AUTH\?\.enabled\)\{if\(gate\)gate\.style\.display='none';if\(top\)top\.style\.display='none';return;\}/, 'The legacy API adapter must be bypassed for V7 Supabase-only hosted auth, local preview, and staging review.');
 assert.match(source, /const productionAllowed = window\.BOKAN_PRODUCTION_AUTH\?\.enabled && window\.__BOKAN_PROD_ALLOWED_TABS instanceof Set/, 'Production navigation must use the authenticated role allowlist.');
 assert.match(source, /sales_manager:\['sales','saleshub','saleslifecycle','salescalllog','report','salestargets','proformarequest','proforma'/, 'Sales managers must be allowed to create proformas.');
 assert.match(source, /sales:\['sales','saleshub','saleslifecycle','salescalllog','salestargets','tripcost','visitreport','proformarequest','proforma'/, 'Sales users must be allowed to create proformas.');

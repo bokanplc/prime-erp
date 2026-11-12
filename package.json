@@ -1,0 +1,9 @@
+{
+  "name": "bokan-erp-v7",
+  "version": "7.0.0",
+  "private": true,
+  "description": "BOKAN ERP V7 full application preview and release artifact",
+  "scripts": {
+    "build": "node scripts/build-release-candidate.mjs"
+  }
+}

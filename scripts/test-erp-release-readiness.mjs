@@ -44,9 +44,12 @@ try {
   assert.match(reviewBuild,/demo review artifact/,'Staging branch should produce the review artifact.');
   const pagesReviewBuild=execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',env:{...process.env,CF_PAGES_BRANCH:'deploy/secure-staging'}});
   assert.match(pagesReviewBuild,/demo review artifact/,'Pages branch selector remains supported for compatibility.');
+  const vercelReviewBuild=execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',env:{...process.env,VERCEL_GIT_COMMIT_REF:'feature/inventory-costing-and-receiving-audit'}});
+  assert.match(vercelReviewBuild,/demo review artifact/,'The V7 integration branch must publish a demo-only review artifact on Vercel.');
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
-  assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 37/,'Readiness audit must detect the current incomplete schema.');
+  assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 27/,'Readiness audit must detect the current incomplete schema.');
+  assert.match(disabledOutput,/Legacy Cloudflare API groups parked in V7: login, change-password, logout, bootstrap, store/,'Retired Cloudflare API groups must be reported as parked, not as V7 release blockers.');
   assert.match(disabledOutput,/Known raw HTML sink patterns remaining: 0/,'The tracked raw HTML sink patterns must be escaped before the readiness report can pass that check.');
   assert.match(disabledOutput,/PASS: production remains disabled/,'Disabled candidate should be reported safely.');
 

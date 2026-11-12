@@ -89,3 +89,47 @@ The current database ledger includes these migrations. The reversal sequencing c
 
 
 - 20261031125554 — customer reassignment now validates that the selected owner is an active `sales` or `staff` member of the same company. The V6.7 reassignment selector applies the same role filter; managers still perform the reassignment through the authorized RPC with a required reason.
+
+
+## Updated live inventory — 2026-11-06 (supersedes earlier counts above)
+
+A fresh Supabase migration-ledger read now reports **44 applied migrations**. The repository contains **33 source-controlled executable migration files**, plus two explicitly inert superseded drafts. The following **11 applied SQL bodies remain absent** from the repository and are documented rather than reconstructed:
+
+| Applied version | Applied migration | Source status |
+|---|---|---|
+| 20261025065910 | initial_multi_company_sales_foundation | Historical SQL body unrecovered |
+| 20261025072547 | revoke_unauthenticated_erp_table_access | Historical SQL body unrecovered |
+| 20261025124247 | add_missing_foreign_key_indexes | Historical SQL body unrecovered |
+| 20261025124312 | atomic_sales_document_creation | Historical SQL body unrecovered |
+| 20261031080833 | add_company_scoped_proforma_foundation | Applied SQL body not present in current migration directory |
+| 20261031081151 | add_company_scoped_crm_foundation | Applied SQL body not present in current migration directory |
+| 20261031081422 | restrict_crm_assignment_writes_to_rpc | Applied SQL body not present in current migration directory |
+| 20261031132355 | decommission_prime_company_and_data | Applied SQL body not present in current migration directory |
+| 20261031133249 | add_blackrock_hr_payroll_persistence | Applied SQL body not present in current migration directory |
+| 20261031134003 | add_blackrock_sales_operations_persistence | Applied SQL body not present in current migration directory |
+| 20261031134421 | sync_profile_role_on_membership_changes | Applied SQL body not present in current migration directory |
+
+The 10 migrations added on 2026-11-06 are now included in the tracked executable source list. The source-parity guard has been updated to expect 33 source-controlled migration files and to document all 11 missing historical bodies. This corrects the stale 23-file/seven-gap count from the 2026-10-31 snapshot.
+
+The purchase-receiving SQL created during the current work is an **unapproved candidate**, stored under `supabase/candidates/`; it is deliberately excluded from the executable migration directory and from the live migration count. It must pass its disposable PostgreSQL tests and review before being promoted into a future forward migration.
+
+
+## Applied forward migrations — 2026-11-07
+
+Two additional migrations have now been applied to live Supabase and committed to the source-controlled migration directory:
+
+| Applied version | Migration | Live effect |
+|---|---|---|
+| 20261107064845 | harden_atomic_purchase_receiving_workflow | Replaces the existing purchase-receiving function with role, product-company, positive-cost, locking, and authenticated-execution safeguards |
+| 20261107064904 | seed_blackrock_opening_stock_61_yellow_plywood | Inserts the documented 61-piece Yellow Plywood opening balance at ETB 4,300 each |
+
+The live migration ledger now contains **46 applied versions**. The repository contains **35 source-controlled executable migrations**, plus two explicitly inert superseded drafts. The same **11 historical applied SQL bodies** remain unrecovered. The migration parity test now expects 35 tracked executable files and documents all 11 missing historical bodies.
+
+A real authenticated-admin role test exercised the hardened purchase-receiving RPC inside a transaction and rolled it back. The original purchase document remains a draft, received quantity remains zero, and no receipt movement was retained. The only live stock movement is the documented opening Yellow Plywood movement.
+
+
+## Additional applied migration — 2026-11-07
+
+Migration `20261107070044_harden_sales_document_draft_creation` is now applied to live Supabase and included in source control. It adds salesperson attribution to sales documents, validates company/customer/product/salesperson ownership, restricts draft creation to sales/data-entry/accounting/management roles, grants the guarded RPC to authenticated users, and revokes direct authenticated INSERT on sales documents and line items.
+
+The live ledger now contains **47 applied versions**. The repository contains **36 source-controlled executable migrations**, plus two inert superseded drafts. The **11 unrecovered historical SQL bodies** remain unchanged. The parity test now expects 36 tracked executable migrations.

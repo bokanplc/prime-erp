@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+const index=fs.readFileSync('staging/index.html','utf8');
+assert.equal(source,index,'Full app source and entry must remain identical.');
+for(const id of ['pbi-landed-margin','pbi-after-direct-margin']) assert.ok(source.includes('id="'+id+'"'),'Profitability dashboard must render '+id+'.');
+const start=source.indexOf('<script id="bokan-v70-profitability-report">');
+const end=source.indexOf('</script>',start);
+assert.ok(start>=0&&end>start,'Profitability reporting module must exist.');
+const moduleSource=source.slice(start,end);
+assert.ok(moduleSource.includes('(gross/revenue)*100'),'Landed gross margin must be calculated as landed gross profit divided by net sales revenue.');
+assert.ok(moduleSource.includes('(afterDirect/revenue)*100'),'Margin after direct sales costs must be calculated from post-direct profit divided by net sales revenue.');
+assert.ok(moduleSource.includes("'pbi-landed-margin','pbi-after-direct-margin'"),'Margin KPIs must remain blank in review mode until live data is enabled.');
+assert.ok(moduleSource.includes("$('pbi-landed-margin').textContent='Pending'"),'Margin KPIs must show pending when a complete cost basis is unavailable.');
+assert.ok(moduleSource.includes(".eq('status','posted')"),'Profitability must use posted sales documents only.');
+assert.ok(moduleSource.includes(".eq('company_id',cid)"),'Profitability source queries must remain company-scoped.');
+assert.ok(!moduleSource.includes('sales_payments')&&!moduleSource.includes('supplier_payments'),'Profitability must not depend on receipts or supplier payments.');
+console.log('PASS: landed and post-direct gross margin percentages are company-scoped and require posted sales plus a complete stock cost basis.');
