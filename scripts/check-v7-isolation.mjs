@@ -15,7 +15,8 @@ const forbidden = [
   /kafiwnuynjemufnankvi/i,
   /workers\.dev/i,
   /wrangler(?:\.jsonc|\.toml)?/i,
-  /SUPABASE_SERVICE_ROLE_KEY/i
+  /SUPABASE_SERVICE_ROLE_KEY/i,
+  /Prime Investment Group/i
 ];
 
 async function walk(dir) {
