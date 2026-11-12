@@ -3628,7 +3628,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
     </form>
     <div class="lg:col-span-2 bg-white rounded-lg p-4">
       <h2 class="text-sm font-bold mb-3">ORDER REGISTER</h2>
-      <div class="overflow-auto"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="p-2">Order</th><th class="p-2">Customer</th><th class="p-2">Product</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Value</th><th class="p-2">Status</th></tr></thead><tbody id="so-table"></tbody></table></div>
+      <div class="overflow-auto"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="p-2">Order</th><th class="p-2">Customer</th><th class="p-2">Product</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Subtotal</th><th class="p-2 text-right">VAT</th><th class="p-2 text-right">Total incl. VAT</th><th class="p-2">Status</th></tr></thead><tbody id="so-table"></tbody></table></div>
     </div>
   </div>
 </section>
@@ -10043,7 +10043,7 @@ async function enter(user){
   function renderOrders(){
     const body=$('so-table');if(!body)return;
     if(!state.orders.length){
-      body.innerHTML='<tr><td colspan="6" class="p-3 text-center text-slate-500">No sales orders have been created in this company yet.</td></tr>';
+      body.innerHTML='<tr><td colspan="8" class="p-3 text-center text-slate-500">No sales orders have been created in this company yet.</td></tr>';
       return;
     }
     const customerNames=new Map(state.customers.map(x=>[x.id,x.name]));
@@ -10056,7 +10056,9 @@ async function enter(user){
         '<td class="p-2">'+esc(customerNames.get(d.customer_id)||'—')+'</td>'+
         '<td class="p-2">'+esc(desc||'—')+'</td>'+
         '<td class="p-2 text-right">'+qty.toLocaleString()+'</td>'+
-        '<td class="p-2 text-right">'+money(d.grand_total)+'</td>'+
+        '<td class="p-2 text-right">'+money(d.subtotal)+'</td>'+
+        '<td class="p-2 text-right">'+money(d.tax_total)+'</td>'+
+        '<td class="p-2 text-right font-semibold">'+money(d.grand_total)+'</td>'+
         '<td class="p-2">'+esc(String(d.status||'draft').toUpperCase())+'</td></tr>';
     }).join('');
   }
@@ -10108,7 +10110,7 @@ async function enter(user){
   async function loadOrders(){
     const db=auth().client,companyId=auth().profile.company_id;
     const docs=await db.from('sales_documents')
-      .select('id,document_number,status,grand_total,customer_id,document_date')
+      .select('id,document_number,status,grand_total,subtotal,tax_total,customer_id,document_date')
       .eq('company_id',companyId)
       .in('document_type',['sales_order','invoice'])
       .order('document_date',{ascending:false})
