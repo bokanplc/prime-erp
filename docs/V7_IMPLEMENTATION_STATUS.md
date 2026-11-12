@@ -1,6 +1,6 @@
 # BOKAN ERP V7 implementation status
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 ## Isolated environment
 
@@ -11,6 +11,15 @@ Last updated: 2026-11-11
 - No V6.7 database, storage bucket, customer, supplier, product, stock or transaction data has been imported.
 - The V7 database has no seeded business records or employee accounts.
 - Supabase was created on the Free plan with a $0 monthly confirmation at provisioning. Free-plan quotas and inactivity pausing still apply.
+
+## Company boundary
+
+- Sole tenant: **BlackRock Investment PLC**.
+- Address: Meskel Flower, Addis Ababa.
+- Telephone: 978 23 48 20.
+- Base currency: ETB; VAT default: 15%.
+- Prime Investment Group is decommissioned and is not a V7 company or workspace.
+- The initial invited account is assigned administrator access; employee accounts are added after deployment.
 
 ## Implemented in the V7 branch
 
@@ -39,7 +48,7 @@ Last updated: 2026-11-11
 
 ## Database controls
 
-- 32 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
+- 33 ordered V7 migrations are tracked in the repository and applied to the isolated V7 project.
 - Public business tables have row-level security enabled and forced.
 - Same-company composite foreign keys protect cross-table relationships.
 - Private document storage uses company membership policies.
