@@ -54,9 +54,9 @@ Last updated: 2026-11-11
 1. Complete the latest CI run after the current changes.
 2. Deploy the latest verified commit to a Vercel Preview deployment and review it.
 3. Invite the first owner through V7 Supabase Auth and have them accept/verify the invitation.
-4. Sign in to Preview and use the one-time **Initialize both companies as first owner** action.
+4. Sign in to Preview and use the one-time **Initialize BlackRock workspace as first owner** action.
 5. Add the three sales users and one data-entry user after their V7 Auth accounts exist.
-6. Complete authenticated end-to-end tests for both companies and the four employee roles.
+6. Complete authenticated end-to-end tests for BlackRock Investment PLC and the four employee roles.
 7. Verify sign-in/session refresh and approved redirect URLs.
 8. Review the Preview with the owner before any production promotion.
 9. Back up and verify V7 before considering V6.7 decommissioning. V6.7 remains untouched.
