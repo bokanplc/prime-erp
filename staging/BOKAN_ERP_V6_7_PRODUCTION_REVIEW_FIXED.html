@@ -10229,7 +10229,7 @@ async function enter(user){
   const state={customers:[],opportunities:[],busy:false,subscribed:false};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>'ETB '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  const today=()=>new Date().toISOString().slice(0,10);
+  const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
   function status(message,error){
     let el=$('sp-production-status');
     if(!el){el=document.createElement('div');el.id='sp-production-status';el.className='text-xs mb-2';el.setAttribute('aria-live','polite');$('sp-form')?.prepend(el);}
