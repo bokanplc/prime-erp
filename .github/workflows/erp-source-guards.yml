@@ -69,6 +69,8 @@ jobs:
         run: node scripts/test-sales-draft-rpc-role-policy.mjs
       - name: Test Sales Pipeline production bridge
         run: node scripts/test-sales-pipeline-ui-bridge.mjs
+      - name: Test Sales Pipeline local date
+        run: node scripts/test-sales-pipeline-local-date.mjs
       - name: Test Sales Targets company scope
         run: node scripts/test-sales-targets-company-scope.mjs
       - name: Test Expense company scope
