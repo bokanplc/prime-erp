@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "BOKAN ERP",
-  description: "Commercial operations workspace for Prime Investment Group and BlackRock Investment PLC."
+  description: "Commercial operations workspace for BlackRock Investment PLC."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
