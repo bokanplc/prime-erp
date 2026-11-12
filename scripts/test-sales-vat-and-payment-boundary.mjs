@@ -8,6 +8,7 @@ assert.ok(source.includes('<option value="0.15" selected>VAT 15%</option>'),'15%
 assert.ok(so.includes("tax_rate:Number($('so-tax-rate')?.value??0.15)"),'Sales-order RPC payload must send the selected VAT fraction.');
 assert.ok(source.includes('Unit selling price before VAT (ETB)'),'Sales price entry must make the VAT-exclusive input basis clear.');
 const collections=source.slice(source.indexOf('<section id="tab-collections"'),source.indexOf('</section>',source.indexOf('<section id="tab-collections"')));
-assert.ok(collections.includes('Customer receipts, supplier payments')&&collections.includes('parked for V7'),'Collections must be explicitly parked under the Peachtree payment boundary.');
-assert.ok(collections.includes('id="col-form" class="hidden"'),'Legacy collection entry form must be hidden in V7.');
+assert.ok(collections.includes('Customer receipts, supplier payments')&&collections.includes('parked in V7'),'Collections must be explicitly parked under the Peachtree payment boundary.');
+assert.ok(!collections.includes('id="col-form"')&&!collections.includes('id="col-paid"'),'Legacy collection and receipt input controls must not exist in V7.');
+assert.ok(!collections.includes('id="col-table"'),'Legacy customer balance register must not be rendered in V7.');
 console.log('PASS: sales drafts default to 15% VAT with an explicit exemption option; collections/payment entry remains parked for Peachtree.');
