@@ -44,6 +44,8 @@ try {
   assert.match(reviewBuild,/demo review artifact/,'Staging branch should produce the review artifact.');
   const pagesReviewBuild=execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',env:{...process.env,CF_PAGES_BRANCH:'deploy/secure-staging'}});
   assert.match(pagesReviewBuild,/demo review artifact/,'Pages branch selector remains supported for compatibility.');
+  const vercelReviewBuild=execFileSync(process.execPath,[join(root,'scripts/build-release-candidate.mjs')],{cwd:root,encoding:'utf8',env:{...process.env,VERCEL_GIT_COMMIT_REF:'feature/inventory-costing-and-receiving-audit'}});
+  assert.match(vercelReviewBuild,/demo review artifact/,'The V7 integration branch must publish a demo-only review artifact on Vercel.');
   const disabledOutput=execFileSync(process.execPath,[join(root,'scripts/audit-erp-release-readiness.mjs')],{cwd:root,encoding:'utf8'});
   assert.match(disabledOutput,/STOP-SHIP:/,'Readiness audit should report blockers while disabled.');
   assert.match(disabledOutput,/Referenced tables lacking source-controlled DDL: 27/,'Readiness audit must detect the current incomplete schema.');
