@@ -14,10 +14,10 @@ for(const tab of ['salespipeline','salesorders','salestargets','proformarequest'
 const manager=matrix.match(/sales_manager:\s*\[([^\]]+)\]/)?.[1]||'';
 assert.ok(!manager.includes("'collections'"),'Sales managers must not see the parked collections module.');
 
-const admin=matrix.match(/admin:\\s*\\[([^\\]]+)\\]/)?.[1]||'';
+const admin=matrix.match(/admin:\s*\[([^\]]+)\]]+)\\]/)?.[1]||'';
 for(const tab of ['sales','salespipeline','salesorders','procurement','inventorycontrol','supplytower','masterdata','accesscontrol'])assert.ok(admin.includes("'"+tab+"'"),'V7 owners need '+tab+'.');
 for(const tab of ['collections','billing','generalledger','receivables','payables','bankcash','fixedassets','budgetcontrol','payroll','hremployees','hrleave','hrperformance','hrdisciplinary'])assert.ok(!admin.includes("'"+tab+"'"),'V7 owners must not see parked '+tab+'.');
-const management=matrix.match(/management:\\s*\\[([^\\]]+)\\]/)?.[1]||'';
+const management=matrix.match(/management:\s*\[([^\]]+)\]]+)\\]/)?.[1]||'';
 for(const tab of ['salespipeline','salesorders','salestargets','supplytower'])assert.ok(management.includes("'"+tab+"'"),'Management needs '+tab+'.');
 for(const tab of ['collections','generalledger','receivables','payables','bankcash','payroll','hrreports'])assert.ok(!management.includes("'"+tab+"'"),'Management must not see parked '+tab+'.');
 
