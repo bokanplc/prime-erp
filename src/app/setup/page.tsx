@@ -23,7 +23,7 @@ export default async function SetupPage({ searchParams }: Props) {
   }
 
   const errorMessage = params.error === "invite"
-    ? "The first owner account must be invited and email-verified by the Supabase project administrator."
+    ? "The first administrator account must be invited and email-verified by the Supabase project administrator."
     : params.error === "failed"
       ? "Workspace initialization could not be completed. Confirm that this is the invited first-owner account and try again."
       : null;
@@ -34,7 +34,7 @@ export default async function SetupPage({ searchParams }: Props) {
         <Link className="auth-brand" href="/"><span className="auth-mark">B</span><span>BOKAN ERP</span></Link>
         <div className="eyebrow">BOKAN ERP · V7 first-time setup</div>
         <h1>Initialize your workspace</h1>
-        <p className="auth-copy">The V7 database is isolated and empty. This one-time step creates the BlackRock Investment PLC workspace and assigns the verified first owner account as its owner.</p>
+        <p className="auth-copy">The V7 database is isolated and empty. This one-time step creates the BlackRock Investment PLC workspace and assigns the verified account as its administrator.</p>
         <div className="auth-alert">No customers, suppliers, products, stock, sales, purchases, prices or historical business records will be created or imported.</div>
         {errorMessage ? <p className="auth-error" role="alert">{errorMessage}</p> : null}
         {user ? (
