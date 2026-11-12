@@ -3634,29 +3634,10 @@ body:not(.force-admin) #proforma-admin-queue{ }
 </section>
 
 <section id="tab-collections" class="tab-panel hidden">
-  <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><strong>V7 scope notice — Peachtree remains the payment ledger.</strong><p class="mt-1">Customer receipts, supplier payments, collections posting and payment balances are not recorded in BOKAN ERP. Use Peachtree for those functions. This legacy collection-entry panel is parked for V7.</p></div>
-  <div class="page-head mb-5"><div class="page-eyebrow">RECEIVABLES</div><h1>Collections Control</h1><p>Track customer balances, promised payments and collection actions.</p></div>
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
-    <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Open Receivables</div><div id="col-open" class="text-xl font-bold mt-1">ETB 0.00</div></div>
-    <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Overdue</div><div id="col-overdue" class="text-xl font-bold mt-1">ETB 0.00</div></div>
-    <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Due This Week</div><div id="col-week" class="text-xl font-bold mt-1">ETB 0.00</div></div>
-    <div class="bg-white rounded-lg p-4"><div class="text-[10px] uppercase font-bold text-[#6B7280]">Promises Pending</div><div id="col-promises" class="text-xl font-bold mt-1">0</div></div>
-  </div>
-  <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-    <div class="bg-white rounded-lg p-4 opacity-60" aria-disabled="true"><p class="text-xs text-slate-600 mb-2">Collection entry is disabled in V7. Payment records remain in Peachtree.</p><form id="col-form" class="hidden" aria-hidden="true">
-      <h2 class="text-sm font-bold mb-3">ADD RECEIVABLE</h2>
-      <input id="col-invoice" required placeholder="Invoice number" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="col-customer" required placeholder="Customer / company" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="col-total" type="number" step="0.01" required placeholder="Invoice value (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="col-paid" type="number" step="0.01" value="0" placeholder="Paid (ETB)" class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="col-due" type="date" required class="w-full border p-2 rounded mb-2 text-xs">
-      <input id="col-promise" type="date" placeholder="Promised payment date" class="w-full border p-2 rounded mb-3 text-xs">
-      <button class="w-full bg-[#E68A00] hover:bg-[#CF7900] text-white rounded py-2 text-xs font-bold">SAVE RECEIVABLE</button>
-    </form>
-    <div class="xl:col-span-2 bg-white rounded-lg p-4">
-      <h2 class="text-sm font-bold mb-3">COLLECTION REGISTER</h2>
-      <div class="overflow-auto"><table class="w-full text-xs"><thead><tr class="border-b text-left"><th class="p-2">Invoice</th><th class="p-2">Customer</th><th class="p-2 text-right">Balance</th><th class="p-2">Due</th><th class="p-2">Promise</th><th class="p-2">Status</th></tr></thead><tbody id="col-table"></tbody></table></div>
-    </div>
+  <div class="page-head mb-5"><div class="page-eyebrow">OUTSIDE V7 SCOPE</div><h1>Collections & Payments</h1><p>Payment tracking remains in Peachtree and is not recorded in BOKAN ERP.</p></div>
+  <div class="rounded-lg border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
+    <strong>Peachtree is the payment ledger.</strong>
+    <p class="mt-2">Do not enter customer receipts, supplier payments, collection balances, payment promises or payment reconciliations here. This V6.7 panel is parked in V7; BOKAN ERP will not create or store those records.</p>
   </div>
 </section>
 
