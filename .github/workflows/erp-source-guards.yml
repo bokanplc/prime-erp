@@ -73,6 +73,8 @@ jobs:
         run: node scripts/test-expense-company-scope.mjs
       - name: Test transaction-cost classification
         run: node scripts/test-transaction-cost-classification.mjs
+      - name: Test profitability margin KPIs
+        run: node scripts/test-profitability-margin-kpis.mjs
       - name: Test Sales Activity company scope
         run: node scripts/test-sales-activity-company-scope.mjs
       - name: Test production employee access and invitation safeguards
