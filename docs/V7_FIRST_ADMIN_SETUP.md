@@ -1,14 +1,14 @@
-# BOKAN ERP V7 — First owner setup
+# BOKAN ERP V7 — First BlackRock administrator setup
 
 The V7 first-owner setup is invitation-gated and runs inside the application. Do not run a manual SQL bootstrap script.
 
 ## Steps
 
 1. Open the V7 Supabase project: https://supabase.com/dashboard/project/thfzvtltmaieesjulggr
-2. Open **Authentication → Users** and invite the intended first owner by email.
-3. The first owner accepts the invitation and confirms the email.
+2. Open **Authentication → Users** and invite the intended first administrator by email.
+3. The first administrator accepts the invitation and confirms the email.
 4. Open the V7 Vercel Preview deployment and sign in using that invited account.
-5. The account will reach **Company access pending**. Select **Initialize BlackRock workspace as first owner**.
+5. The account will reach **Company access pending**. Select **Initialize BlackRock workspace as the first administrator**.
 6. The one-time bootstrap creates BlackRock Investment PLC only.
 7. It assigns the invited account the `owner` role in BlackRock Investment PLC, with ETB and 15% VAT defaults.
 8. The owner can then invite/create the three sales users and one data-entry user in V7 Supabase Auth, and grant each account access to the correct company from Administration.
@@ -16,7 +16,7 @@ The V7 first-owner setup is invitation-gated and runs inside the application. Do
 ## Security notes
 
 - The bootstrap requires a signed-in, email-verified account with a non-null Supabase Auth `invited_at` timestamp.
-- It runs only while both company and membership tables are empty. A transaction-level advisory lock prevents two users from racing to become first owner.
+- It runs only while company and membership tables are empty. A transaction-level advisory lock prevents two users from racing to become first administrator.
 - The exposed RPC is a `SECURITY INVOKER` wrapper. The privileged implementation resides in the private schema.
 - Ordinary public self-signups cannot initialize the companies.
 - The bootstrap creates only the two company shells and the first owner's memberships. It imports no legacy users, customers, suppliers, products, prices, stock, transactions, documents or accounting data.
