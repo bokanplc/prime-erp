@@ -9891,11 +9891,16 @@ async function enter(user){
     catch(e){writable(false);status('Transaction costs could not be loaded: '+(e.message||e),true);}
   }
   if($('tc-date')) $('tc-date').value=new Date().toISOString().slice(0,10);
-  $('tc-category')?.addEventListener('change',e=>{
-    const v=e.target.value;
-    const cls=/Factory|Quality|Loading|Transport|Handling/.test(v)?'landed_cost':(/General Operating/.test(v)?'operating_expense':'direct_sales_cost');
+  function syncTransactionCostClass(){
+    const category=$('tc-category')?.value||'';
+    const relatedType=$('tc-related-type')?.value||'';
+    // A purchase-linked cost increases landed acquisition cost; a sales/customer/shipment-linked cost is a direct sales cost.
+    // Unlinked miscellaneous transaction costs default to direct sales cost. General overhead stays separate.
+    const cls=/General Operating/.test(category)?'operating_expense':(relatedType==='purchase_document'?'landed_cost':'direct_sales_cost');
     $('tc-class').value=cls;
-  });
+  }
+  $('tc-category')?.addEventListener('change',syncTransactionCostClass);
+  $('tc-related-type')?.addEventListener('change',syncTransactionCostClass);
   $('tc-form')?.addEventListener('submit',async e=>{
     e.preventDefault();
     try{
