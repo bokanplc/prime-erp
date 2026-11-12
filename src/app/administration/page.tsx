@@ -33,7 +33,7 @@ export default async function AdministrationPage({searchParams}:Props) {
       <Link className="back-link" href="/">← BOKAN ERP overview</Link>
       <div className="eyebrow">Access governance · {context.active.displayName}</div>
       <h1>Administration</h1>
-      <p className="workspace-description">Manage access to this company. Memberships are separate for Prime Investment Group and BlackRock Investment PLC; changing one company does not grant access to the other.</p>
+      <p className="workspace-description">Manage access to the BlackRock Investment PLC workspace. User roles and permissions apply only to this company.</p>
 
       {params.error?<div className="workspace-notice"><strong>Action not completed.</strong>{errorMessages[params.error]??"Please check your access and try again."}</div>:null}
       {params.added?<div className="workspace-success" role="status">Company membership added.</div>:null}
