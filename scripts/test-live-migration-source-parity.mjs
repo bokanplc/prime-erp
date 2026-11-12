@@ -47,7 +47,8 @@ const trackedAppliedMigrations = [
   '20261106151937_move_privileged_rpc_implementations_private.sql',
   '20261107064845_harden_atomic_purchase_receiving_workflow.sql',
   '20261107064904_seed_blackrock_opening_stock_61_yellow_plywood.sql',
-  '20261107070044_harden_sales_document_draft_creation.sql'
+  '20261107070044_harden_sales_document_draft_creation.sql',
+  '20261112065242_limit_sales_draft_creation_to_sales_and_data_entry.sql'
 ];
 const missingAppliedVersions = [
   '20261025065910',
@@ -72,7 +73,7 @@ const executableMigrations = allMigrationFiles.filter(name => !supersededDrafts.
 assert.deepEqual(
   executableMigrations,
   [...trackedAppliedMigrations].sort(),
-  'Executable migration directory must contain only the 36 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
+  'Executable migration directory must contain only the 37 source-controlled applied migrations (plus explicitly inert superseded drafts); never place the incompatible Proforma candidate here.'
 );
 assert.ok(fs.existsSync(candidatePath), 'The unapproved Proforma SQL must remain available under supabase/candidates for disposable tests.');
 assert.ok(fs.existsSync(gapPath), 'Missing live migration SQL bodies must be documented.');
@@ -81,4 +82,4 @@ for (const version of missingAppliedVersions) {
   assert.ok(gap.includes(version), `Missing applied migration SQL body ${version} must be documented, not fabricated.`);
 }
 assert.ok(!executableMigrations.some(name => name.includes('core_proforma_mvp')), 'The Proforma candidate must not be an executable migration.');
-console.log('PASS: migration source layout matches the 36 tracked live migrations; eleven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
+console.log('PASS: migration source layout matches the 37 tracked live migrations; eleven applied SQL bodies absent from source control are documented; the incompatible Proforma candidate is isolated.');
