@@ -19,10 +19,10 @@ export default async function NoAccessPage({ searchParams }: Props) {
         <div className="brand-mark">B</div>
         <div className="eyebrow">BOKAN ERP · V7</div>
         <h1>Company access pending</h1>
-        <p>Your V7 sign-in is valid, but this account is not yet a member of either company.</p>
+        <p>Your V7 sign-in is valid, but this account is not yet a member of BlackRock Investment PLC.</p>
         {params.error === "bootstrap" ? (
           <div className="auth-alert" role="alert">
-            Initial setup was not completed. Only the first verified account invited by the V7 Supabase project administrator can initialize the two companies. If setup has already been completed, ask the company owner to grant your membership.
+            Initial setup was not completed. Only the first verified account invited by the V7 Supabase project administrator can initialize the BlackRock workspace. If setup has already been completed, ask the company owner to grant your membership.
           </div>
         ) : (
           <div className="auth-alert">
@@ -30,9 +30,9 @@ export default async function NoAccessPage({ searchParams }: Props) {
           </div>
         )}
         <form action={bootstrapInitialCompanies}>
-          <button type="submit">Initialize both companies as first owner</button>
+          <button type="submit">Initialize BlackRock workspace as administrator</button>
         </form>
-        <p className="auth-footnote">This one-time action creates Prime Investment Group and BlackRock Investment PLC and assigns the invited first administrator as owner of both. It imports no legacy data.</p>
+        <p className="auth-footnote">This one-time action creates BlackRock Investment PLC and assigns the invited administrator account to the company. It imports no legacy data. It imports no legacy data.</p>
         <Link className="auth-link" href="/login">Return to sign in</Link>
         <p className="auth-footnote">Signed in as {user.email ?? "your V7 account"}.</p>
       </section>
