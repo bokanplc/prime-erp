@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const source=fs.readFileSync('staging/BOKAN_ERP_V6_7_PRODUCTION_REVIEW_FIXED.html','utf8');
+const index=fs.readFileSync('staging/index.html','utf8');
+assert.equal(source,index,'Full application source and staging entry must stay synchronized.');
+const start=source.indexOf('<script id="bokan-v68-crm-workspace">');
+const end=source.indexOf('</script>',start);
+assert.ok(start>=0&&end>start,'Production CRM workspace must exist.');
+const crm=source.slice(start,end);
+const renderStart=crm.indexOf('function renderTasks(){');
+const renderEnd=crm.indexOf('function renderHistory(',renderStart);
+assert.ok(renderStart>=0&&renderEnd>renderStart,'After-sales task renderer must exist.');
+const renderer=crm.slice(renderStart,renderEnd);
+assert.ok(renderer.includes("t.status==='open'&&!!t.due_date&&t.due_date<today"),'Open tasks past their due date must be identified as overdue.');
+assert.ok(renderer.includes("t.status==='open'&&t.due_date===today"),'Open tasks due today must be identified.');
+assert.ok(renderer.includes("'Overdue'")&&renderer.includes("'Due today'"),'Due-state labels must be visible to sales staff.');
+assert.ok(renderer.includes("'bg-red-50'")&&renderer.includes("'bg-amber-50'"),'Overdue and due-today rows must be visually distinct.');
+assert.ok(renderer.includes('now.getFullYear()')&&renderer.includes('now.getMonth()')&&renderer.includes('now.getDate()'),'Due-state comparison must use the browser local date, not UTC date rollover.');
+assert.ok(crm.includes("due_date:$('crm-task-due').value||null"),'CRM reminders must persist their due date.');
+assert.ok(crm.includes("api().listAfterSalesTasks()"),'CRM reminders must load from the persisted company-scoped task adapter.');
+assert.ok(crm.includes("data-crm-task=\"completed\""),'Users must be able to complete an open task.');
+assert.ok(crm.includes("data-crm-task=\"cancelled\""),'Users must be able to cancel an open task.');
+console.log('PASS: CRM after-sales reminders persist due dates and visibly flag overdue and due-today tasks using local dates.');
