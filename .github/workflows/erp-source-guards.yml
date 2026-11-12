@@ -65,6 +65,8 @@ jobs:
         run: node scripts/test-crm-task-reminder-ui.mjs
       - name: Test Sales Orders production bridge
         run: node scripts/test-sales-order-ui-bridge.mjs
+      - name: Test Sales Order VAT breakdown
+        run: node scripts/test-sales-order-vat-breakdown.mjs
       - name: Test sales draft RPC role policy
         run: node scripts/test-sales-draft-rpc-role-policy.mjs
       - name: Test Sales Pipeline production bridge
