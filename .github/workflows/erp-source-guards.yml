@@ -61,6 +61,8 @@ jobs:
         run: node scripts/test-supply-logistics-contract.mjs
       - name: Test V6.7 canonical CRM bridge and screen integration
         run: node scripts/test-v67-crm-bridge-contract.mjs
+      - name: Test CRM after-sales reminder due states
+        run: node scripts/test-crm-task-reminder-ui.mjs
       - name: Test Sales Orders production bridge
         run: node scripts/test-sales-order-ui-bridge.mjs
       - name: Test Sales Pipeline production bridge
