@@ -25,7 +25,7 @@ export default async function SetupPage({ searchParams }: Props) {
   const errorMessage = params.error === "invite"
     ? "The first administrator account must be invited and email-verified by the Supabase project administrator."
     : params.error === "failed"
-      ? "Workspace initialization could not be completed. Confirm that this is the invited first-owner account and try again."
+      ? "Workspace initialization could not be completed. Confirm that this is the invited administrator account and try again."
       : null;
 
   return (
@@ -44,11 +44,11 @@ export default async function SetupPage({ searchParams }: Props) {
           </form>
         ) : (
           <div className="auth-form">
-            <p>Sign in with the invited and verified first-owner account to continue.</p>
+            <p>Sign in with the invited and verified administrator account to continue.</p>
             <Link className="auth-link" href="/sign-in">Go to secure sign in →</Link>
           </div>
         )}
-        <p className="auth-foot">This is a one-time owner bootstrap. Public self-registration is disabled.</p>
+        <p className="auth-foot">This is a one-time administrator bootstrap. Public self-registration is disabled.</p>
       </section>
     </main>
   );
