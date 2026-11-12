@@ -4,7 +4,7 @@
 
 This is a fresh application, not a data migration. The V7 database must contain zero imported business records. Do not read from or write to the legacy Supabase project. Do not copy legacy users, company rows, customers, suppliers, products, prices, stock, purchases, sales, proformas, balances, documents or audit events. The legacy app may only be consulted as a workflow reference for already-approved requirements.
 
-The two company names in product requirements are not permission to create tenant rows or memberships automatically. Company and user setup must be completed through a separately approved, secure bootstrap procedure.
+BlackRock Investment PLC is the sole V7 company. Its company row and owner membership must be created through the secure, invitation-gated bootstrap procedure; no other company or tenant is to be provisioned.
 
 ## Build order
 
