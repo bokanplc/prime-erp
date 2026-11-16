@@ -52,10 +52,10 @@ Do not enable employee access until every applicable item has evidence.
 The following infrastructure evidence has been observed in the isolated V7 project and latest CI run; it does not close the browser-acceptance items above:
 
 - Supabase project `thfzvtltmaieesjulggr` reports `ACTIVE_HEALTHY`.
-- 33 migrations applied; 20 public base tables; RLS enabled and forced on all 20.
-- One BlackRock Investment PLC company and one active `admin` membership. Auth privacy counts: 1 user, 1 invited, 1 email-confirmed, 1 with a recorded sign-in.
-- GitHub Actions run `Prior verified Actions run: 43229514035 (for the earlier application commit; the documentation-only commit has no associated Actions run surfaced by the available run lookup)` passed both `database-migration-smoke` and `verify` for commit `d18cae8f4ab5c125ab951f1c7065ef2580a0f07f`.
-- Vercel Preview deployment `dpl_Ge4pJdQukYhrjvohB6CzsEtRe7nE` is `READY` from the same commit.
+- 33 migrations applied; 20 public base tables; RLS enabled and forced on all 20; 74 public policies.
+- GitHub Actions [run #358](https://github.com/bokanplc/prime-erp/actions/runs/43845238522) passed both `database-migration-smoke` and `verify` for commit `f18752e80bfb2fd341ae0c4c1e645dc82fb139dc`.
+- The added SQL regression checks prove that a sales uploader can remove their own failed/unregistered private upload but cannot delete another company's object.
 - Supabase security advisor reports one warning: leaked-password protection disabled. Performance advisor reports 46 informational unused-index notices. Health advisor reports no findings.
+- Vercel work is paused by owner instruction; no Vercel deployment or project settings were changed as part of this checkpoint.
 
 Still open: authenticated browser login/session/navigation/persistence/document-access tests; real sales and data-entry role-path acceptance; owner Preview review; backup/restore evidence. Automated disposable-database tenant-isolation tests do not require or authorize creating a second live company. Keep all open items unchecked until their evidence is recorded.
