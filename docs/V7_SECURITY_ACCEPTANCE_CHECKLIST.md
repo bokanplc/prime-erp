@@ -53,8 +53,9 @@ The following infrastructure evidence has been observed in the isolated V7 proje
 
 - Supabase project `thfzvtltmaieesjulggr` reports `ACTIVE_HEALTHY`.
 - 33 migrations applied; 20 public base tables; RLS enabled and forced on all 20; 74 public policies.
-- GitHub Actions [run #358](https://github.com/bokanplc/prime-erp/actions/runs/43845238522) passed both `database-migration-smoke` and `verify` for commit `f18752e80bfb2fd341ae0c4c1e645dc82fb139dc`.
-- The added SQL regression checks prove that a sales uploader can remove their own failed/unregistered private upload but cannot delete another company's object.
+- GitHub Actions [run #363](https://github.com/bokanplc/prime-erp/actions/runs/43848540782) passed both `database-migration-smoke` and `verify` for commit `eece042d27685149f2ad882924ba21c0003b9b2d`.
+- SQL regression coverage confirms a sales uploader can remove their own failed/unregistered private upload but cannot delete another company's object; a viewer can read company customer records but cannot insert or update them.
+- Live read-only counts show zero rows in all 16 operational business tables checked.
 - Supabase security advisor reports one warning: leaked-password protection disabled. Performance advisor reports 46 informational unused-index notices. Health advisor reports no findings.
 - Vercel work is paused by owner instruction; no Vercel deployment or project settings were changed as part of this checkpoint.
 
