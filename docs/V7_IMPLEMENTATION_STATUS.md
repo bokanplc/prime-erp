@@ -60,12 +60,13 @@ Last updated: 2026-11-16
 
 ## Verified state and remaining release gates (2026-11-16)
 
-- Latest verified application/test commit: `f18752e80bfb2fd341ae0c4c1e645dc82fb139dc`.
-- GitHub Actions run [#358](https://github.com/bokanplc/prime-erp/actions/runs/43845238522) completed successfully for that commit. Both `verify` and `database-migration-smoke` passed, including lint, production build, migration application in disposable PostgreSQL, RLS, tenant isolation and private-upload cleanup tests.
+- Latest verified application/test commit: `eece042d27685149f2ad882924ba21c0003b9b2d`.
+- GitHub Actions [run #363](https://github.com/bokanplc/prime-erp/actions/runs/43848540782) completed successfully for that commit. Both `verify` and `database-migration-smoke` passed, including lint, production build, disposable PostgreSQL migrations, RLS, tenant isolation, private-upload cleanup and viewer read-only access tests.
 - Supabase project `thfzvtltmaieesjulggr` currently reports `ACTIVE_HEALTHY`; live migration history contains 33 migrations.
 - A read-only catalog check reconfirmed 20 public base tables, RLS enabled and forced on all 20, and 74 public policies.
+- All 16 operational tables checked (customers, suppliers, products/prices, CRM, sales, purchasing, direct costs, delivery, documents, tasks and notifications) contain zero rows.
 - Security advisor: one warning, leaked-password protection disabled. Performance advisor: 46 informational unused-index notices. Health advisor: no findings.
-- No operational business data has been imported or seeded. The user's fresh reconciled dataset remains pending.
+- No business data has been imported or seeded. The user's fresh reconciled dataset remains pending.
 - Authenticated browser acceptance remains unverified. Automated CI is not browser acceptance.
 - Vercel work is paused at the owner's direction; no deployment or project settings were changed during this checkpoint.
 
