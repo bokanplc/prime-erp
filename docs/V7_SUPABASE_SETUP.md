@@ -121,3 +121,12 @@ The first-owner bootstrap RPC remains a historical implementation detail and mus
 Keep the old project intact until V7 is fully reviewed, authenticated, deployed,
 and the user confirms that the new system is ready. Then take a final backup/export,
 verify any retention obligations, and only then consider deleting the old project.
+
+
+## Preview verification update — 2026-11-16
+
+- Latest documentation-only V7 commit: `d18cae8f4ab5c125ab951f1c7065ef2580a0f07f`.
+- Vercel V7 Preview deployment `dpl_Ge4pJdQukYhrjvohB6CzsEtRe7nE` reached `READY` from that commit. Build status is separate from authenticated browser acceptance.
+- GitHub combined status reports the V7 Vercel check successful. The separate legacy `prime-erp` Vercel check failed; do not confuse it with the V7 project.
+- The available commit-workflow lookup did not surface a GitHub Actions run for the documentation-only commit. The previously verified Actions run `43229514035` belongs to the earlier application commit, not this documentation commit.
+- Preview remains protected; no Auth URL settings or Auth security settings were changed.
