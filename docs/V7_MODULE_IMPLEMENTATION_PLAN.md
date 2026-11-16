@@ -46,10 +46,14 @@ Preview deployment only until build/lint checks, authentication, authorization, 
 
 ## Live implementation checkpoint — 2026-11-16
 
-- 33 V7 migrations are applied to the isolated project; 20 public base tables have RLS enabled and forced.
-- Latest verified commit: `d18cae8f4ab5c125ab951f1c7065ef2580a0f07f`; Actions run `Prior verified Actions run: 43229514035 (for the earlier application commit; the documentation-only commit has no associated Actions run surfaced by the available run lookup)` passed both `database-migration-smoke` and `verify`.
-- Vercel Preview deployment `dpl_Ge4pJdQukYhrjvohB6CzsEtRe7nE` is `READY` from that commit.
-- Live tenant boundary is BlackRock Investment PLC only, ETB, 15% VAT; one active `admin` membership.
-- No operational business rows have been seeded or imported. The user's fresh reconciled dataset remains pending.
-- Real authenticated browser acceptance remains open; CI and deployment status are not substitutes.
-- The role name in the live database is `admin`; documentation must not call this membership `owner`.
+- Latest verified branch commit: `f18752e80bfb2fd341ae0c4c1e645dc82fb139dc`.
+- GitHub Actions [run #358](https://github.com/bokanplc/prime-erp/actions/runs/43845238522) passed both `verify` and `database-migration-smoke`. Coverage includes lint, production build, disposable-database migrations, RLS, tenant isolation and private-storage uploader cleanup.
+- Isolated Supabase project `thfzvtltmaieesjulggr` is `ACTIVE_HEALTHY`; all 33 V7 migrations are applied.
+- Live catalog verification: 20 public base tables; RLS enabled and forced on 20/20; 74 public policies.
+- Live tenant boundary remains BlackRock Investment PLC only, ETB, 15% VAT; the only provisioned company and active admin membership remain the previously verified setup.
+- No operational business rows have been seeded or imported. Fresh reconciled business data is pending from the owner.
+- Supabase security advisor reports one warning: leaked-password protection disabled. Performance advisor reports 46 informational unused-index notices. Health advisor reports no findings.
+- Vercel work is paused by owner instruction and is intentionally not part of this GitHub/Supabase checkpoint.
+- Real authenticated browser acceptance remains open; CI success does not establish login, persistence or full workflow acceptance.
+
+The build order above describes the delivered V7 modules and remaining acceptance work; it is not a claim that browser acceptance or production release is complete.
