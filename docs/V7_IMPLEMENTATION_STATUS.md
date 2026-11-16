@@ -60,19 +60,20 @@ Last updated: 2026-11-16
 
 ## Verified state and remaining release gates (2026-11-16)
 
-- Latest verified branch commit: `d18cae8f4ab5c125ab951f1c7065ef2580a0f07f`.
-- GitHub Actions run `Prior verified Actions run: 43229514035 (for the earlier application commit; the documentation-only commit has no associated Actions run surfaced by the available run lookup)`: `database-migration-smoke` and `verify` both completed successfully for that commit.
-- Vercel Preview deployment `dpl_Ge4pJdQukYhrjvohB6CzsEtRe7nE` is `READY` and built from the same commit.
-- Isolated Supabase project is `ACTIVE_HEALTHY`; 33 migrations are applied; 20/20 public base tables have RLS enabled and forced.
-- One active BlackRock Investment PLC membership has role `admin`; Auth privacy counts: 1 user, 1 invited, 1 confirmed, 1 with recorded sign-in.
+- Latest verified application/test commit: `f18752e80bfb2fd341ae0c4c1e645dc82fb139dc`.
+- GitHub Actions run [#358](https://github.com/bokanplc/prime-erp/actions/runs/43845238522) completed successfully for that commit. Both `verify` and `database-migration-smoke` passed, including lint, production build, migration application in disposable PostgreSQL, RLS, tenant isolation and private-upload cleanup tests.
+- Supabase project `thfzvtltmaieesjulggr` currently reports `ACTIVE_HEALTHY`; live migration history contains 33 migrations.
+- A read-only catalog check reconfirmed 20 public base tables, RLS enabled and forced on all 20, and 74 public policies.
 - Security advisor: one warning, leaked-password protection disabled. Performance advisor: 46 informational unused-index notices. Health advisor: no findings.
-- Authenticated browser acceptance has not been evidenced. Preview is SSO-protected; do not treat CI or build success as browser acceptance.
+- No operational business data has been imported or seeded. The user's fresh reconciled dataset remains pending.
+- Authenticated browser acceptance remains unverified. Automated CI is not browser acceptance.
+- Vercel work is paused at the owner's direction; no deployment or project settings were changed during this checkpoint.
 
 Remaining gates:
 1. Complete real authenticated browser acceptance for login, session refresh, navigation, persistence, private document access and authorization boundaries.
-2. Verify sales and data-entry permission paths using controlled test identities; do not create/invite employee accounts without the separate approval required for those accounts.
+2. Verify sales and data-entry permission paths using controlled test identities; do not create/invite employee accounts without separate approval.
 3. Resolve or explicitly accept the leaked-password-protection warning through an approved Auth-setting change.
-4. Reconcile the security checklist with evidence and preserve all genuinely untested items as open.
+4. Reconcile the security checklist with evidence and preserve untested items as open.
 5. Owner review of Preview before any production release. Production promotion, `main` changes and employee distribution remain separate release actions.
 
 ## Release rule
