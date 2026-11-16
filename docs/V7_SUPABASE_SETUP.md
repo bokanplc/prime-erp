@@ -49,6 +49,7 @@ The following V7-only migrations were applied and verified:
 30. `v7_company_settings_permissions`
 31. `v7_invited_first_owner_bootstrap`
 32. `v7_private_first_owner_bootstrap`
+33. `v7_blackrock_only_company_details_and_admin`
 
 Verification at setup:
 - 20 public application tables
@@ -69,8 +70,8 @@ Verification at setup:
 - Company owners/admins can update company names and VAT basis points
 - Audit history is readable only by company management roles
 - Recipient-only in-app notifications are generated for approvals, submissions and purchase-request conversion
-- 0 business rows, users, stock records, or imported historical data
-- Security and health advisors returned no findings
+- 0 operational business rows, stock records, or imported historical data. Live Auth state is one invited and email-confirmed administrator account; this is not a business-data import.
+- Current advisor state (2026-11-16): one security warning (`auth_leaked_password_protection`, disabled); 46 informational unused-index notices; no health findings.
 
 The performance advisor subsequently reports newly created indexes as unused because
 the database has no live workload yet. Reassess after real application traffic rather
@@ -102,30 +103,20 @@ Before inviting the first owner, open Supabase Dashboard → Authentication → 
 
 The Vercel review project currently has SSO protection enabled for all deployments. Only authorized Vercel team members can open this review URL. Do not distribute it to employees as their live ERP link. When V7 is approved for production, configure the production URL, review deployment protection, and use a production-targeted deployment.
 
-## Fresh onboarding
+## Current onboarding state and safe future procedure
 
-No company, employee, customer, supplier, product, price, or transaction data has
-been seeded. The first-owner bootstrap is invitation-gated: it requires a signed-in,
-email-verified V7 Auth account with a non-null Supabase `invited_at` timestamp.
-It can run only while both the company and membership tables are empty, and creates
-the two company shells plus owner memberships for that invited user in one transaction.
+**Do not follow the historical two-company bootstrap procedure.** It is obsolete and conflicts with the owner's V7-only scope.
 
-1. In Supabase Dashboard → Authentication → Settings, disable public user sign-ups so accounts are created only through administrator invitations.
-2. In Supabase Dashboard → Authentication → Users, invite the intended first owner by email.
-3. The invited owner accepts the email invitation and signs in to the V7 review deployment.
-4. On the Company access pending screen, the invited first owner selects
-   **Initialize both companies as first owner**.
-5. The bootstrap creates Prime Investment Group and BlackRock Investment PLC,
-   each with ETB and 15% VAT defaults, and grants the first owner membership in both.
-6. Invite each employee through Supabase Auth, then grant the appropriate role in
-   Administration separately for each company. The ERP membership form deliberately
-   accepts existing V7 Auth accounts only; it does not create credentials or send invitations.
+Live state verified 2026-11-16:
+- One company only: BlackRock Investment PLC.
+- Currency ETB; VAT 15%.
+- One invited, email-confirmed Auth account with one active `admin` membership.
+- No employee accounts and zero operational business rows.
+- Company/bootstrap setup is already complete. Do not rerun bootstrap or create Prime Investment Group.
 
-The public bootstrap RPC is a SECURITY INVOKER wrapper; its SECURITY DEFINER implementation
-lives in the private schema. It rejects ordinary self-signups, unverified accounts and
-all calls after the first successful initialization. It does not create Auth users, send invites,
-or import legacy users, customers, products, stock, prices, transactions or balances.
-Add fresh reconciled business data only when the user supplies it.
+For future employee onboarding, create/invite accounts only after explicit owner approval for the specific invitations. The Administration membership flow accepts existing V7 Auth accounts; it does not create credentials or send invitations. Assign only the approved sales and data-entry roles under the single BlackRock company.
+
+The first-owner bootstrap RPC remains a historical implementation detail and must not be used again against this initialized project. No legacy users or business data are to be imported. Add fresh reconciled business data only when the user supplies it.
 
 ## Legacy V6.7
 
