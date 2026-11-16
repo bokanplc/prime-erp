@@ -46,12 +46,12 @@ Preview deployment only until build/lint checks, authentication, authorization, 
 
 ## Live implementation checkpoint — 2026-11-16
 
-- Latest verified branch commit: `f18752e80bfb2fd341ae0c4c1e645dc82fb139dc`.
-- GitHub Actions [run #358](https://github.com/bokanplc/prime-erp/actions/runs/43845238522) passed both `verify` and `database-migration-smoke`. Coverage includes lint, production build, disposable-database migrations, RLS, tenant isolation and private-storage uploader cleanup.
+- Latest verified branch commit: `eece042d27685149f2ad882924ba21c0003b9b2d`.
+- GitHub Actions [run #363](https://github.com/bokanplc/prime-erp/actions/runs/43848540782) passed both `verify` and `database-migration-smoke`. Coverage includes lint, production build, disposable-database migrations, RLS, tenant isolation, private-storage uploader cleanup and viewer read-only access.
 - Isolated Supabase project `thfzvtltmaieesjulggr` is `ACTIVE_HEALTHY`; all 33 V7 migrations are applied.
 - Live catalog verification: 20 public base tables; RLS enabled and forced on 20/20; 74 public policies.
+- A live read-only count confirmed zero rows in all 16 operational business tables checked.
 - Live tenant boundary remains BlackRock Investment PLC only, ETB, 15% VAT; the only provisioned company and active admin membership remain the previously verified setup.
-- No operational business rows have been seeded or imported. Fresh reconciled business data is pending from the owner.
 - Supabase security advisor reports one warning: leaked-password protection disabled. Performance advisor reports 46 informational unused-index notices. Health advisor reports no findings.
 - Vercel work is paused by owner instruction and is intentionally not part of this GitHub/Supabase checkpoint.
 - Real authenticated browser acceptance remains open; CI success does not establish login, persistence or full workflow acceptance.
