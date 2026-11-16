@@ -7,7 +7,8 @@ insert into auth.users (id, email, invited_at, email_confirmed_at) values
   ('10000000-0000-4000-8000-000000000005','owner@example.test',null,null),
   ('10000000-0000-4000-8000-000000000006','new-member@example.test',null,null),
   ('10000000-0000-4000-8000-000000000007','initial-owner@example.test','2026-11-11 12:00:00+00','2026-11-11 12:00:00+00'),
-  ('10000000-0000-4000-8000-000000000008','uninvited@example.test',null,'2026-11-11 12:00:00+00');
+  ('10000000-0000-4000-8000-000000000008','uninvited@example.test',null,'2026-11-11 12:00:00+00'),
+  ('10000000-0000-4000-8000-000000000009','viewer@example.test',null,'2026-11-11 12:00:00+00');
 
 
 -- First-owner bootstrap must be invitation-gated, atomic and one-time.
@@ -90,7 +91,8 @@ values
   ('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', 'sales'),
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'data_entry'),
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000004', 'manager'),
-  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000005', 'owner');
+  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000005', 'owner'),
+  ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000009', 'viewer');
 
 insert into public.customers (company_id, legal_name, display_name)
 values
@@ -412,5 +414,39 @@ begin
 end
 $owner_membership_add$;
 rollback;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000009', true);
+
+do $viewer_read_only$
+declare
+  visible_customers integer;
+begin
+  select count(*) into visible_customers
+  from public.customers
+  where company_id='20000000-0000-4000-8000-000000000001';
+  if visible_customers <> 1 then
+    raise exception 'Viewer should be able to read company customer records; received %', visible_customers;
+  end if;
+
+  begin
+    insert into public.customers (company_id, legal_name, display_name)
+    values ('20000000-0000-4000-8000-000000000001', 'Viewer Insert', 'Viewer Insert');
+    raise exception 'Viewer unexpectedly inserted a customer';
+  exception when insufficient_privilege then null;
+  end;
+
+  update public.customers
+  set display_name='Viewer Must Not Edit'
+  where company_id='20000000-0000-4000-8000-000000000001'
+    and legal_name='Customer One';
+  if found then
+    raise exception 'Viewer unexpectedly updated a customer';
+  end if;
+end
+$viewer_read_only$;
+rollback;
+
 
 select 'V7 migration smoke test passed: schema, tenant isolation, private storage, data-entry permissions, manager approvals and guarded membership administration verified.' as result;
