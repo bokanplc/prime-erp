@@ -29,6 +29,11 @@ textarea{min-height:42px;resize:vertical}.span2{grid-column:span 2}.full{grid-co
 <div class="grid"><div><label>Email address</label><input id="loginEmail" type="email" autocomplete="username" placeholder="name@company.com"></div><div><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password"></div></div>
 <div class="actions" style="margin-top:14px"><button id="loginBtn" class="btn">Sign in</button><button id="resetBtn" class="btn secondary">Forgot password?</button></div><div id="loginMsg" class="status" style="margin-top:10px"></div>
 </section>
+<section id="recoveryPanel" class="panel login hidden">
+<h2>Set a new BOKAN Daily Journal password</h2><div class="hint">Choose a new password for your Daily Journal account.</div>
+<div class="grid"><div><label>New password</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters"></div><div><label>Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Enter it again"></div></div>
+<div class="actions" style="margin-top:14px"><button id="savePasswordBtn" class="btn">Save new password</button></div><div id="recoveryMsg" class="status" style="margin-top:10px"></div>
+</section>
 <section id="noAccess" class="panel hidden"><h2>Access not enabled</h2><p class="muted">Your account is signed in, but an administrator has not yet enabled BOKAN Daily Journal access for it. Please contact the administrator.</p><button class="btn secondary" id="noAccessSignOut">Sign out</button></section>
 <div id="app" class="hidden">
 <section class="panel">
@@ -109,6 +114,7 @@ $('cancelEdit').onclick=()=>{resetForm();msg('formMsg','Edit cancelled.');};
 $('quantity').oninput=$('unit_price').oninput=calc;
 $('refreshLive').onclick=refreshLive;$('loadRepo').onclick=loadRepository;$('repoSearch').oninput=renderRepo;$('exportCsv').onclick=csvExport;
 $('inviteBtn').onclick=async()=>{const email=$('inviteEmail').value.trim(),role=$('inviteRole').value;if(!email){msg('inviteMsg','Enter an employee email.','error');return;}const {data,error}=await sb.functions.invoke('journal-invite-user',{body:{email,role}});if(error||data?.error){msg('inviteMsg','Invitation failed: '+(data?.error||error?.message||'Unknown error'),'error');return;}msg('inviteMsg','Invitation sent to '+email+'. They can sign in after accepting it.','success');$('inviteEmail').value='';await loadStaff();};
-sb.auth.onAuthStateChange((_event,_session)=>{setTimeout(()=>enterApp(),0);});
+sb.auth.onAuthStateChange((event,_session)=>{if(event==='PASSWORD_RECOVERY'){$('loginPanel').classList.add('hidden');$('app').classList.add('hidden');$('noAccess').classList.add('hidden');$('recoveryPanel').classList.remove('hidden');$('signOut').classList.add('hidden');return;}if(event==='SIGNED_OUT')$('recoveryPanel').classList.add('hidden');setTimeout(()=>enterApp(),0);});
+$('savePasswordBtn').onclick=async()=>{const p=$('newPassword').value,confirm=$('confirmPassword').value;if(p.length<8){msg('recoveryMsg','Use at least 8 characters.','error');return;}if(p!==confirm){msg('recoveryMsg','The passwords do not match.','error');return;}$('savePasswordBtn').disabled=true;const {error}=await sb.auth.updateUser({password:p});$('savePasswordBtn').disabled=false;if(error){msg('recoveryMsg','Password update failed: '+error.message,'error');return;}msg('recoveryMsg','Password updated. You can now sign in to BOKAN Daily Journal with your new password.','success');$('newPassword').value='';$('confirmPassword').value='';await sb.auth.signOut();$('recoveryPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');};
 await enterApp();setInterval(()=>{updateClock();refreshLive();},15000);
 </script></body></html>
