@@ -60,9 +60,9 @@ Last updated: 2026-11-16
 
 ## Verified state and remaining release gates (2026-11-16)
 
-- Latest verified branch commit: `9226aa9c6cabf9d54ce5dfcc6cc41e4019f0f869`.
-- GitHub Actions run `43229514035`: `database-migration-smoke` and `verify` both completed successfully for that commit.
-- Vercel Preview deployment `dpl_9YM5y2PhjBF8Jh7ZpJAkoxRapFx5` is `READY` and built from the same commit.
+- Latest verified branch commit: `d18cae8f4ab5c125ab951f1c7065ef2580a0f07f`.
+- GitHub Actions run `Prior verified Actions run: 43229514035 (for the earlier application commit; the documentation-only commit has no associated Actions run surfaced by the available run lookup)`: `database-migration-smoke` and `verify` both completed successfully for that commit.
+- Vercel Preview deployment `dpl_Ge4pJdQukYhrjvohB6CzsEtRe7nE` is `READY` and built from the same commit.
 - Isolated Supabase project is `ACTIVE_HEALTHY`; 33 migrations are applied; 20/20 public base tables have RLS enabled and forced.
 - One active BlackRock Investment PLC membership has role `admin`; Auth privacy counts: 1 user, 1 invited, 1 confirmed, 1 with recorded sign-in.
 - Security advisor: one warning, leaked-password protection disabled. Performance advisor: 46 informational unused-index notices. Health advisor: no findings.
