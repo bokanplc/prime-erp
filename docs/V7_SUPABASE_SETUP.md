@@ -91,15 +91,13 @@ No service-role key is configured in the browser environment.
 Production environment variables are intentionally not configured until V7 has
 passed review and a production release is explicitly prepared.
 
-## Supabase Auth redirect configuration for review
+## Supabase Auth redirect configuration for Preview
 
-Before inviting the first owner, open Supabase Dashboard → Authentication → URL Configuration:
+The initial administrator account is already invited and email-confirmed. Do not repeat the first-owner invitation procedure. For browser acceptance, verify the current V7 Preview callback and Site URL against the actual Vercel alias before changing anything. The expected Preview callback is:
 
-- Set the review **Site URL** to
-  `https://bokan-erp-v7-git-rebuild-bokan-erp-v7-bokanplc-3642.vercel.app`
-- Add this exact callback URL to the redirect allowlist:
-  `https://bokan-erp-v7-git-rebuild-bokan-erp-v7-bokanplc-3642.vercel.app/auth/callback`
-- Keep the production domain `https://bokan-erp-v7.vercel.app/auth/callback` in the allowlist for the later release, but do not change the Site URL to production until the production deployment exists.
+`https://bokan-erp-v7-git-rebuild-bokan-erp-v7-bokanplc-3642.vercel.app/auth/callback`
+
+Any change to Supabase Auth URL configuration requires explicit approval for the specific setting and target. Do not add a Production callback or change the Site URL to Production as part of Preview testing.
 
 The Vercel review project currently has SSO protection enabled for all deployments. Only authorized Vercel team members can open this review URL. Do not distribute it to employees as their live ERP link. When V7 is approved for production, configure the production URL, review deployment protection, and use a production-targeted deployment.
 
