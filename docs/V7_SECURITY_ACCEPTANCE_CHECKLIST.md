@@ -45,3 +45,17 @@ Do not enable employee access until every applicable item has evidence.
 - [ ] Automated CI passes.
 - [ ] Preview has been reviewed by the owner.
 - [ ] Production promotion and employee invitations are separately approved.
+
+
+## Evidence reconciliation — 2026-11-16
+
+The following infrastructure evidence has been observed in the isolated V7 project and latest CI run; it does not close the browser-acceptance items above:
+
+- Supabase project `thfzvtltmaieesjulggr` reports `ACTIVE_HEALTHY`.
+- 33 migrations applied; 20 public base tables; RLS enabled and forced on all 20.
+- One BlackRock Investment PLC company and one active `admin` membership. Auth privacy counts: 1 user, 1 invited, 1 email-confirmed, 1 with a recorded sign-in.
+- GitHub Actions run `43229514035` passed both `database-migration-smoke` and `verify` for commit `9226aa9c6cabf9d54ce5dfcc6cc41e4019f0f869`.
+- Vercel Preview deployment `dpl_9YM5y2PhjBF8Jh7ZpJAkoxRapFx5` is `READY` from the same commit.
+- Supabase security advisor reports one warning: leaked-password protection disabled. Performance advisor reports 46 informational unused-index notices. Health advisor reports no findings.
+
+Still open: authenticated browser login/session/navigation/persistence/document-access tests; real sales and data-entry role-path acceptance; owner Preview review; backup/restore evidence. Automated disposable-database tenant-isolation tests do not require or authorize creating a second live company. Keep all open items unchecked until their evidence is recorded.
