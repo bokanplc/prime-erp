@@ -47,8 +47,8 @@ Preview deployment only until build/lint checks, authentication, authorization, 
 ## Live implementation checkpoint — 2026-11-16
 
 - 33 V7 migrations are applied to the isolated project; 20 public base tables have RLS enabled and forced.
-- Latest verified commit: `9226aa9c6cabf9d54ce5dfcc6cc41e4019f0f869`; Actions run `43229514035` passed both `database-migration-smoke` and `verify`.
-- Vercel Preview deployment `dpl_9YM5y2PhjBF8Jh7ZpJAkoxRapFx5` is `READY` from that commit.
+- Latest verified commit: `d18cae8f4ab5c125ab951f1c7065ef2580a0f07f`; Actions run `Prior verified Actions run: 43229514035 (for the earlier application commit; the documentation-only commit has no associated Actions run surfaced by the available run lookup)` passed both `database-migration-smoke` and `verify`.
+- Vercel Preview deployment `dpl_Ge4pJdQukYhrjvohB6CzsEtRe7nE` is `READY` from that commit.
 - Live tenant boundary is BlackRock Investment PLC only, ETB, 15% VAT; one active `admin` membership.
 - No operational business rows have been seeded or imported. The user's fresh reconciled dataset remains pending.
 - Real authenticated browser acceptance remains open; CI and deployment status are not substitutes.
