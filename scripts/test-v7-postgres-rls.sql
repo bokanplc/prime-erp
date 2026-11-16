@@ -181,6 +181,22 @@ begin
     raise exception 'Storage tenant isolation failed: user can see % files', visible_files;
   end if;
 
+  -- A sales uploader must be able to clean up their own unregistered upload.
+  delete from storage.objects
+  where bucket_id = 'bokan-erp-documents'
+    and name = '20000000-0000-4000-8000-000000000001/tenant-one.pdf';
+  if not found then
+    raise exception 'Uploader could not delete their own failed-upload object';
+  end if;
+
+  -- The same uploader must not delete another company's object.
+  delete from storage.objects
+  where bucket_id = 'bokan-erp-documents'
+    and name = '20000000-0000-4000-8000-000000000002/tenant-two.pdf';
+  if found then
+    raise exception 'Uploader unexpectedly deleted another company file';
+  end if;
+
   begin
     insert into storage.objects (bucket_id, name, owner_id)
     values ('bokan-erp-documents', '20000000-0000-4000-8000-000000000002/unauthorized.pdf', '10000000-0000-4000-8000-000000000001');
