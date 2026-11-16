@@ -15,7 +15,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "");
+    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     if (!token) {
       return new Response(JSON.stringify({ error: "Sign-in required." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const email = String(body.email || "").trim().toLowerCase();
     const role = String(body.role || "data_entry");
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error("Enter a valid employee email address.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Enter a valid employee email address.");
     if (!["data_entry", "viewer"].includes(role)) throw new Error("The selected role is not allowed.");
 
     const origin = req.headers.get("origin");
