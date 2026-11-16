@@ -1,6 +1,6 @@
 # BOKAN ERP V7 implementation status
 
-Last updated: 2026-11-12
+Last updated: 2026-11-16
 
 ## Isolated environment
 
@@ -9,7 +9,7 @@ Last updated: 2026-11-12
 - New Vercel project: `bokan-erp-v7`
 - Working branch: `rebuild/bokan-erp-v7`
 - No V6.7 database, storage bucket, customer, supplier, product, stock or transaction data has been imported.
-- The V7 database has no seeded business records or employee accounts.
+- Live verification on 2026-11-16: 20 public base tables; RLS enabled and forced on 20/20; 33 migrations applied; one invited, email-confirmed Auth account; one active `admin` membership for BlackRock Investment PLC; zero employee accounts and zero operational business rows.
 - Supabase was created on the Free plan with a $0 monthly confirmation at provisioning. Free-plan quotas and inactivity pausing still apply.
 
 ## Company boundary
@@ -19,7 +19,7 @@ Last updated: 2026-11-12
 - Telephone: 978 23 48 20.
 - Base currency: ETB; VAT default: 15%.
 - Prime Investment Group is decommissioned and is not a V7 company or workspace.
-- The initial invited account is assigned administrator access; employee accounts are added after deployment.
+- The initial invited and email-confirmed account currently has one active `admin` membership. No employee accounts have been created or invited.
 
 ## Implemented in the V7 branch
 
@@ -58,17 +58,22 @@ Last updated: 2026-11-12
 - Commercial VAT and margin calculations have unit tests.
 - PostgreSQL smoke tests cover tenant isolation, private storage, data-entry permissions, manager approvals, membership administration and excluded modules.
 
-## Remaining release gates
+## Verified state and remaining release gates (2026-11-16)
 
-1. Complete the latest CI run after the current changes.
-2. Deploy the latest verified commit to a Vercel Preview deployment and review it.
-3. Use the existing invited and verified administrator account in V7 Supabase Auth.
-4. Sign in to Preview and use the one-time **Initialize BlackRock workspace as administrator** action.
-5. Add the three sales users and one data-entry user after their V7 Auth accounts exist.
-6. Complete authenticated end-to-end tests for BlackRock Investment PLC and the four employee roles.
-7. Verify sign-in/session refresh and approved redirect URLs.
-8. Review the Preview with the owner before any production promotion.
-9. Back up and verify V7 before considering V6.7 decommissioning. V6.7 remains untouched.
+- Latest verified branch commit: `9226aa9c6cabf9d54ce5dfcc6cc41e4019f0f869`.
+- GitHub Actions run `43229514035`: `database-migration-smoke` and `verify` both completed successfully for that commit.
+- Vercel Preview deployment `dpl_9YM5y2PhjBF8Jh7ZpJAkoxRapFx5` is `READY` and built from the same commit.
+- Isolated Supabase project is `ACTIVE_HEALTHY`; 33 migrations are applied; 20/20 public base tables have RLS enabled and forced.
+- One active BlackRock Investment PLC membership has role `admin`; Auth privacy counts: 1 user, 1 invited, 1 confirmed, 1 with recorded sign-in.
+- Security advisor: one warning, leaked-password protection disabled. Performance advisor: 46 informational unused-index notices. Health advisor: no findings.
+- Authenticated browser acceptance has not been evidenced. Preview is SSO-protected; do not treat CI or build success as browser acceptance.
+
+Remaining gates:
+1. Complete real authenticated browser acceptance for login, session refresh, navigation, persistence, private document access and authorization boundaries.
+2. Verify sales and data-entry permission paths using controlled test identities; do not create/invite employee accounts without the separate approval required for those accounts.
+3. Resolve or explicitly accept the leaked-password-protection warning through an approved Auth-setting change.
+4. Reconcile the security checklist with evidence and preserve all genuinely untested items as open.
+5. Owner review of Preview before any production release. Production promotion, `main` changes and employee distribution remain separate release actions.
 
 ## Release rule
 
