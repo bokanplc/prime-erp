@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
-export const COMPANY_ROLES = ["owner", "manager", "sales", "purchasing", "operations", "viewer"] as const;
+export const COMPANY_ROLES = ["owner", "admin", "manager", "sales", "purchasing", "operations", "data_entry", "viewer"] as const;
 export type CompanyRole = (typeof COMPANY_ROLES)[number];
 
 export class AuthorizationError extends Error {
