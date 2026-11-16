@@ -292,8 +292,8 @@ declare
 begin
   select count(*) into member_count
   from public.list_company_members('20000000-0000-4000-8000-000000000001');
-  if member_count <> 4 then
-    raise exception 'Manager membership view expected 4 members, received %', member_count;
+  if member_count <> 5 then
+    raise exception 'Manager membership view expected 5 members, received %', member_count;
   end if;
   select count(*) into member_count from public.audit_events where company_id='20000000-0000-4000-8000-000000000001';
   if member_count < 1 then
