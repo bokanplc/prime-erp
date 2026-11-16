@@ -4,7 +4,7 @@
 
 This is a fresh application, not a data migration. The V7 database must contain zero imported business records. Do not read from or write to the legacy Supabase project. Do not copy legacy users, company rows, customers, suppliers, products, prices, stock, purchases, sales, proformas, balances, documents or audit events. The legacy app may only be consulted as a workflow reference for already-approved requirements.
 
-BlackRock Investment PLC is the sole V7 company. Its company row and owner membership must be created through the secure, invitation-gated bootstrap procedure; no other company or tenant is to be provisioned.
+BlackRock Investment PLC is the sole V7 company. The isolated V7 project currently contains one BlackRock company and one active `admin` membership for an invited, email-confirmed account. The bootstrap and company setup are already complete; do not rerun onboarding or create another company. No other company or tenant is to be provisioned.
 
 ## Build order
 
@@ -42,3 +42,14 @@ BlackRock Investment PLC is the sole V7 company. Its company row and owner membe
 ## Release gates
 
 Preview deployment only until build/lint checks, authentication, authorization, tenant isolation, persistence, auditability, document access, backup/restore and full workflow tests pass. Production promotion and employee distribution require explicit owner approval after evidence is presented.
+
+
+## Live implementation checkpoint — 2026-11-16
+
+- 33 V7 migrations are applied to the isolated project; 20 public base tables have RLS enabled and forced.
+- Latest verified commit: `9226aa9c6cabf9d54ce5dfcc6cc41e4019f0f869`; Actions run `43229514035` passed both `database-migration-smoke` and `verify`.
+- Vercel Preview deployment `dpl_9YM5y2PhjBF8Jh7ZpJAkoxRapFx5` is `READY` from that commit.
+- Live tenant boundary is BlackRock Investment PLC only, ETB, 15% VAT; one active `admin` membership.
+- No operational business rows have been seeded or imported. The user's fresh reconciled dataset remains pending.
+- Real authenticated browser acceptance remains open; CI and deployment status are not substitutes.
+- The role name in the live database is `admin`; documentation must not call this membership `owner`.
