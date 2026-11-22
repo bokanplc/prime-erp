@@ -2505,6 +2505,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
             <div>
               <label>Transportation</label>
               <select id="pfr-transport">
+                <option selected>Transportation and loading will be paid by customer</option>
                 <option>Transportation is included</option>
                 <option>Transportation will be paid by customer</option>
                 <option>Pickup by customer from warehouse</option>
@@ -2566,7 +2567,7 @@ body:not(.force-admin) #proforma-admin-queue{ }
             <option value="BLACKROCK">BlackRock Investment PLC</option>
             <option value="PRIME">PRIME Investment Group</option>
           </select>
-          <div class="space-y-1"><div id="pf-issuer-admin-controls"><div class="flex gap-2"><input id="pf-company-tin" placeholder="Issuing Company TIN" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyTIN()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save TIN</button><button type="button" onclick="clearProformaCompanyTIN()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Delete TIN</button></div><div class="flex gap-2"><input id="pf-company-address" placeholder="Issuer Address" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><input id="pf-company-phone" placeholder="Issuer Phone" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyContact()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save</button><button type="button" onclick="clearProformaCompanyContact()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Delete</button></div></div><div id="pf-issuer-employee-view" class="hidden text-[11px] text-[#6B6C72]"><div id="pf-issuer-employee-tin"></div><div id="pf-issuer-employee-address"></div><div id="pf-issuer-employee-phone"></div></div></div>
+          <div class="space-y-1"><div id="pf-issuer-admin-controls"><div class="flex gap-2"><input id="pf-company-name" placeholder="Registered Company Name" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyName()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save Name</button></div><div class="flex gap-2"><input id="pf-company-tin" placeholder="Issuing Company TIN" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyTIN()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save TIN</button><button type="button" onclick="clearProformaCompanyTIN()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Delete TIN</button></div><div class="flex gap-2"><input id="pf-company-address" placeholder="Issuer Address" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><input id="pf-company-phone" placeholder="Issuer Phone" class="border border-[#D4D7DC] p-2 rounded text-xs flex-1"><button type="button" onclick="saveProformaCompanyContact()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Save</button><button type="button" onclick="clearProformaCompanyContact()" class="border border-[#D4D7DC] px-3 rounded text-xs font-semibold">Delete</button></div></div><div id="pf-issuer-employee-view" class="hidden text-[11px] text-[#6B6C72]"><div id="pf-issuer-employee-tin"></div><div id="pf-issuer-employee-address"></div><div id="pf-issuer-employee-phone"></div></div></div>
           <input id="pf-customer" list="customer-list" placeholder="Customer / Company Name" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]" required>
           <input id="pf-contact-person" placeholder="Contact Person" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]">
           <input id="pf-tin" placeholder="Customer TIN (required for withholding)" class="border border-[#D4D7DC] p-2 rounded text-xs focus :border-[#2CA01C]" required>
@@ -4876,12 +4877,12 @@ const COMPANY_OPTIONS = {
     phone: '978 23 48 20',
     tin: '00930533495'
   },
-  PRIME: { key: 'PRIME', name: 'PRIME Investment Group', address: '', phone: '', tin: '' }
+  PRIME: { key: 'PRIME', name: 'PRIME Investment Group', address: 'Meskel Flower, Addis Ababa, Ethiopia', phone: '978 23 48 20', tin: '' }
 };
 let activeProformaRequestId = null;
 function issuerAdminAllowed(){return currentRole==='admin';}
 function refreshIssuerRoleAccess(){const admin=issuerAdminAllowed();document.getElementById('pf-issuer-admin-controls')?.classList.toggle('hidden',!admin);document.getElementById('pf-issuer-employee-view')?.classList.toggle('hidden',admin);const c=getCompany(document.getElementById('pf-company')?.value||'BLACKROCK');const t=document.getElementById('pf-issuer-employee-tin'),a=document.getElementById('pf-issuer-employee-address'),p=document.getElementById('pf-issuer-employee-phone');if(t)t.textContent=c.tin?'TIN: '+c.tin:'TIN not configured';if(a)a.textContent=c.address||'Address not configured';if(p)p.textContent=c.phone?'Tel: '+c.phone:'Phone not configured';}
-function syncProformaCompanyTIN(){ const key=document.getElementById('pf-company')?.value||'BLACKROCK'; const c=getCompany(key)||COMPANY_OPTIONS[key]; const el=document.getElementById('pf-company-tin'); if(el) el.value=c?.tin||''; const addr=document.getElementById('pf-company-address');if(addr)addr.value=c?.address||'';const phone=document.getElementById('pf-company-phone');if(phone)phone.value=c?.phone||'';const out=document.getElementById('pf-out-company-tin'); if(out) out.textContent=c?.tin?`TIN: ${c.tin}`:''; loadIssuerBankAccounts(key);refreshIssuerRoleAccess(); }
+function syncProformaCompanyTIN(){ const key=document.getElementById('pf-company')?.value||'BLACKROCK'; const c=getCompany(key)||COMPANY_OPTIONS[key]; const nm=document.getElementById('pf-company-name');if(nm)nm.value=c?.name||'';const companySelect=document.getElementById('pf-company');if(companySelect){[...companySelect.options].forEach(o=>{o.textContent=getCompany(o.value).name;});} const el=document.getElementById('pf-company-tin'); if(el) el.value=c?.tin||''; const addr=document.getElementById('pf-company-address');if(addr)addr.value=c?.address||'';const phone=document.getElementById('pf-company-phone');if(phone)phone.value=c?.phone||'';const out=document.getElementById('pf-out-company-tin'); if(out) out.textContent=c?.tin?`TIN: ${c.tin}`:''; loadIssuerBankAccounts(key);refreshIssuerRoleAccess(); }
 
 // ---- Chart of Accounts ----
 const CHART_OF_ACCOUNTS = {
@@ -6685,6 +6686,7 @@ const BOKAN_COMPANY_SETTINGS_KEY='bokan_proforma_company_settings_v2';
 function getProformaCompanySettings(){try{return JSON.parse(localStorage.getItem(BOKAN_COMPANY_SETTINGS_KEY)||'{}')||{};}catch(e){return {};}}
 function saveProformaCompanySettings(all){localStorage.setItem(BOKAN_COMPANY_SETTINGS_KEY,JSON.stringify(all||{}));}
 function getCompany(key){const base=COMPANY_OPTIONS[key]||COMPANY_OPTIONS.BLACKROCK;const all=getProformaCompanySettings();return {...base,...(all[key]||{}),key};}
+function saveProformaCompanyName(){if(!issuerAdminAllowed()){alert('Only an administrator can edit issuer details.');return;}const key=document.getElementById('pf-company')?.value||'BLACKROCK';const name=(document.getElementById('pf-company-name')?.value||'').trim();if(!name){alert('Company name cannot be blank.');return;}const all=getProformaCompanySettings();all[key]={...(all[key]||{}),name};saveProformaCompanySettings(all);syncProformaCompanyTIN();}
 function saveProformaCompanyTIN(){if(!issuerAdminAllowed()){alert('Only an administrator can edit issuer details.');return;}const key=document.getElementById('pf-company')?.value||'BLACKROCK';const tin=(document.getElementById('pf-company-tin')?.value||'').trim();const all=getProformaCompanySettings();all[key]={...(all[key]||{}),tin};saveProformaCompanySettings(all);syncProformaCompanyTIN();}
 function clearProformaCompanyTIN(){if(!issuerAdminAllowed())return;const key=document.getElementById('pf-company')?.value||'BLACKROCK';const all=getProformaCompanySettings();all[key]={...(all[key]||{}),tin:''};saveProformaCompanySettings(all);syncProformaCompanyTIN();}
 function clearProformaCompanyContact(){if(!issuerAdminAllowed())return;const key=document.getElementById('pf-company')?.value||'BLACKROCK';const all=getProformaCompanySettings();all[key]={...(all[key]||{}),address:'',phone:''};saveProformaCompanySettings(all);syncProformaCompanyTIN();}
@@ -6903,7 +6905,7 @@ const DEFAULT_TERMS = {
   validity: ['Price is valid for 3 days', 'Price is valid for 7 days', 'Price is valid for 15 days', 'Price is valid for 30 days'],
   payment: ['Payment is 100% upfront', '50% advance, 50% on delivery', 'Payment on delivery', 'Net 15 days', 'Net 30 days'],
   delivery: ['2-3 business days', '3-5 business days', '5-7 business days', '2 weeks'],
-  transport: ['Transportation will be paid by customer', 'Transportation is included', 'Pickup by customer from warehouse']
+  transport: ['Transportation and loading will be paid by customer', 'Transportation will be paid by customer', 'Transportation is included', 'Pickup by customer from warehouse']
 };
 async function loadProformaTermOptions() {
   const companyKey = document.getElementById('pf-company')?.value ||'BLACKROCK';
