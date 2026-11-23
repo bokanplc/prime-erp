@@ -381,6 +381,8 @@ table tbody tr:hover{background:#F4F8FC!important}
 
 /* Print */
 @media print{
+  .pf-bank-box:not(.hidden){display:block!important;visibility:visible!important;}
+  .pf-bank-box:not(.hidden) *{visibility:visible!important;}
   #sidebar{display:none!important}
   main{width:100%!important}
   main>.max-w-6xl{max-width:none!important;padding:0!important}
