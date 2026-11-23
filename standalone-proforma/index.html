@@ -9954,5 +9954,43 @@ async function enter(user){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',showSignIn,{once:true});else showSignIn();
 })();
 </script>
+
+<script id="bokan-preview-navigation-recovery">
+(function(){
+  // Keep shared legacy helpers available to inline handlers and isolated module code.
+  window.escapeHtml = window.escapeHtml || function(value){
+    return String(value == null ? '' : value).replace(/[&<>"']/g,function(ch){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]);
+    });
+  };
+  function recover(){
+    const nav=document.getElementById('sidebar-nav');
+    if(!nav)return;
+    const cfg=window.BOKAN_CONFIG||{};
+    const preview=cfg.DEMO_REVIEW_MODE===true && cfg.PRODUCTION_MODE!==true;
+    if(preview && !window.BOKAN_PRODUCTION_AUTH?.enabled){
+      try{ if(typeof currentRole!=='undefined' && !currentRole) currentRole='admin'; }catch(_){}
+      try{ if(typeof currentDeptTabs!=='undefined') currentDeptTabs=null; }catch(_){}
+    }
+    try{
+      if(typeof buildTabs==='function'){
+        buildTabs();
+      }
+    }catch(err){console.error('Primary navigation recovery:',err);}
+    if(nav.children.length)return;
+    // Last-resort menu from the known Administrator tab list.
+    const ids=(window.BOKAN_PREVIEW_ADMIN_TABS||['overview','stockreport','procurement','dataentry','sales','salescalllog','report','salestargets','tripcost','visitreport','salesorders','proformarequest','proforma','billing','repository','expenseledger','users','reportscenter']);
+    const labels={overview:'Dashboard Summary',stockreport:'Stock Reports & Balances',procurement:'Purchases & Purchase Orders',dataentry:'Data Entry',sales:'Sales Workspace',salescalllog:'Sales Call Log',report:'Sales Reports',salestargets:'Sales Targets',tripcost:'Trip Costs',visitreport:'Visit Reports',salesorders:'Sales Orders',proformarequest:'Proforma Requests',proforma:'Proforma Maker',billing:'Billing',repository:'Document Repository',expenseledger:'Direct Transaction Costs',users:'User Management',reportscenter:'Reports Center'};
+    nav.innerHTML='';
+    ids.forEach(function(id){
+      if(!document.getElementById('tab-'+id))return;
+      const b=document.createElement('button');b.type='button';b.className='nav-link';b.dataset.tabId=id;b.textContent=labels[id]||id;b.addEventListener('click',function(){if(typeof showTab==='function')showTab(id);});nav.appendChild(b);
+    });
+    if(!nav.children.length)console.error('Navigation recovery: no matching tab panels found.');
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',recover,{once:true});else recover();
+  window.addEventListener('load',recover,{once:true});
+})();
+</script>
 </body>
 </html>
