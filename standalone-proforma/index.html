@@ -7,6 +7,13 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>
 <script src="config/config.js"></script>
+<script>
+// Early global helper: legacy inline handlers and separately loaded modules both rely on this name.
+window.escapeHtml = window.escapeHtml || function(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+};
+var escapeHtml = window.escapeHtml;
+</script>
 <style>
   @media print {
     body * { visibility: hidden; }
