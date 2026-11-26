@@ -15,7 +15,7 @@ An independent sales workflow prototype intended to become a secure employee-fac
 - [x] Scope approved
 - [x] Isolated branch and draft PR created
 - [x] First browser-only interface committed
-- [x] Initial forms/toggles corrected and duplicate-ID check passed
+- [x] Initial forms/toggles corrected and duplicate-ID check passed\n- [x] Added daily submission prototype fields for calls, visits, quotes, wins, stalled deals, and narrative summary\n- [x] Added supervisor approve/return controls in the local prototype (not secure server-side yet)
 - [x] V6.7 source audit identified request/maker sections and key functions
 - [x] Draft database schema added (not deployed)
 - [ ] Extract and verify original V6.7 proforma request/maker
