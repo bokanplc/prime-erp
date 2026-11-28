@@ -17,7 +17,7 @@ Standalone sales CRM frontend for the independent Supabase project **BOKAN Sales
 - Lead stage changes, request status updates, task completion, live dashboard counts and performance totals.
 - Team invitation form + deployed `crm-invite-member` Supabase Edge Function. Server validates caller membership/role, sends an auth invitation, and creates membership. Owner can invite supervisors; supervisors/managers may invite junior/senior sales roles.
 - Audit triggers for lead, task and proforma-request changes.
-- No demo data.
+- Role-aware navigation (owner/manager/supervisor management views are hidden from ordinary sales roles; junior users do not see the maker queue).\n- Field visit customer names are preserved in the visit notes.\n- Baseline Cloudflare Pages security headers in `_headers`.\n- No demo data.
 
 ## Release still pending
 - Cloudflare Pages deployment and browser QA (not deployed yet).
